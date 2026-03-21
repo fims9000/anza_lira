@@ -1,0 +1,28 @@
+# Fast classification smoke test (1 epoch, small batch)
+dataset: cifar10
+data_root: ./data
+val_fraction: 0.1
+variant: baseline
+# Options: baseline, az_full, az_no_fuzzy, az_no_aniso, az_fixed_dirs, az_cat
+num_rules: 4
+
+epochs: 1
+batch_size: 32
+lr: 0.001
+weight_decay: 0.0001
+seed: 0
+deterministic: false
+num_workers: 0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+
+results_dir: ./results
+run_name: null
+device: null
+
+timing_warmup: 1
+timing_iters: 2
+

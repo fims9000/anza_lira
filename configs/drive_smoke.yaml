@@ -1,0 +1,41 @@
+# Fast smoke config for DRIVE segmentation.
+
+dataset: drive
+data_root: ./data
+val_fraction: 0.2
+use_fov_mask: true
+
+variant: az_thesis
+num_rules: 4
+
+epochs: 1
+batch_size: 1
+lr: 0.0003
+weight_decay: 0.0001
+seed: 0
+deterministic: false
+num_workers: 0
+
+drive_patch_size: null
+drive_foreground_bias: 0.0
+
+bce_weight: 1.0
+dice_weight: 1.0
+seg_threshold: 0.6
+aux_loss_weight: 0.2
+boundary_loss_weight: 0.1
+bce_pos_weight: auto
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 25.0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+
+results_dir: ./results
+run_name: null
+device: null
+
+timing_warmup: 1
+timing_iters: 1

@@ -1,0 +1,46 @@
+# DRIVE retinal vessel segmentation configuration.
+# Expected layout:
+#   data/DRIVE/training/{images,1st_manual,mask}
+#   data/DRIVE/test/{images,1st_manual,mask}
+
+dataset: drive
+data_root: ./data
+val_fraction: 0.2
+use_fov_mask: true
+
+variant: az_thesis
+# Options: baseline, az_full, az_no_fuzzy, az_no_aniso, az_fixed_dirs, az_cat, az_sota, az_sota_pure, az_thesis
+
+num_rules: 4
+
+epochs: 80
+batch_size: 2
+lr: 0.0003
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+drive_patch_size: 256
+drive_foreground_bias: 0.75
+
+bce_weight: 1.0
+dice_weight: 1.0
+seg_threshold: 0.6
+aux_loss_weight: 0.2
+boundary_loss_weight: 0.1
+bce_pos_weight: auto
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 25.0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+
+results_dir: ./results
+run_name: null
+device: null
+
+timing_warmup: 1
+timing_iters: 5
