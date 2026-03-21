@@ -1,0 +1,12 @@
+{
+  "variant": "az_no_aniso",
+  "dataset": "cifar10",
+  "epochs": 1,
+  "batch_size": 32,
+  "num_parameters": 257918,
+  "best_val_accuracy": 45.28,
+  "test_loss": 1.4947714860916137,
+  "test_accuracy": 46.01,
+  "seconds_per_train_epoch_mean": 21.70529929967597,
+  "seconds_per_forward_batch": 0.004754049936309457
+}

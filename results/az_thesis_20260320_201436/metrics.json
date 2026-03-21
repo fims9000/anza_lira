@@ -1,0 +1,29 @@
+{
+  "variant": "az_thesis",
+  "dataset": "drive",
+  "task": "segmentation",
+  "epochs": 80,
+  "batch_size": 2,
+  "num_parameters": 2407736,
+  "test_loss": 1.367284244298935,
+  "seconds_per_train_epoch_mean": 1.3363185812486336,
+  "seconds_per_forward_batch": 0.1734366599470377,
+  "regularization_weights": {
+    "membership_entropy": 0.0005,
+    "membership_smoothness": 0.0005,
+    "geometry_smoothness": 0.0005,
+    "hyperbolicity_penalty": 0.001
+  },
+  "bce_pos_weight": 6.9816205972426495,
+  "best_val_dice": 0.7348144298644609,
+  "test_bce_loss": 0.7382534980773926,
+  "test_dice_loss": 0.3607397735118866,
+  "test_dice": 0.7283040483933891,
+  "test_iou": 0.5727029699774402,
+  "test_precision": 0.7897651512545745,
+  "test_recall": 0.675718299520995,
+  "test_specificity": 0.973764636431718,
+  "test_accuracy": 0.9358270552514543,
+  "test_balanced_accuracy": 0.8247414679763565,
+  "final_anisotropy_gap": 0.09436858259141445
+}

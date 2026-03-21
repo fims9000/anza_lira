@@ -1,0 +1,12 @@
+{
+  "variant": "az_full",
+  "dataset": "cifar10",
+  "epochs": 1,
+  "batch_size": 32,
+  "num_parameters": 257918,
+  "best_val_accuracy": 45.38,
+  "test_loss": 1.491460174369812,
+  "test_accuracy": 46.23,
+  "seconds_per_train_epoch_mean": 24.729192099999636,
+  "seconds_per_forward_batch": 0.003985550021752715
+}

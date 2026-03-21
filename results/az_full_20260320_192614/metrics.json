@@ -1,0 +1,29 @@
+{
+  "variant": "az_full",
+  "dataset": "drive",
+  "task": "segmentation",
+  "epochs": 1,
+  "batch_size": 1,
+  "num_parameters": 1497846,
+  "test_loss": 1.958915114402771,
+  "seconds_per_train_epoch_mean": 0.6675609000958502,
+  "seconds_per_forward_batch": 0.029799200128763914,
+  "regularization_weights": {
+    "membership_entropy": 0.0005,
+    "membership_smoothness": 0.0005,
+    "geometry_smoothness": 0.0005,
+    "hyperbolicity_penalty": 0.001
+  },
+  "bce_pos_weight": 5.666666666666667,
+  "best_val_dice": 5.208333333062066e-11,
+  "test_bce_loss": 1.1847362518310547,
+  "test_dice_loss": 0.7741788625717163,
+  "test_dice": 5.208333333062066e-11,
+  "test_iou": 5.208333333062066e-11,
+  "test_precision": 1.0,
+  "test_recall": 5.208333333062066e-11,
+  "test_specificity": 1.0,
+  "test_accuracy": 0.8500000000011718,
+  "test_balanced_accuracy": 0.5000000000260416,
+  "final_anisotropy_gap": 2.079441547393799
+}

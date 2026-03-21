@@ -1,0 +1,18 @@
+{
+  "variant": "az_full",
+  "dataset": "cifar10",
+  "epochs": 1,
+  "batch_size": 32,
+  "num_parameters": 262023,
+  "best_val_accuracy": 43.24,
+  "test_loss": 1.5095968633651733,
+  "test_accuracy": 43.83,
+  "seconds_per_train_epoch_mean": 32.7477616998367,
+  "seconds_per_forward_batch": 0.005593799985945225,
+  "regularization_weights": {
+    "membership_entropy": 0.0005,
+    "membership_smoothness": 0.0005,
+    "hyperbolicity_penalty": 0.001
+  },
+  "final_anisotropy_gap": 1.3816712591807048
+}

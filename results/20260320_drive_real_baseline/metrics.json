@@ -1,0 +1,29 @@
+{
+  "variant": "baseline",
+  "dataset": "drive",
+  "task": "segmentation",
+  "epochs": 80,
+  "batch_size": 2,
+  "num_parameters": 1542529,
+  "test_loss": 0.8759983301162719,
+  "seconds_per_train_epoch_mean": 0.30138843121239917,
+  "seconds_per_forward_batch": 0.009581240080296993,
+  "regularization_weights": {
+    "membership_entropy": 0.0005,
+    "membership_smoothness": 0.0005,
+    "geometry_smoothness": 0.0005,
+    "hyperbolicity_penalty": 0.001
+  },
+  "bce_pos_weight": 6.9816205972426495,
+  "best_val_dice": 0.7479451249099477,
+  "test_bce_loss": 0.4504734054207802,
+  "test_dice_loss": 0.42552492022514343,
+  "test_dice": 0.7656454638089705,
+  "test_iou": 0.6202800260058198,
+  "test_precision": 0.6917628420507089,
+  "test_recall": 0.8571970175660331,
+  "test_specificity": 0.9442912929548689,
+  "test_accuracy": 0.9332052780179031,
+  "test_balanced_accuracy": 0.9007441552604509,
+  "final_anisotropy_gap": 0.0
+}

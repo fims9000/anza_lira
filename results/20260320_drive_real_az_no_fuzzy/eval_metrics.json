@@ -1,0 +1,18 @@
+{
+  "test_loss": 0.8251857459545135,
+  "test_bce_loss": 0.49291282892227173,
+  "test_dice_loss": 0.3322729140520096,
+  "test_dice": 0.7680161949809041,
+  "test_iou": 0.6233979633920617,
+  "test_precision": 0.7150139148990187,
+  "test_recall": 0.8295054609286984,
+  "test_specificity": 0.951778237765289,
+  "test_accuracy": 0.9362144383727001,
+  "test_balanced_accuracy": 0.8906418493469936,
+  "bce_pos_weight": 6.9816205972426495,
+  "variant": "az_no_fuzzy",
+  "task": "segmentation",
+  "test_wall_seconds": 3.7829014998860657,
+  "seconds_per_forward_batch": 0.029404599987901747,
+  "num_parameters": 1497846
+}

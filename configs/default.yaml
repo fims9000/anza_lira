@@ -1,12 +1,12 @@
-# Default classification experiment configuration (CIFAR-10).
-# For retinal vessel segmentation, use configs/drive.yaml.
+# Default experiment configuration (CIFAR-10).
+# Switch to Fashion-MNIST by setting dataset: fashion_mnist
 
 dataset: cifar10
 data_root: ./data
 val_fraction: 0.1
 
 variant: baseline
-# Options: baseline, az_full, az_no_fuzzy, az_no_aniso, az_fixed_dirs, az_cat
+# Options: baseline, az_full, az_no_fuzzy, az_no_aniso, az_fixed_dirs
 
 num_rules: 4
 
@@ -15,13 +15,7 @@ batch_size: 128
 lr: 0.001
 weight_decay: 0.0001
 seed: 42
-deterministic: false
 num_workers: 0
-
-reg_membership_entropy: 0.0005
-reg_membership_smoothness: 0.0005
-reg_geometry_smoothness: 0.0005
-reg_hyperbolicity: 0.001
 
 results_dir: ./results
 run_name: null  # if null, uses variant + timestamp
