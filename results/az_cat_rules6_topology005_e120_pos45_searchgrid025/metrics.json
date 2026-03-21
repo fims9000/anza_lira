@@ -1,0 +1,1432 @@
+{
+  "run_name": "az_cat_rules6_topology005_e120_pos45_searchgrid025",
+  "variant": "az_cat",
+  "dataset": "drive",
+  "task": "segmentation",
+  "epochs": 120,
+  "batch_size": 2,
+  "seed": 42,
+  "num_rules": 6,
+  "num_parameters": 1517540,
+  "test_loss": 0.659615159034729,
+  "seconds_per_train_epoch_mean": 0.5728868491598404,
+  "seconds_per_forward_batch": 0.020627159997820853,
+  "regularization_weights": {
+    "membership_entropy": 0.0005,
+    "membership_smoothness": 0.0005,
+    "geometry_smoothness": 0.0005,
+    "hyperbolicity_penalty": 0.001
+  },
+  "bce_loss_weight": 1.0,
+  "dice_loss_weight": 1.0,
+  "aux_loss_weight": 0.2,
+  "boundary_loss_weight": 0.1,
+  "bce_pos_weight": 4.5,
+  "best_val_dice": 0.8249747868341699,
+  "seg_threshold_base": 0.6,
+  "selected_threshold": 0.675,
+  "threshold_selection_mode": "val_sweep",
+  "topology_loss_weight": 0.05,
+  "topology_num_iters": 10,
+  "threshold_selection_metric": "dice",
+  "val_threshold_sweep": [
+    {
+      "threshold": 0.3,
+      "dice": 0.7606648031113635,
+      "iou": 0.6137684179559162,
+      "precision": 0.6587637818067893,
+      "recall": 0.8998598181230366,
+      "specificity": 0.9316894842471815,
+      "accuracy": 0.9276210603693867,
+      "balanced_accuracy": 0.915774651185109
+    },
+    {
+      "threshold": 0.325,
+      "dice": 0.7660164555792169,
+      "iou": 0.6207671561283536,
+      "precision": 0.6703702704890186,
+      "recall": 0.8934977175515282,
+      "specificity": 0.9356138622727713,
+      "accuracy": 0.9302306349352233,
+      "balanced_accuracy": 0.9145557899121497
+    },
+    {
+      "threshold": 0.35,
+      "dice": 0.7715436493068921,
+      "iou": 0.6280594738849593,
+      "precision": 0.6819649510143007,
+      "recall": 0.8882139391107838,
+      "specificity": 0.9392959297088618,
+      "accuracy": 0.9327667003583602,
+      "balanced_accuracy": 0.9137549344098228
+    },
+    {
+      "threshold": 0.375,
+      "dice": 0.7761812174958068,
+      "iou": 0.6342288814260827,
+      "precision": 0.6927483069978294,
+      "recall": 0.8824628877467084,
+      "specificity": 0.9426408693682572,
+      "accuracy": 0.9349490030322551,
+      "balanced_accuracy": 0.9125518785574829
+    },
+    {
+      "threshold": 0.4,
+      "dice": 0.7805158876113762,
+      "iou": 0.6400377665295078,
+      "precision": 0.7030421756165871,
+      "recall": 0.8771791093059641,
+      "specificity": 0.9457013574660662,
+      "accuracy": 0.9369429385279823,
+      "balanced_accuracy": 0.9114402333860152
+    },
+    {
+      "threshold": 0.425,
+      "dice": 0.7835701469376228,
+      "iou": 0.6441556370595748,
+      "precision": 0.7119734445685589,
+      "recall": 0.8711764494447104,
+      "specificity": 0.9483509710860283,
+      "accuracy": 0.9384866305246743,
+      "balanced_accuracy": 0.9097637102653693
+    },
+    {
+      "threshold": 0.45,
+      "dice": 0.7869002483985182,
+      "iou": 0.6486690376119063,
+      "precision": 0.7214647448384163,
+      "recall": 0.8653894540096095,
+      "specificity": 0.9510374580565663,
+      "accuracy": 0.9400900486998098,
+      "balanced_accuracy": 0.9082134560330879
+    },
+    {
+      "threshold": 0.475,
+      "dice": 0.7892520354742631,
+      "iou": 0.6518714535138445,
+      "precision": 0.7300641613199725,
+      "recall": 0.8588835771539992,
+      "specificity": 0.9534605639515614,
+      "accuracy": 0.9413718643756345,
+      "balanced_accuracy": 0.9061720705527803
+    },
+    {
+      "threshold": 0.5,
+      "dice": 0.7917598744616554,
+      "iou": 0.6553000994805861,
+      "precision": 0.7391914217138683,
+      "recall": 0.8523777002983889,
+      "specificity": 0.9559258108186434,
+      "accuracy": 0.9426904346228089,
+      "balanced_accuracy": 0.9041517555585161
+    },
+    {
+      "threshold": 0.525,
+      "dice": 0.793423271500878,
+      "iou": 0.6575821104123949,
+      "precision": 0.7473236125671885,
+      "recall": 0.8455842708745748,
+      "specificity": 0.9581013385026281,
+      "accuracy": 0.9437195626206035,
+      "balanced_accuracy": 0.9018428046886015
+    },
+    {
+      "threshold": 0.55,
+      "dice": 0.7954386622803629,
+      "iou": 0.6603554649913228,
+      "precision": 0.7564351941905737,
+      "recall": 0.8386830092376842,
+      "specificity": 0.9604243595889169,
+      "accuracy": 0.9448635486538663,
+      "balanced_accuracy": 0.8995536844133005
+    },
+    {
+      "threshold": 0.575,
+      "dice": 0.79702433228293,
+      "iou": 0.6625440178649081,
+      "precision": 0.7650247933885075,
+      "recall": 0.8318176916718192,
+      "specificity": 0.9625577463008148,
+      "accuracy": 0.9458467334374738,
+      "balanced_accuracy": 0.897187718986317
+    },
+    {
+      "threshold": 0.6,
+      "dice": 0.7992344497608005,
+      "iou": 0.6656040803316239,
+      "precision": 0.7745329466514553,
+      "recall": 0.8255634233133872,
+      "specificity": 0.9647806825783972,
+      "accuracy": 0.9469861251493179,
+      "balanced_accuracy": 0.8951720529458922
+    },
+    {
+      "threshold": 0.625,
+      "dice": 0.7994511294068328,
+      "iou": 0.6659046949183326,
+      "precision": 0.7828963236054912,
+      "recall": 0.8167211818411212,
+      "specificity": 0.966808716860078,
+      "accuracy": 0.9476247358265208,
+      "balanced_accuracy": 0.8917649493505996
+    },
+    {
+      "threshold": 0.65,
+      "dice": 0.7996515369708963,
+      "iou": 0.666182830736517,
+      "precision": 0.7911419123338524,
+      "recall": 0.8083462132921864,
+      "specificity": 0.9687261310900306,
+      "accuracy": 0.948226591932374,
+      "balanced_accuracy": 0.8885361721911085
+    },
+    {
+      "threshold": 0.675,
+      "dice": 0.8000790911705853,
+      "iou": 0.6667765227552906,
+      "precision": 0.8002229333717593,
+      "recall": 0.7999353006722261,
+      "specificity": 0.9707330948856678,
+      "accuracy": 0.9489019571809267,
+      "balanced_accuracy": 0.885334197778947
+    },
+    {
+      "threshold": 0.7,
+      "dice": 0.7998399010297639,
+      "iou": 0.666444336648173,
+      "precision": 0.809799226376935,
+      "recall": 0.7901225692822723,
+      "specificity": 0.9728032701394353,
+      "accuracy": 0.9494532757511739,
+      "balanced_accuracy": 0.8814629197108539
+    },
+    {
+      "threshold": 0.725,
+      "dice": 0.7992046981719474,
+      "iou": 0.6655628123755357,
+      "precision": 0.8191561627293309,
+      "recall": 0.7802020056792422,
+      "specificity": 0.9747575577199641,
+      "accuracy": 0.9498897362859529,
+      "balanced_accuracy": 0.8774797816996032
+    },
+    {
+      "threshold": 0.75,
+      "dice": 0.7975389204810669,
+      "iou": 0.6632554966354504,
+      "precision": 0.8285426512745686,
+      "recall": 0.7687717910931423,
+      "specificity": 0.9766855071929385,
+      "accuracy": 0.9501102637140517,
+      "balanced_accuracy": 0.8727286491430404
+    },
+    {
+      "threshold": 0.775,
+      "dice": 0.7950070921986203,
+      "iou": 0.6597608061023763,
+      "precision": 0.8389079588090369,
+      "recall": 0.7554724848137179,
+      "specificity": 0.9787398795821733,
+      "accuracy": 0.9502021501424263,
+      "balanced_accuracy": 0.8671061821979456
+    },
+    {
+      "threshold": 0.8,
+      "dice": 0.7917410928647284,
+      "iou": 0.6552743689198018,
+      "precision": 0.8501484903481892,
+      "recall": 0.740843247906351,
+      "specificity": 0.9808627310510495,
+      "accuracy": 0.9501837728567514,
+      "balanced_accuracy": 0.8608529894787003
+    }
+  ],
+  "val_selected_threshold_metrics": {
+    "val_loss": 0.5934278070926666,
+    "val_bce_loss": 0.3005267083644867,
+    "val_dice_loss": 0.28169241547584534,
+    "val_topology_loss": 0.2241736352443695,
+    "val_dice": 0.8097103052408429,
+    "val_iou": 0.6802632239916412,
+    "val_precision": 0.7946949913442111,
+    "val_recall": 0.8253039583143417,
+    "val_specificity": 0.9669016083254509,
+    "val_accuracy": 0.9478742266099432,
+    "val_balanced_accuracy": 0.8961027833198962
+  },
+  "test_bce_loss": 0.3491526901721954,
+  "test_dice_loss": 0.2969759404659271,
+  "test_topology_loss": 0.2697308540344238,
+  "test_dice": 0.7894443093606188,
+  "test_iou": 0.6521338220661783,
+  "test_precision": 0.7891964180674487,
+  "test_recall": 0.7896923564309851,
+  "test_specificity": 0.9692343934872771,
+  "test_accuracy": 0.9463809315836897,
+  "test_balanced_accuracy": 0.8794633749591312,
+  "test_threshold_dominance_search": {
+    "selection_metric": "dice",
+    "min_delta": 0.0,
+    "rows": [
+      {
+        "threshold": 0.3,
+        "selection_value": 0.7563330653894944,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7563330653894944,
+            "baseline": 0.790526192181475,
+            "delta": -0.03419312679198061,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6081476031413245,
+            "baseline": 0.6536116673806402,
+            "delta": -0.045464064239315705,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.664773860380175,
+            "baseline": 0.8197095543674698,
+            "delta": -0.1549356939872948,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.877141655226619,
+            "baseline": 0.7633493695998822,
+            "delta": 0.11379228562673682,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9354868357331183,
+            "baseline": 0.975512145707076,
+            "delta": -0.0400253099739577,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.9063142454798687,
+            "baseline": 0.8694307576534791,
+            "delta": 0.036883487826389616,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.325,
+        "selection_value": 0.7614013575717642,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7614013575717642,
+            "baseline": 0.790526192181475,
+            "delta": -0.029124834609710826,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6147280737197179,
+            "baseline": 0.6536116673806402,
+            "delta": -0.03888359366092231,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.6758227158412935,
+            "baseline": 0.8197095543674698,
+            "delta": -0.14388683852617634,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8717958483438927,
+            "baseline": 0.7633493695998822,
+            "delta": 0.10844647874401048,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9390071036592912,
+            "baseline": 0.975512145707076,
+            "delta": -0.03650504204778482,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.9054014760015919,
+            "baseline": 0.8694307576534791,
+            "delta": 0.03597071834811283,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.35,
+        "selection_value": 0.7657740217062061,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7657740217062061,
+            "baseline": 0.790526192181475,
+            "delta": -0.024752170475268898,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6204487955802248,
+            "baseline": 0.6536116673806402,
+            "delta": -0.03316287180041544,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.6860203912410082,
+            "baseline": 0.8197095543674698,
+            "delta": -0.13368916312646162,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8665106318889175,
+            "baseline": 0.7633493695998822,
+            "delta": 0.10316126228903533,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9421567107537596,
+            "baseline": 0.975512145707076,
+            "delta": -0.03335543495331639,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.9043336713213386,
+            "baseline": 0.8694307576534791,
+            "delta": 0.03490291366785947,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.375,
+        "selection_value": 0.7696149380251135,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7696149380251135,
+            "baseline": 0.790526192181475,
+            "delta": -0.020911254156361525,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.625507381233815,
+            "baseline": 0.6536116673806402,
+            "delta": -0.028104286146825253,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.6956710840610236,
+            "baseline": 0.8197095543674698,
+            "delta": -0.12403847030644621,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8611475134554053,
+            "baseline": 0.7633493695998822,
+            "delta": 0.0977981438555231,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9450545815749248,
+            "baseline": 0.975512145707076,
+            "delta": -0.03045756413215117,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.9031010475151651,
+            "baseline": 0.8694307576534791,
+            "delta": 0.033670289861685965,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.4,
+        "selection_value": 0.7732135975379554,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7732135975379554,
+            "baseline": 0.790526192181475,
+            "delta": -0.01731259464351964,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.630275650256794,
+            "baseline": 0.6536116673806402,
+            "delta": -0.023336017123846253,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7049067005695497,
+            "baseline": 0.8197095543674698,
+            "delta": -0.1148028537979201,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8561790983798144,
+            "baseline": 0.7633493695998822,
+            "delta": 0.09282972877993223,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9477234405606979,
+            "baseline": 0.975512145707076,
+            "delta": -0.0277887051463781,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.9019512694702562,
+            "baseline": 0.8694307576534791,
+            "delta": 0.032520511816777065,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.425,
+        "selection_value": 0.7762683040250516,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7762683040250516,
+            "baseline": 0.790526192181475,
+            "delta": -0.01425788815642337,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6343451808744732,
+            "baseline": 0.6536116673806402,
+            "delta": -0.019266486506167024,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7135674307345776,
+            "baseline": 0.8197095543674698,
+            "delta": -0.10614212363289222,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8510496858819135,
+            "baseline": 0.7633493695998822,
+            "delta": 0.08770031628203134,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9501738924487704,
+            "baseline": 0.975512145707076,
+            "delta": -0.025338253258305632,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.900611789165342,
+            "baseline": 0.8694307576534791,
+            "delta": 0.03118103151186291,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.45,
+        "selection_value": 0.7787619646441843,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7787619646441843,
+            "baseline": 0.790526192181475,
+            "delta": -0.011764227537290672,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6376823699380522,
+            "baseline": 0.6536116673806402,
+            "delta": -0.015929297442588086,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.721524408072137,
+            "baseline": 0.8197095543674698,
+            "delta": -0.09818514629533281,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8458631452664188,
+            "baseline": 0.7633493695998822,
+            "delta": 0.08251377566653662,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9523842227762498,
+            "baseline": 0.975512145707076,
+            "delta": -0.023127922930826217,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8991236840213344,
+            "baseline": 0.8694307576534791,
+            "delta": 0.029692926367855255,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.475,
+        "selection_value": 0.7809540815382691,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7809540815382691,
+            "baseline": 0.790526192181475,
+            "delta": -0.009572110643205956,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6406272886945301,
+            "baseline": 0.6536116673806402,
+            "delta": -0.012984378686110132,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.729347074907609,
+            "baseline": 0.8197095543674698,
+            "delta": -0.09036247945986087,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8404203936992908,
+            "baseline": 0.7633493695998822,
+            "delta": 0.07707102409940858,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9545127451272494,
+            "baseline": 0.975512145707076,
+            "delta": -0.020999400579826633,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8974665694132701,
+            "baseline": 0.8694307576534791,
+            "delta": 0.028035811759790974,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.5,
+        "selection_value": 0.7828654443930447,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7828654443930447,
+            "baseline": 0.790526192181475,
+            "delta": -0.007660747788430289,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6432036957513311,
+            "baseline": 0.6536116673806402,
+            "delta": -0.010407971629309176,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7369136766384397,
+            "baseline": 0.8197095543674698,
+            "delta": -0.08279587772903019,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8349291697899618,
+            "baseline": 0.7633493695998822,
+            "delta": 0.07157980019007959,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9565243628698845,
+            "baseline": 0.975512145707076,
+            "delta": -0.01898778283719149,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8957267663299231,
+            "baseline": 0.8694307576534791,
+            "delta": 0.026296008676443994,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.525,
+        "selection_value": 0.7845337975202806,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7845337975202806,
+            "baseline": 0.790526192181475,
+            "delta": -0.005992394661194389,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6454591628460964,
+            "baseline": 0.6536116673806402,
+            "delta": -0.008152504534543858,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7442838101097138,
+            "baseline": 0.8197095543674698,
+            "delta": -0.07542574425775606,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8293860112282748,
+            "baseline": 0.7633493695998822,
+            "delta": 0.06603664162839262,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9584385180232567,
+            "baseline": 0.975512145707076,
+            "delta": -0.01707362768381926,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8939122646257658,
+            "baseline": 0.8694307576534791,
+            "delta": 0.024481506972286682,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.55,
+        "selection_value": 0.7859441546040585,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7859441546040585,
+            "baseline": 0.790526192181475,
+            "delta": -0.004582037577416487,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6473706770447125,
+            "baseline": 0.6536116673806402,
+            "delta": -0.006240990335927732,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7515936547658019,
+            "baseline": 0.8197095543674698,
+            "delta": -0.06811589960166797,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8235849105598759,
+            "baseline": 0.7633493695998822,
+            "delta": 0.06023554095999373,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9602988920069063,
+            "baseline": 0.975512145707076,
+            "delta": -0.015213253700169682,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8919419012833911,
+            "baseline": 0.8694307576534791,
+            "delta": 0.022511143629912023,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.575,
+        "selection_value": 0.7871484872754141,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7871484872754141,
+            "baseline": 0.790526192181475,
+            "delta": -0.00337770490606093,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6490064768993388,
+            "baseline": 0.6536116673806402,
+            "delta": -0.00460519048130148,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7589253573999833,
+            "baseline": 0.8197095543674698,
+            "delta": -0.06078419696748649,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8175518351109442,
+            "baseline": 0.7633493695998822,
+            "delta": 0.054202465511062004,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9621224019023891,
+            "baseline": 0.975512145707076,
+            "delta": -0.013389743804686938,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8898371185066667,
+            "baseline": 0.8694307576534791,
+            "delta": 0.02040636085318759,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.6,
+        "selection_value": 0.7881868589274651,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7881868589274651,
+            "baseline": 0.790526192181475,
+            "delta": -0.002339333254009923,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6504194683265032,
+            "baseline": 0.6536116673806402,
+            "delta": -0.003192199054137035,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7663289015630327,
+            "baseline": 0.8197095543674698,
+            "delta": -0.053380652804437156,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8113283326033662,
+            "baseline": 0.7633493695998822,
+            "delta": 0.04797896300348403,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9639171275098511,
+            "baseline": 0.975512145707076,
+            "delta": -0.01159501819722486,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8876227300566086,
+            "baseline": 0.8694307576534791,
+            "delta": 0.01819197240312953,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.625,
+        "selection_value": 0.7888799875078942,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7888799875078942,
+            "baseline": 0.790526192181475,
+            "delta": -0.0016462046735807867,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6513640096530394,
+            "baseline": 0.6536116673806402,
+            "delta": -0.002247657727600827,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7737470763032858,
+            "baseline": 0.8197095543674698,
+            "delta": -0.045962478064184076,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.8046166443636221,
+            "baseline": 0.7633493695998822,
+            "delta": 0.041267274763739925,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9656838263105563,
+            "baseline": 0.975512145707076,
+            "delta": -0.009828319396519736,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8851502353370893,
+            "baseline": 0.8694307576534791,
+            "delta": 0.01571947768361015,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.65,
+        "selection_value": 0.789341873817096,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.789341873817096,
+            "baseline": 0.790526192181475,
+            "delta": -0.0011843183643790445,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.651994032622424,
+            "baseline": 0.6536116673806402,
+            "delta": -0.001617634758216302,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7814089275960261,
+            "baseline": 0.8197095543674698,
+            "delta": -0.038300626771443746,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.7974375442526552,
+            "baseline": 0.7633493695998822,
+            "delta": 0.03408817465277303,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9674639072802536,
+            "baseline": 0.975512145707076,
+            "delta": -0.008048238426822452,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8824507257664544,
+            "baseline": 0.8694307576534791,
+            "delta": 0.013019968112975344,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.675,
+        "selection_value": 0.7894443093606188,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7894443093606188,
+            "baseline": 0.790526192181475,
+            "delta": -0.0010818828208561948,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6521338220661783,
+            "baseline": 0.6536116673806402,
+            "delta": -0.0014778453144619341,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7891964180674487,
+            "baseline": 0.8197095543674698,
+            "delta": -0.03051313630002117,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.7896923564309851,
+            "baseline": 0.7633493695998822,
+            "delta": 0.02634298683110292,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9692343934872771,
+            "baseline": 0.975512145707076,
+            "delta": -0.006277752219798871,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8794633749591312,
+            "baseline": 0.8694307576534791,
+            "delta": 0.01003261730565208,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.7,
+        "selection_value": 0.7891962118721735,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7891962118721735,
+            "baseline": 0.790526192181475,
+            "delta": -0.0013299803093015372,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.651795294671526,
+            "baseline": 0.6536116673806402,
+            "delta": -0.0018163727091142778,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.7972215107704028,
+            "baseline": 0.8197095543674698,
+            "delta": -0.02248804359706702,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.7813308774013322,
+            "baseline": 0.7633493695998822,
+            "delta": 0.017981507801450025,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9710137169757107,
+            "baseline": 0.975512145707076,
+            "delta": -0.0044984287313653,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8761722971885215,
+            "baseline": 0.8694307576534791,
+            "delta": 0.006741539535042418,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.725,
+        "selection_value": 0.7884562680901267,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7884562680901267,
+            "baseline": 0.790526192181475,
+            "delta": -0.0020699240913483186,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6507864696284715,
+            "baseline": 0.6536116673806402,
+            "delta": -0.0028251977521687177,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.8056614988807481,
+            "baseline": 0.8197095543674698,
+            "delta": -0.014048055486721722,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.7719705218913255,
+            "baseline": 0.7633493695998822,
+            "delta": 0.008621152291443335,
+            "passed": true
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9728405092900028,
+            "baseline": 0.975512145707076,
+            "delta": -0.002671636417073242,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8724055155906641,
+            "baseline": 0.8694307576534791,
+            "delta": 0.0029747579371850463,
+            "passed": true
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.75,
+        "selection_value": 0.7873517150065327,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7873517150065327,
+            "baseline": 0.790526192181475,
+            "delta": -0.0031744771749423473,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6492828339016514,
+            "baseline": 0.6536116673806402,
+            "delta": -0.004328833478988825,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.8146968050343377,
+            "baseline": 0.8197095543674698,
+            "delta": -0.005012749333132116,
+            "passed": false
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.7617826742537465,
+            "baseline": 0.7633493695998822,
+            "delta": -0.001566695346135738,
+            "passed": false
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9747284050929,
+            "baseline": 0.975512145707076,
+            "delta": -0.0007837406141759651,
+            "passed": false
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8682555396733233,
+            "baseline": 0.8694307576534791,
+            "delta": -0.0011752179801558515,
+            "passed": false
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.775,
+        "selection_value": 0.7853508465898555,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7853508465898555,
+            "baseline": 0.790526192181475,
+            "delta": -0.0051753455916194735,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6465660017009647,
+            "baseline": 0.6536116673806402,
+            "delta": -0.007045665679675572,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.8239937173889929,
+            "baseline": 0.8197095543674698,
+            "delta": 0.004284163021523013,
+            "passed": true
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.750170085986477,
+            "baseline": 0.7633493695998822,
+            "delta": -0.013179283613405146,
+            "passed": false
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9766289255835258,
+            "baseline": 0.975512145707076,
+            "delta": 0.0011167798764497583,
+            "passed": true
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8633995057850015,
+            "baseline": 0.8694307576534791,
+            "delta": -0.006031251868477638,
+            "passed": false
+          }
+        ],
+        "all_passed": false
+      },
+      {
+        "threshold": 0.8,
+        "selection_value": 0.7829015334502467,
+        "metric_rows": [
+          {
+            "metric": "test_dice",
+            "label": "Dice",
+            "candidate": 0.7829015334502467,
+            "baseline": 0.790526192181475,
+            "delta": -0.0076246587312283065,
+            "passed": false
+          },
+          {
+            "metric": "test_iou",
+            "label": "IoU",
+            "candidate": 0.6432524195594703,
+            "baseline": 0.6536116673806402,
+            "delta": -0.010359247821169926,
+            "passed": false
+          },
+          {
+            "metric": "test_precision",
+            "label": "Precision",
+            "candidate": 0.8345171498270844,
+            "baseline": 0.8197095543674698,
+            "delta": 0.01480759545961452,
+            "passed": true
+          },
+          {
+            "metric": "test_recall",
+            "label": "Recall",
+            "candidate": 0.7372989479770633,
+            "baseline": 0.7633493695998822,
+            "delta": -0.026050421622818898,
+            "passed": false
+          },
+          {
+            "metric": "test_specificity",
+            "label": "Specificity",
+            "candidate": 0.9786756399580457,
+            "baseline": 0.975512145707076,
+            "delta": 0.003163494250969734,
+            "passed": true
+          },
+          {
+            "metric": "test_balanced_accuracy",
+            "label": "Balanced Acc",
+            "candidate": 0.8579872939675546,
+            "baseline": 0.8694307576534791,
+            "delta": -0.011443463685924526,
+            "passed": false
+          }
+        ],
+        "all_passed": false
+      }
+    ],
+    "passed_count": 0,
+    "best_row": null,
+    "all_passed": false
+  },
+  "final_anisotropy_gap": 0.013996390043757856
+}

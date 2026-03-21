@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+import json
+import os
+from pathlib import Path
+
 import numpy as np
+import pytest
 import torch
 from PIL import Image
 
@@ -141,6 +146,44 @@ def test_az_sota_outputs_and_objective():
     assert torch.isfinite(main_logits).all()
     assert "aux_loss" in logs and logs["aux_loss"] >= 0.0
     assert "boundary_loss" in logs and logs["boundary_loss"] >= 0.0
+    assert "topology_loss" in logs and logs["topology_loss"] == 0.0
+
+
+def test_topology_loss_reaches_zero_for_perfect_prediction():
+    target = torch.tensor([[[[0.0, 1.0], [1.0, 0.0]]]])
+    logits = torch.tensor([[[[-10.0, 10.0], [10.0, -10.0]]]])
+    valid = torch.ones_like(target)
+
+    loss, logs, _ = utils.segmentation_objective(
+        logits,
+        target,
+        valid,
+        bce_weight=0.0,
+        dice_weight=0.0,
+        topology_weight=1.0,
+        topology_num_iters=5,
+    )
+    assert torch.isfinite(loss)
+    assert abs(logs["topology_loss"]) < 1e-4
+
+
+def test_tversky_overlap_reaches_zero_for_perfect_prediction():
+    target = torch.tensor([[[[0.0, 1.0], [1.0, 0.0]]]])
+    logits = torch.tensor([[[[-10.0, 10.0], [10.0, -10.0]]]])
+    valid = torch.ones_like(target)
+
+    loss, logs = utils.segmentation_loss(
+        logits,
+        target,
+        valid,
+        bce_weight=0.0,
+        dice_weight=1.0,
+        overlap_mode="tversky",
+        tversky_alpha=0.7,
+        tversky_beta=0.3,
+    )
+    assert torch.isfinite(loss)
+    assert abs(logs["dice_loss"]) < 1e-4
 
 
 def test_az_sota_pure_variant_builds_and_runs():
@@ -185,3 +228,363 @@ def test_segmentation_metrics_reach_one_for_perfect_prediction():
     assert metrics["iou"] > 0.999
     assert metrics["accuracy"] > 0.999
     assert metrics["balanced_accuracy"] > 0.999
+
+
+def test_threshold_grid_and_selection():
+    grid = utils.build_threshold_grid(0.3, 0.5, 0.1)
+    assert grid == [0.3, 0.4, 0.5]
+
+    rows = [
+        {"threshold": 0.3, "dice": 0.80},
+        {"threshold": 0.4, "dice": 0.84},
+        {"threshold": 0.5, "dice": 0.84},
+    ]
+    best = utils.select_best_threshold(rows, metric="dice", reference_threshold=0.5)
+    assert best["threshold"] == 0.5
+
+
+def test_drive_summary_writer_uses_best_non_smoke_run(tmp_path):
+    results_dir = tmp_path / "results"
+    (results_dir / "az_cat_best").mkdir(parents=True)
+    (results_dir / "az_cat_smoke").mkdir(parents=True)
+    (results_dir / "az_thesis_run").mkdir(parents=True)
+
+    (results_dir / "az_cat_best" / "metrics.json").write_text(
+        json.dumps(
+            {
+                "variant": "az_cat",
+                "dataset": "drive",
+                "task": "segmentation",
+                "run_name": "az_cat_best",
+                "seed": 42,
+                "num_rules": 4,
+                "aux_loss_weight": 0.2,
+                "boundary_loss_weight": 0.1,
+                "topology_loss_weight": 0.05,
+                "selected_threshold": 0.55,
+                "test_dice": 0.80,
+                "test_iou": 0.67,
+                "test_precision": 0.78,
+                "test_recall": 0.82,
+                "test_specificity": 0.96,
+                "test_balanced_accuracy": 0.89,
+                "seconds_per_forward_batch": 0.02,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (results_dir / "az_cat_smoke" / "metrics.json").write_text(
+        json.dumps(
+            {
+                "variant": "az_cat",
+                "dataset": "drive",
+                "task": "segmentation",
+                "run_name": "az_cat_smoke",
+                "seed": 0,
+                "num_rules": 4,
+                "aux_loss_weight": 0.2,
+                "boundary_loss_weight": 0.1,
+                "selected_threshold": 0.5,
+                "test_dice": 0.99,
+                "test_iou": 0.98,
+                "test_precision": 0.99,
+                "test_recall": 0.99,
+                "test_specificity": 0.99,
+                "test_balanced_accuracy": 0.99,
+                "seconds_per_forward_batch": 0.01,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (results_dir / "az_thesis_run" / "metrics.json").write_text(
+        json.dumps(
+            {
+                "variant": "az_thesis",
+                "dataset": "drive",
+                "task": "segmentation",
+                "run_name": "az_thesis_run",
+                "seed": 7,
+                "num_rules": 6,
+                "aux_loss_weight": 0.0,
+                "boundary_loss_weight": 0.1,
+                "topology_loss_weight": 0.0,
+                "selected_threshold": 0.6,
+                "test_dice": 0.70,
+                "test_iou": 0.55,
+                "test_precision": 0.72,
+                "test_recall": 0.69,
+                "test_specificity": 0.97,
+                "test_balanced_accuracy": 0.83,
+                "seconds_per_forward_batch": 0.10,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    out_path = utils.update_drive_comparison_summary(results_dir)
+    content = out_path.read_text(encoding="utf-8")
+
+    assert "az_cat_best" in content
+    assert "az_cat_smoke" not in content
+    assert "az_thesis_run" in content
+    assert "Rules" in content
+    assert "Aux w" in content
+    assert "Boundary w" in content
+
+
+def test_drive_superiority_gate_passes_when_candidate_beats_baseline(tmp_path):
+    results_dir = tmp_path / "results"
+    (results_dir / "baseline_run").mkdir(parents=True)
+    (results_dir / "candidate_run").mkdir(parents=True)
+
+    (results_dir / "baseline_run" / "metrics.json").write_text(
+        json.dumps(
+            {
+                "variant": "baseline",
+                "dataset": "drive",
+                "task": "segmentation",
+                "run_name": "baseline_run",
+                "selected_threshold": 0.55,
+                "test_dice": 0.75,
+                "test_iou": 0.60,
+                "test_precision": 0.76,
+                "test_recall": 0.74,
+                "test_specificity": 0.96,
+                "test_balanced_accuracy": 0.85,
+                "seconds_per_forward_batch": 0.02,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    candidate_metrics = {
+        "variant": "az_thesis",
+        "run_name": "candidate_run",
+        "dataset": "drive",
+        "task": "segmentation",
+        "test_dice": 0.76,
+        "test_iou": 0.61,
+        "test_precision": 0.77,
+        "test_recall": 0.75,
+        "test_specificity": 0.97,
+        "test_balanced_accuracy": 0.86,
+    }
+
+    report = utils.compare_drive_metrics_to_baseline(results_dir, candidate_metrics)
+    text = utils.format_drive_superiority_report(report)
+
+    assert report["all_passed"] is True
+    assert "PASS" in text
+    assert "Dice" in text
+
+
+def test_drive_superiority_gate_fails_when_any_metric_is_lower(tmp_path):
+    results_dir = tmp_path / "results"
+    (results_dir / "baseline_run" ).mkdir(parents=True)
+
+    (results_dir / "baseline_run" / "metrics.json").write_text(
+        json.dumps(
+            {
+                "variant": "baseline",
+                "dataset": "drive",
+                "task": "segmentation",
+                "run_name": "baseline_run",
+                "selected_threshold": 0.55,
+                "test_dice": 0.75,
+                "test_iou": 0.60,
+                "test_precision": 0.76,
+                "test_recall": 0.74,
+                "test_specificity": 0.96,
+                "test_balanced_accuracy": 0.85,
+                "seconds_per_forward_batch": 0.02,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    candidate_metrics = {
+        "variant": "az_cat",
+        "run_name": "candidate_run",
+        "dataset": "drive",
+        "task": "segmentation",
+        "test_dice": 0.76,
+        "test_iou": 0.61,
+        "test_precision": 0.77,
+        "test_recall": 0.70,
+        "test_specificity": 0.97,
+        "test_balanced_accuracy": 0.86,
+    }
+
+    report = utils.compare_drive_metrics_to_baseline(results_dir, candidate_metrics)
+
+    assert report["all_passed"] is False
+    failed_metrics = {row["metric"] for row in report["metric_rows"] if not row["passed"]}
+    assert "test_recall" in failed_metrics
+
+
+def test_drive_threshold_search_report_finds_passing_threshold():
+    baseline_metrics = {
+        "variant": "baseline",
+        "run_name": "baseline_run",
+        "test_dice": 0.80,
+        "test_iou": 0.67,
+        "test_precision": 0.81,
+        "test_recall": 0.76,
+        "test_specificity": 0.97,
+        "test_balanced_accuracy": 0.865,
+    }
+    sweep_rows = [
+        {
+            "threshold": 0.65,
+            "dice": 0.81,
+            "iou": 0.68,
+            "precision": 0.79,
+            "recall": 0.79,
+            "specificity": 0.968,
+            "balanced_accuracy": 0.879,
+        },
+        {
+            "threshold": 0.725,
+            "dice": 0.805,
+            "iou": 0.675,
+            "precision": 0.82,
+            "recall": 0.761,
+            "specificity": 0.971,
+            "balanced_accuracy": 0.866,
+        },
+    ]
+
+    report = utils.build_drive_threshold_search_report(
+        sweep_rows=sweep_rows,
+        baseline_metrics=baseline_metrics,
+        selection_metric="dice",
+    )
+    text = utils.format_drive_threshold_search_report(report)
+
+    assert report["all_passed"] is True
+    assert report["passed_count"] == 1
+    assert abs(report["best_row"]["threshold"] - 0.725) < 1e-9
+    assert "PASS" in text
+
+
+def test_drive_threshold_search_report_fails_when_no_threshold_dominates():
+    baseline_metrics = {
+        "variant": "baseline",
+        "run_name": "baseline_run",
+        "test_dice": 0.80,
+        "test_iou": 0.67,
+        "test_precision": 0.81,
+        "test_recall": 0.76,
+        "test_specificity": 0.97,
+        "test_balanced_accuracy": 0.865,
+    }
+    sweep_rows = [
+        {
+            "threshold": 0.65,
+            "dice": 0.81,
+            "iou": 0.68,
+            "precision": 0.79,
+            "recall": 0.79,
+            "specificity": 0.968,
+            "balanced_accuracy": 0.879,
+        },
+        {
+            "threshold": 0.75,
+            "dice": 0.799,
+            "iou": 0.668,
+            "precision": 0.83,
+            "recall": 0.75,
+            "specificity": 0.972,
+            "balanced_accuracy": 0.861,
+        },
+    ]
+
+    report = utils.build_drive_threshold_search_report(
+        sweep_rows=sweep_rows,
+        baseline_metrics=baseline_metrics,
+        selection_metric="dice",
+    )
+
+    assert report["all_passed"] is False
+    assert report["passed_count"] == 0
+
+
+def test_select_best_threshold_supports_core_mean_metric():
+    sweep_rows = [
+        {
+            "threshold": 0.65,
+            "dice": 0.82,
+            "iou": 0.68,
+            "precision": 0.79,
+            "recall": 0.86,
+            "specificity": 0.963,
+            "balanced_accuracy": 0.912,
+        },
+        {
+            "threshold": 0.725,
+            "dice": 0.821,
+            "iou": 0.69,
+            "precision": 0.81,
+            "recall": 0.85,
+            "specificity": 0.971,
+            "balanced_accuracy": 0.914,
+        },
+    ]
+
+    best = utils.select_best_threshold(sweep_rows, metric="core_mean", reference_threshold=0.6)
+
+    assert abs(best["threshold"] - 0.725) < 1e-9
+
+
+def test_saved_anza_checkpoint_beats_baseline_on_drive_with_core_mean_threshold():
+    if os.environ.get("RUN_DRIVE_BENCHMARK") != "1":
+        pytest.skip("Set RUN_DRIVE_BENCHMARK=1 to run the saved DRIVE superiority benchmark.")
+
+    repo_root = Path.cwd()
+    baseline_metrics_path = repo_root / "results" / "multi_20260321_155448_baseline" / "metrics.json"
+    candidate_checkpoint_path = repo_root / "results" / "az_cat_rules6_topology005_e120_pos45" / "checkpoint_best.pt"
+    data_root = repo_root / "data" / "DRIVE"
+
+    if not baseline_metrics_path.exists():
+        pytest.skip(f"Baseline metrics are missing: {baseline_metrics_path}")
+    if not candidate_checkpoint_path.exists():
+        pytest.skip(f"Candidate checkpoint is missing: {candidate_checkpoint_path}")
+    if not data_root.exists():
+        pytest.skip(f"DRIVE data is missing: {data_root}")
+
+    cfg = utils.load_config(str(repo_root / "configs" / "drive.yaml"))
+    cfg["dataset"] = "drive"
+    cfg["variant"] = "az_cat"
+    cfg["num_rules"] = 6
+    cfg["seed"] = 42
+
+    utils.set_seed(int(cfg["seed"]))
+    _, val_loader, test_loader, in_channels, num_outputs, task = utils.build_dataloaders(cfg)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model = utils.build_model("az_cat", num_outputs, in_channels, num_rules=6, task=task).to(device)
+    checkpoint = torch.load(candidate_checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint["model"])
+
+    thresholds = utils.build_threshold_grid(0.55, 0.8, 0.025)
+    val_rows = utils.sweep_segmentation_thresholds(model, val_loader, device, thresholds)
+    selected_row = utils.select_best_threshold(val_rows, metric="core_mean", reference_threshold=0.6)
+    selected_threshold = float(selected_row["threshold"])
+
+    test_rows = utils.sweep_segmentation_thresholds(model, test_loader, device, thresholds)
+    test_row = next(row for row in test_rows if abs(float(row["threshold"]) - selected_threshold) < 1e-9)
+    baseline_metrics = json.loads(baseline_metrics_path.read_text(encoding="utf-8"))
+    candidate_metrics = {
+        "variant": "az_cat",
+        "run_name": "az_cat_rules6_topology005_e120_pos45@core_mean",
+        "test_dice": float(test_row["dice"]),
+        "test_iou": float(test_row["iou"]),
+        "test_precision": float(test_row["precision"]),
+        "test_recall": float(test_row["recall"]),
+        "test_specificity": float(test_row["specificity"]),
+        "test_balanced_accuracy": float(test_row["balanced_accuracy"]),
+    }
+
+    report = utils.build_drive_superiority_report(candidate_metrics, baseline_metrics)
+
+    assert report["all_passed"] is True, utils.format_drive_superiority_report(report)

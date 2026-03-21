@@ -22,8 +22,15 @@ drive_foreground_bias: 0.0
 bce_weight: 1.0
 dice_weight: 1.0
 seg_threshold: 0.6
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.3
+eval_threshold_end: 0.8
+eval_threshold_step: 0.05
 aux_loss_weight: 0.2
 boundary_loss_weight: 0.1
+topology_loss_weight: 0.0
+topology_num_iters: 10
 bce_pos_weight: auto
 bce_pos_weight_min: 1.0
 bce_pos_weight_max: 25.0
