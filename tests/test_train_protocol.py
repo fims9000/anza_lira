@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,6 +11,15 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 import train
+
+
+_SWEEP_SPEC = importlib.util.spec_from_file_location(
+    "run_az_thesis_sweep",
+    Path(__file__).resolve().parents[1] / "scripts" / "run_az_thesis_sweep.py",
+)
+assert _SWEEP_SPEC is not None and _SWEEP_SPEC.loader is not None
+run_az_thesis_sweep = importlib.util.module_from_spec(_SWEEP_SPEC)
+_SWEEP_SPEC.loader.exec_module(run_az_thesis_sweep)
 
 
 class _ToySegDataset(Dataset):
@@ -192,3 +202,44 @@ def test_run_training_selects_checkpoint_by_validation_sweep_metric(monkeypatch,
     assert saved_metrics["best_val_selection_metric"] == "core_mean"
     assert saved_metrics["selected_threshold"] == pytest.approx(0.65)
     assert (run_dir / "checkpoint_best.pt").exists()
+
+
+def test_az_thesis_sweep_best_trial_artifacts_keep_loss_overrides():
+    base_cfg = {
+        "dataset": "drive",
+        "variant": "az_thesis",
+        "epochs": 30,
+    }
+    best_row = {
+        "trial_name": "trial_demo",
+        "num_rules": 8,
+        "model_widths": [40, 80, 144, 208],
+        "lr": 2e-4,
+        "boundary_loss_weight": 0.1,
+        "topology_loss_weight": 0.03,
+        "overlap_mode": "tversky",
+        "tversky_alpha": 0.35,
+        "tversky_beta": 0.65,
+        "bce_pos_weight": "auto",
+        "eval_threshold_metric": "core_mean",
+        "bottleneck_mode": "aspp",
+        "decoder_mode": "residual",
+        "boundary_mode": "conv",
+        "epochs": 30,
+        "test_dice_mean": 0.74,
+        "test_iou_mean": 0.59,
+        "test_balanced_accuracy_mean": 0.85,
+        "seconds_per_forward_batch_mean": 0.05,
+        "seeds": [41, 42],
+    }
+
+    overrides, full_cfg, meta = run_az_thesis_sweep._best_trial_artifacts(base_cfg, best_row)
+
+    assert overrides["overlap_mode"] == "tversky"
+    assert overrides["tversky_alpha"] == pytest.approx(0.35)
+    assert overrides["tversky_beta"] == pytest.approx(0.65)
+    assert overrides["bce_pos_weight"] == "auto"
+    assert full_cfg["bce_pos_weight"] == "auto"
+    assert full_cfg["tversky_beta"] == pytest.approx(0.65)
+    assert meta["trial_name"] == "trial_demo"
+    assert meta["seeds"] == [41, 42]

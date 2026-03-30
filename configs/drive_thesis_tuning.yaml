@@ -1,4 +1,4 @@
-# Focused tuning config for the pure-AZ thesis architecture on DRIVE.
+# Focused tuning config for the best-known hybrid az_thesis architecture on DRIVE.
 # Use with scripts/run_az_thesis_sweep.py.
 
 dataset: drive
@@ -7,9 +7,9 @@ val_fraction: 0.2
 use_fov_mask: true
 
 variant: az_thesis
-num_rules: 6
-model_widths: [32, 64, 128, 192]
-bottleneck_mode: az_single
+num_rules: 8
+model_widths: [40, 80, 144, 208]
+bottleneck_mode: aspp
 decoder_mode: residual
 boundary_mode: conv
 
@@ -26,9 +26,9 @@ drive_foreground_bias: 0.75
 
 bce_weight: 1.0
 dice_weight: 1.0
-overlap_mode: dice
-tversky_alpha: 0.5
-tversky_beta: 0.5
+overlap_mode: tversky
+tversky_alpha: 0.35
+tversky_beta: 0.6
 seg_threshold: 0.6
 eval_threshold_sweep: true
 eval_threshold_metric: core_mean
@@ -37,7 +37,7 @@ eval_threshold_end: 0.8
 eval_threshold_step: 0.025
 aux_loss_weight: 0.2
 boundary_loss_weight: 0.1
-topology_loss_weight: 0.01
+topology_loss_weight: 0.03
 topology_num_iters: 10
 bce_pos_weight: auto
 bce_pos_weight_min: 1.0

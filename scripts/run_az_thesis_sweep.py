@@ -41,6 +41,21 @@ def _parse_strings(text: str) -> List[str]:
     return values
 
 
+def _parse_mixed_auto_floats(text: str) -> List[str | float]:
+    values: List[str | float] = []
+    for item in text.split(","):
+        token = item.strip()
+        if not token:
+            continue
+        if token.lower() == "auto":
+            values.append("auto")
+        else:
+            values.append(float(token))
+    if not values:
+        raise ValueError("Expected at least one value, e.g. 'auto,8,10'.")
+    return values
+
+
 def _mean_std(values: Sequence[float]) -> tuple[float, float]:
     if not values:
         return 0.0, 0.0
@@ -53,6 +68,14 @@ def _mean_std(values: Sequence[float]) -> tuple[float, float]:
 def _slug_float(value: float) -> str:
     text = f"{float(value):g}"
     return text.replace("-", "m").replace(".", "p")
+
+
+def _display_scalar(value: str | float | int) -> str:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, int):
+        return str(value)
+    return f"{float(value):g}"
 
 
 def _parse_width_sets(text: str) -> List[tuple[int, int, int, int]]:
@@ -78,17 +101,24 @@ def _trial_name(
     boundary_weight: float,
     topology_weight: float,
     overlap_mode: str,
+    tversky_alpha: float,
+    tversky_beta: float,
+    bce_pos_weight: str | float,
     threshold_metric: str,
     bottleneck_mode: str,
     decoder_mode: str,
     boundary_mode: str,
 ) -> str:
+    pos_weight_slug = str(bce_pos_weight) if isinstance(bce_pos_weight, str) else _slug_float(float(bce_pos_weight))
     return (
         f"r{num_rules}_lr{_slug_float(lr)}"
         f"_w{_slug_widths(widths)}"
         f"_bw{_slug_float(boundary_weight)}"
         f"_tw{_slug_float(topology_weight)}"
         f"_ov{overlap_mode}"
+        f"_ta{_slug_float(tversky_alpha)}"
+        f"_tb{_slug_float(tversky_beta)}"
+        f"_pw{pos_weight_slug}"
         f"_tm{threshold_metric}"
         f"_bn{bottleneck_mode}"
         f"_dec{decoder_mode}"
@@ -107,6 +137,9 @@ def _ranking_row(trial_name: str, trial_cfg: Dict[str, Any], metrics_rows: Seque
         "boundary_loss_weight": float(trial_cfg["boundary_loss_weight"]),
         "topology_loss_weight": float(trial_cfg["topology_loss_weight"]),
         "overlap_mode": str(trial_cfg["overlap_mode"]),
+        "tversky_alpha": float(trial_cfg["tversky_alpha"]),
+        "tversky_beta": float(trial_cfg["tversky_beta"]),
+        "bce_pos_weight": trial_cfg["bce_pos_weight"],
         "eval_threshold_metric": str(trial_cfg["eval_threshold_metric"]),
         "bottleneck_mode": str(trial_cfg["bottleneck_mode"]),
         "decoder_mode": str(trial_cfg["decoder_mode"]),
@@ -123,8 +156,8 @@ def _ranking_row(trial_name: str, trial_cfg: Dict[str, Any], metrics_rows: Seque
 
 def _write_markdown_ranking(out_path: Path, rows: Sequence[Dict[str, Any]]) -> None:
     lines = [
-        "| Trial | Runs | Rules | Widths | LR | Boundary | Topology | Overlap | Threshold metric | Bottleneck | Decoder | Boundary head | Dice mean+-std | IoU mean+-std | Precision mean+-std | Recall mean+-std | Specificity mean+-std | Balanced Acc mean+-std | Threshold mean+-std | Fwd mean (s) |",
-        "|---|---:|---:|---|---:|---:|---:|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Trial | Runs | Rules | Widths | LR | Boundary | Topology | Overlap | Tversky a | Tversky b | BCE pos | Threshold metric | Bottleneck | Decoder | Boundary head | Dice mean+-std | IoU mean+-std | Precision mean+-std | Recall mean+-std | Specificity mean+-std | Balanced Acc mean+-std | Threshold mean+-std | Fwd mean (s) |",
+        "|---|---:|---:|---|---:|---:|---:|---|---:|---:|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
         lines.append(
@@ -139,6 +172,9 @@ def _write_markdown_ranking(out_path: Path, rows: Sequence[Dict[str, Any]]) -> N
                     f"{row['boundary_loss_weight']:.4f}",
                     f"{row['topology_loss_weight']:.4f}",
                     row["overlap_mode"],
+                    f"{row['tversky_alpha']:.3f}",
+                    f"{row['tversky_beta']:.3f}",
+                    _display_scalar(row["bce_pos_weight"]),
                     row["eval_threshold_metric"],
                     row["bottleneck_mode"],
                     row["decoder_mode"],
@@ -169,6 +205,9 @@ def _best_trial_artifacts(
         "boundary_loss_weight": float(best_row["boundary_loss_weight"]),
         "topology_loss_weight": float(best_row["topology_loss_weight"]),
         "overlap_mode": str(best_row["overlap_mode"]),
+        "tversky_alpha": float(best_row["tversky_alpha"]),
+        "tversky_beta": float(best_row["tversky_beta"]),
+        "bce_pos_weight": best_row["bce_pos_weight"],
         "eval_threshold_metric": str(best_row["eval_threshold_metric"]),
         "bottleneck_mode": str(best_row["bottleneck_mode"]),
         "decoder_mode": str(best_row["decoder_mode"]),
@@ -198,6 +237,9 @@ def _iter_trials(
     boundary_weights: Sequence[float],
     topology_weights: Sequence[float],
     overlap_modes: Sequence[str],
+    tversky_alphas: Sequence[float],
+    tversky_betas: Sequence[float],
+    bce_pos_weights: Sequence[str | float],
     threshold_metrics: Sequence[str],
     bottleneck_modes: Sequence[str],
     decoder_modes: Sequence[str],
@@ -210,6 +252,9 @@ def _iter_trials(
         boundary_weights,
         topology_weights,
         overlap_modes,
+        tversky_alphas,
+        tversky_betas,
+        bce_pos_weights,
         threshold_metrics,
         bottleneck_modes,
         decoder_modes,
@@ -232,6 +277,9 @@ def main() -> None:
     parser.add_argument("--boundary-weights", type=str, default="0.05,0.1,0.15", help="Comma-separated boundary loss weights.")
     parser.add_argument("--topology-weights", type=str, default="0.0,0.01,0.03", help="Comma-separated topology loss weights.")
     parser.add_argument("--overlap-modes", type=str, default="dice,tversky", help="Comma-separated overlap modes.")
+    parser.add_argument("--tversky-alphas", type=str, default="0.5", help="Comma-separated Tversky alpha values.")
+    parser.add_argument("--tversky-betas", type=str, default="0.5", help="Comma-separated Tversky beta values.")
+    parser.add_argument("--bce-pos-weights", type=str, default="auto", help="Comma-separated BCE positive weights or 'auto'.")
     parser.add_argument("--threshold-metrics", type=str, default="dice,core_mean", help="Comma-separated validation threshold metrics.")
     parser.add_argument("--bottleneck-modes", type=str, default="az_single", help="Comma-separated thesis bottleneck modes.")
     parser.add_argument("--decoder-modes", type=str, default="residual", help="Comma-separated thesis decoder modes.")
@@ -259,6 +307,9 @@ def main() -> None:
     boundary_weights = _parse_floats(args.boundary_weights)
     topology_weights = _parse_floats(args.topology_weights)
     overlap_modes = _parse_strings(args.overlap_modes)
+    tversky_alphas = _parse_floats(args.tversky_alphas)
+    tversky_betas = _parse_floats(args.tversky_betas)
+    bce_pos_weights = _parse_mixed_auto_floats(args.bce_pos_weights)
     threshold_metrics = _parse_strings(args.threshold_metrics)
     bottleneck_modes = _parse_strings(args.bottleneck_modes)
     decoder_modes = _parse_strings(args.decoder_modes)
@@ -279,6 +330,9 @@ def main() -> None:
             boundary_weights=boundary_weights,
             topology_weights=topology_weights,
             overlap_modes=overlap_modes,
+            tversky_alphas=tversky_alphas,
+            tversky_betas=tversky_betas,
+            bce_pos_weights=bce_pos_weights,
             threshold_metrics=threshold_metrics,
             bottleneck_modes=bottleneck_modes,
             decoder_modes=decoder_modes,
@@ -300,6 +354,9 @@ def main() -> None:
             boundary_weight,
             topology_weight,
             overlap_mode,
+            tversky_alpha,
+            tversky_beta,
+            bce_pos_weight,
             threshold_metric,
             bottleneck_mode,
             decoder_mode,
@@ -312,6 +369,9 @@ def main() -> None:
             boundary_weight=boundary_weight,
             topology_weight=topology_weight,
             overlap_mode=overlap_mode,
+            tversky_alpha=tversky_alpha,
+            tversky_beta=tversky_beta,
+            bce_pos_weight=bce_pos_weight,
             threshold_metric=threshold_metric,
             bottleneck_mode=bottleneck_mode,
             decoder_mode=decoder_mode,
@@ -328,6 +388,9 @@ def main() -> None:
                 "boundary_loss_weight": float(boundary_weight),
                 "topology_loss_weight": float(topology_weight),
                 "overlap_mode": str(overlap_mode),
+                "tversky_alpha": float(tversky_alpha),
+                "tversky_beta": float(tversky_beta),
+                "bce_pos_weight": bce_pos_weight,
                 "eval_threshold_metric": str(threshold_metric),
                 "bottleneck_mode": str(bottleneck_mode),
                 "decoder_mode": str(decoder_mode),
@@ -338,7 +401,8 @@ def main() -> None:
         print(
             f"[trial {trial_index}/{len(all_trials)}] {trial_name} "
             f"(rules={num_rules}, widths={list(widths)}, lr={lr}, boundary={boundary_weight}, topology={topology_weight}, "
-            f"overlap={overlap_mode}, thr_metric={threshold_metric}, bottleneck={bottleneck_mode}, "
+            f"overlap={overlap_mode}, tversky=({tversky_alpha},{tversky_beta}), pos_weight={_display_scalar(bce_pos_weight)}, "
+            f"thr_metric={threshold_metric}, bottleneck={bottleneck_mode}, "
             f"decoder={decoder_mode}, head={boundary_mode})"
         )
 
