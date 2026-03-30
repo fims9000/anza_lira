@@ -1,0 +1,194 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+import torch
+from torch import nn
+from torch.utils.data import DataLoader, Dataset
+
+import train
+
+
+class _ToySegDataset(Dataset):
+    def __len__(self) -> int:
+        return 1
+
+    def __getitem__(self, index: int):
+        x = torch.zeros(3, 8, 8)
+        y = torch.zeros(1, 8, 8)
+        valid = torch.ones(1, 8, 8)
+        return x, y, valid
+
+
+class _TinySegModel(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.scale = nn.Parameter(torch.tensor(0.0))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.scale.view(1, 1, 1, 1).expand(x.size(0), 1, x.size(2), x.size(3))
+
+    def regularization_terms(self) -> dict[str, torch.Tensor]:
+        return {}
+
+
+def _seg_metrics(dice: float) -> dict[str, float]:
+    return {
+        "val_loss": 1.0 - dice,
+        "val_bce_loss": 0.0,
+        "val_dice_loss": 1.0 - dice,
+        "val_topology_loss": 0.0,
+        "val_dice": dice,
+        "val_iou": max(dice - 0.1, 0.0),
+        "val_precision": dice,
+        "val_recall": dice,
+        "val_specificity": dice,
+        "val_accuracy": dice,
+        "val_balanced_accuracy": dice,
+    }
+
+
+def test_resolve_loss_cfg_uses_unbiased_pos_weight_reference(monkeypatch):
+    reference = object()
+    loader = SimpleNamespace(dataset=SimpleNamespace(pos_weight_reference=reference))
+    called = {}
+
+    def fake_estimate(dataset_arg, *, min_weight: float, max_weight: float) -> float:
+        called["dataset"] = dataset_arg
+        called["min_weight"] = min_weight
+        called["max_weight"] = max_weight
+        return 3.25
+
+    monkeypatch.setattr(train, "estimate_drive_pos_weight", fake_estimate)
+
+    loss_cfg = train.resolve_loss_cfg(
+        {
+            "bce_pos_weight": "auto",
+            "bce_pos_weight_min": 1.0,
+            "bce_pos_weight_max": 10.0,
+        },
+        "segmentation",
+        loader,
+        torch.device("cpu"),
+    )
+
+    assert called["dataset"] is reference
+    assert called["min_weight"] == pytest.approx(1.0)
+    assert called["max_weight"] == pytest.approx(10.0)
+    assert loss_cfg["pos_weight_value"] == pytest.approx(3.25)
+
+
+def test_run_training_selects_checkpoint_by_validation_sweep_metric(monkeypatch, tmp_path: Path):
+    loader = DataLoader(_ToySegDataset(), batch_size=1, shuffle=False)
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+
+    epoch_state = {"train": 0, "eval": 0, "sweep": 0}
+
+    def fake_train_one_epoch(model, *args, **kwargs):
+        epoch_state["train"] += 1
+        with torch.no_grad():
+            model.scale.fill_(float(epoch_state["train"]))
+        return {
+            "train_loss": 1.0,
+            "train_objective": 1.0,
+        }
+
+    eval_sequence = [
+        _seg_metrics(0.90),
+        _seg_metrics(0.85),
+        _seg_metrics(0.82),
+        _seg_metrics(0.81),
+    ]
+
+    def fake_evaluate_epoch(*args, **kwargs):
+        value = eval_sequence[epoch_state["eval"]]
+        epoch_state["eval"] += 1
+        return value
+
+    def fake_sweep(*args, **kwargs):
+        epoch_state["sweep"] += 1
+        if epoch_state["sweep"] == 1:
+            return [
+                {
+                    "threshold": 0.55,
+                    "dice": 0.70,
+                    "iou": 0.70,
+                    "precision": 0.70,
+                    "recall": 0.70,
+                    "specificity": 0.70,
+                    "balanced_accuracy": 0.70,
+                },
+                {
+                    "threshold": 0.65,
+                    "dice": 0.60,
+                    "iou": 0.60,
+                    "precision": 0.60,
+                    "recall": 0.60,
+                    "specificity": 0.60,
+                    "balanced_accuracy": 0.60,
+                },
+            ]
+        return [
+            {
+                "threshold": 0.55,
+                "dice": 0.80,
+                "iou": 0.80,
+                "precision": 0.80,
+                "recall": 0.80,
+                "specificity": 0.80,
+                "balanced_accuracy": 0.80,
+            },
+            {
+                "threshold": 0.65,
+                "dice": 0.82,
+                "iou": 0.82,
+                "precision": 0.82,
+                "recall": 0.82,
+                "specificity": 0.82,
+                "balanced_accuracy": 0.82,
+            },
+        ]
+
+    monkeypatch.setattr(train, "set_seed", lambda *args, **kwargs: None)
+    monkeypatch.setattr(train, "build_dataloaders", lambda cfg: (loader, loader, loader, 3, 1, "segmentation"))
+    monkeypatch.setattr(train, "build_model", lambda *args, **kwargs: _TinySegModel())
+    monkeypatch.setattr(train, "train_one_epoch", fake_train_one_epoch)
+    monkeypatch.setattr(train, "evaluate_epoch", fake_evaluate_epoch)
+    monkeypatch.setattr(train, "sweep_segmentation_thresholds", fake_sweep)
+    monkeypatch.setattr(train, "measure_inference_time", lambda *args, **kwargs: 0.01)
+    monkeypatch.setattr(train, "plot_single_run", lambda *args, **kwargs: None)
+    monkeypatch.setattr(train, "update_drive_comparison_summary", lambda *args, **kwargs: run_dir / "summary.md")
+
+    cfg = {
+        "dataset": "drive",
+        "seed": 0,
+        "epochs": 2,
+        "batch_size": 1,
+        "lr": 1e-3,
+        "weight_decay": 0.0,
+        "num_rules": 2,
+        "eval_threshold_sweep": True,
+        "eval_threshold_metric": "core_mean",
+        "eval_threshold_start": 0.5,
+        "eval_threshold_end": 0.7,
+        "eval_threshold_step": 0.1,
+    }
+
+    metrics = train.run_training(cfg, variant="baseline", run_dir=run_dir)
+    history = json.loads((run_dir / "history.json").read_text(encoding="utf-8"))
+    saved_metrics = json.loads((run_dir / "metrics.json").read_text(encoding="utf-8"))
+
+    assert metrics["best_val_selection_metric"] == "core_mean"
+    assert metrics["best_val_selection_score"] == pytest.approx(0.82)
+    assert "best_val_dice" not in metrics
+    assert metrics["selected_threshold"] == pytest.approx(0.65)
+    assert history[0]["val_selection_threshold"] == pytest.approx(0.55)
+    assert history[1]["val_selection_threshold"] == pytest.approx(0.65)
+    assert history[1]["val_selection_score"] == pytest.approx(0.82)
+    assert saved_metrics["best_val_selection_metric"] == "core_mean"
+    assert saved_metrics["selected_threshold"] == pytest.approx(0.65)
+    assert (run_dir / "checkpoint_best.pt").exists()

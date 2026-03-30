@@ -1,7 +1,9 @@
 # Thesis Defense Notes
 
-Актуальная полная формулировка идеи, позиционирование темы и безопасные формулировки для защиты теперь собраны в корневом [README.md](/C:/Users/AIRC2/Desktop/murav/README.md), разделы:
+The current defense wording, project positioning, and safe claim boundaries live in the root [README.md](README.md).
 
-- **«Как правильно формулировать тему»**
-- **«Что говорить на защите»**
-- **«Что нельзя переобещать»**
+Start with these sections:
+
+- `How to formulate the topic`
+- `What to say at the defense`
+- `What not to overclaim`

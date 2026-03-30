@@ -1,3 +1,8 @@
 # Results Notes
 
-Полное и актуальное описание того, какие результаты хранятся в проекте и что попадает в Git, находится в корневом [README.md](/C:/Users/AIRC2/Desktop/murav/README.md), разделы **«Текущие результаты на DRIVE»** и **«Что кладётся в Git, а что нет»**.
+The full and current description of stored experiment artifacts and Git-tracked outputs lives in the root [README.md](../README.md).
+
+Start with:
+
+- `Current DRIVE results`
+- `What goes into Git and what does not`

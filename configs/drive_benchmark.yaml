@@ -1,21 +1,14 @@
-# DRIVE retinal vessel segmentation configuration.
-# Expected layout:
-#   data/DRIVE/training/{images,1st_manual,mask}
-#   data/DRIVE/test/{images,1st_manual,mask}
+# Recommended benchmark config for canonical DRIVE comparisons.
+# Use together with scripts/run_drive_multiseed.py.
 
 dataset: drive
 data_root: ./data
 val_fraction: 0.2
 use_fov_mask: true
 
-variant: az_thesis
-# Options: baseline, az_full, az_no_fuzzy, az_no_aniso, az_fixed_dirs, az_cat, az_sota, az_sota_pure, az_thesis
-
+variant: az_cat
 num_rules: 6
 model_widths: [32, 64, 128, 192]
-bottleneck_mode: az_single
-decoder_mode: residual
-boundary_mode: conv
 
 epochs: 120
 batch_size: 2
@@ -33,12 +26,12 @@ dice_weight: 1.0
 seg_threshold: 0.6
 eval_threshold_sweep: true
 eval_threshold_metric: core_mean
-eval_threshold_start: 0.3
+eval_threshold_start: 0.55
 eval_threshold_end: 0.8
-eval_threshold_step: 0.05
+eval_threshold_step: 0.025
 aux_loss_weight: 0.2
 boundary_loss_weight: 0.1
-topology_loss_weight: 0.01
+topology_loss_weight: 0.03
 topology_num_iters: 10
 bce_pos_weight: auto
 bce_pos_weight_min: 1.0

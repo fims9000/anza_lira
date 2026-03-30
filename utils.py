@@ -15,10 +15,11 @@ import torch.nn.functional as F
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 
-from models import AZConvConfig, AZConvNet, AZSOTAUNet, AZUNet, BaselineUNet, StandardConvNet, count_parameters
+from models import AZConv2d, AZConvConfig, AZConvNet, AZSOTAUNet, AZUNet, AttentionUNet, BaselineUNet, StandardConvNet, count_parameters
 
 VARIANTS = [
     "baseline",
+    "attention_unet",
     "az_full",
     "az_no_fuzzy",
     "az_no_aniso",
@@ -37,6 +38,15 @@ CANONICAL_DRIVE_VARIANTS = [
     "az_thesis",
 ]
 
+ARTICLE_DRIVE_VARIANTS = [
+    "baseline",
+    "attention_unet",
+    "az_no_fuzzy",
+    "az_no_aniso",
+    "az_cat",
+    "az_thesis",
+]
+
 DRIVE_SUPERIORITY_METRICS = [
     "test_dice",
     "test_iou",
@@ -44,6 +54,17 @@ DRIVE_SUPERIORITY_METRICS = [
     "test_recall",
     "test_specificity",
     "test_balanced_accuracy",
+]
+
+DRIVE_MULTI_SEED_METRICS = [
+    "test_dice",
+    "test_iou",
+    "test_precision",
+    "test_recall",
+    "test_specificity",
+    "test_balanced_accuracy",
+    "selected_threshold",
+    "seconds_per_forward_batch",
 ]
 
 DRIVE_METRIC_LABELS = {
@@ -346,13 +367,15 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
         crop_size=patch_size,
         foreground_bias=foreground_bias,
     )
+    # Keep validation deterministic and protocol-aligned with test-time evaluation:
+    # no random crops and no foreground-biased sampling.
     train_eval = DriveDataset(
         data_root,
         split="training",
         augment=False,
         use_fov_mask=use_fov_mask,
-        crop_size=patch_size,
-        foreground_bias=foreground_bias,
+        crop_size=None,
+        foreground_bias=0.0,
     )
     test_set = DriveDataset(
         data_root,
@@ -376,6 +399,9 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
 
     train_split = torch.utils.data.Subset(train_aug, train_idx)
     val_split = torch.utils.data.Subset(train_eval, val_idx)
+    # Use an unbiased full-image reference for class-imbalance estimation so
+    # pos_weight is not distorted by foreground-biased training crops.
+    train_split.pos_weight_reference = torch.utils.data.Subset(train_eval, train_idx)
 
     train_loader = DataLoader(
         train_split,
@@ -413,7 +439,8 @@ def build_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, Data
 def estimate_drive_pos_weight(dataset: Dataset, min_weight: float = 1.0, max_weight: float = 25.0) -> float:
     positives = 0.0
     negatives = 0.0
-    for _image, mask, valid_mask in dataset:
+    for index in range(len(dataset)):
+        _image, mask, valid_mask = dataset[index]
         valid = valid_mask > 0.5
         positives += float(mask[valid].sum().item())
         negatives += float(valid.sum().item() - mask[valid].sum().item())
@@ -493,7 +520,35 @@ def az_regularization_weights(cfg: Dict[str, Any]) -> Dict[str, float]:
         "membership_smoothness": float(cfg.get("reg_membership_smoothness", 0.0)),
         "geometry_smoothness": float(cfg.get("reg_geometry_smoothness", 0.0)),
         "hyperbolicity_penalty": float(cfg.get("reg_hyperbolicity", 0.0)),
+        "anisotropy_gap": float(cfg.get("reg_anisotropy_gap", 0.0)),
     }
+
+
+def parse_model_widths(raw_widths: Any) -> tuple[int, int, int, int] | None:
+    if raw_widths is None:
+        return None
+    if isinstance(raw_widths, str):
+        items = [item.strip() for item in raw_widths.split(",") if item.strip()]
+    elif isinstance(raw_widths, (list, tuple)):
+        items = list(raw_widths)
+    else:
+        raise TypeError("model_widths must be None, a comma-separated string, or a sequence of four integers.")
+
+    widths = tuple(int(item) for item in items)
+    if len(widths) != 4:
+        raise ValueError(f"model_widths must contain exactly 4 integers, got {len(widths)}.")
+    if any(width <= 0 for width in widths):
+        raise ValueError(f"model_widths must be positive, got {widths}.")
+    return widths  # type: ignore[return-value]
+
+
+def resolve_segmentation_model_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    model_kwargs: Dict[str, Any] = {}
+    for key in ("bottleneck_mode", "decoder_mode", "boundary_mode"):
+        value = cfg.get(key)
+        if value is not None:
+            model_kwargs[key] = str(value)
+    return model_kwargs
 
 
 def build_model(
@@ -502,7 +557,10 @@ def build_model(
     in_channels: int,
     num_rules: int = 4,
     task: str = "classification",
+    widths: tuple[int, int, int, int] | None = None,
+    model_kwargs: Dict[str, Any] | None = None,
 ) -> nn.Module:
+    model_kwargs = dict(model_kwargs or {})
     if task == "classification":
         if variant == "baseline":
             return StandardConvNet(num_classes=num_outputs, in_channels=in_channels)
@@ -510,11 +568,21 @@ def build_model(
             cfg = az_config_for_variant(variant)
             return AZConvNet(num_classes=num_outputs, in_channels=in_channels, num_rules=num_rules, cfg=cfg)
     elif task == "segmentation":
+        seg_kwargs = {"widths": widths} if widths is not None else {}
         if variant == "baseline":
-            return BaselineUNet(in_channels=in_channels, out_channels=num_outputs)
+            return BaselineUNet(in_channels=in_channels, out_channels=num_outputs, **seg_kwargs)
+        if variant == "attention_unet":
+            return AttentionUNet(in_channels=in_channels, out_channels=num_outputs, **seg_kwargs)
         if variant == "az_sota":
             cfg = az_config_for_variant(variant)
-            return AZSOTAUNet(in_channels=in_channels, out_channels=num_outputs, num_rules=num_rules, cfg=cfg)
+            return AZSOTAUNet(
+                in_channels=in_channels,
+                out_channels=num_outputs,
+                num_rules=num_rules,
+                cfg=cfg,
+                **model_kwargs,
+                **seg_kwargs,
+            )
         if variant in {"az_sota_pure", "az_thesis"}:
             cfg = az_config_for_variant(variant)
             return AZSOTAUNet(
@@ -523,10 +591,18 @@ def build_model(
                 num_rules=num_rules,
                 cfg=cfg,
                 pure_az=True,
+                **model_kwargs,
+                **seg_kwargs,
             )
         if variant.startswith("az_"):
             cfg = az_config_for_variant(variant)
-            return AZUNet(in_channels=in_channels, out_channels=num_outputs, num_rules=num_rules, cfg=cfg)
+            return AZUNet(
+                in_channels=in_channels,
+                out_channels=num_outputs,
+                num_rules=num_rules,
+                cfg=cfg,
+                **seg_kwargs,
+            )
     raise ValueError(f"Unknown variant/task combination: {variant}, {task}")
 
 
@@ -567,6 +643,93 @@ def measure_inference_time(
             torch.cuda.synchronize()
         t1 = time.perf_counter()
     return (t1 - t0) / iters
+
+
+@torch.no_grad()
+def estimate_model_complexity(
+    model: nn.Module,
+    device: torch.device,
+    batch_size: int,
+    in_channels: int,
+    spatial_shape: tuple[int, int],
+) -> Dict[str, float]:
+    model.eval()
+    height, width = spatial_shape
+    x = torch.randn(batch_size, in_channels, height, width, device=device)
+    totals = {
+        "macs": 0.0,
+        "az_extra_macs": 0.0,
+    }
+    handles = []
+
+    def conv_hook(module: nn.Conv2d, _inputs: tuple[torch.Tensor, ...], output: torch.Tensor) -> None:
+        out = output[0] if isinstance(output, (tuple, list)) else output
+        batch = float(out.shape[0])
+        out_channels = float(out.shape[1])
+        out_h = float(out.shape[2])
+        out_w = float(out.shape[3])
+        kernel_h, kernel_w = module.kernel_size
+        kernel_mul = float(kernel_h * kernel_w * (module.in_channels / module.groups))
+        totals["macs"] += batch * out_channels * out_h * out_w * kernel_mul
+
+    def linear_hook(module: nn.Linear, inputs: tuple[torch.Tensor, ...], _output: torch.Tensor) -> None:
+        inp = inputs[0]
+        batch = float(inp.shape[0]) if inp.ndim > 1 else 1.0
+        totals["macs"] += batch * float(module.in_features) * float(module.out_features)
+
+    def az_hook(module: AZConv2d, _inputs: tuple[torch.Tensor, ...], output: torch.Tensor) -> None:
+        out = output[0] if isinstance(output, (tuple, list)) else output
+        batch = float(out.shape[0])
+        height_out = float(out.shape[2])
+        width_out = float(out.shape[3])
+        locations = height_out * width_out
+        channels = float(module.in_channels)
+        rules = float(module.R)
+        patch_area = float(module.k * module.k)
+
+        compat_mults = batch * rules * patch_area * locations * 2.0
+        compat_norm = batch * rules * patch_area * locations if module.cfg.normalize_kernel else 0.0
+        compat_reduce = batch * locations * max(rules * patch_area - 1.0, 0.0)
+        agg_mults = batch * rules * channels * patch_area * locations
+        agg_adds = batch * rules * channels * max(patch_area - 1.0, 0.0) * locations
+        geometry_ops = batch * rules * patch_area * locations * (8.0 if module.cfg.use_anisotropy else 1.0)
+        fuzzy_ops = batch * rules * locations * (3.0 if module.cfg.use_fuzzy else 1.0)
+
+        totals["az_extra_macs"] += (
+            compat_mults
+            + compat_norm
+            + compat_reduce
+            + agg_mults
+            + agg_adds
+            + geometry_ops
+            + fuzzy_ops
+        )
+
+    for module in model.modules():
+        if isinstance(module, nn.Conv2d):
+            handles.append(module.register_forward_hook(conv_hook))
+        elif isinstance(module, nn.Linear):
+            handles.append(module.register_forward_hook(linear_hook))
+        elif isinstance(module, AZConv2d):
+            handles.append(module.register_forward_hook(az_hook))
+
+    try:
+        model(x)
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+    finally:
+        for handle in handles:
+            handle.remove()
+
+    macs = totals["macs"] + totals["az_extra_macs"]
+    return {
+        "approx_macs_per_forward": float(macs),
+        "approx_gmacs_per_forward": float(macs / 1e9),
+        "approx_flops_per_forward": float(macs * 2.0),
+        "approx_gflops_per_forward": float(macs * 2.0 / 1e9),
+        "approx_az_extra_macs_per_forward": float(totals["az_extra_macs"]),
+        "approx_az_extra_gmacs_per_forward": float(totals["az_extra_macs"] / 1e9),
+    }
 
 
 def spatial_shape_for_dataset(name: str) -> tuple[int, int]:
@@ -949,11 +1112,119 @@ def collect_drive_metrics_records(results_dir: str | Path) -> List[Dict[str, Any
                 "test_accuracy": float(data.get("test_accuracy", 0.0)),
                 "test_balanced_accuracy": float(data.get("test_balanced_accuracy", 0.0)),
                 "seconds_per_forward_batch": float(data.get("seconds_per_forward_batch", 0.0)),
+                "num_parameters": int(data.get("num_parameters", 0)),
+                "approx_gmacs_per_forward": float(data.get("approx_gmacs_per_forward", 0.0)),
                 "metrics_path": str(metrics_path),
             }
         )
 
     return records
+
+
+def _mean_std(values: Sequence[float]) -> Tuple[float, float]:
+    if not values:
+        return 0.0, 0.0
+    if len(values) == 1:
+        return float(values[0]), 0.0
+    arr = np.asarray(list(values), dtype=np.float64)
+    return float(arr.mean()), float(arr.std(ddof=0))
+
+
+def aggregate_drive_records_by_variant(
+    records: Sequence[Dict[str, Any]],
+    variants: Sequence[str] | None = None,
+) -> List[Dict[str, Any]]:
+    ordered_variants = list(variants) if variants is not None else []
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+    for record in records:
+        variant = str(record.get("variant", "unknown"))
+        grouped.setdefault(variant, []).append(record)
+        if variants is None and variant not in ordered_variants:
+            ordered_variants.append(variant)
+
+    rows: List[Dict[str, Any]] = []
+    for variant in ordered_variants:
+        variant_records = grouped.get(variant, [])
+        if not variant_records:
+            continue
+        best_record = max(variant_records, key=drive_record_selection_key)
+        row: Dict[str, Any] = {
+            "variant": variant,
+            "num_runs": len(variant_records),
+            "seeds": sorted({int(record["seed"]) for record in variant_records if record.get("seed") is not None}),
+            "best_run_name": str(best_record.get("run_name", "unknown")),
+            "best_test_dice": float(best_record.get("test_dice", 0.0)),
+            "num_rules": best_record.get("num_rules"),
+            "num_parameters": int(best_record.get("num_parameters", 0)),
+            "approx_gmacs_per_forward": float(best_record.get("approx_gmacs_per_forward", 0.0)),
+            "topology_loss_weight": float(best_record.get("topology_loss_weight", 0.0)),
+        }
+        for metric in DRIVE_MULTI_SEED_METRICS:
+            values = [float(record[metric]) for record in variant_records if record.get(metric) is not None]
+            mean_value, std_value = _mean_std(values)
+            row[f"{metric}_mean"] = mean_value
+            row[f"{metric}_std"] = std_value
+        rows.append(row)
+
+    if variants is not None:
+        return rows
+    return sorted(rows, key=lambda row: (-float(row["test_dice_mean"]), row["variant"]))
+
+
+def update_drive_multiseed_summary(
+    results_dir: str | Path,
+    variants: Sequence[str] | None = None,
+    out_name: str = "drive_multiseed_summary.md",
+) -> Path:
+    results_path = Path(results_dir)
+    records = collect_drive_metrics_records(results_path)
+    rows = aggregate_drive_records_by_variant(records, variants=variants)
+
+    out_path = results_path / out_name
+    if not rows:
+        out_path.write_text("No DRIVE segmentation runs with metrics.json were found.\n", encoding="utf-8")
+        return out_path
+
+    baseline_row = next((row for row in rows if row["variant"] == "baseline"), None)
+    lines = [
+        "| Variant | Runs | Seeds | Best Run | Params | GMACs | Dice mean+-std | IoU mean+-std | Precision mean+-std | Recall mean+-std | Specificity mean+-std | Balanced Acc mean+-std | Threshold mean+-std | Fwd mean (s) | Dice vs baseline |",
+        "|---|---:|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        seeds_text = ",".join(str(seed) for seed in row["seeds"]) if row["seeds"] else "n/a"
+        num_rules = row["num_rules"]
+        best_run_label = row["best_run_name"]
+        if num_rules is not None:
+            best_run_label = f"{best_run_label} (R={num_rules})"
+        dice_delta = 0.0
+        if baseline_row is not None:
+            dice_delta = float(row["test_dice_mean"]) - float(baseline_row["test_dice_mean"])
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    row["variant"],
+                    str(int(row["num_runs"])),
+                    seeds_text,
+                    best_run_label,
+                    str(int(row["num_parameters"])),
+                    f"{row['approx_gmacs_per_forward']:.3f}",
+                    f"{row['test_dice_mean']:.4f} +- {row['test_dice_std']:.4f}",
+                    f"{row['test_iou_mean']:.4f} +- {row['test_iou_std']:.4f}",
+                    f"{row['test_precision_mean']:.4f} +- {row['test_precision_std']:.4f}",
+                    f"{row['test_recall_mean']:.4f} +- {row['test_recall_std']:.4f}",
+                    f"{row['test_specificity_mean']:.4f} +- {row['test_specificity_std']:.4f}",
+                    f"{row['test_balanced_accuracy_mean']:.4f} +- {row['test_balanced_accuracy_std']:.4f}",
+                    f"{row['selected_threshold_mean']:.4f} +- {row['selected_threshold_std']:.4f}",
+                    f"{row['seconds_per_forward_batch_mean']:.5f}",
+                    f"{dice_delta:+.4f}",
+                ]
+            )
+            + " |"
+        )
+
+    out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return out_path
 
 
 def drive_record_selection_key(record: Dict[str, Any]) -> Tuple[float, float, float, float]:
@@ -1175,8 +1446,8 @@ def update_drive_comparison_summary(results_dir: str | Path) -> Path:
     )
 
     lines = [
-        "| Variant | Run | Seed | Rules | Aux w | Boundary w | Topology w | Threshold | Test Dice | Test IoU | Precision | Recall | Specificity | Balanced Acc | Fwd batch (s) |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Variant | Run | Seed | Rules | Params | GMACs | Aux w | Boundary w | Topology w | Threshold | Test Dice | Test IoU | Precision | Recall | Specificity | Balanced Acc | Fwd batch (s) |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in ordered:
         threshold = row["selected_threshold"]
@@ -1196,6 +1467,8 @@ def update_drive_comparison_summary(results_dir: str | Path) -> Path:
                     row["run_name"],
                     str(seed),
                     rules_text,
+                    str(int(row["num_parameters"])),
+                    f"{row['approx_gmacs_per_forward']:.3f}",
                     aux_text,
                     boundary_text,
                     f"{row['topology_loss_weight']:.4f}",

@@ -342,7 +342,7 @@ class AZConv2d(nn.Module):
         snapshot: dict[str, Any] = {
             "num_rules": self.R,
             "kernel_size": self.k,
-            "geometry_mode": self.cfg.geometry_mode,
+            "geometry_mode": str(interp.get("geometry_mode", self.cfg.geometry_mode)),
             "mu_map": self._tensor_to_cpu(mu[0], dtype=torch.float16),
             "mu_rule_mean": self._tensor_to_cpu(mu[0].mean(dim=(1, 2))),
             "kernel_map": self._tensor_to_cpu(kernel_mean),

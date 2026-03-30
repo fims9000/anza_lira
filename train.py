@@ -37,6 +37,7 @@ from utils import (
     segmentation_objective,
     set_seed,
     spatial_shape_for_dataset,
+    threshold_metric_value,
     sweep_segmentation_thresholds,
     update_drive_comparison_summary,
 )
@@ -89,8 +90,9 @@ def resolve_loss_cfg(
 
     raw_pos_weight = cfg.get("bce_pos_weight", "auto")
     if raw_pos_weight == "auto":
+        pos_weight_dataset = getattr(train_loader.dataset, "pos_weight_reference", train_loader.dataset)
         pos_weight_value = estimate_drive_pos_weight(
-            train_loader.dataset,
+            pos_weight_dataset,
             min_weight=float(cfg.get("bce_pos_weight_min", 1.0)),
             max_weight=float(cfg.get("bce_pos_weight_max", 25.0)),
         )
@@ -378,10 +380,19 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         in_channels=in_c,
         num_rules=int(cfg.get("num_rules", 4)),
         task=task,
+        widths=utils.parse_model_widths(cfg.get("model_widths")),
+        model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
     ).to(device)
     loss_cfg = resolve_loss_cfg(cfg, task, train_loader, device)
 
     n_params = utils.count_parameters(model)
+    complexity = utils.estimate_model_complexity(
+        model,
+        device=device,
+        batch_size=int(cfg["batch_size"]),
+        in_channels=in_c,
+        spatial_shape=spatial_shape_for_dataset(cfg["dataset"]),
+    )
     criterion = nn.CrossEntropyLoss() if task == "classification" else None
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -394,6 +405,14 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
     selection_key = selection_key_for_task(task)
     best_val = float("-inf")
     best_state = None
+    threshold_selection_metric = str(cfg.get("eval_threshold_metric", "dice"))
+    threshold_grid_for_selection: List[float] = []
+    if task == "segmentation" and bool(cfg.get("eval_threshold_sweep", True)):
+        threshold_grid_for_selection = build_threshold_grid(
+            float(cfg.get("eval_threshold_start", 0.3)),
+            float(cfg.get("eval_threshold_end", 0.8)),
+            float(cfg.get("eval_threshold_step", 0.05)),
+        )
 
     for epoch in range(1, epochs + 1):
         t0 = time.perf_counter()
@@ -403,10 +422,25 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         t_epoch = time.perf_counter() - t0
 
         val_metrics = evaluate_epoch(model, val_loader, criterion, device, task, loss_cfg)
+        val_selection_score = float(val_metrics[selection_key])
+        val_selection_threshold = float(loss_cfg["threshold"])
+        if threshold_grid_for_selection:
+            val_sweep_rows = sweep_segmentation_thresholds(model, val_loader, device, threshold_grid_for_selection)
+            best_val_row = select_best_threshold(
+                val_sweep_rows,
+                metric=threshold_selection_metric,
+                reference_threshold=loss_cfg["threshold"],
+            )
+            val_selection_score = float(threshold_metric_value(best_val_row, threshold_selection_metric))
+            val_selection_threshold = float(best_val_row["threshold"])
 
         row = {"epoch": epoch, "seconds_train_epoch": t_epoch}
         row.update(train_metrics)
         row.update(val_metrics)
+        if threshold_grid_for_selection:
+            row["val_selection_metric"] = threshold_selection_metric
+            row["val_selection_score"] = val_selection_score
+            row["val_selection_threshold"] = val_selection_threshold
         history.append(row)
 
         msg = (
@@ -417,11 +451,16 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
             f"{summarize_score(task, 'val', val_metrics)} "
             f"time={t_epoch:.1f}s"
         )
+        if threshold_grid_for_selection:
+            msg += (
+                f" sel_{threshold_selection_metric}={val_selection_score:.4f}"
+                f" sel_thr={val_selection_threshold:.3f}"
+            )
         if variant.startswith("az_"):
             msg += f" anis_gap={train_metrics['reg_anisotropy_gap']:.4f}"
         print(msg)
 
-        current_val = float(val_metrics[selection_key])
+        current_val = val_selection_score
         if current_val > best_val:
             best_val = current_val
             best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
@@ -435,13 +474,13 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
 
     selected_threshold = float(loss_cfg["threshold"])
     threshold_selection_mode = "fixed"
-    threshold_selection_metric = None
+    threshold_selection_metric_name = None
     threshold_sweep_rows: List[Dict[str, float]] = []
     val_selected_metrics: Dict[str, float] | None = None
     threshold_grid: List[float] = []
 
     if task == "segmentation" and bool(cfg.get("eval_threshold_sweep", True)):
-        threshold_metric = str(cfg.get("eval_threshold_metric", "dice"))
+        threshold_metric = threshold_selection_metric
         threshold_start = float(cfg.get("eval_threshold_start", 0.3))
         threshold_end = float(cfg.get("eval_threshold_end", 0.8))
         threshold_step = float(cfg.get("eval_threshold_step", 0.05))
@@ -455,7 +494,7 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         selected_threshold = float(best_threshold_row["threshold"])
         loss_cfg["threshold"] = selected_threshold
         threshold_selection_mode = "val_sweep"
-        threshold_selection_metric = threshold_metric
+        threshold_selection_metric_name = threshold_metric
         val_selected_metrics = evaluate_epoch(model, val_loader, criterion, device, task, loss_cfg)
 
     test_metrics = evaluate_epoch(model, test_loader, criterion, device, task, loss_cfg)
@@ -480,7 +519,12 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         "batch_size": int(cfg["batch_size"]),
         "seed": int(cfg["seed"]),
         "num_rules": int(cfg.get("num_rules", 4)),
+        "model_widths": list(utils.parse_model_widths(cfg.get("model_widths")) or []),
+        "bottleneck_mode": cfg.get("bottleneck_mode"),
+        "decoder_mode": cfg.get("decoder_mode"),
+        "boundary_mode": cfg.get("boundary_mode"),
         "num_parameters": n_params,
+        **complexity,
         "test_loss": test_metrics["val_loss"],
         "seconds_per_train_epoch_mean": mean_train_epoch,
         "seconds_per_forward_batch": sec_batch,
@@ -498,14 +542,17 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         metrics["aux_loss_weight"] = float(cfg.get("aux_loss_weight", 0.2))
         metrics["boundary_loss_weight"] = float(cfg.get("boundary_loss_weight", 0.1))
         metrics["bce_pos_weight"] = loss_cfg["pos_weight_value"]
-        metrics["best_val_dice"] = best_val
+        metrics["best_val_selection_score"] = best_val
+        metrics["best_val_selection_metric"] = threshold_selection_metric
+        if threshold_selection_metric == "dice":
+            metrics["best_val_dice"] = best_val
         metrics["seg_threshold_base"] = float(cfg.get("seg_threshold", 0.5))
         metrics["selected_threshold"] = selected_threshold
         metrics["threshold_selection_mode"] = threshold_selection_mode
         metrics["topology_loss_weight"] = float(cfg.get("topology_loss_weight", 0.0))
         metrics["topology_num_iters"] = int(cfg.get("topology_num_iters", 10))
-        if threshold_selection_metric is not None:
-            metrics["threshold_selection_metric"] = threshold_selection_metric
+        if threshold_selection_metric_name is not None:
+            metrics["threshold_selection_metric"] = threshold_selection_metric_name
             metrics["val_threshold_sweep"] = threshold_sweep_rows
         if val_selected_metrics is not None:
             metrics["val_selected_threshold_metrics"] = val_selected_metrics

@@ -1,6 +1,6 @@
 from .azconv import AZConv2d, AZConvConfig, AZConvNet, count_parameters
 from .baseline import StandardConvNet
-from .segmentation import AZSOTAUNet, AZUNet, BaselineUNet
+from .segmentation import AZSOTAUNet, AZUNet, AttentionUNet, BaselineUNet
 
 __all__ = [
     "AZConv2d",
@@ -9,6 +9,7 @@ __all__ = [
     "StandardConvNet",
     "AZUNet",
     "AZSOTAUNet",
+    "AttentionUNet",
     "BaselineUNet",
     "count_parameters",
 ]

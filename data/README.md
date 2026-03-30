@@ -1,3 +1,7 @@
 # Data Notes
 
-Полное и актуальное описание структуры данных, источников DRIVE и правил подготовки датасета находится в корневом [README.md](/C:/Users/AIRC2/Desktop/murav/README.md), раздел **«Как подготовить данные»**.
+The full and current description of the data layout, DRIVE source files, and preparation steps lives in the root [README.md](../README.md).
+
+Start with:
+
+- `How to prepare the data`

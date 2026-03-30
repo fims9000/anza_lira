@@ -40,6 +40,7 @@ class DriveRunInfo:
     test_recall: float | None
     test_precision: float | None
     num_parameters: int | None
+    approx_gmacs_per_forward: float | None
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -103,6 +104,7 @@ def discover_drive_runs(results_dir: Path) -> list[DriveRunInfo]:
                 test_recall=_safe_float(metrics.get("test_recall")),
                 test_precision=_safe_float(metrics.get("test_precision")),
                 num_parameters=_safe_int(metrics.get("num_parameters")),
+                approx_gmacs_per_forward=_safe_float(metrics.get("approx_gmacs_per_forward")),
             )
         )
 
@@ -534,6 +536,8 @@ class DriveInspectorApp:
             in_channels=in_channels,
             num_rules=int(cfg.get("num_rules", 4)),
             task=utils.task_for_dataset(cfg["dataset"]),
+            widths=utils.parse_model_widths(cfg.get("model_widths")),
+            model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
         )
         model.load_state_dict(payload["model"])
         model.to(device)

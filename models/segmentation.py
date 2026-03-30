@@ -222,6 +222,20 @@ class UpAttentionBlock(nn.Module):
         return self.fuse(torch.cat([x, skip], dim=1))
 
 
+class UpAttentionConvBlock(nn.Module):
+    """Upsample, attention-gate skip, then standard conv fuse."""
+
+    def __init__(self, in_channels: int, skip_channels: int, out_channels: int) -> None:
+        super().__init__()
+        self.gate = AttentionGate(skip_channels=skip_channels, gate_channels=in_channels)
+        self.fuse = ConvBlock(in_channels + skip_channels, out_channels)
+
+    def forward(self, x: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
+        x = F.interpolate(x, size=skip.shape[-2:], mode="bilinear", align_corners=False)
+        skip = self.gate(skip, x)
+        return self.fuse(torch.cat([x, skip], dim=1))
+
+
 class UpAttentionAZBlock(nn.Module):
     """Upsample, attention-gate skip, then AZ residual fuse."""
 
@@ -290,6 +304,35 @@ class BaselineUNet(_RegularizedSegmentationMixin, nn.Module):
         return self.head(y)
 
 
+class AttentionUNet(_RegularizedSegmentationMixin, nn.Module):
+    """Attention U-Net baseline for stronger segmentation comparisons."""
+
+    def __init__(self, in_channels: int = 3, out_channels: int = 1, widths: tuple[int, ...] = (32, 64, 128, 192)) -> None:
+        super().__init__()
+        w1, w2, w3, wb = widths
+        self.enc1 = ConvBlock(in_channels, w1)
+        self.enc2 = ConvBlock(w1, w2)
+        self.enc3 = ConvBlock(w2, w3)
+        self.bottleneck = ConvBlock(w3, wb)
+        self.pool = nn.MaxPool2d(2)
+
+        self.up3 = UpAttentionConvBlock(wb, w3, w3)
+        self.up2 = UpAttentionConvBlock(w3, w2, w2)
+        self.up1 = UpAttentionConvBlock(w2, w1, w1)
+        self.head = nn.Conv2d(w1, out_channels, kernel_size=1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x1 = self.enc1(x)
+        x2 = self.enc2(self.pool(x1))
+        x3 = self.enc3(self.pool(x2))
+        xb = self.bottleneck(self.pool(x3))
+
+        y = self.up3(xb, x3)
+        y = self.up2(y, x2)
+        y = self.up1(y, x1)
+        return self.head(y)
+
+
 class AZUNet(_RegularizedSegmentationMixin, nn.Module):
     """AZ-enhanced U-Net for DRIVE vessel segmentation."""
 
@@ -344,24 +387,60 @@ class AZSOTAUNet(_RegularizedSegmentationMixin, nn.Module):
         cfg: AZConvConfig | None = None,
         widths: tuple[int, ...] = (48, 96, 160, 224),
         pure_az: bool = False,
+        bottleneck_mode: str | None = None,
+        decoder_mode: str | None = None,
+        boundary_mode: str | None = None,
     ) -> None:
         super().__init__()
         cfg = cfg or AZConvConfig()
         w1, w2, w3, wb = widths
+
+        if bottleneck_mode is None:
+            bottleneck_mode = "az_double" if pure_az else "aspp"
+        if decoder_mode is None:
+            decoder_mode = "az" if pure_az else "residual"
+        if boundary_mode is None:
+            boundary_mode = "az" if pure_az else "conv"
+
+        allowed_bottlenecks = {"aspp", "az_single", "az_double"}
+        allowed_decoders = {"residual", "az"}
+        allowed_boundaries = {"conv", "az"}
+        if bottleneck_mode not in allowed_bottlenecks:
+            raise ValueError(f"Unknown bottleneck_mode '{bottleneck_mode}'. Expected one of {sorted(allowed_bottlenecks)}.")
+        if decoder_mode not in allowed_decoders:
+            raise ValueError(f"Unknown decoder_mode '{decoder_mode}'. Expected one of {sorted(allowed_decoders)}.")
+        if boundary_mode not in allowed_boundaries:
+            raise ValueError(f"Unknown boundary_mode '{boundary_mode}'. Expected one of {sorted(allowed_boundaries)}.")
 
         self.enc1 = AZResidualBlock(in_channels, w1, num_rules, cfg, use_se=True)
         self.enc2 = AZResidualBlock(w1, w2, num_rules, cfg, use_se=True)
         self.enc3 = AZResidualBlock(w2, w3, num_rules, cfg, use_se=True)
         self.pool = nn.MaxPool2d(2)
         self.pure_az = bool(pure_az)
-        if self.pure_az:
+        self.bottleneck_mode = bottleneck_mode
+        self.decoder_mode = decoder_mode
+        self.boundary_mode = boundary_mode
+
+        if self.bottleneck_mode == "aspp":
+            self.bottleneck = ASPP(w3, wb, dilations=(1, 2, 4, 8))
+        elif self.bottleneck_mode == "az_single":
+            self.bottleneck = AZResidualRefineBlock(w3, wb, num_rules=num_rules, cfg=cfg, use_se=True)
+        else:
             self.bottleneck = nn.Sequential(
                 AZResidualRefineBlock(w3, wb, num_rules=num_rules, cfg=cfg, use_se=True),
                 AZResidualRefineBlock(wb, wb, num_rules=num_rules, cfg=cfg, use_se=True),
             )
+
+        if self.decoder_mode == "az":
             self.up3 = UpAttentionAZBlock(wb, w3, w3, num_rules=num_rules, cfg=cfg)
             self.up2 = UpAttentionAZBlock(w3, w2, w2, num_rules=num_rules, cfg=cfg)
             self.up1 = UpAttentionAZBlock(w2, w1, w1, num_rules=num_rules, cfg=cfg)
+        else:
+            self.up3 = UpAttentionBlock(wb, w3, w3)
+            self.up2 = UpAttentionBlock(w3, w2, w2)
+            self.up1 = UpAttentionBlock(w2, w1, w1)
+
+        if self.boundary_mode == "az":
             self.boundary_head = nn.Sequential(
                 AZConv2d(w1, w1, kernel_size=3, num_rules=num_rules, cfg=cfg),
                 nn.BatchNorm2d(w1),
@@ -369,10 +448,6 @@ class AZSOTAUNet(_RegularizedSegmentationMixin, nn.Module):
                 nn.Conv2d(w1, 1, kernel_size=1),
             )
         else:
-            self.bottleneck = ASPP(w3, wb, dilations=(1, 2, 4, 8))
-            self.up3 = UpAttentionBlock(wb, w3, w3)
-            self.up2 = UpAttentionBlock(w3, w2, w2)
-            self.up1 = UpAttentionBlock(w2, w1, w1)
             self.boundary_head = nn.Sequential(
                 nn.Conv2d(w1, w1, kernel_size=3, padding=1, bias=False),
                 nn.BatchNorm2d(w1),

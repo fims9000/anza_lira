@@ -55,5 +55,6 @@ def test_recommended_threshold_for_run_reads_threshold_sweep(tmp_path):
         test_recall=None,
         test_precision=None,
         num_parameters=None,
+        approx_gmacs_per_forward=None,
     )
     assert recommended_threshold_for_run(run, default_threshold=0.6) == 0.55

@@ -10,7 +10,7 @@ import torch
 from PIL import Image
 
 import utils
-from models import AZSOTAUNet, AZUNet, BaselineUNet
+from models import AZSOTAUNet, AZUNet, AttentionUNet, BaselineUNet
 from models.azconv import AZConvConfig
 
 
@@ -97,9 +97,45 @@ def test_drive_patch_training_and_pos_weight(tmp_path):
     assert pos_weight >= 1.0
 
 
+def test_drive_validation_protocol_stays_full_image_and_unbiased(tmp_path):
+    _make_drive_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "drive",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.5,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "use_fov_mask": True,
+        "drive_patch_size": 16,
+        "drive_foreground_bias": 1.0,
+    }
+
+    train_loader, val_loader, _, _, _, _ = utils.build_dataloaders(cfg)
+    train_x, _, _ = next(iter(train_loader))
+    val_x, _, _ = next(iter(val_loader))
+
+    assert train_x.shape[2:] == (16, 16)
+    assert val_x.shape[2:] == (32, 40)
+    assert hasattr(train_loader.dataset, "pos_weight_reference")
+
+    ref_x, _, _ = train_loader.dataset.pos_weight_reference[0]
+    assert ref_x.shape[1:] == (32, 40)
+
+    biased_weight = utils.estimate_drive_pos_weight(train_loader.dataset, min_weight=1.0, max_weight=25.0)
+    unbiased_weight = utils.estimate_drive_pos_weight(
+        train_loader.dataset.pos_weight_reference,
+        min_weight=1.0,
+        max_weight=25.0,
+    )
+
+    assert unbiased_weight > biased_weight
+
+
 def test_segmentation_models_preserve_spatial_shape():
     x = torch.randn(2, 3, 64, 80)
     baseline = BaselineUNet(in_channels=3, out_channels=1)
+    attention = AttentionUNet(in_channels=3, out_channels=1)
     az_model = AZUNet(
         in_channels=3,
         out_channels=1,
@@ -108,9 +144,12 @@ def test_segmentation_models_preserve_spatial_shape():
     )
 
     y_base = baseline(x)
+    y_attention = attention(x)
     y_az = az_model(x)
     assert y_base.shape == (2, 1, 64, 80)
+    assert y_attention.shape == (2, 1, 64, 80)
     assert y_az.shape == (2, 1, 64, 80)
+    assert torch.isfinite(y_attention).all()
     assert torch.isfinite(y_az).all()
 
 
@@ -147,6 +186,35 @@ def test_az_sota_outputs_and_objective():
     assert "aux_loss" in logs and logs["aux_loss"] >= 0.0
     assert "boundary_loss" in logs and logs["boundary_loss"] >= 0.0
     assert "topology_loss" in logs and logs["topology_loss"] == 0.0
+
+
+def test_az_thesis_hybrid_modes_build_and_run():
+    cfg = {
+        "bottleneck_mode": "az_single",
+        "decoder_mode": "residual",
+        "boundary_mode": "conv",
+    }
+    model = utils.build_model(
+        "az_thesis",
+        num_outputs=1,
+        in_channels=3,
+        num_rules=4,
+        task="segmentation",
+        widths=(32, 64, 128, 192),
+        model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
+    )
+
+    x = torch.randn(2, 3, 64, 80)
+    out = model(x)
+
+    assert isinstance(model, AZSOTAUNet)
+    assert model.bottleneck_mode == "az_single"
+    assert model.decoder_mode == "residual"
+    assert model.boundary_mode == "conv"
+    assert out["logits"].shape == (2, 1, 64, 80)
+    assert len(out["aux_logits"]) == 2
+    assert out["boundary_logits"].shape == (2, 1, 64, 80)
+    assert torch.isfinite(out["logits"]).all()
 
 
 def test_topology_loss_reaches_zero_for_perfect_prediction():
@@ -214,6 +282,51 @@ def test_az_thesis_variant_builds_and_runs():
     out = model(x)
     assert isinstance(out, dict)
     assert out["logits"].shape == (1, 1, 48, 64)
+
+
+def test_attention_unet_variant_builds_and_runs():
+    model = utils.build_model(
+        "attention_unet",
+        num_outputs=1,
+        in_channels=3,
+        task="segmentation",
+    )
+    x = torch.randn(1, 3, 48, 64)
+    out = model(x)
+    assert out.shape == (1, 1, 48, 64)
+
+
+def test_segmentation_build_model_accepts_custom_widths():
+    model = utils.build_model(
+        "az_thesis",
+        num_outputs=1,
+        in_channels=3,
+        num_rules=3,
+        task="segmentation",
+        widths=(24, 48, 72, 96),
+    )
+    x = torch.randn(1, 3, 64, 64)
+    out = model(x)
+    assert out["logits"].shape == (1, 1, 64, 64)
+
+
+def test_model_complexity_summary_reports_positive_macs():
+    model = utils.build_model(
+        "attention_unet",
+        num_outputs=1,
+        in_channels=3,
+        task="segmentation",
+        widths=(16, 32, 48, 64),
+    )
+    summary = utils.estimate_model_complexity(
+        model,
+        device=torch.device("cpu"),
+        batch_size=1,
+        in_channels=3,
+        spatial_shape=(64, 64),
+    )
+    assert summary["approx_macs_per_forward"] > 0.0
+    assert summary["approx_flops_per_forward"] == pytest.approx(summary["approx_macs_per_forward"] * 2.0)
 
 
 def test_segmentation_metrics_reach_one_for_perfect_prediction():
@@ -330,6 +443,49 @@ def test_drive_summary_writer_uses_best_non_smoke_run(tmp_path):
     assert "Rules" in content
     assert "Aux w" in content
     assert "Boundary w" in content
+
+
+def test_drive_multiseed_summary_aggregates_mean_std_and_delta(tmp_path):
+    results_dir = tmp_path / "results"
+    for run_name, variant, seed, dice, threshold in [
+        ("baseline_seed_41", "baseline", 41, 0.7800, 0.70),
+        ("baseline_seed_42", "baseline", 42, 0.8000, 0.75),
+        ("az_cat_seed_41", "az_cat", 41, 0.7900, 0.65),
+        ("az_cat_seed_42", "az_cat", 42, 0.8100, 0.70),
+    ]:
+        run_dir = results_dir / run_name
+        run_dir.mkdir(parents=True)
+        (run_dir / "metrics.json").write_text(
+            json.dumps(
+                {
+                    "variant": variant,
+                    "dataset": "drive",
+                    "task": "segmentation",
+                    "run_name": run_name,
+                    "seed": seed,
+                    "num_rules": 6 if variant != "baseline" else None,
+                    "topology_loss_weight": 0.03 if variant != "baseline" else 0.0,
+                    "selected_threshold": threshold,
+                    "test_dice": dice,
+                    "test_iou": dice - 0.12,
+                    "test_precision": dice + 0.01,
+                    "test_recall": dice - 0.01,
+                    "test_specificity": 0.97,
+                    "test_balanced_accuracy": dice - 0.02,
+                    "seconds_per_forward_batch": 0.02 if variant == "baseline" else 0.05,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    out_path = utils.update_drive_multiseed_summary(results_dir, variants=["baseline", "az_cat"])
+    content = out_path.read_text(encoding="utf-8")
+
+    assert "baseline_seed_42" in content
+    assert "az_cat_seed_42" in content
+    assert "0.7900 +- 0.0100" in content
+    assert "0.8000 +- 0.0100" in content
+    assert "+0.0100" in content
 
 
 def test_drive_superiority_gate_passes_when_candidate_beats_baseline(tmp_path):
@@ -534,6 +690,12 @@ def test_select_best_threshold_supports_core_mean_metric():
     best = utils.select_best_threshold(sweep_rows, metric="core_mean", reference_threshold=0.6)
 
     assert abs(best["threshold"] - 0.725) < 1e-9
+
+
+def test_az_regularization_weights_include_anisotropy_gap():
+    weights = utils.az_regularization_weights({"reg_anisotropy_gap": 0.25})
+
+    assert weights["anisotropy_gap"] == pytest.approx(0.25)
 
 
 def test_saved_anza_checkpoint_beats_baseline_on_drive_with_core_mean_threshold():
