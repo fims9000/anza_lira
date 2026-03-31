@@ -263,7 +263,7 @@ def _resolve_run(results_dir: Path, run_name: str | None, variant: str | None):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Export article-ready segmentation and interpretation figures for a DRIVE run.")
+    parser = argparse.ArgumentParser(description="Export article-ready segmentation and interpretation figures for a retinal vessel segmentation run.")
     parser.add_argument("--results-dir", type=str, default="results")
     parser.add_argument("--config", type=str, default="configs/drive_benchmark.yaml")
     parser.add_argument("--run", type=str, default=None, help="Explicit run directory name.")
@@ -283,9 +283,9 @@ def main() -> None:
     model, cfg, device = _load_model_for_run(run, config_path, args.device)
 
     data_root = Path(cfg.get("data_root", "./data"))
-    drive_root = (PROJECT_ROOT / data_root / "DRIVE").resolve()
+    dataset_root = (PROJECT_ROOT / utils.retinal_dataset_root(data_root, cfg["dataset"])).resolve()
     dataset = utils.DriveDataset(
-        root=drive_root,
+        root=dataset_root,
         split=args.split,
         augment=False,
         use_fov_mask=bool(cfg.get("use_fov_mask", True)),

@@ -499,7 +499,7 @@ class DriveInspectorApp:
             return None
         _model, cfg, _device = self._model_for_run(run)
         split = self.split_var.get()
-        data_root = _resolve_project_path(cfg.get("data_root", "./data")) / "DRIVE"
+        data_root = _resolve_project_path(utils.retinal_dataset_root(cfg.get("data_root", "./data"), cfg["dataset"]))
         cache_key = (str(data_root), split)
         if cache_key not in self.dataset_cache:
             self.dataset_cache[cache_key] = utils.DriveDataset(

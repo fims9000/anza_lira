@@ -136,28 +136,58 @@ def ensure_dir(path: str | Path) -> Path:
     return out
 
 
+def canonical_dataset_name(name: str) -> str:
+    return str(name).lower().replace("-", "_")
+
+
+def retinal_dataset_dirname(name: str) -> str:
+    n = canonical_dataset_name(name)
+    if n == "drive":
+        return "DRIVE"
+    if n in {"chase_db1", "chasedb1", "chase"}:
+        return "CHASE_DB1"
+    raise ValueError(f"Unknown retinal dataset: {name}")
+
+
+def retinal_dataset_root(data_root: str | Path, name: str) -> Path:
+    return Path(data_root) / retinal_dataset_dirname(name)
+
+
+def _retinal_sample_id(path: Path) -> str:
+    stem = path.stem
+    for suffix in ("_manual1", "_training_mask", "_test_mask", "_mask", "_1stHO", "_2ndHO"):
+        if stem.endswith(suffix):
+            stem = stem[: -len(suffix)]
+            break
+    for split_suffix in ("_training", "_test"):
+        if stem.endswith(split_suffix):
+            stem = stem[: -len(split_suffix)]
+            break
+    return stem
+
+
 def task_for_dataset(name: str) -> str:
-    n = name.lower().replace("-", "_")
+    n = canonical_dataset_name(name)
     if n in ("cifar10", "cifar_10", "fashion_mnist", "fashionmnist"):
         return "classification"
-    if n == "drive":
+    if n in {"drive", "chase_db1", "chasedb1", "chase"}:
         return "segmentation"
     raise ValueError(f"Unknown dataset: {name}")
 
 
 def dataset_channels_and_outputs(name: str) -> Tuple[int, int]:
-    n = name.lower().replace("-", "_")
+    n = canonical_dataset_name(name)
     if n in ("cifar10", "cifar_10"):
         return 3, 10
     if n in ("fashion_mnist", "fashionmnist"):
         return 1, 10
-    if n == "drive":
+    if n in {"drive", "chase_db1", "chasedb1", "chase"}:
         return 3, 1
     raise ValueError(f"Unknown dataset: {name}")
 
 
 class DriveDataset(Dataset):
-    """DRIVE vessel segmentation dataset loader."""
+    """Loader for DRIVE-style retinal vessel segmentation datasets."""
 
     def __init__(
         self,
@@ -191,7 +221,7 @@ class DriveDataset(Dataset):
         def by_id(paths: Sequence[Path]) -> Dict[str, Path]:
             out: Dict[str, Path] = {}
             for path in paths:
-                sample_id = path.name.split("_")[0]
+                sample_id = _retinal_sample_id(path)
                 out[sample_id] = path
             return out
 
@@ -353,11 +383,11 @@ def _build_classification_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, 
 def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, DataLoader, int, int]:
     batch_size = int(cfg["batch_size"])
     num_workers = int(cfg.get("num_workers", 0))
-    data_root = Path(cfg.get("data_root", "./data")) / "DRIVE"
+    data_root = retinal_dataset_root(cfg.get("data_root", "./data"), cfg["dataset"])
     use_fov_mask = bool(cfg.get("use_fov_mask", True))
-    patch_size = cfg.get("drive_patch_size")
+    patch_size = cfg.get("retinal_patch_size", cfg.get("drive_patch_size"))
     patch_size = int(patch_size) if patch_size else None
-    foreground_bias = float(cfg.get("drive_foreground_bias", 0.0))
+    foreground_bias = float(cfg.get("retinal_foreground_bias", cfg.get("drive_foreground_bias", 0.0)))
 
     train_aug = DriveDataset(
         data_root,
@@ -733,13 +763,15 @@ def estimate_model_complexity(
 
 
 def spatial_shape_for_dataset(name: str) -> tuple[int, int]:
-    n = name.lower().replace("-", "_")
+    n = canonical_dataset_name(name)
     if n in ("fashion_mnist", "fashionmnist"):
         return (28, 28)
     if n in ("cifar10", "cifar_10"):
         return (32, 32)
     if n == "drive":
         return (584, 565)
+    if n in {"chase_db1", "chasedb1", "chase"}:
+        return (960, 999)
     raise ValueError(f"Unknown dataset: {name}")
 
 

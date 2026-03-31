@@ -1,0 +1,57 @@
+# Recommended benchmark config for CHASE_DB1 retinal vessel comparisons.
+# Use together with scripts/run_drive_multiseed.py and an explicit run-name.
+
+dataset: chase_db1
+data_root: ./data
+val_fraction: 0.25
+use_fov_mask: true
+
+variant: az_thesis
+num_rules: 8
+model_widths: [40, 80, 144, 208]
+bottleneck_mode: aspp
+decoder_mode: residual
+boundary_mode: conv
+
+epochs: 120
+batch_size: 1
+lr: 0.0002
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+retinal_patch_size: 384
+retinal_foreground_bias: 0.8
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: tversky
+tversky_alpha: 0.35
+tversky_beta: 0.6
+seg_threshold: 0.6
+eval_threshold_sweep: true
+eval_threshold_metric: core_mean
+eval_threshold_start: 0.3
+eval_threshold_end: 0.8
+eval_threshold_step: 0.05
+aux_loss_weight: 0.2
+boundary_loss_weight: 0.1
+topology_loss_weight: 0.03
+topology_num_iters: 10
+bce_pos_weight: auto
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 25.0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+reg_anisotropy_gap: 0.0005
+
+results_dir: ./results
+run_name: null
+device: null
+
+timing_warmup: 1
+timing_iters: 5

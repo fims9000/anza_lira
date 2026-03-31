@@ -48,6 +48,23 @@ def _make_drive_tree(root) -> None:
         _write_mask(split_dir / "mask" / f"{image_stem}_mask.gif", invert=True)
 
 
+def _make_chase_tree(root) -> None:
+    samples = [
+        ("training", "Image_01L"),
+        ("training", "Image_01R"),
+        ("test", "Image_02L"),
+    ]
+    for split, sample_id in samples:
+        split_dir = root / "CHASE_DB1" / split
+        (split_dir / "images").mkdir(parents=True, exist_ok=True)
+        (split_dir / "1st_manual").mkdir(parents=True, exist_ok=True)
+        (split_dir / "mask").mkdir(parents=True, exist_ok=True)
+
+        _write_rgb(split_dir / "images" / f"{sample_id}.jpg")
+        _write_mask(split_dir / "1st_manual" / f"{sample_id}_manual1.png")
+        _write_mask(split_dir / "mask" / f"{sample_id}_mask.png", invert=True)
+
+
 def test_drive_dataloaders_build_and_batch(tmp_path):
     _make_drive_tree(tmp_path / "data")
     cfg = {
@@ -69,6 +86,33 @@ def test_drive_dataloaders_build_and_batch(tmp_path):
     assert x.shape[1:] == (3, 32, 40)
     assert y.shape[1:] == (1, 32, 40)
     assert fov.shape[1:] == (1, 32, 40)
+    assert len(val_loader.dataset) == 1
+    assert len(test_loader.dataset) == 1
+
+
+def test_chase_db1_dataloaders_build_and_batch(tmp_path):
+    _make_chase_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "chase_db1",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.5,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "use_fov_mask": True,
+        "retinal_patch_size": 16,
+        "retinal_foreground_bias": 1.0,
+    }
+
+    train_loader, val_loader, test_loader, in_channels, num_outputs, task = utils.build_dataloaders(cfg)
+    assert task == "segmentation"
+    assert in_channels == 3
+    assert num_outputs == 1
+
+    x, y, fov = next(iter(train_loader))
+    assert x.shape[2:] == (16, 16)
+    assert y.shape[1:] == (1, 16, 16)
+    assert fov.shape[1:] == (1, 16, 16)
     assert len(val_loader.dataset) == 1
     assert len(test_loader.dataset) == 1
 
