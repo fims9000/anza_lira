@@ -29,6 +29,13 @@ def _run_one_stage(cfg: Dict[str, Any], run_dir: Path) -> Dict[str, Any]:
     return train.run_training(cfg, variant, run_dir)
 
 
+def _load_existing_metrics(run_dir: Path) -> Dict[str, Any] | None:
+    metrics_path = run_dir / "metrics.json"
+    if not metrics_path.exists():
+        return None
+    return json.loads(metrics_path.read_text(encoding="utf-8"))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run FIVES -> CHASE transfer experiments across multiple seeds.")
     parser.add_argument("--pretrain-config", type=str, default="configs/fives_pretrain_probe16_cont.yaml")
@@ -39,6 +46,7 @@ def main() -> None:
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--pretrain-epochs", type=int, default=None)
     parser.add_argument("--finetune-epochs", type=int, default=None)
+    parser.add_argument("--skip-existing", action="store_true", help="Reuse runs that already have metrics.json instead of retraining them.")
     args = parser.parse_args()
 
     pretrain_cfg = load_config(args.pretrain_config)
@@ -66,8 +74,12 @@ def main() -> None:
         if args.pretrain_epochs is not None:
             pre_cfg["epochs"] = int(args.pretrain_epochs)
 
-        print(f"[seed {seed}] pretrain -> {pre_run_dir}")
-        pre_metrics = _run_one_stage(pre_cfg, pre_run_dir)
+        pre_metrics = _load_existing_metrics(pre_run_dir) if args.skip_existing else None
+        if pre_metrics is not None:
+            print(f"[seed {seed}] pretrain -> reusing existing metrics from {pre_run_dir}")
+        else:
+            print(f"[seed {seed}] pretrain -> {pre_run_dir}")
+            pre_metrics = _run_one_stage(pre_cfg, pre_run_dir)
         all_metrics.append({"stage": "pretrain", **pre_metrics})
 
         ft_cfg = dict(finetune_cfg)
@@ -82,8 +94,12 @@ def main() -> None:
         if args.finetune_epochs is not None:
             ft_cfg["epochs"] = int(args.finetune_epochs)
 
-        print(f"[seed {seed}] finetune -> {ft_run_dir}")
-        ft_metrics = _run_one_stage(ft_cfg, ft_run_dir)
+        ft_metrics = _load_existing_metrics(ft_run_dir) if args.skip_existing else None
+        if ft_metrics is not None:
+            print(f"[seed {seed}] finetune -> reusing existing metrics from {ft_run_dir}")
+        else:
+            print(f"[seed {seed}] finetune -> {ft_run_dir}")
+            ft_metrics = _run_one_stage(ft_cfg, ft_run_dir)
         all_metrics.append({"stage": "finetune", **ft_metrics})
 
     save_json(session_dir / "all_metrics.json", all_metrics)

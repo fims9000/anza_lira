@@ -25,6 +25,7 @@ from utils import (
     save_json,
     update_drive_comparison_summary,
     update_drive_multiseed_summary,
+    update_segmentation_multiseed_summary,
 )
 
 
@@ -144,6 +145,8 @@ def main() -> None:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     session_name = args.run_name or f"drive_benchmark_{timestamp}"
     session_dir = ensure_dir(Path(cfg.get("results_dir", "./results")) / session_name)
+    dataset_name = str(cfg.get("dataset", "drive"))
+    is_drive_dataset = utils._normalize_dataset_name(dataset_name) == "drive"
 
     all_metrics: List[Dict[str, Any]] = []
     failed_variants: List[str] = []
@@ -191,11 +194,20 @@ def main() -> None:
                     failed_variants.append(f"{variant}@seed{seed}")
 
     save_json(session_dir / "all_metrics.json", all_metrics)
-    comparison_path = update_drive_comparison_summary(session_dir)
-    multiseed_path = update_drive_multiseed_summary(session_dir, variants=variants)
+    comparison_path = None
+    if is_drive_dataset:
+        comparison_path = update_drive_comparison_summary(session_dir)
+        multiseed_path = update_drive_multiseed_summary(session_dir, variants=variants)
+    else:
+        multiseed_path = update_segmentation_multiseed_summary(
+            session_dir,
+            dataset=dataset_name,
+            variants=variants,
+        )
 
     print(f"Wrote per-run metrics to {session_dir / 'all_metrics.json'}")
-    print(f"Wrote best-run comparison summary to {comparison_path}")
+    if comparison_path is not None:
+        print(f"Wrote best-run comparison summary to {comparison_path}")
     print(f"Wrote multi-seed summary to {multiseed_path}")
 
     if failed_variants:

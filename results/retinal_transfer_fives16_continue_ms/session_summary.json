@@ -1,0 +1,12 @@
+{
+  "session_dir": "results\\retinal_transfer_fives16_continue_ms",
+  "seeds": [
+    41,
+    42,
+    43
+  ],
+  "pretrain_dataset": "fives",
+  "finetune_dataset": "chase_db1",
+  "pretrain_summary": "results\\retinal_transfer_fives16_continue_ms\\fives_pretrain\\fives_multiseed_summary.md",
+  "finetune_summary": "results\\retinal_transfer_fives16_continue_ms\\chase_finetune\\chase_db1_multiseed_summary.md"
+}

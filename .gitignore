@@ -22,9 +22,9 @@ archive.zip
 *.tar
 *.tar.gz
 *.zip
-results/*/history.json
-results/*/dice_curves.png
-results/*/loss_curves.png
+results/**/history.json
+results/**/dice_curves.png
+results/**/loss_curves.png
 
 *.log
 Thumbs.db
