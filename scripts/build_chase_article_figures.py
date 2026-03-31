@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -18,8 +20,9 @@ from build_drawio_article_figures import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+EXPORT_SCRIPT = PROJECT_ROOT / "scripts" / "export_drive_article_assets.py"
 
-COMPARISON_SAMPLE = "002_Image_06L"
+COMPARISON_SAMPLE = "012_Image_11L"
 COMPARISON_CROPS = [
     {"label": "A", "box": (381, 308, 220), "caption": "central bifurcation and side branches"},
     {"label": "B", "box": (496, 271, 220), "caption": "thin lateral branches recovered by the proposed method"},
@@ -80,6 +83,65 @@ def _save_xai_assets(sample_dir: Path) -> str:
     _crop_image(partition_image, box, (260, 260), nearest=True).save(sample_dir / "xai_crop_rule_partition.png")
     _crop_image(vessel_rule_image, box, (260, 260)).save(sample_dir / f"xai_crop_vessel_rule_{vessel_rule_name.lower()}.png")
     return vessel_rule_name
+
+
+def _sample_index_from_id(sample_id: str) -> int:
+    prefix = sample_id.split("_", 1)[0]
+    if prefix.isdigit():
+        return int(prefix)
+    raise ValueError(f"Sample id '{sample_id}' must start with a zero-padded dataset index such as '012_Image_11L'.")
+
+
+def _export_run_sample(
+    *,
+    results_dir: str,
+    config: str,
+    run_name: str,
+    sample_id: str,
+    output_dir: str,
+) -> Path:
+    sample_index = _sample_index_from_id(sample_id)
+    run_root = (PROJECT_ROOT / output_dir / run_name).resolve()
+    sample_root = run_root / sample_id
+    if sample_root.exists():
+        return run_root
+
+    cmd = [
+        sys.executable,
+        str(EXPORT_SCRIPT),
+        "--results-dir",
+        results_dir,
+        "--config",
+        config,
+        "--run",
+        run_name,
+        "--split",
+        "test",
+        "--samples",
+        str(sample_index),
+        "--output-dir",
+        output_dir,
+    ]
+    subprocess.run(cmd, cwd=PROJECT_ROOT, check=True)
+    if not sample_root.exists():
+        raise SystemExit(f"Expected exported sample was not created: {sample_root}")
+    return run_root
+
+
+def _resolve_export_root(explicit_root: str | None, *, results_dir: str, config: str, run_name: str, sample_id: str, output_dir: str) -> Path:
+    if explicit_root:
+        root = (PROJECT_ROOT / explicit_root).resolve()
+        sample_root = root / sample_id
+        if not sample_root.exists():
+            raise SystemExit(f"Missing exported sample under explicit root: {sample_root}")
+        return root
+    return _export_run_sample(
+        results_dir=results_dir,
+        config=config,
+        run_name=run_name,
+        sample_id=sample_id,
+        output_dir=output_dir,
+    )
 
 
 def build_comparison_png(input_dir: Path, baseline_dir: Path, thesis_dir: Path, out_path: Path) -> None:
@@ -257,14 +319,33 @@ def build_xai_drawio(sample_dir: Path, vessel_rule_name: str, out_path: Path) ->
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build CHASE_DB1 article figures from exported model assets.")
-    parser.add_argument("--thesis-root", type=str, default="article_assets/exports_chase_transfer/chase_az_thesis_from_fives16_probe_ft20")
-    parser.add_argument("--baseline-root", type=str, default="article_assets/exports_chase_transfer/chase_baseline_dice80_p512_fg07")
-    parser.add_argument("--sample", type=str, default="012_Image_11L")
-    parser.add_argument("--output-dir", type=str, default="article_assets/final_figures_chase_transfer")
+    parser.add_argument("--results-dir", type=str, default="results")
+    parser.add_argument("--config", type=str, default="configs/chase_db1_benchmark.yaml")
+    parser.add_argument("--thesis-run", type=str, default="chase_az_thesis_from_fives16_continue_dice_ft20")
+    parser.add_argument("--baseline-run", type=str, default="chase_baseline_dice80_p512_fg07")
+    parser.add_argument("--thesis-root", type=str, default=None, help="Optional explicit exported-asset root for the proposed method.")
+    parser.add_argument("--baseline-root", type=str, default=None, help="Optional explicit exported-asset root for the baseline.")
+    parser.add_argument("--export-dir", type=str, default="article_assets/cache_exports")
+    parser.add_argument("--sample", type=str, default=COMPARISON_SAMPLE)
+    parser.add_argument("--output-dir", type=str, default="article_assets/final_figures")
     args = parser.parse_args()
 
-    thesis_root = (PROJECT_ROOT / args.thesis_root).resolve()
-    baseline_root = (PROJECT_ROOT / args.baseline_root).resolve()
+    thesis_root = _resolve_export_root(
+        args.thesis_root,
+        results_dir=args.results_dir,
+        config=args.config,
+        run_name=args.thesis_run,
+        sample_id=args.sample,
+        output_dir=args.export_dir,
+    )
+    baseline_root = _resolve_export_root(
+        args.baseline_root,
+        results_dir=args.results_dir,
+        config=args.config,
+        run_name=args.baseline_run,
+        sample_id=args.sample,
+        output_dir=args.export_dir,
+    )
     out_dir = (PROJECT_ROOT / args.output_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 

@@ -797,6 +797,52 @@ def test_drive_multiseed_summary_aggregates_mean_std_and_delta(tmp_path):
     assert "+0.0100" in content
 
 
+def test_segmentation_multiseed_summary_supports_non_drive_dataset(tmp_path):
+    results_dir = tmp_path / "results"
+    for run_name, variant, seed, dice, threshold in [
+        ("baseline_seed_41", "baseline", 41, 0.7000, 0.70),
+        ("baseline_seed_42", "baseline", 42, 0.7200, 0.75),
+        ("az_thesis_seed_41", "az_thesis", 41, 0.7300, 0.70),
+        ("az_thesis_seed_42", "az_thesis", 42, 0.7400, 0.75),
+    ]:
+        run_dir = results_dir / run_name
+        run_dir.mkdir(parents=True)
+        (run_dir / "metrics.json").write_text(
+            json.dumps(
+                {
+                    "variant": variant,
+                    "dataset": "chase_db1",
+                    "task": "segmentation",
+                    "run_name": run_name,
+                    "seed": seed,
+                    "num_rules": 8 if variant != "baseline" else None,
+                    "selected_threshold": threshold,
+                    "test_dice": dice,
+                    "test_iou": dice - 0.12,
+                    "test_precision": dice + 0.01,
+                    "test_recall": dice - 0.01,
+                    "test_specificity": 0.97,
+                    "test_balanced_accuracy": dice - 0.02,
+                    "seconds_per_forward_batch": 0.02 if variant == "baseline" else 0.05,
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    out_path = utils.update_segmentation_multiseed_summary(
+        results_dir,
+        dataset="chase_db1",
+        variants=["baseline", "az_thesis"],
+    )
+    content = out_path.read_text(encoding="utf-8")
+
+    assert out_path.name == "chase_db1_multiseed_summary.md"
+    assert "baseline_seed_42" in content
+    assert "az_thesis_seed_42" in content
+    assert "0.7350 +- 0.0050" in content
+    assert "+0.0250" in content
+
+
 def test_drive_superiority_gate_passes_when_candidate_beats_baseline(tmp_path):
     results_dir = tmp_path / "results"
     (results_dir / "baseline_run").mkdir(parents=True)

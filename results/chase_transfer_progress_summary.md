@@ -10,32 +10,33 @@ Current best direction: `FIVES pretrain -> CHASE fine-tune`.
 | `chase_az_thesis_from_fives_probe_ft20` | 0.7213 | 0.7535 | first transfer win over older thesis runs |
 | `chase_az_thesis_from_fives_continue_dice_ft20` | 0.7317 | 0.7547 | first raw thesis run above baseline |
 | `chase_az_thesis_from_fives16_probe_ft20` | 0.7270 | 0.7620 | best TTA thesis run, now above baseline |
+| `chase_az_thesis_from_fives16_continue_dice_ft20` | 0.7377 | 0.7647 | current best transfer run in both raw and flips-TTA |
 
 ## Main takeaways
 
 - Short `FIVES` pretraining already gave the first substantial CHASE jump.
 - A small CHASE continuation stage improved raw Dice slightly above the baseline.
-- Longer `FIVES` pretraining did **not** produce the best raw CHASE score, but it produced the best `flips-TTA` CHASE score.
+- Longer `FIVES` pretraining followed by a CHASE continuation stage now gives the strongest overall result.
 - Current best thesis run on CHASE under the article-style evaluation protocol is:
-  - `results/chase_az_thesis_from_fives16_probe_ft20/metrics.json`
-  - `flips-TTA Dice = 0.7619655610`
+  - `results/chase_az_thesis_from_fives16_continue_dice_ft20/metrics.json`
+  - `results/chase_az_thesis_from_fives16_continue_dice_ft20/metrics_test_flips.json`
+  - `raw Dice = 0.7377114254`
+  - `flips-TTA Dice = 0.7647094126`
 
 ## Comparison against baseline
 
 - Baseline `flips-TTA Dice`: `0.7603185798`
-- Best thesis `flips-TTA Dice`: `0.7619655610`
-- Margin: `+0.0016469812`
+- Best thesis `flips-TTA Dice`: `0.7647094126`
+- Margin: `+0.0043908328`
 
 ## Article assets
 
-- Updated CHASE exports:
-  - `article_assets/exports_chase_transfer/chase_baseline_dice80_p512_fg07`
-  - `article_assets/exports_chase_transfer/chase_az_thesis_from_fives16_probe_ft20`
 - Updated figures:
   - `article_assets/final_figures/figure2_chase_examples.drawio`
   - `article_assets/final_figures/figure2_chase_examples.png`
   - `article_assets/final_figures/figure3_chase_xai.drawio`
   - `article_assets/final_figures/figure3_chase_xai.png`
+- Figure rebuilds now use `scripts/build_chase_article_figures.py`, which can regenerate the required sample exports directly from `results/`.
 
 ## Best showcase sample
 

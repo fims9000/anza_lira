@@ -1368,9 +1368,14 @@ def select_best_threshold(
     )
 
 
-def collect_drive_metrics_records(results_dir: str | Path) -> List[Dict[str, Any]]:
+def _normalize_dataset_name(name: Any) -> str:
+    return str(name or "").lower().replace("-", "_").strip()
+
+
+def collect_segmentation_metrics_records(results_dir: str | Path, dataset: str) -> List[Dict[str, Any]]:
     results_path = Path(results_dir)
     records: List[Dict[str, Any]] = []
+    dataset_name = _normalize_dataset_name(dataset)
 
     for metrics_path in sorted(results_path.glob("*/metrics.json")):
         run_name = metrics_path.parent.name
@@ -1382,7 +1387,7 @@ def collect_drive_metrics_records(results_dir: str | Path) -> List[Dict[str, Any
         except (OSError, json.JSONDecodeError):
             continue
 
-        if data.get("dataset") != "drive" or data.get("task") != "segmentation":
+        if _normalize_dataset_name(data.get("dataset")) != dataset_name or data.get("task") != "segmentation":
             continue
         if float(data.get("test_dice", 0.0)) <= 1e-6:
             continue
@@ -1415,6 +1420,10 @@ def collect_drive_metrics_records(results_dir: str | Path) -> List[Dict[str, Any
     return records
 
 
+def collect_drive_metrics_records(results_dir: str | Path) -> List[Dict[str, Any]]:
+    return collect_segmentation_metrics_records(results_dir, dataset="drive")
+
+
 def _mean_std(values: Sequence[float]) -> Tuple[float, float]:
     if not values:
         return 0.0, 0.0
@@ -1424,7 +1433,7 @@ def _mean_std(values: Sequence[float]) -> Tuple[float, float]:
     return float(arr.mean()), float(arr.std(ddof=0))
 
 
-def aggregate_drive_records_by_variant(
+def aggregate_segmentation_records_by_variant(
     records: Sequence[Dict[str, Any]],
     variants: Sequence[str] | None = None,
 ) -> List[Dict[str, Any]]:
@@ -1441,7 +1450,7 @@ def aggregate_drive_records_by_variant(
         variant_records = grouped.get(variant, [])
         if not variant_records:
             continue
-        best_record = max(variant_records, key=drive_record_selection_key)
+        best_record = max(variant_records, key=segmentation_record_selection_key)
         row: Dict[str, Any] = {
             "variant": variant,
             "num_runs": len(variant_records),
@@ -1465,18 +1474,28 @@ def aggregate_drive_records_by_variant(
     return sorted(rows, key=lambda row: (-float(row["test_dice_mean"]), row["variant"]))
 
 
-def update_drive_multiseed_summary(
-    results_dir: str | Path,
+def aggregate_drive_records_by_variant(
+    records: Sequence[Dict[str, Any]],
     variants: Sequence[str] | None = None,
-    out_name: str = "drive_multiseed_summary.md",
+) -> List[Dict[str, Any]]:
+    return aggregate_segmentation_records_by_variant(records, variants=variants)
+
+
+def update_segmentation_multiseed_summary(
+    results_dir: str | Path,
+    dataset: str,
+    variants: Sequence[str] | None = None,
+    out_name: str | None = None,
 ) -> Path:
     results_path = Path(results_dir)
-    records = collect_drive_metrics_records(results_path)
-    rows = aggregate_drive_records_by_variant(records, variants=variants)
+    dataset_name = _normalize_dataset_name(dataset)
+    records = collect_segmentation_metrics_records(results_path, dataset=dataset_name)
+    rows = aggregate_segmentation_records_by_variant(records, variants=variants)
 
-    out_path = results_path / out_name
+    summary_name = out_name or f"{dataset_name}_multiseed_summary.md"
+    out_path = results_path / summary_name
     if not rows:
-        out_path.write_text("No DRIVE segmentation runs with metrics.json were found.\n", encoding="utf-8")
+        out_path.write_text(f"No {dataset_name} segmentation runs with metrics.json were found.\n", encoding="utf-8")
         return out_path
 
     baseline_row = next((row for row in rows if row["variant"] == "baseline"), None)
@@ -1521,13 +1540,25 @@ def update_drive_multiseed_summary(
     return out_path
 
 
-def drive_record_selection_key(record: Dict[str, Any]) -> Tuple[float, float, float, float]:
+def update_drive_multiseed_summary(
+    results_dir: str | Path,
+    variants: Sequence[str] | None = None,
+    out_name: str = "drive_multiseed_summary.md",
+) -> Path:
+    return update_segmentation_multiseed_summary(results_dir, dataset="drive", variants=variants, out_name=out_name)
+
+
+def segmentation_record_selection_key(record: Dict[str, Any]) -> Tuple[float, float, float, float]:
     return (
         float(record["protocol_rank"]),
         float(record["test_dice"]),
         float(record["test_iou"]),
         -float(record["seconds_per_forward_batch"]),
     )
+
+
+def drive_record_selection_key(record: Dict[str, Any]) -> Tuple[float, float, float, float]:
+    return segmentation_record_selection_key(record)
 
 
 def select_best_drive_record(

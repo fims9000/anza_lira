@@ -1,0 +1,64 @@
+# Continued CHASE_DB1 fine-tuning from the stronger FIVES16 transfer checkpoint
+# with Dice overlap refinement to improve raw segmentation quality.
+
+dataset: chase_db1
+data_root: ./data
+val_fraction: 0.25
+use_fov_mask: true
+
+variant: az_thesis
+
+num_rules: 8
+model_widths: [40, 80, 144, 208]
+encoder_az_stages: 2
+encoder_block_mode: hybrid
+hybrid_mix_init: 0.5
+bottleneck_mode: aspp
+decoder_mode: residual
+boundary_mode: conv
+
+epochs: 20
+batch_size: 1
+lr: 5.0e-5
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+init_checkpoint: ./results/chase_az_thesis_from_fives16_probe_ft20/checkpoint_best.pt
+init_checkpoint_strict: true
+lr_scheduler: cosine
+lr_min: 2.0e-6
+
+retinal_patch_size: 512
+retinal_foreground_bias: 0.7
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: dice
+seg_threshold: 0.6
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.3
+eval_threshold_end: 0.85
+eval_threshold_step: 0.05
+aux_loss_weight: 0.0
+boundary_loss_weight: 0.1
+topology_loss_weight: 0.03
+topology_num_iters: 10
+bce_pos_weight: auto
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 25.0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+reg_anisotropy_gap: 0.0005
+
+results_dir: ./results
+run_name: chase_az_thesis_from_fives16_continue_dice_ft20
+device: cuda
+
+timing_warmup: 1
+timing_iters: 5
