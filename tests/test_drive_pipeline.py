@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import random
 from pathlib import Path
 
 import numpy as np
@@ -12,6 +13,7 @@ from PIL import Image
 import utils
 from models import AZSOTAUNet, AZUNet, AttentionUNet, BaselineUNet
 from models.azconv import AZConvConfig
+from models.segmentation import AZResidualBlock, HybridAZResidualBlock, ResidualConvBlock
 
 
 def _write_rgb(path, height: int = 32, width: int = 40) -> None:
@@ -65,6 +67,23 @@ def _make_chase_tree(root) -> None:
         _write_mask(split_dir / "mask" / f"{sample_id}_mask.png", invert=True)
 
 
+def _make_fives_tree(root) -> None:
+    samples = [
+        ("training", "FIVES_0001"),
+        ("training", "FIVES_0002"),
+        ("test", "FIVES_0201"),
+    ]
+    for split, sample_id in samples:
+        split_dir = root / "FIVES" / split
+        (split_dir / "images").mkdir(parents=True, exist_ok=True)
+        (split_dir / "1st_manual").mkdir(parents=True, exist_ok=True)
+        (split_dir / "mask").mkdir(parents=True, exist_ok=True)
+
+        _write_rgb(split_dir / "images" / f"{sample_id}.png", height=48, width=48)
+        _write_mask(split_dir / "1st_manual" / f"{sample_id}_manual1.png", height=48, width=48)
+        _write_mask(split_dir / "mask" / f"{sample_id}_mask.png", height=48, width=48, invert=True)
+
+
 def test_drive_dataloaders_build_and_batch(tmp_path):
     _make_drive_tree(tmp_path / "data")
     cfg = {
@@ -115,6 +134,212 @@ def test_chase_db1_dataloaders_build_and_batch(tmp_path):
     assert fov.shape[1:] == (1, 16, 16)
     assert len(val_loader.dataset) == 1
     assert len(test_loader.dataset) == 1
+
+
+def test_fives_dataloaders_build_and_batch(tmp_path):
+    _make_fives_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "fives",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.5,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "use_fov_mask": True,
+        "retinal_patch_size": 24,
+        "retinal_foreground_bias": 1.0,
+    }
+
+    train_loader, val_loader, test_loader, in_channels, num_outputs, task = utils.build_dataloaders(cfg)
+    assert task == "segmentation"
+    assert in_channels == 3
+    assert num_outputs == 1
+
+    x, y, fov = next(iter(train_loader))
+    assert x.shape[2:] == (24, 24)
+    assert y.shape[1:] == (1, 24, 24)
+    assert fov.shape[1:] == (1, 24, 24)
+    assert len(val_loader.dataset) == 1
+    assert len(test_loader.dataset) == 1
+
+
+def test_retinal_photometric_augmentation_changes_image_but_preserves_masks(tmp_path, monkeypatch):
+    _make_chase_tree(tmp_path / "data")
+    dataset = utils.DriveDataset(
+        tmp_path / "data" / "CHASE_DB1",
+        split="training",
+        augment=True,
+        use_fov_mask=True,
+        brightness_jitter=0.2,
+        contrast_jitter=0.2,
+        gamma_jitter=0.2,
+    )
+
+    image_path, mask_path, fov_path = dataset.samples[0]
+    image = dataset._load_rgb(image_path)
+    mask = dataset._load_mask(mask_path)
+    fov = dataset._load_mask(fov_path)
+
+    monkeypatch.setattr(random, "random", lambda: 1.0)
+    jitter_values = iter([1.1, 1.15, 0.9])
+    monkeypatch.setattr(random, "uniform", lambda a, b: next(jitter_values))
+
+    aug_image, aug_mask, aug_fov = dataset._apply_augment(image.clone(), mask.clone(), fov.clone())
+
+    assert not torch.allclose(aug_image, image)
+    assert torch.equal(aug_mask, mask)
+    assert torch.equal(aug_fov, fov)
+    assert float(aug_image.min()) >= 0.0
+    assert float(aug_image.max()) <= 1.0
+
+
+def test_drive_dataloader_plumbs_retinal_photometric_config(tmp_path):
+    _make_chase_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "chase_db1",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.5,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "use_fov_mask": True,
+        "retinal_brightness_jitter": 0.12,
+        "retinal_contrast_jitter": 0.08,
+        "retinal_gamma_jitter": 0.1,
+    }
+
+    train_loader, _, _, _, _, _ = utils.build_dataloaders(cfg)
+    train_dataset = train_loader.dataset.dataset
+
+    assert train_dataset.brightness_jitter == pytest.approx(0.12)
+    assert train_dataset.contrast_jitter == pytest.approx(0.08)
+    assert train_dataset.gamma_jitter == pytest.approx(0.1)
+
+
+def test_drive_dataloader_plumbs_thin_vessel_sampling_config(tmp_path):
+    _make_chase_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "chase_db1",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.5,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "use_fov_mask": True,
+        "retinal_thin_vessel_bias": 0.35,
+        "retinal_thin_vessel_neighbor_threshold": 3,
+    }
+
+    train_loader, _, _, _, _, _ = utils.build_dataloaders(cfg)
+    train_dataset = train_loader.dataset.dataset
+
+    assert train_dataset.thin_vessel_bias == pytest.approx(0.35)
+    assert train_dataset.thin_vessel_neighbor_threshold == 3
+
+
+def test_drive_dataloader_plumbs_hard_mining_config(tmp_path):
+    _make_chase_tree(tmp_path / "data")
+    mining_root = tmp_path / "mining"
+    mining_root.mkdir(parents=True, exist_ok=True)
+    _write_mask(mining_root / "Image_01L.png", height=32, width=40)
+    cfg = {
+        "dataset": "chase_db1",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.5,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "use_fov_mask": True,
+        "retinal_hard_mining_dir": str(mining_root),
+        "retinal_hard_mining_bias": 0.4,
+    }
+
+    train_loader, _, _, _, _, _ = utils.build_dataloaders(cfg)
+    train_dataset = train_loader.dataset.dataset
+
+    assert train_dataset.hard_mining_dir == mining_root
+    assert train_dataset.hard_mining_bias == pytest.approx(0.4)
+
+
+def test_retinal_input_mode_green_equalized_replicates_green_channel(tmp_path):
+    _make_chase_tree(tmp_path / "data")
+    dataset = utils.DriveDataset(
+        tmp_path / "data" / "CHASE_DB1",
+        split="training",
+        augment=False,
+        use_fov_mask=True,
+        input_mode="green_equalized",
+    )
+
+    image_path, _, _ = dataset.samples[0]
+    image = dataset._load_rgb(image_path)
+    assert image.shape[0] == 3
+    assert torch.allclose(image[0], image[1])
+    assert torch.allclose(image[1], image[2])
+
+
+def test_retinal_input_mode_green_hybrid_preserves_rgb_difference(tmp_path):
+    _make_chase_tree(tmp_path / "data")
+    dataset = utils.DriveDataset(
+        tmp_path / "data" / "CHASE_DB1",
+        split="training",
+        augment=False,
+        use_fov_mask=True,
+        input_mode="green_hybrid",
+        green_blend_alpha=0.4,
+    )
+
+    image_path, _, _ = dataset.samples[0]
+    image = dataset._load_rgb(image_path)
+    assert image.shape[0] == 3
+    assert not torch.allclose(image[0], image[1])
+    assert not torch.allclose(image[1], image[2])
+
+
+def test_thin_vessel_candidates_focus_on_sparse_vessel_pixels(tmp_path):
+    _make_chase_tree(tmp_path / "data")
+    dataset = utils.DriveDataset(
+        tmp_path / "data" / "CHASE_DB1",
+        split="training",
+        augment=False,
+        use_fov_mask=True,
+        thin_vessel_neighbor_threshold=3,
+    )
+
+    mask = torch.zeros(1, 9, 9)
+    mask[:, 1:4, 1:4] = 1.0
+    mask[:, 6, 1:8] = 1.0
+    fov = torch.ones_like(mask)
+
+    thin = dataset._thin_vessel_candidates(mask, fov)
+
+    assert thin[0, 6, 1]
+    assert thin[0, 6, 4]
+    assert not thin[0, 2, 2]
+
+
+def test_sample_weighted_anchor_picks_hotspot():
+    weights = torch.zeros(1, 8, 10)
+    weights[0, 6, 8] = 5.0
+    top, left = utils.DriveDataset._sample_weighted_anchor(weights, crop_h=4, crop_w=4, max_top=4, max_left=6)
+    assert (top, left) == (4, 6)
+
+
+def test_segmentation_tta_wrapper_flips_averages_logits():
+    class _CoordLogitModel(torch.nn.Module):
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            width = x.shape[-1]
+            grid = torch.linspace(0.0, 1.0, width, dtype=x.dtype, device=x.device)
+            return grid.view(1, 1, 1, width).expand(x.shape[0], 1, x.shape[-2], width)
+
+    x = torch.zeros(2, 3, 8, 10)
+    wrapped = utils.SegmentationTTAWrapper(_CoordLogitModel(), mode="flips")
+    out = wrapped(x)
+
+    assert isinstance(out, dict)
+    logits = out["logits"]
+    assert logits.shape == (2, 1, 8, 10)
+    assert torch.allclose(logits, torch.full_like(logits, 0.5), atol=1e-6)
 
 
 def test_drive_patch_training_and_pos_weight(tmp_path):
@@ -234,6 +459,9 @@ def test_az_sota_outputs_and_objective():
 
 def test_az_thesis_hybrid_modes_build_and_run():
     cfg = {
+        "encoder_az_stages": 1,
+        "encoder_block_mode": "hybrid",
+        "hybrid_mix_init": 0.3,
         "bottleneck_mode": "az_single",
         "decoder_mode": "residual",
         "boundary_mode": "conv",
@@ -252,6 +480,13 @@ def test_az_thesis_hybrid_modes_build_and_run():
     out = model(x)
 
     assert isinstance(model, AZSOTAUNet)
+    assert model.encoder_az_stages == 1
+    assert model.encoder_block_mode == "hybrid"
+    assert model.hybrid_mix_init == pytest.approx(0.3)
+    assert isinstance(model.enc1, HybridAZResidualBlock)
+    assert isinstance(model.enc2, ResidualConvBlock)
+    assert isinstance(model.enc3, ResidualConvBlock)
+    assert torch.sigmoid(model.enc1.mix_logit).item() == pytest.approx(0.3, abs=1e-4)
     assert model.bottleneck_mode == "az_single"
     assert model.decoder_mode == "residual"
     assert model.boundary_mode == "conv"
@@ -259,6 +494,36 @@ def test_az_thesis_hybrid_modes_build_and_run():
     assert len(out["aux_logits"]) == 2
     assert out["boundary_logits"].shape == (2, 1, 64, 80)
     assert torch.isfinite(out["logits"]).all()
+
+
+def test_az_thesis_hybrid_shallow_mode_builds_and_runs():
+    cfg = {
+        "encoder_az_stages": 2,
+        "encoder_block_mode": "hybrid_shallow",
+        "hybrid_mix_init": 0.4,
+        "bottleneck_mode": "az_single",
+        "decoder_mode": "residual",
+        "boundary_mode": "conv",
+    }
+    model = utils.build_model(
+        "az_thesis",
+        num_outputs=1,
+        in_channels=3,
+        num_rules=4,
+        task="segmentation",
+        widths=(32, 64, 128, 192),
+        model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
+    )
+
+    x = torch.randn(1, 3, 64, 80)
+    out = model(x)
+
+    assert isinstance(model.enc1, HybridAZResidualBlock)
+    assert isinstance(model.enc2, AZResidualBlock)
+    assert isinstance(model.enc3, ResidualConvBlock)
+    assert model.encoder_block_mode == "hybrid_shallow"
+    assert torch.sigmoid(model.enc1.mix_logit).item() == pytest.approx(0.4, abs=1e-4)
+    assert out["logits"].shape == (1, 1, 64, 80)
 
 
 def test_topology_loss_reaches_zero_for_perfect_prediction():

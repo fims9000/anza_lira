@@ -11,6 +11,8 @@ data/*
 
 !results/README.md
 !results/drive_real_comparison.md
+article_assets/exports*/
+article_assets/tmp_/
 archive.zip
 *.pt
 *.pth

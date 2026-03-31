@@ -1,9 +1,9 @@
-# Recommended benchmark config for CHASE_DB1 retinal vessel comparisons.
+# Recommended benchmark config for FIVES retinal vessel comparisons.
 # Use together with scripts/run_drive_multiseed.py and an explicit run-name.
 
-dataset: chase_db1
+dataset: fives
 data_root: ./data
-val_fraction: 0.25
+val_fraction: 0.15
 use_fov_mask: true
 
 variant: az_thesis
@@ -24,8 +24,8 @@ seed: 42
 deterministic: false
 num_workers: 0
 
-retinal_patch_size: 512
-retinal_foreground_bias: 0.7
+retinal_patch_size: 640
+retinal_foreground_bias: 0.75
 
 bce_weight: 1.0
 dice_weight: 1.0

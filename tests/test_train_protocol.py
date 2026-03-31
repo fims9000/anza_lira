@@ -23,6 +23,11 @@ _SWEEP_SPEC.loader.exec_module(run_az_thesis_sweep)
 
 
 class _ToySegDataset(Dataset):
+    def __init__(self) -> None:
+        self.foreground_bias = 0.0
+        self.thin_vessel_bias = 0.0
+        self.hard_mining_bias = 0.0
+
     def __len__(self) -> int:
         return 1
 
@@ -31,6 +36,15 @@ class _ToySegDataset(Dataset):
         y = torch.zeros(1, 8, 8)
         valid = torch.ones(1, 8, 8)
         return x, y, valid
+
+    def set_foreground_bias(self, value: float) -> None:
+        self.foreground_bias = float(value)
+
+    def set_thin_vessel_bias(self, value: float) -> None:
+        self.thin_vessel_bias = float(value)
+
+    def set_hard_mining_bias(self, value: float) -> None:
+        self.hard_mining_bias = float(value)
 
 
 class _TinySegModel(nn.Module):
@@ -89,6 +103,66 @@ def test_resolve_loss_cfg_uses_unbiased_pos_weight_reference(monkeypatch):
     assert called["min_weight"] == pytest.approx(1.0)
     assert called["max_weight"] == pytest.approx(10.0)
     assert loss_cfg["pos_weight_value"] == pytest.approx(3.25)
+
+
+def test_apply_retinal_foreground_bias_schedule_linear():
+    loader = DataLoader(_ToySegDataset(), batch_size=1, shuffle=False)
+    cfg = {
+        "retinal_foreground_bias": 0.8,
+        "retinal_foreground_bias_end": 0.2,
+        "retinal_foreground_bias_schedule": "linear",
+    }
+
+    first = train.apply_retinal_foreground_bias_schedule(loader, cfg, epoch=1, epochs=5)
+    mid = train.apply_retinal_foreground_bias_schedule(loader, cfg, epoch=3, epochs=5)
+    last = train.apply_retinal_foreground_bias_schedule(loader, cfg, epoch=5, epochs=5)
+
+    assert first == pytest.approx(0.8)
+    assert mid == pytest.approx(0.5)
+    assert last == pytest.approx(0.2)
+
+
+def test_apply_retinal_thin_vessel_bias_schedule_linear():
+    loader = DataLoader(_ToySegDataset(), batch_size=1, shuffle=False)
+    cfg = {
+        "retinal_thin_vessel_bias": 0.5,
+        "retinal_thin_vessel_bias_end": 0.1,
+        "retinal_thin_vessel_bias_schedule": "linear",
+    }
+
+    first = train.apply_retinal_thin_vessel_bias_schedule(loader, cfg, epoch=1, epochs=5)
+    mid = train.apply_retinal_thin_vessel_bias_schedule(loader, cfg, epoch=3, epochs=5)
+    last = train.apply_retinal_thin_vessel_bias_schedule(loader, cfg, epoch=5, epochs=5)
+
+    assert first == pytest.approx(0.5)
+    assert mid == pytest.approx(0.3)
+    assert last == pytest.approx(0.1)
+
+
+def test_apply_retinal_hard_mining_bias_schedule_linear():
+    loader = DataLoader(_ToySegDataset(), batch_size=1, shuffle=False)
+    cfg = {
+        "retinal_hard_mining_bias": 0.6,
+        "retinal_hard_mining_bias_end": 0.2,
+        "retinal_hard_mining_bias_schedule": "linear",
+    }
+
+    first = train.apply_retinal_hard_mining_bias_schedule(loader, cfg, epoch=1, epochs=5)
+    mid = train.apply_retinal_hard_mining_bias_schedule(loader, cfg, epoch=3, epochs=5)
+    last = train.apply_retinal_hard_mining_bias_schedule(loader, cfg, epoch=5, epochs=5)
+
+    assert first == pytest.approx(0.6)
+    assert mid == pytest.approx(0.4)
+    assert last == pytest.approx(0.2)
+
+
+def test_spatial_shape_for_run_prefers_retinal_patch_size():
+    cfg = {
+        "dataset": "fives",
+        "retinal_patch_size": 512,
+    }
+    assert train.spatial_shape_for_run(cfg, "segmentation") == (512, 512)
+    assert train.spatial_shape_for_run({"dataset": "fives"}, "segmentation") == (2048, 2048)
 
 
 def test_run_training_selects_checkpoint_by_validation_sweep_metric(monkeypatch, tmp_path: Path):
@@ -215,6 +289,9 @@ def test_az_thesis_sweep_best_trial_artifacts_keep_loss_overrides():
         "num_rules": 8,
         "model_widths": [40, 80, 144, 208],
         "lr": 2e-4,
+        "encoder_az_stages": 1,
+        "encoder_block_mode": "hybrid",
+        "hybrid_mix_init": 0.3,
         "boundary_loss_weight": 0.1,
         "topology_loss_weight": 0.03,
         "overlap_mode": "tversky",
@@ -239,7 +316,71 @@ def test_az_thesis_sweep_best_trial_artifacts_keep_loss_overrides():
     assert overrides["tversky_alpha"] == pytest.approx(0.35)
     assert overrides["tversky_beta"] == pytest.approx(0.65)
     assert overrides["bce_pos_weight"] == "auto"
+    assert overrides["encoder_az_stages"] == 1
+    assert overrides["encoder_block_mode"] == "hybrid"
+    assert overrides["hybrid_mix_init"] == pytest.approx(0.3)
     assert full_cfg["bce_pos_weight"] == "auto"
+    assert full_cfg["encoder_az_stages"] == 1
+    assert full_cfg["encoder_block_mode"] == "hybrid"
+    assert full_cfg["hybrid_mix_init"] == pytest.approx(0.3)
     assert full_cfg["tversky_beta"] == pytest.approx(0.65)
     assert meta["trial_name"] == "trial_demo"
     assert meta["seeds"] == [41, 42]
+
+
+def test_run_training_can_finetune_from_checkpoint_with_scheduler(monkeypatch, tmp_path: Path):
+    loader = DataLoader(_ToySegDataset(), batch_size=1, shuffle=False)
+    run_dir = tmp_path / "finetune"
+    run_dir.mkdir()
+    ckpt_path = tmp_path / "init.pt"
+    init_model = _TinySegModel()
+    with torch.no_grad():
+        init_model.scale.fill_(2.0)
+    torch.save({"model": init_model.state_dict(), "variant": "baseline"}, ckpt_path)
+
+    seen = {"first_scale": None}
+
+    def fake_train_one_epoch(model, *args, **kwargs):
+        if seen["first_scale"] is None:
+            seen["first_scale"] = float(model.scale.detach())
+        optimizer = args[2]
+        optimizer.zero_grad(set_to_none=True)
+        optimizer.step()
+        return {
+            "train_loss": 1.0,
+            "train_objective": 1.0,
+        }
+
+    monkeypatch.setattr(train, "set_seed", lambda *args, **kwargs: None)
+    monkeypatch.setattr(train, "build_dataloaders", lambda cfg: (loader, loader, loader, 3, 1, "segmentation"))
+    monkeypatch.setattr(train, "build_model", lambda *args, **kwargs: _TinySegModel())
+    monkeypatch.setattr(train, "train_one_epoch", fake_train_one_epoch)
+    monkeypatch.setattr(train, "measure_inference_time", lambda *args, **kwargs: 0.01)
+    monkeypatch.setattr(train, "plot_single_run", lambda *args, **kwargs: None)
+    monkeypatch.setattr(train, "update_drive_comparison_summary", lambda *args, **kwargs: run_dir / "summary.md")
+
+    cfg = {
+        "dataset": "drive",
+        "seed": 0,
+        "epochs": 2,
+        "batch_size": 1,
+        "lr": 1e-3,
+        "weight_decay": 0.0,
+        "num_rules": 2,
+        "eval_threshold_sweep": False,
+        "lr_scheduler": "cosine",
+        "lr_min": 1e-5,
+        "init_checkpoint": str(ckpt_path),
+    }
+
+    metrics = train.run_training(cfg, variant="baseline", run_dir=run_dir)
+    history = json.loads((run_dir / "history.json").read_text(encoding="utf-8"))
+
+    assert seen["first_scale"] == pytest.approx(2.0)
+    assert metrics["lr_scheduler"] == "cosine"
+    assert metrics["best_epoch"] == 1
+    assert metrics["init_checkpoint"]["path"] == str(ckpt_path)
+    assert metrics["init_checkpoint"]["variant"] == "baseline"
+    assert history[0]["lr"] == pytest.approx(1e-3)
+    assert history[0]["lr_next"] < history[0]["lr"]
+    assert history[1]["lr"] == pytest.approx(history[0]["lr_next"])

@@ -153,6 +153,58 @@ class AZResidualBlock(nn.Module):
         return self.act(y + self.shortcut(x))
 
 
+class HybridAZResidualBlock(nn.Module):
+    """Residual block that blends a standard conv branch with an AZ branch."""
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        num_rules: int,
+        cfg: AZConvConfig,
+        use_se: bool = True,
+        mix_init: float = 0.5,
+    ) -> None:
+        super().__init__()
+        if not 0.0 < float(mix_init) < 1.0:
+            raise ValueError("mix_init must be in the open interval (0, 1).")
+        self.conv_body = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+        )
+        self.az_body = nn.Sequential(
+            AZConv2d(in_channels, out_channels, kernel_size=3, num_rules=num_rules, cfg=cfg),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+        )
+        self.shortcut = (
+            nn.Identity()
+            if in_channels == out_channels
+            else nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
+                nn.BatchNorm2d(out_channels),
+            )
+        )
+        self.se = SEBlock(out_channels) if use_se else nn.Identity()
+        mix_value = float(min(max(mix_init, 1e-4), 1.0 - 1e-4))
+        mix_logit = torch.logit(torch.tensor(mix_value, dtype=torch.float32))
+        self.mix_logit = nn.Parameter(mix_logit)
+        self.act = nn.ReLU(inplace=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        conv_y = self.conv_body(x)
+        az_y = self.az_body(x)
+        mix = torch.sigmoid(self.mix_logit)
+        y = (1.0 - mix) * conv_y + mix * az_y
+        y = self.se(y)
+        return self.act(y + self.shortcut(x))
+
+
 class AZResidualRefineBlock(nn.Module):
     """Residual block where both spatial operators are AZConv2d."""
 
@@ -387,6 +439,9 @@ class AZSOTAUNet(_RegularizedSegmentationMixin, nn.Module):
         cfg: AZConvConfig | None = None,
         widths: tuple[int, ...] = (48, 96, 160, 224),
         pure_az: bool = False,
+        encoder_az_stages: int = 3,
+        encoder_block_mode: str = "az",
+        hybrid_mix_init: float = 0.5,
         bottleneck_mode: str | None = None,
         decoder_mode: str | None = None,
         boundary_mode: str | None = None,
@@ -405,6 +460,13 @@ class AZSOTAUNet(_RegularizedSegmentationMixin, nn.Module):
         allowed_bottlenecks = {"aspp", "az_single", "az_double"}
         allowed_decoders = {"residual", "az"}
         allowed_boundaries = {"conv", "az"}
+        allowed_encoder_modes = {"az", "hybrid", "hybrid_shallow"}
+        if not 0 <= int(encoder_az_stages) <= 3:
+            raise ValueError("encoder_az_stages must be in the range [0, 3].")
+        if encoder_block_mode not in allowed_encoder_modes:
+            raise ValueError(f"Unknown encoder_block_mode '{encoder_block_mode}'. Expected one of {sorted(allowed_encoder_modes)}.")
+        if not 0.0 < float(hybrid_mix_init) < 1.0:
+            raise ValueError("hybrid_mix_init must be in the open interval (0, 1).")
         if bottleneck_mode not in allowed_bottlenecks:
             raise ValueError(f"Unknown bottleneck_mode '{bottleneck_mode}'. Expected one of {sorted(allowed_bottlenecks)}.")
         if decoder_mode not in allowed_decoders:
@@ -412,9 +474,36 @@ class AZSOTAUNet(_RegularizedSegmentationMixin, nn.Module):
         if boundary_mode not in allowed_boundaries:
             raise ValueError(f"Unknown boundary_mode '{boundary_mode}'. Expected one of {sorted(allowed_boundaries)}.")
 
-        self.enc1 = AZResidualBlock(in_channels, w1, num_rules, cfg, use_se=True)
-        self.enc2 = AZResidualBlock(w1, w2, num_rules, cfg, use_se=True)
-        self.enc3 = AZResidualBlock(w2, w3, num_rules, cfg, use_se=True)
+        self.encoder_az_stages = int(encoder_az_stages)
+        self.encoder_block_mode = encoder_block_mode
+        self.hybrid_mix_init = float(hybrid_mix_init)
+
+        def _encoder_block(stage_index: int, in_ch: int, out_ch: int) -> nn.Module:
+            if stage_index <= self.encoder_az_stages:
+                if self.encoder_block_mode == "hybrid":
+                    return HybridAZResidualBlock(
+                        in_ch,
+                        out_ch,
+                        num_rules,
+                        cfg,
+                        use_se=True,
+                        mix_init=self.hybrid_mix_init,
+                    )
+                if self.encoder_block_mode == "hybrid_shallow" and stage_index == 1:
+                    return HybridAZResidualBlock(
+                        in_ch,
+                        out_ch,
+                        num_rules,
+                        cfg,
+                        use_se=True,
+                        mix_init=self.hybrid_mix_init,
+                    )
+                return AZResidualBlock(in_ch, out_ch, num_rules, cfg, use_se=True)
+            return ResidualConvBlock(in_ch, out_ch, use_se=True)
+
+        self.enc1 = _encoder_block(1, in_channels, w1)
+        self.enc2 = _encoder_block(2, w1, w2)
+        self.enc3 = _encoder_block(3, w2, w3)
         self.pool = nn.MaxPool2d(2)
         self.pure_az = bool(pure_az)
         self.bottleneck_mode = bottleneck_mode

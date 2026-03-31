@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from PIL import Image
+from PIL import Image, ImageOps
 from torch.utils.data import DataLoader, Dataset
 
 from models import AZConv2d, AZConvConfig, AZConvNet, AZSOTAUNet, AZUNet, AttentionUNet, BaselineUNet, StandardConvNet, count_parameters
@@ -84,6 +84,73 @@ THRESHOLD_DERIVED_METRICS = {
 }
 
 
+def segmentation_tta_num_views(mode: str | None) -> int:
+    tta_mode = str(mode or "none").lower().strip()
+    if tta_mode in {"", "none", "off"}:
+        return 1
+    if tta_mode == "flips":
+        return 4
+    if tta_mode == "d4":
+        return 8
+    raise ValueError(f"Unknown eval_tta mode: {mode}")
+
+
+def _segmentation_tta_ops(mode: str | None):
+    tta_mode = str(mode or "none").lower().strip()
+    if tta_mode in {"", "none", "off"}:
+        return [("id", lambda x: x, lambda y: y)]
+    if tta_mode == "flips":
+        return [
+            ("id", lambda x: x, lambda y: y),
+            ("h", lambda x: torch.flip(x, dims=[3]), lambda y: torch.flip(y, dims=[3])),
+            ("v", lambda x: torch.flip(x, dims=[2]), lambda y: torch.flip(y, dims=[2])),
+            ("hv", lambda x: torch.flip(x, dims=[2, 3]), lambda y: torch.flip(y, dims=[2, 3])),
+        ]
+    if tta_mode == "d4":
+        return [
+            ("id", lambda x: x, lambda y: y),
+            ("h", lambda x: torch.flip(x, dims=[3]), lambda y: torch.flip(y, dims=[3])),
+            ("v", lambda x: torch.flip(x, dims=[2]), lambda y: torch.flip(y, dims=[2])),
+            ("hv", lambda x: torch.flip(x, dims=[2, 3]), lambda y: torch.flip(y, dims=[2, 3])),
+            ("t", lambda x: x.transpose(2, 3), lambda y: y.transpose(2, 3)),
+            ("th", lambda x: torch.flip(x.transpose(2, 3), dims=[3]), lambda y: torch.flip(y, dims=[3]).transpose(2, 3)),
+            ("tv", lambda x: torch.flip(x.transpose(2, 3), dims=[2]), lambda y: torch.flip(y, dims=[2]).transpose(2, 3)),
+            (
+                "thv",
+                lambda x: torch.flip(x.transpose(2, 3), dims=[2, 3]),
+                lambda y: torch.flip(y, dims=[2, 3]).transpose(2, 3),
+            ),
+        ]
+    raise ValueError(f"Unknown eval_tta mode: {mode}")
+
+
+class SegmentationTTAWrapper(nn.Module):
+    def __init__(self, model: nn.Module, mode: str = "none") -> None:
+        super().__init__()
+        self.model = model
+        self.mode = str(mode).lower().strip()
+        self.ops = _segmentation_tta_ops(self.mode)
+
+    def _main_logits(self, output: torch.Tensor | Dict[str, Any]) -> torch.Tensor:
+        if isinstance(output, dict):
+            if "logits" in output:
+                return output["logits"]
+            if "main_logits" in output:
+                return output["main_logits"]
+            raise KeyError("Segmentation dict output must contain 'logits' or 'main_logits'.")
+        return output
+
+    def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor] | torch.Tensor:
+        if self.mode in {"", "none", "off"}:
+            return self.model(x)
+
+        logits = []
+        for _, forward_op, inverse_op in self.ops:
+            output = self.model(forward_op(x))
+            logits.append(inverse_op(self._main_logits(output)))
+        return {"logits": torch.stack(logits, dim=0).mean(dim=0)}
+
+
 def _strip_metric_prefix(metric_name: str) -> str:
     if metric_name.startswith("test_"):
         return metric_name[5:]
@@ -146,6 +213,8 @@ def retinal_dataset_dirname(name: str) -> str:
         return "DRIVE"
     if n in {"chase_db1", "chasedb1", "chase"}:
         return "CHASE_DB1"
+    if n == "fives":
+        return "FIVES"
     raise ValueError(f"Unknown retinal dataset: {name}")
 
 
@@ -170,7 +239,7 @@ def task_for_dataset(name: str) -> str:
     n = canonical_dataset_name(name)
     if n in ("cifar10", "cifar_10", "fashion_mnist", "fashionmnist"):
         return "classification"
-    if n in {"drive", "chase_db1", "chasedb1", "chase"}:
+    if n in {"drive", "chase_db1", "chasedb1", "chase", "fives"}:
         return "segmentation"
     raise ValueError(f"Unknown dataset: {name}")
 
@@ -181,13 +250,13 @@ def dataset_channels_and_outputs(name: str) -> Tuple[int, int]:
         return 3, 10
     if n in ("fashion_mnist", "fashionmnist"):
         return 1, 10
-    if n in {"drive", "chase_db1", "chasedb1", "chase"}:
+    if n in {"drive", "chase_db1", "chasedb1", "chase", "fives"}:
         return 3, 1
     raise ValueError(f"Unknown dataset: {name}")
 
 
 class DriveDataset(Dataset):
-    """Loader for DRIVE-style retinal vessel segmentation datasets."""
+    """Loader for normalized retinal vessel segmentation datasets."""
 
     def __init__(
         self,
@@ -197,6 +266,15 @@ class DriveDataset(Dataset):
         use_fov_mask: bool = True,
         crop_size: int | None = None,
         foreground_bias: float = 0.0,
+        thin_vessel_bias: float = 0.0,
+        thin_vessel_neighbor_threshold: int = 4,
+        hard_mining_dir: str | Path | None = None,
+        hard_mining_bias: float = 0.0,
+        brightness_jitter: float = 0.0,
+        contrast_jitter: float = 0.0,
+        gamma_jitter: float = 0.0,
+        input_mode: str = "rgb",
+        green_blend_alpha: float = 0.35,
     ) -> None:
         super().__init__()
         self.root = Path(root)
@@ -205,6 +283,20 @@ class DriveDataset(Dataset):
         self.use_fov_mask = use_fov_mask
         self.crop_size = crop_size
         self.foreground_bias = float(foreground_bias)
+        self.thin_vessel_bias = max(0.0, min(1.0, float(thin_vessel_bias)))
+        self.thin_vessel_neighbor_threshold = max(1, min(9, int(thin_vessel_neighbor_threshold)))
+        self.hard_mining_dir = Path(hard_mining_dir) if hard_mining_dir else None
+        self.hard_mining_bias = max(0.0, min(1.0, float(hard_mining_bias)))
+        self._hard_mining_cache: Dict[str, torch.Tensor | None] = {}
+        self.brightness_jitter = max(0.0, float(brightness_jitter))
+        self.contrast_jitter = max(0.0, float(contrast_jitter))
+        self.gamma_jitter = max(0.0, float(gamma_jitter))
+        self.input_mode = str(input_mode).lower().strip()
+        if self.input_mode not in {"rgb", "green", "green_equalized", "green_hybrid"}:
+            raise ValueError(
+                f"Unknown retinal input_mode '{input_mode}'. Expected one of ['rgb', 'green', 'green_equalized', 'green_hybrid']."
+            )
+        self.green_blend_alpha = max(0.0, min(1.0, float(green_blend_alpha)))
         self.samples = self._collect_samples()
 
     def _collect_samples(self) -> List[Tuple[Path, Path, Path]]:
@@ -214,7 +306,7 @@ class DriveDataset(Dataset):
         mask_dir = split_dir / "mask"
         if not images_dir.exists() or not manual_dir.exists() or not mask_dir.exists():
             raise FileNotFoundError(
-                "Expected DRIVE structure under "
+                "Expected retinal vessel structure under "
                 f"{split_dir} with subfolders images/, 1st_manual/, mask/."
             )
 
@@ -230,7 +322,7 @@ class DriveDataset(Dataset):
         mask_map = by_id(sorted(mask_dir.glob("*.*")))
         common_ids = sorted(set(image_map) & set(manual_map) & set(mask_map))
         if not common_ids:
-            raise FileNotFoundError(f"No matched DRIVE samples found under {split_dir}")
+            raise FileNotFoundError(f"No matched retinal vessel samples found under {split_dir}")
         return [(image_map[idx], manual_map[idx], mask_map[idx]) for idx in common_ids]
 
     def __len__(self) -> int:
@@ -238,8 +330,33 @@ class DriveDataset(Dataset):
 
     def _load_rgb(self, path: Path) -> torch.Tensor:
         image = Image.open(path).convert("RGB")
-        arr = np.asarray(image, dtype=np.float32) / 255.0
+        if self.input_mode == "green":
+            green = np.asarray(image.getchannel("G"), dtype=np.float32)[..., None]
+            arr = np.repeat(green, 3, axis=2) / 255.0
+        elif self.input_mode == "green_equalized":
+            green = ImageOps.equalize(image.getchannel("G"))
+            green_arr = np.asarray(green, dtype=np.float32)[..., None]
+            arr = np.repeat(green_arr, 3, axis=2) / 255.0
+        elif self.input_mode == "green_hybrid":
+            arr = np.asarray(image, dtype=np.float32) / 255.0
+            green_eq = np.asarray(ImageOps.equalize(image.getchannel("G")), dtype=np.float32) / 255.0
+            alpha = self.green_blend_alpha
+            side_alpha = 0.5 * alpha
+            arr[..., 0] = arr[..., 0] * (1.0 - side_alpha) + green_eq * side_alpha
+            arr[..., 1] = arr[..., 1] * (1.0 - alpha) + green_eq * alpha
+            arr[..., 2] = arr[..., 2] * (1.0 - side_alpha) + green_eq * side_alpha
+        else:
+            arr = np.asarray(image, dtype=np.float32) / 255.0
         return torch.from_numpy(arr).permute(2, 0, 1)
+
+    def set_foreground_bias(self, value: float) -> None:
+        self.foreground_bias = max(0.0, min(1.0, float(value)))
+
+    def set_thin_vessel_bias(self, value: float) -> None:
+        self.thin_vessel_bias = max(0.0, min(1.0, float(value)))
+
+    def set_hard_mining_bias(self, value: float) -> None:
+        self.hard_mining_bias = max(0.0, min(1.0, float(value)))
 
     def _load_mask(self, path: Path) -> torch.Tensor:
         mask = Image.open(path).convert("L")
@@ -251,11 +368,97 @@ class DriveDataset(Dataset):
         std = torch.tensor([0.229, 0.224, 0.225], dtype=image.dtype).view(3, 1, 1)
         return (image - mean) / std
 
+    def _thin_vessel_candidates(self, mask: torch.Tensor, fov: torch.Tensor) -> torch.Tensor:
+        vessel = ((mask > 0.5) & (fov > 0.5)).float()
+        if not vessel.any():
+            return torch.zeros_like(mask, dtype=torch.bool)
+        kernel = torch.ones((1, 1, 3, 3), dtype=vessel.dtype, device=vessel.device)
+        counts = F.conv2d(vessel.unsqueeze(0), kernel, padding=1)[0]
+        return (counts <= float(self.thin_vessel_neighbor_threshold)) & (vessel > 0.5)
+
+    @staticmethod
+    def _sample_weighted_anchor(
+        weight_map: torch.Tensor,
+        crop_h: int,
+        crop_w: int,
+        max_top: int,
+        max_left: int,
+    ) -> tuple[int, int] | None:
+        weights = weight_map[0].reshape(-1)
+        total = float(weights.sum().item())
+        if total <= 0.0:
+            return None
+        probs = (weights / total).cpu()
+        pick = int(torch.multinomial(probs, num_samples=1).item())
+        width = int(weight_map.shape[2])
+        center_y = pick // width
+        center_x = pick % width
+        top = min(max(center_y - crop_h // 2, 0), max_top)
+        left = min(max(center_x - crop_w // 2, 0), max_left)
+        return top, left
+
+    @staticmethod
+    def _sample_crop_anchor(
+        candidate_mask: torch.Tensor,
+        crop_h: int,
+        crop_w: int,
+        max_top: int,
+        max_left: int,
+    ) -> tuple[int, int] | None:
+        if not candidate_mask.any():
+            return None
+        ys, xs = torch.nonzero(candidate_mask[0], as_tuple=True)
+        pick = random.randint(0, ys.numel() - 1)
+        center_y = int(ys[pick].item())
+        center_x = int(xs[pick].item())
+        top = min(max(center_y - crop_h // 2, 0), max_top)
+        left = min(max(center_x - crop_w // 2, 0), max_left)
+        return top, left
+
+    def _load_hard_mining_map(self, sample_id: str, reference: torch.Tensor) -> torch.Tensor | None:
+        if self.hard_mining_dir is None:
+            return None
+        cached = self._hard_mining_cache.get(sample_id, None)
+        if sample_id in self._hard_mining_cache:
+            return None if cached is None else cached.clone()
+
+        candidate = None
+        for suffix in (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".pt", ".npy"):
+            path = self.hard_mining_dir / f"{sample_id}{suffix}"
+            if path.exists():
+                candidate = path
+                break
+        if candidate is None:
+            self._hard_mining_cache[sample_id] = None
+            return None
+
+        if candidate.suffix.lower() == ".pt":
+            tensor = torch.load(candidate, map_location="cpu")
+            if isinstance(tensor, dict):
+                tensor = tensor.get("map", tensor.get("hard_map", tensor))
+            arr = torch.as_tensor(tensor, dtype=torch.float32)
+            if arr.ndim == 2:
+                arr = arr.unsqueeze(0)
+        elif candidate.suffix.lower() == ".npy":
+            arr = torch.from_numpy(np.asarray(np.load(candidate), dtype=np.float32))
+            if arr.ndim == 2:
+                arr = arr.unsqueeze(0)
+        else:
+            image = Image.open(candidate).convert("L")
+            arr = torch.from_numpy(np.asarray(image, dtype=np.float32) / 255.0).unsqueeze(0)
+
+        if arr.shape != reference.shape:
+            arr = F.interpolate(arr.unsqueeze(0), size=reference.shape[-2:], mode="bilinear", align_corners=False)[0]
+        arr = arr.clamp(min=0.0)
+        self._hard_mining_cache[sample_id] = arr
+        return arr.clone()
+
     def _crop_triplet(
         self,
         image: torch.Tensor,
         mask: torch.Tensor,
         fov: torch.Tensor,
+        hard_map: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if self.crop_size is None:
             return image, mask, fov
@@ -268,17 +471,43 @@ class DriveDataset(Dataset):
         left = 0 if max_left <= 0 else random.randint(0, max_left)
 
         valid_foreground = (mask > 0.5) & (fov > 0.5)
-        if self.foreground_bias > 0.0 and valid_foreground.any() and random.random() < self.foreground_bias:
-            ys, xs = torch.nonzero(valid_foreground[0], as_tuple=True)
-            pick = random.randint(0, ys.numel() - 1)
-            center_y = int(ys[pick].item())
-            center_x = int(xs[pick].item())
-            top = min(max(center_y - crop_h // 2, 0), max_top)
-            left = min(max(center_x - crop_w // 2, 0), max_left)
+        biased_anchor: tuple[int, int] | None = None
+        if hard_map is not None and self.hard_mining_bias > 0.0 and random.random() < self.hard_mining_bias:
+            weighted_candidates = hard_map.clamp(min=0.0) * fov.float()
+            biased_anchor = self._sample_weighted_anchor(weighted_candidates, crop_h, crop_w, max_top, max_left)
+
+        if self.thin_vessel_bias > 0.0 and random.random() < self.thin_vessel_bias:
+            if biased_anchor is None:
+                thin_candidates = self._thin_vessel_candidates(mask, fov)
+                biased_anchor = self._sample_crop_anchor(thin_candidates, crop_h, crop_w, max_top, max_left)
+
+        if biased_anchor is None and self.foreground_bias > 0.0 and valid_foreground.any() and random.random() < self.foreground_bias:
+            biased_anchor = self._sample_crop_anchor(valid_foreground, crop_h, crop_w, max_top, max_left)
+
+        if biased_anchor is not None:
+            top, left = biased_anchor
 
         sl_h = slice(top, top + crop_h)
         sl_w = slice(left, left + crop_w)
         return image[:, sl_h, sl_w], mask[:, sl_h, sl_w], fov[:, sl_h, sl_w]
+
+    def _apply_photometric_augment(self, image: torch.Tensor) -> torch.Tensor:
+        image = image.clamp(0.0, 1.0)
+
+        if self.brightness_jitter > 0.0:
+            factor = random.uniform(max(0.0, 1.0 - self.brightness_jitter), 1.0 + self.brightness_jitter)
+            image = image * factor
+
+        if self.contrast_jitter > 0.0:
+            factor = random.uniform(max(0.0, 1.0 - self.contrast_jitter), 1.0 + self.contrast_jitter)
+            mean = image.mean(dim=(1, 2), keepdim=True)
+            image = (image - mean) * factor + mean
+
+        if self.gamma_jitter > 0.0:
+            gamma = random.uniform(max(0.5, 1.0 - self.gamma_jitter), 1.0 + self.gamma_jitter)
+            image = image.clamp(0.0, 1.0).pow(gamma)
+
+        return image.clamp(0.0, 1.0)
 
     def _apply_augment(self, image: torch.Tensor, mask: torch.Tensor, fov: torch.Tensor) -> tuple[torch.Tensor, ...]:
         if random.random() < 0.5:
@@ -293,6 +522,7 @@ class DriveDataset(Dataset):
             image = torch.rot90(image, k=2, dims=[1, 2])
             mask = torch.rot90(mask, k=2, dims=[1, 2])
             fov = torch.rot90(fov, k=2, dims=[1, 2])
+        image = self._apply_photometric_augment(image)
         return image, mask, fov
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -300,10 +530,12 @@ class DriveDataset(Dataset):
         image = self._load_rgb(image_path)
         mask = self._load_mask(mask_path)
         fov = self._load_mask(fov_path) if self.use_fov_mask else torch.ones_like(mask)
-        image, mask, fov = self._crop_triplet(image, mask, fov)
-        image = self._normalize(image)
+        sample_id = _retinal_sample_id(image_path)
+        hard_map = self._load_hard_mining_map(sample_id, mask)
+        image, mask, fov = self._crop_triplet(image, mask, fov, hard_map)
         if self.augment:
             image, mask, fov = self._apply_augment(image, mask, fov)
+        image = self._normalize(image)
         return image, mask, fov
 
 
@@ -388,6 +620,15 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
     patch_size = cfg.get("retinal_patch_size", cfg.get("drive_patch_size"))
     patch_size = int(patch_size) if patch_size else None
     foreground_bias = float(cfg.get("retinal_foreground_bias", cfg.get("drive_foreground_bias", 0.0)))
+    thin_vessel_bias = float(cfg.get("retinal_thin_vessel_bias", 0.0))
+    thin_vessel_neighbor_threshold = int(cfg.get("retinal_thin_vessel_neighbor_threshold", 4))
+    hard_mining_dir = cfg.get("retinal_hard_mining_dir")
+    hard_mining_bias = float(cfg.get("retinal_hard_mining_bias", 0.0))
+    brightness_jitter = float(cfg.get("retinal_brightness_jitter", cfg.get("drive_brightness_jitter", 0.0)))
+    contrast_jitter = float(cfg.get("retinal_contrast_jitter", cfg.get("drive_contrast_jitter", 0.0)))
+    gamma_jitter = float(cfg.get("retinal_gamma_jitter", cfg.get("drive_gamma_jitter", 0.0)))
+    input_mode = str(cfg.get("retinal_input_mode", "rgb")).lower().strip()
+    green_blend_alpha = float(cfg.get("retinal_green_blend_alpha", 0.35))
 
     train_aug = DriveDataset(
         data_root,
@@ -396,6 +637,15 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
         use_fov_mask=use_fov_mask,
         crop_size=patch_size,
         foreground_bias=foreground_bias,
+        thin_vessel_bias=thin_vessel_bias,
+        thin_vessel_neighbor_threshold=thin_vessel_neighbor_threshold,
+        hard_mining_dir=hard_mining_dir,
+        hard_mining_bias=hard_mining_bias,
+        brightness_jitter=brightness_jitter,
+        contrast_jitter=contrast_jitter,
+        gamma_jitter=gamma_jitter,
+        input_mode=input_mode,
+        green_blend_alpha=green_blend_alpha,
     )
     # Keep validation deterministic and protocol-aligned with test-time evaluation:
     # no random crops and no foreground-biased sampling.
@@ -406,6 +656,8 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
         use_fov_mask=use_fov_mask,
         crop_size=None,
         foreground_bias=0.0,
+        input_mode=input_mode,
+        green_blend_alpha=green_blend_alpha,
     )
     test_set = DriveDataset(
         data_root,
@@ -414,6 +666,8 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
         use_fov_mask=use_fov_mask,
         crop_size=None,
         foreground_bias=0.0,
+        input_mode=input_mode,
+        green_blend_alpha=green_blend_alpha,
     )
 
     val_fraction = float(cfg.get("val_fraction", 0.2))
@@ -574,10 +828,16 @@ def parse_model_widths(raw_widths: Any) -> tuple[int, int, int, int] | None:
 
 def resolve_segmentation_model_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
     model_kwargs: Dict[str, Any] = {}
-    for key in ("bottleneck_mode", "decoder_mode", "boundary_mode"):
+    for key in ("bottleneck_mode", "decoder_mode", "boundary_mode", "encoder_block_mode"):
         value = cfg.get(key)
         if value is not None:
             model_kwargs[key] = str(value)
+    encoder_az_stages = cfg.get("encoder_az_stages")
+    if encoder_az_stages is not None:
+        model_kwargs["encoder_az_stages"] = int(encoder_az_stages)
+    hybrid_mix_init = cfg.get("hybrid_mix_init")
+    if hybrid_mix_init is not None:
+        model_kwargs["hybrid_mix_init"] = float(hybrid_mix_init)
     return model_kwargs
 
 
@@ -772,6 +1032,8 @@ def spatial_shape_for_dataset(name: str) -> tuple[int, int]:
         return (584, 565)
     if n in {"chase_db1", "chasedb1", "chase"}:
         return (960, 999)
+    if n == "fives":
+        return (2048, 2048)
     raise ValueError(f"Unknown dataset: {name}")
 
 

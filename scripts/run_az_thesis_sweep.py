@@ -98,6 +98,8 @@ def _trial_name(
     num_rules: int,
     widths: Sequence[int],
     lr: float,
+    encoder_az_stages: int,
+    hybrid_mix_init: float,
     boundary_weight: float,
     topology_weight: float,
     overlap_mode: str,
@@ -113,6 +115,8 @@ def _trial_name(
     return (
         f"r{num_rules}_lr{_slug_float(lr)}"
         f"_w{_slug_widths(widths)}"
+        f"_enc{int(encoder_az_stages)}"
+        f"_hm{_slug_float(hybrid_mix_init)}"
         f"_bw{_slug_float(boundary_weight)}"
         f"_tw{_slug_float(topology_weight)}"
         f"_ov{overlap_mode}"
@@ -134,6 +138,9 @@ def _ranking_row(trial_name: str, trial_cfg: Dict[str, Any], metrics_rows: Seque
         "num_rules": int(trial_cfg["num_rules"]),
         "model_widths": list(utils.parse_model_widths(trial_cfg.get("model_widths")) or []),
         "lr": float(trial_cfg["lr"]),
+        "encoder_az_stages": int(trial_cfg["encoder_az_stages"]),
+        "encoder_block_mode": str(trial_cfg.get("encoder_block_mode", "az")),
+        "hybrid_mix_init": float(trial_cfg.get("hybrid_mix_init", 0.5)),
         "boundary_loss_weight": float(trial_cfg["boundary_loss_weight"]),
         "topology_loss_weight": float(trial_cfg["topology_loss_weight"]),
         "overlap_mode": str(trial_cfg["overlap_mode"]),
@@ -156,8 +163,8 @@ def _ranking_row(trial_name: str, trial_cfg: Dict[str, Any], metrics_rows: Seque
 
 def _write_markdown_ranking(out_path: Path, rows: Sequence[Dict[str, Any]]) -> None:
     lines = [
-        "| Trial | Runs | Rules | Widths | LR | Boundary | Topology | Overlap | Tversky a | Tversky b | BCE pos | Threshold metric | Bottleneck | Decoder | Boundary head | Dice mean+-std | IoU mean+-std | Precision mean+-std | Recall mean+-std | Specificity mean+-std | Balanced Acc mean+-std | Threshold mean+-std | Fwd mean (s) |",
-        "|---|---:|---:|---|---:|---:|---:|---|---:|---:|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Trial | Runs | Rules | Widths | Enc AZ | Hybrid mix | LR | Boundary | Topology | Overlap | Tversky a | Tversky b | BCE pos | Threshold metric | Bottleneck | Decoder | Boundary head | Dice mean+-std | IoU mean+-std | Precision mean+-std | Recall mean+-std | Specificity mean+-std | Balanced Acc mean+-std | Threshold mean+-std | Fwd mean (s) |",
+        "|---|---:|---:|---|---:|---:|---:|---:|---:|---|---:|---:|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in rows:
         lines.append(
@@ -168,6 +175,8 @@ def _write_markdown_ranking(out_path: Path, rows: Sequence[Dict[str, Any]]) -> N
                     str(int(row["num_runs"])),
                     str(int(row["num_rules"])),
                     ",".join(str(int(width)) for width in row["model_widths"]) or "default",
+                    str(int(row["encoder_az_stages"])),
+                    f"{row['hybrid_mix_init']:.3f}",
                     f"{row['lr']:.6f}",
                     f"{row['boundary_loss_weight']:.4f}",
                     f"{row['topology_loss_weight']:.4f}",
@@ -202,6 +211,9 @@ def _best_trial_artifacts(
         "num_rules": int(best_row["num_rules"]),
         "model_widths": list(best_row["model_widths"]),
         "lr": float(best_row["lr"]),
+        "encoder_az_stages": int(best_row["encoder_az_stages"]),
+        "encoder_block_mode": str(best_row.get("encoder_block_mode", "az")),
+        "hybrid_mix_init": float(best_row.get("hybrid_mix_init", 0.5)),
         "boundary_loss_weight": float(best_row["boundary_loss_weight"]),
         "topology_loss_weight": float(best_row["topology_loss_weight"]),
         "overlap_mode": str(best_row["overlap_mode"]),
@@ -234,6 +246,8 @@ def _iter_trials(
     num_rules_values: Sequence[int],
     width_sets: Sequence[Sequence[int]],
     learning_rates: Sequence[float],
+    encoder_az_stages_values: Sequence[int],
+    hybrid_mix_values: Sequence[float],
     boundary_weights: Sequence[float],
     topology_weights: Sequence[float],
     overlap_modes: Sequence[str],
@@ -249,6 +263,8 @@ def _iter_trials(
         num_rules_values,
         width_sets,
         learning_rates,
+        encoder_az_stages_values,
+        hybrid_mix_values,
         boundary_weights,
         topology_weights,
         overlap_modes,
@@ -274,6 +290,8 @@ def main() -> None:
         help="Semicolon-separated width sets, each written as four comma-separated integers.",
     )
     parser.add_argument("--learning-rates", type=str, default="0.0003,0.0002,0.0001", help="Comma-separated learning rates.")
+    parser.add_argument("--encoder-az-stages", type=str, default="1,2,3", help="Comma-separated counts of encoder stages that use AZ blocks.")
+    parser.add_argument("--hybrid-mix-inits", type=str, default="0.5", help="Comma-separated initial AZ-branch mixture values for hybrid encoder blocks.")
     parser.add_argument("--boundary-weights", type=str, default="0.05,0.1,0.15", help="Comma-separated boundary loss weights.")
     parser.add_argument("--topology-weights", type=str, default="0.0,0.01,0.03", help="Comma-separated topology loss weights.")
     parser.add_argument("--overlap-modes", type=str, default="dice,tversky", help="Comma-separated overlap modes.")
@@ -304,6 +322,8 @@ def main() -> None:
     num_rules_values = _parse_ints(args.num_rules)
     width_sets = _parse_width_sets(args.widths)
     learning_rates = _parse_floats(args.learning_rates)
+    encoder_az_stages_values = _parse_ints(args.encoder_az_stages)
+    hybrid_mix_values = _parse_floats(args.hybrid_mix_inits)
     boundary_weights = _parse_floats(args.boundary_weights)
     topology_weights = _parse_floats(args.topology_weights)
     overlap_modes = _parse_strings(args.overlap_modes)
@@ -327,6 +347,8 @@ def main() -> None:
             num_rules_values=num_rules_values,
             width_sets=width_sets,
             learning_rates=learning_rates,
+            encoder_az_stages_values=encoder_az_stages_values,
+            hybrid_mix_values=hybrid_mix_values,
             boundary_weights=boundary_weights,
             topology_weights=topology_weights,
             overlap_modes=overlap_modes,
@@ -351,6 +373,8 @@ def main() -> None:
             num_rules,
             widths,
             lr,
+            encoder_az_stages,
+            hybrid_mix_init,
             boundary_weight,
             topology_weight,
             overlap_mode,
@@ -366,6 +390,8 @@ def main() -> None:
             num_rules=num_rules,
             widths=widths,
             lr=lr,
+            encoder_az_stages=encoder_az_stages,
+            hybrid_mix_init=hybrid_mix_init,
             boundary_weight=boundary_weight,
             topology_weight=topology_weight,
             overlap_mode=overlap_mode,
@@ -385,6 +411,8 @@ def main() -> None:
                 "num_rules": int(num_rules),
                 "model_widths": list(widths),
                 "lr": float(lr),
+                "encoder_az_stages": int(encoder_az_stages),
+                "hybrid_mix_init": float(hybrid_mix_init),
                 "boundary_loss_weight": float(boundary_weight),
                 "topology_loss_weight": float(topology_weight),
                 "overlap_mode": str(overlap_mode),
@@ -400,7 +428,7 @@ def main() -> None:
 
         print(
             f"[trial {trial_index}/{len(all_trials)}] {trial_name} "
-            f"(rules={num_rules}, widths={list(widths)}, lr={lr}, boundary={boundary_weight}, topology={topology_weight}, "
+            f"(rules={num_rules}, widths={list(widths)}, enc_az={encoder_az_stages}, hm={hybrid_mix_init}, lr={lr}, boundary={boundary_weight}, topology={topology_weight}, "
             f"overlap={overlap_mode}, tversky=({tversky_alpha},{tversky_beta}), pos_weight={_display_scalar(bce_pos_weight)}, "
             f"thr_metric={threshold_metric}, bottleneck={bottleneck_mode}, "
             f"decoder={decoder_mode}, head={boundary_mode})"

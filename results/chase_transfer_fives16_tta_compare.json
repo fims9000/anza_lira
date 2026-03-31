@@ -1,0 +1,26 @@
+[
+  {
+    "label": "transfer_continue_dice_ft20",
+    "run_name": "chase_az_thesis_from_fives_continue_dice_ft20",
+    "selected_threshold": 0.7,
+    "val_dice_tta": 0.7805229009248992,
+    "test_dice_tta": 0.7546964592180612,
+    "test_iou_tta": 0.6060341390695645,
+    "test_precision_tta": 0.7129486727841079,
+    "test_recall_tta": 0.8016375572449506,
+    "test_specificity_tta": 0.9660325340754872,
+    "test_balanced_accuracy_tta": 0.8838350456602189
+  },
+  {
+    "label": "transfer_from_fives16_ft20",
+    "run_name": "chase_az_thesis_from_fives16_probe_ft20",
+    "selected_threshold": 0.75,
+    "val_dice_tta": 0.7865685312822848,
+    "test_dice_tta": 0.76196556104282,
+    "test_iou_tta": 0.6154639459663492,
+    "test_precision_tta": 0.708554048419807,
+    "test_recall_tta": 0.824085986687972,
+    "test_specificity_tta": 0.9643268573530862,
+    "test_balanced_accuracy_tta": 0.894206422020529
+  }
+]

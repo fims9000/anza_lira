@@ -1,0 +1,62 @@
+[
+  {
+    "label": "baseline",
+    "run_name": "chase_baseline_dice80_p512_fg07",
+    "selected_threshold": 0.75,
+    "val_dice_tta": 0.7969252876391512,
+    "test_dice_tta": 0.7603185798307811,
+    "test_iou_tta": 0.6133177181335812,
+    "test_precision_tta": 0.704576641542692,
+    "test_recall_tta": 0.8256381922738686,
+    "test_specificity_tta": 0.9635674002846599,
+    "test_balanced_accuracy_tta": 0.8946027962792642
+  },
+  {
+    "label": "transfer_probe_ft20",
+    "run_name": "chase_az_thesis_from_fives_probe_ft20",
+    "selected_threshold": 0.75,
+    "val_dice_tta": 0.7802090646696381,
+    "test_dice_tta": 0.7535024345397844,
+    "test_iou_tta": 0.6044957129632158,
+    "test_precision_tta": 0.7060697366396291,
+    "test_recall_tta": 0.807767000973765,
+    "test_specificity_tta": 0.9646111368068196,
+    "test_balanced_accuracy_tta": 0.8861890688902923
+  },
+  {
+    "label": "transfer_continue_cosine_ft20",
+    "run_name": "chase_az_thesis_from_fives_continue_cosine_ft20",
+    "selected_threshold": 0.7,
+    "val_dice_tta": 0.7808760060467631,
+    "test_dice_tta": 0.753901867635109,
+    "test_iou_tta": 0.6050100293500381,
+    "test_precision_tta": 0.7061493488799575,
+    "test_recall_tta": 0.8085812212203416,
+    "test_specificity_tta": 0.9645890528341264,
+    "test_balanced_accuracy_tta": 0.886585137027234
+  },
+  {
+    "label": "transfer_continue_plateau_ft20",
+    "run_name": "chase_az_thesis_from_fives_continue_plateau_ft20",
+    "selected_threshold": 0.7,
+    "val_dice_tta": 0.7809322976620081,
+    "test_dice_tta": 0.7539028154513935,
+    "test_iou_tta": 0.605011250165446,
+    "test_precision_tta": 0.7063435377887193,
+    "test_recall_tta": 0.8083289386922035,
+    "test_specificity_tta": 0.964633220779513,
+    "test_balanced_accuracy_tta": 0.8864810797358582
+  },
+  {
+    "label": "transfer_continue_dice_ft20",
+    "run_name": "chase_az_thesis_from_fives_continue_dice_ft20",
+    "selected_threshold": 0.7,
+    "val_dice_tta": 0.7805229009248992,
+    "test_dice_tta": 0.7546964592180612,
+    "test_iou_tta": 0.6060341390695645,
+    "test_precision_tta": 0.7129486727841079,
+    "test_recall_tta": 0.8016375572449506,
+    "test_specificity_tta": 0.9660325340754872,
+    "test_balanced_accuracy_tta": 0.8838350456602189
+  }
+]

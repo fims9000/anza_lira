@@ -1,12 +1,12 @@
-# Recommended benchmark config for CHASE_DB1 retinal vessel comparisons.
-# Use together with scripts/run_drive_multiseed.py and an explicit run-name.
+# Continued FIVES pretraining to extend the successful 8-epoch transfer probe.
 
-dataset: chase_db1
+dataset: fives
 data_root: ./data
-val_fraction: 0.25
+val_fraction: 0.15
 use_fov_mask: true
 
 variant: az_thesis
+
 num_rules: 8
 model_widths: [40, 80, 144, 208]
 encoder_az_stages: 2
@@ -16,13 +16,18 @@ bottleneck_mode: aspp
 decoder_mode: residual
 boundary_mode: conv
 
-epochs: 80
+epochs: 8
 batch_size: 1
-lr: 0.0002
+lr: 1.0e-4
 weight_decay: 0.0001
 seed: 42
 deterministic: false
 num_workers: 0
+
+init_checkpoint: ./results/fives_az_thesis_pretrain_probe8_p512/checkpoint_best.pt
+init_checkpoint_strict: true
+lr_scheduler: cosine
+lr_min: 5.0e-6
 
 retinal_patch_size: 512
 retinal_foreground_bias: 0.7
@@ -53,8 +58,8 @@ reg_hyperbolicity: 0.001
 reg_anisotropy_gap: 0.0005
 
 results_dir: ./results
-run_name: null
-device: null
+run_name: fives_az_thesis_pretrain_probe16_cont_p512
+device: cuda
 
 timing_warmup: 1
 timing_iters: 5

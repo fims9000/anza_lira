@@ -123,6 +123,14 @@ def recommended_threshold_for_run(run: DriveRunInfo, default_threshold: float = 
             return float(sweep.get("recommended_threshold", default_threshold))
         except Exception:
             return default_threshold
+    metrics_path = run.run_dir / "metrics.json"
+    if metrics_path.exists():
+        try:
+            metrics = _load_json(metrics_path)
+            if metrics.get("selected_threshold") is not None:
+                return float(metrics["selected_threshold"])
+        except Exception:
+            return default_threshold
     return default_threshold
 
 

@@ -245,8 +245,8 @@ def build_comparison_png(input_dir: Path, baseline_dir: Path, thesis_dir: Path, 
     draw = ImageDraw.Draw(note)
     draw.rounded_rectangle((0, 0, 339, 129), radius=14, outline=(139, 151, 173), width=2, fill=(246, 245, 241))
     note_text = (
-        "Green pixels in AZ gain = baseline errors fixed by AZ-Thesis\n"
-        "Magenta pixels in AZ gain = errors introduced relative to baseline"
+        "Turquoise pixels in the improvement map = baseline errors fixed by the proposed method\n"
+        "Magenta pixels in the improvement map = errors introduced relative to baseline"
     )
     draw.multiline_text((18, 24), note_text, fill=(28, 28, 28), spacing=10)
 
@@ -255,7 +255,7 @@ def build_comparison_png(input_dir: Path, baseline_dir: Path, thesis_dir: Path, 
     left_col.paste(_label_panel(note, "Comparison Notes", (340, 130)), (10, 380))
 
     panel_size = (210, 210)
-    headers = ["Input Crop", "Ground Truth", "Baseline", "AZ-Thesis", "AZ Gain"]
+    headers = ["Input Crop", "Ground Truth", "Baseline", "Proposed method", "Improvement map"]
     rows: list[Image.Image] = []
     for spec in SEGMENTATION_CROPS:
         row_items = [
@@ -406,13 +406,13 @@ def build_qualitative_drawio(sample_dirs: list[Path], out_path: Path) -> None:
 
 def build_comparison_drawio(input_dir: Path, baseline_dir: Path, thesis_dir: Path, out_path: Path) -> None:
     builder = DrawIoBuilder(width=2100, height=1200)
-    builder.add_text(120, 30, 1860, 40, "Figure 2. Local comparison of Baseline U-Net and AZ-Thesis on hard DRIVE regions", font_size=26, bold=True)
+    builder.add_text(120, 30, 1860, 40, "Figure 2. Local comparison of Baseline U-Net and the proposed method on hard DRIVE regions", font_size=26, bold=True)
     builder.add_image(40, 140, 360, 360, input_dir / "comparison_reference.png")
     builder.add_text(40, 110, 360, 24, "Reference image with crop locations", font_size=18, bold=True)
-    builder.add_box(420, 150, 440, 70, "AZ gain: green = baseline errors fixed by AZ-Thesis; magenta = errors introduced by AZ-Thesis", fill="#f6f7fb", stroke="#8b97ad")
+    builder.add_box(420, 150, 540, 90, "Improvement map: turquoise = baseline errors fixed by the proposed method; magenta = errors introduced by the proposed method", fill="#f6f7fb", stroke="#8b97ad")
 
     x_positions = [430, 740, 1050, 1360, 1670]
-    titles = ["Input Crop", "Ground Truth", "Baseline", "AZ-Thesis", "AZ Gain"]
+    titles = ["Input Crop", "Ground Truth", "Baseline", "Proposed method", "Improvement map"]
     for title, x in zip(titles, x_positions):
         builder.add_text(x, 120, 250, 24, title, font_size=18, bold=True)
 

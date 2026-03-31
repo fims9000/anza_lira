@@ -1,5 +1,4 @@
-# Recommended benchmark config for CHASE_DB1 retinal vessel comparisons.
-# Use together with scripts/run_drive_multiseed.py and an explicit run-name.
+# CHASE_DB1 fine-tuning from the longer FIVES pretraining continuation.
 
 dataset: chase_db1
 data_root: ./data
@@ -7,6 +6,7 @@ val_fraction: 0.25
 use_fov_mask: true
 
 variant: az_thesis
+
 num_rules: 8
 model_widths: [40, 80, 144, 208]
 encoder_az_stages: 2
@@ -16,13 +16,18 @@ bottleneck_mode: aspp
 decoder_mode: residual
 boundary_mode: conv
 
-epochs: 80
+epochs: 20
 batch_size: 1
-lr: 0.0002
+lr: 1.0e-4
 weight_decay: 0.0001
 seed: 42
 deterministic: false
 num_workers: 0
+
+init_checkpoint: ./results/fives_az_thesis_pretrain_probe16_cont_p512/checkpoint_best.pt
+init_checkpoint_strict: true
+lr_scheduler: cosine
+lr_min: 1.0e-5
 
 retinal_patch_size: 512
 retinal_foreground_bias: 0.7
@@ -36,7 +41,7 @@ seg_threshold: 0.6
 eval_threshold_sweep: true
 eval_threshold_metric: dice
 eval_threshold_start: 0.3
-eval_threshold_end: 0.8
+eval_threshold_end: 0.85
 eval_threshold_step: 0.05
 aux_loss_weight: 0.0
 boundary_loss_weight: 0.1
@@ -53,8 +58,8 @@ reg_hyperbolicity: 0.001
 reg_anisotropy_gap: 0.0005
 
 results_dir: ./results
-run_name: null
-device: null
+run_name: chase_az_thesis_from_fives16_probe_ft20
+device: cuda
 
 timing_warmup: 1
 timing_iters: 5

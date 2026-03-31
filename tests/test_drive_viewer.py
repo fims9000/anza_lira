@@ -58,3 +58,26 @@ def test_recommended_threshold_for_run_reads_threshold_sweep(tmp_path):
         approx_gmacs_per_forward=None,
     )
     assert recommended_threshold_for_run(run, default_threshold=0.6) == 0.55
+
+
+def test_recommended_threshold_for_run_falls_back_to_metrics_selected_threshold(tmp_path):
+    run_dir = tmp_path / "run_y"
+    run_dir.mkdir()
+    (run_dir / "checkpoint_best.pt").write_bytes(b"x")
+    (run_dir / "metrics.json").write_text(json.dumps({"selected_threshold": 0.75}), encoding="utf-8")
+
+    run = DriveRunInfo(
+        name="run_y",
+        run_dir=run_dir,
+        checkpoint_path=run_dir / "checkpoint_best.pt",
+        metrics_path=run_dir / "metrics.json",
+        metrics={"selected_threshold": 0.75},
+        variant="az_thesis",
+        test_dice=None,
+        test_iou=None,
+        test_recall=None,
+        test_precision=None,
+        num_parameters=None,
+        approx_gmacs_per_forward=None,
+    )
+    assert recommended_threshold_for_run(run, default_threshold=0.6) == 0.75

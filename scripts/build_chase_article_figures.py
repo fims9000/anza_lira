@@ -22,7 +22,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 COMPARISON_SAMPLE = "002_Image_06L"
 COMPARISON_CROPS = [
     {"label": "A", "box": (381, 308, 220), "caption": "central bifurcation and side branches"},
-    {"label": "B", "box": (496, 271, 220), "caption": "thin lateral branches recovered by AZ-Thesis"},
+    {"label": "B", "box": (496, 271, 220), "caption": "thin lateral branches recovered by the proposed method"},
 ]
 XAI_CROP = {"label": "X", "box": (350, 250, 260), "caption": "optic-disc neighborhood with dominant-rule switch"}
 
@@ -49,6 +49,11 @@ def _save_comparison_assets(input_dir: Path, baseline_dir: Path, thesis_dir: Pat
     thesis_mask = np.asarray(Image.open(thesis_dir / "prediction_mask.png").convert("L"), dtype=np.uint8) > 127
     valid_mask = np.asarray(Image.open(input_dir / "valid_mask.png").convert("L"), dtype=np.uint8) > 127
     gain = _gain_map(gt_mask, base_mask, thesis_mask, valid_mask)
+    Image.fromarray(gain).save(thesis_dir / "gain_full.png")
+    _thumbnail_with_boxes(gt_image, COMPARISON_CROPS, size=(360, 360)).save(input_dir / "comparison_gt_reference.png")
+    _thumbnail_with_boxes(baseline_image, COMPARISON_CROPS, size=(360, 360)).save(baseline_dir / "comparison_prediction_reference.png")
+    _thumbnail_with_boxes(thesis_image, COMPARISON_CROPS, size=(360, 360)).save(thesis_dir / "comparison_prediction_reference.png")
+    _thumbnail_with_boxes(Image.fromarray(gain), COMPARISON_CROPS, size=(360, 360)).save(thesis_dir / "comparison_gain_reference.png")
 
     for spec in COMPARISON_CROPS:
         label = str(spec["label"]).lower()
@@ -78,23 +83,45 @@ def _save_xai_assets(sample_dir: Path) -> str:
 
 
 def build_comparison_png(input_dir: Path, baseline_dir: Path, thesis_dir: Path, out_path: Path) -> None:
-    note = Image.new("RGB", (360, 150), color=(246, 245, 241))
+    note = Image.new("RGB", (360, 190), color=(246, 245, 241))
     draw = ImageDraw.Draw(note)
-    draw.rounded_rectangle((0, 0, 359, 149), radius=14, outline=(139, 151, 173), width=2, fill=(246, 245, 241))
+    draw.rounded_rectangle((0, 0, 359, 189), radius=14, outline=(139, 151, 173), width=2, fill=(246, 245, 241))
     note_text = (
-        "AZ gain:\n"
-        "green = baseline errors fixed by AZ-Thesis\n"
-        "magenta = new errors introduced by AZ-Thesis"
+        "Top row shows full-image predictions.\n"
+        "Rows A/B zoom into the two regions with the clearest local differences.\n\n"
+        "Improvement map:\n"
+        "turquoise = baseline errors fixed by the proposed method\n"
+        "magenta = new errors introduced by the proposed method"
     )
     draw.multiline_text((18, 24), note_text, fill=(28, 28, 28), spacing=10)
 
-    left_col = Image.new("RGB", (380, 560), color=(232, 232, 228))
+    left_col = Image.new("RGB", (380, 600), color=(232, 232, 228))
     left_col.paste(_label_panel(_load_png(input_dir / "comparison_reference.png"), "Reference Image", (360, 360)), (10, 10))
-    left_col.paste(_label_panel(note, "Comparison Notes", (360, 150)), (10, 390))
+    left_col.paste(_label_panel(note, "Comparison Notes", (360, 190)), (10, 390))
+
+    overview_panel_size = (180, 180)
+    overview_headers = ["Input", "Ground Truth", "Baseline Full", "Proposed method Full", "Improvement map Full"]
+    overview_images = [
+        _load_png(input_dir / "comparison_reference.png"),
+        _load_png(input_dir / "comparison_gt_reference.png"),
+        _load_png(baseline_dir / "comparison_prediction_reference.png"),
+        _load_png(thesis_dir / "comparison_prediction_reference.png"),
+        _load_png(thesis_dir / "comparison_gain_reference.png"),
+    ]
+    overview_labeled = [_label_panel(image, title, overview_panel_size) for title, image in zip(overview_headers, overview_images)]
+    overview_row_w = sum(item.width for item in overview_labeled)
+    overview_row_h = max(item.height for item in overview_labeled)
+    overview_row = Image.new("RGB", (overview_row_w, overview_row_h + 46), color=(232, 232, 228))
+    draw = ImageDraw.Draw(overview_row)
+    draw.text((10, 10), "Whole-image view: predictions over the entire retinal field", fill=(28, 28, 28))
+    x = 0
+    for panel in overview_labeled:
+        overview_row.paste(panel, (x, 46))
+        x += panel.width
 
     panel_size = (210, 210)
-    headers = ["Input Crop", "Ground Truth", "Baseline", "AZ-Thesis", "AZ Gain"]
-    rows: list[Image.Image] = []
+    headers = ["Input Crop", "Ground Truth", "Baseline", "Proposed method", "Improvement map"]
+    rows: list[Image.Image] = [overview_row]
     for spec in COMPARISON_CROPS:
         label = str(spec["label"]).lower()
         row_items = [
@@ -131,27 +158,33 @@ def build_comparison_png(input_dir: Path, baseline_dir: Path, thesis_dir: Path, 
 
 
 def build_comparison_drawio(input_dir: Path, baseline_dir: Path, thesis_dir: Path, out_path: Path) -> None:
-    builder = DrawIoBuilder(width=2100, height=1180)
-    builder.add_text(120, 30, 1860, 40, "Figure 2. Local comparison of Baseline U-Net and AZ-Thesis on CHASE_DB1", font_size=26, bold=True)
+    builder = DrawIoBuilder(width=2100, height=1500)
+    builder.add_text(120, 30, 1860, 40, "Figure 2. Local comparison of Baseline U-Net and the proposed method on CHASE_DB1", font_size=26, bold=True)
     builder.add_image(40, 140, 360, 360, input_dir / "comparison_reference.png")
     builder.add_text(40, 110, 360, 24, "Reference image with crop locations", font_size=18, bold=True)
     builder.add_box(
         420,
         150,
-        470,
-        76,
-        "AZ gain: green = baseline errors fixed by AZ-Thesis; magenta = new errors introduced by AZ-Thesis",
+        560,
+        130,
+        "Top row shows full-image predictions. Rows A/B zoom into the two regions with the clearest local differences.<br><br>Improvement map: turquoise = baseline errors fixed by the proposed method; magenta = new errors introduced by the proposed method.",
         fill="#f6f7fb",
         stroke="#8b97ad",
     )
 
     x_positions = [430, 740, 1050, 1360, 1670]
-    titles = ["Input Crop", "Ground Truth", "Baseline", "AZ-Thesis", "AZ Gain"]
+    titles = ["Input", "Ground Truth", "Baseline Full", "Proposed method Full", "Improvement map Full"]
     for title, x in zip(titles, x_positions):
-        builder.add_text(x, 120, 250, 24, title, font_size=18, bold=True)
+        builder.add_text(x, 300, 250, 24, title, font_size=18, bold=True)
+    builder.add_text(40, 300, 340, 24, "Whole-image view", font_size=18, bold=True)
+    builder.add_image(430, 330, 250, 250, input_dir / "comparison_reference.png")
+    builder.add_image(740, 330, 250, 250, input_dir / "comparison_gt_reference.png")
+    builder.add_image(1050, 330, 250, 250, baseline_dir / "comparison_prediction_reference.png")
+    builder.add_image(1360, 330, 250, 250, thesis_dir / "comparison_prediction_reference.png")
+    builder.add_image(1670, 330, 250, 250, thesis_dir / "comparison_gain_reference.png")
 
     for row_idx, spec in enumerate(COMPARISON_CROPS):
-        y = 220 + row_idx * 430
+        y = 660 + row_idx * 360
         label = str(spec["label"]).lower()
         builder.add_text(40, y + 130, 340, 40, f"Crop {spec['label']}: {spec['caption']}", font_size=18, bold=True)
         builder.add_image(430, y, 250, 250, input_dir / f"crop_{label}_input.png")
@@ -224,10 +257,10 @@ def build_xai_drawio(sample_dir: Path, vessel_rule_name: str, out_path: Path) ->
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build CHASE_DB1 article figures from exported model assets.")
-    parser.add_argument("--thesis-root", type=str, default="article_assets/exports_chase/chase_az_thesis_20ep")
-    parser.add_argument("--baseline-root", type=str, default="article_assets/exports_chase/chase_baseline_20ep")
-    parser.add_argument("--sample", type=str, default=COMPARISON_SAMPLE)
-    parser.add_argument("--output-dir", type=str, default="article_assets/final_figures_chase")
+    parser.add_argument("--thesis-root", type=str, default="article_assets/exports_chase_transfer/chase_az_thesis_from_fives16_probe_ft20")
+    parser.add_argument("--baseline-root", type=str, default="article_assets/exports_chase_transfer/chase_baseline_dice80_p512_fg07")
+    parser.add_argument("--sample", type=str, default="012_Image_11L")
+    parser.add_argument("--output-dir", type=str, default="article_assets/final_figures_chase_transfer")
     args = parser.parse_args()
 
     thesis_root = (PROJECT_ROOT / args.thesis_root).resolve()

@@ -1,5 +1,5 @@
-# Recommended benchmark config for CHASE_DB1 retinal vessel comparisons.
-# Use together with scripts/run_drive_multiseed.py and an explicit run-name.
+# Experimental CHASE_DB1 fine-tune:
+# green-channel equalization on input + linear foreground-bias schedule.
 
 dataset: chase_db1
 data_root: ./data
@@ -7,6 +7,7 @@ val_fraction: 0.25
 use_fov_mask: true
 
 variant: az_thesis
+
 num_rules: 8
 model_widths: [40, 80, 144, 208]
 encoder_az_stages: 2
@@ -16,16 +17,26 @@ bottleneck_mode: aspp
 decoder_mode: residual
 boundary_mode: conv
 
-epochs: 80
+epochs: 20
 batch_size: 1
-lr: 0.0002
+lr: 0.0001
 weight_decay: 0.0001
 seed: 42
 deterministic: false
 num_workers: 0
 
+init_checkpoint: ./results/chase_az_thesis_hybridenc2_ft40_p512_fg07_cosine/checkpoint_best.pt
+init_checkpoint_strict: true
+lr_scheduler: plateau
+lr_plateau_factor: 0.5
+lr_plateau_patience: 3
+lr_plateau_min: 1.0e-5
+
 retinal_patch_size: 512
-retinal_foreground_bias: 0.7
+retinal_input_mode: green_equalized
+retinal_foreground_bias: 0.85
+retinal_foreground_bias_end: 0.35
+retinal_foreground_bias_schedule: linear
 
 bce_weight: 1.0
 dice_weight: 1.0
@@ -53,8 +64,8 @@ reg_hyperbolicity: 0.001
 reg_anisotropy_gap: 0.0005
 
 results_dir: ./results
-run_name: null
-device: null
+run_name: chase_az_thesis_greeneq_sched_ft20
+device: cuda
 
 timing_warmup: 1
 timing_iters: 5

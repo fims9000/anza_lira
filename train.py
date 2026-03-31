@@ -51,6 +51,107 @@ REG_LOG_KEYS = [
 ]
 
 
+def _unwrap_dataset(dataset: Any) -> Any:
+    while hasattr(dataset, "dataset"):
+        dataset = dataset.dataset
+    return dataset
+
+
+def _scheduled_retinal_bias(
+    cfg: Dict[str, Any],
+    epoch: int,
+    epochs: int,
+    start_key: str,
+    end_key: str,
+    schedule_key: str,
+    fallback_start: float,
+) -> float:
+    schedule_name = str(cfg.get(schedule_key, "constant")).lower().strip()
+    start = float(cfg.get(start_key, fallback_start))
+    end = float(cfg.get(end_key, start))
+    if schedule_name in {"", "constant", "none"}:
+        return start
+    if schedule_name == "linear":
+        progress = 1.0 if epochs <= 1 else float(epoch - 1) / float(max(epochs - 1, 1))
+        return start + (end - start) * progress
+    raise ValueError(f"Unknown {schedule_key}: {schedule_name}")
+
+
+def apply_retinal_foreground_bias_schedule(
+    train_loader: torch.utils.data.DataLoader,
+    cfg: Dict[str, Any],
+    epoch: int,
+    epochs: int,
+) -> float | None:
+    target = _scheduled_retinal_bias(
+        cfg,
+        epoch,
+        epochs,
+        start_key="retinal_foreground_bias",
+        end_key="retinal_foreground_bias_end",
+        schedule_key="retinal_foreground_bias_schedule",
+        fallback_start=float(cfg.get("drive_foreground_bias", 0.0)),
+    )
+    base_dataset = _unwrap_dataset(train_loader.dataset)
+    if hasattr(base_dataset, "set_foreground_bias"):
+        base_dataset.set_foreground_bias(target)
+        return float(base_dataset.foreground_bias)
+    if hasattr(base_dataset, "foreground_bias"):
+        base_dataset.foreground_bias = float(target)
+        return float(base_dataset.foreground_bias)
+    return None
+
+
+def apply_retinal_thin_vessel_bias_schedule(
+    train_loader: torch.utils.data.DataLoader,
+    cfg: Dict[str, Any],
+    epoch: int,
+    epochs: int,
+) -> float | None:
+    target = _scheduled_retinal_bias(
+        cfg,
+        epoch,
+        epochs,
+        start_key="retinal_thin_vessel_bias",
+        end_key="retinal_thin_vessel_bias_end",
+        schedule_key="retinal_thin_vessel_bias_schedule",
+        fallback_start=0.0,
+    )
+    base_dataset = _unwrap_dataset(train_loader.dataset)
+    if hasattr(base_dataset, "set_thin_vessel_bias"):
+        base_dataset.set_thin_vessel_bias(target)
+        return float(base_dataset.thin_vessel_bias)
+    if hasattr(base_dataset, "thin_vessel_bias"):
+        base_dataset.thin_vessel_bias = float(target)
+        return float(base_dataset.thin_vessel_bias)
+    return None
+
+
+def apply_retinal_hard_mining_bias_schedule(
+    train_loader: torch.utils.data.DataLoader,
+    cfg: Dict[str, Any],
+    epoch: int,
+    epochs: int,
+) -> float | None:
+    target = _scheduled_retinal_bias(
+        cfg,
+        epoch,
+        epochs,
+        start_key="retinal_hard_mining_bias",
+        end_key="retinal_hard_mining_bias_end",
+        schedule_key="retinal_hard_mining_bias_schedule",
+        fallback_start=0.0,
+    )
+    base_dataset = _unwrap_dataset(train_loader.dataset)
+    if hasattr(base_dataset, "set_hard_mining_bias"):
+        base_dataset.set_hard_mining_bias(target)
+        return float(base_dataset.hard_mining_bias)
+    if hasattr(base_dataset, "hard_mining_bias"):
+        base_dataset.hard_mining_bias = float(target)
+        return float(base_dataset.hard_mining_bias)
+    return None
+
+
 def metric_name_for_task(task: str) -> str:
     return "accuracy" if task == "classification" else "dice"
 
@@ -63,6 +164,15 @@ def summarize_score(task: str, split: str, metrics: Dict[str, float]) -> str:
     if task == "classification":
         return f"{split}_acc={metrics[f'{split}_acc']:.2f}%"
     return f"{split}_dice={metrics[f'{split}_dice']:.4f} {split}_iou={metrics[f'{split}_iou']:.4f}"
+
+
+def spatial_shape_for_run(cfg: Dict[str, Any], task: str) -> tuple[int, int]:
+    if task == "segmentation":
+        patch_size = cfg.get("retinal_patch_size", cfg.get("drive_patch_size"))
+        if patch_size:
+            patch = int(patch_size)
+            return (patch, patch)
+    return spatial_shape_for_dataset(cfg["dataset"])
 
 
 def resolve_loss_cfg(
@@ -104,6 +214,75 @@ def resolve_loss_cfg(
     loss_cfg["pos_weight_value"] = pos_weight_value
     loss_cfg["pos_weight"] = torch.tensor(pos_weight_value, device=device)
     return loss_cfg
+
+
+def load_checkpoint_payload(path: str | Path) -> Dict[str, Any]:
+    checkpoint_path = Path(path)
+    try:
+        payload = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    except TypeError:
+        payload = torch.load(checkpoint_path, map_location="cpu")
+    if isinstance(payload, dict):
+        return payload
+    return {"model": payload}
+
+
+def initialize_model_from_checkpoint(model: nn.Module, cfg: Dict[str, Any]) -> Dict[str, Any] | None:
+    checkpoint_path = cfg.get("init_checkpoint")
+    if not checkpoint_path:
+        return None
+
+    payload = load_checkpoint_payload(checkpoint_path)
+    state_dict = payload.get("model", payload)
+    strict = bool(cfg.get("init_checkpoint_strict", True))
+    incompatible = model.load_state_dict(state_dict, strict=strict)
+    missing_keys = list(getattr(incompatible, "missing_keys", []))
+    unexpected_keys = list(getattr(incompatible, "unexpected_keys", []))
+    return {
+        "path": str(Path(checkpoint_path)),
+        "strict": strict,
+        "variant": payload.get("variant"),
+        "missing_keys": missing_keys,
+        "unexpected_keys": unexpected_keys,
+    }
+
+
+def build_lr_scheduler(
+    optimizer: torch.optim.Optimizer,
+    cfg: Dict[str, Any],
+    epochs: int,
+) -> tuple[torch.optim.lr_scheduler.LRScheduler | torch.optim.lr_scheduler.ReduceLROnPlateau | None, str | None]:
+    scheduler_name = str(cfg.get("lr_scheduler", "none")).lower().strip()
+    min_lr = float(cfg.get("lr_min", 0.0))
+    if scheduler_name in {"", "none", "off"}:
+        return None, None
+    if scheduler_name == "cosine":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=max(1, int(cfg.get("lr_scheduler_t_max", epochs))),
+            eta_min=min_lr,
+        )
+        return scheduler, "epoch"
+    if scheduler_name == "plateau":
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode="max",
+            factor=float(cfg.get("lr_plateau_factor", 0.5)),
+            patience=max(0, int(cfg.get("lr_plateau_patience", 8))),
+            threshold=float(cfg.get("lr_plateau_threshold", 1e-4)),
+            min_lr=min_lr,
+        )
+        return scheduler, "metric"
+    raise ValueError(f"Unknown lr_scheduler: {scheduler_name}")
+
+
+def build_eval_model(model: nn.Module, task: str, cfg: Dict[str, Any]) -> nn.Module:
+    if task != "segmentation":
+        return model
+    tta_mode = str(cfg.get("eval_tta", "none")).lower().strip()
+    if tta_mode in {"", "none", "off"}:
+        return model
+    return utils.SegmentationTTAWrapper(model, mode=tta_mode)
 
 
 @torch.no_grad()
@@ -383,6 +562,8 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         widths=utils.parse_model_widths(cfg.get("model_widths")),
         model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
     ).to(device)
+    init_info = initialize_model_from_checkpoint(model, cfg)
+    eval_model = build_eval_model(model, task, cfg)
     loss_cfg = resolve_loss_cfg(cfg, task, train_loader, device)
 
     n_params = utils.count_parameters(model)
@@ -391,7 +572,7 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         device=device,
         batch_size=int(cfg["batch_size"]),
         in_channels=in_c,
-        spatial_shape=spatial_shape_for_dataset(cfg["dataset"]),
+        spatial_shape=spatial_shape_for_run(cfg, task),
     )
     criterion = nn.CrossEntropyLoss() if task == "classification" else None
     optimizer = torch.optim.Adam(
@@ -401,10 +582,12 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
     )
 
     epochs = int(cfg["epochs"])
+    scheduler, scheduler_step_mode = build_lr_scheduler(optimizer, cfg, epochs)
     history: List[Dict[str, Any]] = []
     selection_key = selection_key_for_task(task)
     best_val = float("-inf")
     best_state = None
+    best_epoch = 0
     threshold_selection_metric = str(cfg.get("eval_threshold_metric", "dice"))
     threshold_grid_for_selection: List[float] = []
     if task == "segmentation" and bool(cfg.get("eval_threshold_sweep", True)):
@@ -415,17 +598,25 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         )
 
     for epoch in range(1, epochs + 1):
+        current_foreground_bias = None
+        current_thin_vessel_bias = None
+        current_hard_mining_bias = None
+        if task == "segmentation":
+            current_foreground_bias = apply_retinal_foreground_bias_schedule(train_loader, cfg, epoch, epochs)
+            current_thin_vessel_bias = apply_retinal_thin_vessel_bias_schedule(train_loader, cfg, epoch, epochs)
+            current_hard_mining_bias = apply_retinal_hard_mining_bias_schedule(train_loader, cfg, epoch, epochs)
         t0 = time.perf_counter()
+        current_lr = float(optimizer.param_groups[0]["lr"])
         train_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device, reg_weights, task, loss_cfg)
         if device.type == "cuda":
             torch.cuda.synchronize()
         t_epoch = time.perf_counter() - t0
 
-        val_metrics = evaluate_epoch(model, val_loader, criterion, device, task, loss_cfg)
+        val_metrics = evaluate_epoch(eval_model, val_loader, criterion, device, task, loss_cfg)
         val_selection_score = float(val_metrics[selection_key])
         val_selection_threshold = float(loss_cfg["threshold"])
         if threshold_grid_for_selection:
-            val_sweep_rows = sweep_segmentation_thresholds(model, val_loader, device, threshold_grid_for_selection)
+            val_sweep_rows = sweep_segmentation_thresholds(eval_model, val_loader, device, threshold_grid_for_selection)
             best_val_row = select_best_threshold(
                 val_sweep_rows,
                 metric=threshold_selection_metric,
@@ -434,13 +625,26 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
             val_selection_score = float(threshold_metric_value(best_val_row, threshold_selection_metric))
             val_selection_threshold = float(best_val_row["threshold"])
 
-        row = {"epoch": epoch, "seconds_train_epoch": t_epoch}
+        row = {"epoch": epoch, "seconds_train_epoch": t_epoch, "lr": current_lr}
+        if current_foreground_bias is not None:
+            row["retinal_foreground_bias_epoch"] = float(current_foreground_bias)
+        if current_thin_vessel_bias is not None:
+            row["retinal_thin_vessel_bias_epoch"] = float(current_thin_vessel_bias)
+        if current_hard_mining_bias is not None:
+            row["retinal_hard_mining_bias_epoch"] = float(current_hard_mining_bias)
         row.update(train_metrics)
         row.update(val_metrics)
         if threshold_grid_for_selection:
             row["val_selection_metric"] = threshold_selection_metric
             row["val_selection_score"] = val_selection_score
             row["val_selection_threshold"] = val_selection_threshold
+
+        if scheduler is not None:
+            if scheduler_step_mode == "metric":
+                scheduler.step(val_selection_score)
+            else:
+                scheduler.step()
+            row["lr_next"] = float(optimizer.param_groups[0]["lr"])
         history.append(row)
 
         msg = (
@@ -456,6 +660,12 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
                 f" sel_{threshold_selection_metric}={val_selection_score:.4f}"
                 f" sel_thr={val_selection_threshold:.3f}"
             )
+        if current_foreground_bias is not None:
+            msg += f" fg_bias={current_foreground_bias:.2f}"
+        if current_thin_vessel_bias is not None:
+            msg += f" thin_bias={current_thin_vessel_bias:.2f}"
+        if current_hard_mining_bias is not None:
+            msg += f" hard_bias={current_hard_mining_bias:.2f}"
         if variant.startswith("az_"):
             msg += f" anis_gap={train_metrics['reg_anisotropy_gap']:.4f}"
         print(msg)
@@ -463,8 +673,20 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         current_val = val_selection_score
         if current_val > best_val:
             best_val = current_val
+            best_epoch = epoch
             best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
-            torch.save({"model": best_state, "variant": variant, "cfg": cfg}, run_dir / "checkpoint_best.pt")
+            torch.save(
+                {
+                    "model": best_state,
+                    "variant": variant,
+                    "cfg": cfg,
+                    "optimizer": optimizer.state_dict(),
+                    "scheduler": scheduler.state_dict() if scheduler is not None else None,
+                    "epoch": epoch,
+                    "best_val": best_val,
+                },
+                run_dir / "checkpoint_best.pt",
+            )
 
         with open(run_dir / "history.json", "w", encoding="utf-8") as handle:
             json.dump(history, handle, indent=2)
@@ -485,7 +707,7 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         threshold_end = float(cfg.get("eval_threshold_end", 0.8))
         threshold_step = float(cfg.get("eval_threshold_step", 0.05))
         threshold_grid = build_threshold_grid(threshold_start, threshold_end, threshold_step)
-        threshold_sweep_rows = sweep_segmentation_thresholds(model, val_loader, device, threshold_grid)
+        threshold_sweep_rows = sweep_segmentation_thresholds(eval_model, val_loader, device, threshold_grid)
         best_threshold_row = select_best_threshold(
             threshold_sweep_rows,
             metric=threshold_metric,
@@ -495,16 +717,16 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         loss_cfg["threshold"] = selected_threshold
         threshold_selection_mode = "val_sweep"
         threshold_selection_metric_name = threshold_metric
-        val_selected_metrics = evaluate_epoch(model, val_loader, criterion, device, task, loss_cfg)
+        val_selected_metrics = evaluate_epoch(eval_model, val_loader, criterion, device, task, loss_cfg)
 
-    test_metrics = evaluate_epoch(model, test_loader, criterion, device, task, loss_cfg)
+    test_metrics = evaluate_epoch(eval_model, test_loader, criterion, device, task, loss_cfg)
 
     sec_batch = measure_inference_time(
-        model,
+        eval_model,
         device,
         batch_size=int(cfg["batch_size"]),
         in_channels=in_c,
-        spatial_shape=spatial_shape_for_dataset(cfg["dataset"]),
+        spatial_shape=spatial_shape_for_run(cfg, task),
         warmup=int(cfg.get("timing_warmup", 3)),
         iters=int(cfg.get("timing_iters", 20)),
     )
@@ -518,11 +740,32 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         "epochs": epochs,
         "batch_size": int(cfg["batch_size"]),
         "seed": int(cfg["seed"]),
+        "best_epoch": best_epoch,
         "num_rules": int(cfg.get("num_rules", 4)),
         "model_widths": list(utils.parse_model_widths(cfg.get("model_widths")) or []),
+        "encoder_az_stages": cfg.get("encoder_az_stages"),
+        "encoder_block_mode": cfg.get("encoder_block_mode"),
+        "hybrid_mix_init": cfg.get("hybrid_mix_init"),
         "bottleneck_mode": cfg.get("bottleneck_mode"),
         "decoder_mode": cfg.get("decoder_mode"),
         "boundary_mode": cfg.get("boundary_mode"),
+        "lr_scheduler": str(cfg.get("lr_scheduler", "none")),
+        "lr_min": float(cfg.get("lr_min", 0.0)),
+        "eval_tta": str(cfg.get("eval_tta", "none")),
+        "eval_tta_views": utils.segmentation_tta_num_views(cfg.get("eval_tta", "none")) if task == "segmentation" else 1,
+        "retinal_input_mode": str(cfg.get("retinal_input_mode", "rgb")),
+        "retinal_green_blend_alpha": float(cfg.get("retinal_green_blend_alpha", 0.35)),
+        "retinal_foreground_bias": float(cfg.get("retinal_foreground_bias", cfg.get("drive_foreground_bias", 0.0))),
+        "retinal_foreground_bias_end": float(cfg.get("retinal_foreground_bias_end", cfg.get("retinal_foreground_bias", cfg.get("drive_foreground_bias", 0.0)))),
+        "retinal_foreground_bias_schedule": str(cfg.get("retinal_foreground_bias_schedule", "constant")),
+        "retinal_thin_vessel_bias": float(cfg.get("retinal_thin_vessel_bias", 0.0)),
+        "retinal_thin_vessel_bias_end": float(cfg.get("retinal_thin_vessel_bias_end", cfg.get("retinal_thin_vessel_bias", 0.0))),
+        "retinal_thin_vessel_bias_schedule": str(cfg.get("retinal_thin_vessel_bias_schedule", "constant")),
+        "retinal_thin_vessel_neighbor_threshold": int(cfg.get("retinal_thin_vessel_neighbor_threshold", 4)),
+        "retinal_hard_mining_dir": str(cfg.get("retinal_hard_mining_dir", "")),
+        "retinal_hard_mining_bias": float(cfg.get("retinal_hard_mining_bias", 0.0)),
+        "retinal_hard_mining_bias_end": float(cfg.get("retinal_hard_mining_bias_end", cfg.get("retinal_hard_mining_bias", 0.0))),
+        "retinal_hard_mining_bias_schedule": str(cfg.get("retinal_hard_mining_bias_schedule", "constant")),
         "num_parameters": n_params,
         **complexity,
         "test_loss": test_metrics["val_loss"],
@@ -530,6 +773,15 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         "seconds_per_forward_batch": sec_batch,
         "regularization_weights": reg_weights,
     }
+    if history:
+        metrics["final_lr"] = float(history[-1].get("lr_next", history[-1].get("lr", cfg["lr"])))
+    if init_info is not None:
+        metrics["init_checkpoint"] = init_info
+    if task == "segmentation":
+        tta_views = int(metrics["eval_tta_views"])
+        metrics["approx_eval_gmacs_per_forward"] = float(metrics["approx_gmacs_per_forward"]) * tta_views
+        metrics["approx_eval_gflops_per_forward"] = float(metrics["approx_gflops_per_forward"]) * tta_views
+        metrics["approx_eval_az_extra_gmacs_per_forward"] = float(metrics["approx_az_extra_gmacs_per_forward"]) * tta_views
     if task == "classification":
         metrics["best_val_accuracy"] = best_val
         metrics["test_accuracy"] = test_metrics["val_acc"]
@@ -603,6 +855,7 @@ def main() -> None:
     parser.add_argument("--deterministic", action="store_true", help="Force deterministic PyTorch/CuDNN execution.")
     parser.add_argument("--lr", type=float, default=None, help="Override learning rate from config.")
     parser.add_argument("--weight-decay", type=float, default=None, help="Override weight decay from config.")
+    parser.add_argument("--model-widths", type=str, default=None, help="Override segmentation widths, e.g. 32,64,128,192.")
     parser.add_argument("--num-rules", type=int, default=None, help="Override ANZA rule count from config.")
     parser.add_argument("--overlap-mode", type=str, default=None, help="Segmentation overlap term: dice or tversky.")
     parser.add_argument("--tversky-alpha", type=float, default=None, help="False-positive weight for Tversky overlap.")
@@ -613,6 +866,20 @@ def main() -> None:
     parser.add_argument("--topology-num-iters", type=int, default=None, help="Override topology skeletonization iterations.")
     parser.add_argument("--bce-pos-weight", type=float, default=None, help="Override BCE positive-class weight. Use a smaller value to reduce false positives, or a larger value to favor recall.")
     parser.add_argument("--drive-foreground-bias", type=float, default=None, help="Override DRIVE patch foreground bias from config.")
+    parser.add_argument("--retinal-patch-size", type=int, default=None, help="Override retinal training crop size for vessel datasets.")
+    parser.add_argument("--retinal-foreground-bias", type=float, default=None, help="Override retinal foreground-biased crop probability.")
+    parser.add_argument("--encoder-az-stages", type=int, default=None, help="Number of encoder stages that use AZ blocks in az_thesis/az_sota.")
+    parser.add_argument("--encoder-block-mode", type=str, default=None, help="Encoder AZ block type for az_thesis/az_sota: az or hybrid.")
+    parser.add_argument("--hybrid-mix-init", type=float, default=None, help="Initial AZ branch mixture for hybrid encoder blocks in (0, 1).")
+    parser.add_argument("--init-checkpoint", type=str, default=None, help="Optional checkpoint used to initialize model weights before training.")
+    parser.add_argument("--init-checkpoint-strict", action="store_true", help="Load init checkpoint with strict key matching.")
+    parser.add_argument("--lr-scheduler", type=str, default=None, help="Optional learning-rate scheduler: none, cosine, or plateau.")
+    parser.add_argument("--lr-min", type=float, default=None, help="Minimum learning rate for cosine/plateau schedulers.")
+    parser.add_argument("--lr-scheduler-t-max", type=int, default=None, help="Optional cosine scheduler T_max override.")
+    parser.add_argument("--lr-plateau-factor", type=float, default=None, help="Factor for ReduceLROnPlateau.")
+    parser.add_argument("--lr-plateau-patience", type=int, default=None, help="Patience for ReduceLROnPlateau.")
+    parser.add_argument("--lr-plateau-threshold", type=float, default=None, help="Improvement threshold for ReduceLROnPlateau.")
+    parser.add_argument("--eval-tta", type=str, default=None, help="Optional segmentation-time augmentation for validation/test: none, flips, d4.")
     parser.add_argument("--eval-threshold-start", type=float, default=None, help="Override threshold-sweep start.")
     parser.add_argument("--eval-threshold-end", type=float, default=None, help="Override threshold-sweep end.")
     parser.add_argument("--eval-threshold-step", type=float, default=None, help="Override threshold-sweep step.")
@@ -670,6 +937,8 @@ def main() -> None:
         cfg["lr"] = float(args.lr)
     if args.weight_decay is not None:
         cfg["weight_decay"] = float(args.weight_decay)
+    if args.model_widths is not None:
+        cfg["model_widths"] = [int(item.strip()) for item in str(args.model_widths).split(",") if item.strip()]
     if args.num_rules is not None:
         cfg["num_rules"] = int(args.num_rules)
     if args.overlap_mode is not None:
@@ -690,6 +959,34 @@ def main() -> None:
         cfg["bce_pos_weight"] = float(args.bce_pos_weight)
     if args.drive_foreground_bias is not None:
         cfg["drive_foreground_bias"] = float(args.drive_foreground_bias)
+    if args.retinal_patch_size is not None:
+        cfg["retinal_patch_size"] = int(args.retinal_patch_size)
+    if args.retinal_foreground_bias is not None:
+        cfg["retinal_foreground_bias"] = float(args.retinal_foreground_bias)
+    if args.encoder_az_stages is not None:
+        cfg["encoder_az_stages"] = int(args.encoder_az_stages)
+    if args.encoder_block_mode is not None:
+        cfg["encoder_block_mode"] = str(args.encoder_block_mode)
+    if args.hybrid_mix_init is not None:
+        cfg["hybrid_mix_init"] = float(args.hybrid_mix_init)
+    if args.init_checkpoint is not None:
+        cfg["init_checkpoint"] = str(args.init_checkpoint)
+    if args.init_checkpoint_strict:
+        cfg["init_checkpoint_strict"] = True
+    if args.lr_scheduler is not None:
+        cfg["lr_scheduler"] = str(args.lr_scheduler)
+    if args.lr_min is not None:
+        cfg["lr_min"] = float(args.lr_min)
+    if args.lr_scheduler_t_max is not None:
+        cfg["lr_scheduler_t_max"] = int(args.lr_scheduler_t_max)
+    if args.lr_plateau_factor is not None:
+        cfg["lr_plateau_factor"] = float(args.lr_plateau_factor)
+    if args.lr_plateau_patience is not None:
+        cfg["lr_plateau_patience"] = int(args.lr_plateau_patience)
+    if args.lr_plateau_threshold is not None:
+        cfg["lr_plateau_threshold"] = float(args.lr_plateau_threshold)
+    if args.eval_tta is not None:
+        cfg["eval_tta"] = str(args.eval_tta)
     if args.eval_threshold_start is not None:
         cfg["eval_threshold_start"] = float(args.eval_threshold_start)
     if args.eval_threshold_end is not None:
