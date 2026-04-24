@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import random
 import time
+from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
 
@@ -12,7 +13,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageOps
 from torch.utils.data import DataLoader, Dataset
 
 from models import AZConv2d, AZConvConfig, AZConvNet, AZSOTAUNet, AZUNet, AttentionUNet, BaselineUNet, StandardConvNet, count_parameters
@@ -82,6 +83,9 @@ THRESHOLD_DERIVED_METRICS = {
     "core_min": ("dice", "iou", "precision", "recall", "specificity", "balanced_accuracy"),
     "dice_balanced_mean": ("dice", "balanced_accuracy"),
 }
+
+RETINAL_SEG_DATASETS = {"drive", "chase_db1", "chasedb1", "chase", "fives"}
+ARCADE_SEG_DATASETS = {"arcade", "arcade_syntax", "arcade_stenosis"}
 
 
 def segmentation_tta_num_views(mode: str | None) -> int:
@@ -222,6 +226,10 @@ def retinal_dataset_root(data_root: str | Path, name: str) -> Path:
     return Path(data_root) / retinal_dataset_dirname(name)
 
 
+def arcade_dataset_root(data_root: str | Path) -> Path:
+    return Path(data_root) / "ARCADE"
+
+
 def _retinal_sample_id(path: Path) -> str:
     stem = path.stem
     for suffix in ("_manual1", "_training_mask", "_test_mask", "_mask", "_1stHO", "_2ndHO"):
@@ -239,7 +247,7 @@ def task_for_dataset(name: str) -> str:
     n = canonical_dataset_name(name)
     if n in ("cifar10", "cifar_10", "fashion_mnist", "fashionmnist"):
         return "classification"
-    if n in {"drive", "chase_db1", "chasedb1", "chase", "fives"}:
+    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS:
         return "segmentation"
     raise ValueError(f"Unknown dataset: {name}")
 
@@ -250,7 +258,7 @@ def dataset_channels_and_outputs(name: str) -> Tuple[int, int]:
         return 3, 10
     if n in ("fashion_mnist", "fashionmnist"):
         return 1, 10
-    if n in {"drive", "chase_db1", "chasedb1", "chase", "fives"}:
+    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS:
         return 3, 1
     raise ValueError(f"Unknown dataset: {name}")
 
@@ -539,6 +547,211 @@ class DriveDataset(Dataset):
         return image, mask, fov
 
 
+def _normalize_split_name(split: str) -> str:
+    token = str(split).lower().strip()
+    if token in {"training", "train"}:
+        return "train"
+    if token in {"validation", "val"}:
+        return "val"
+    if token in {"testing", "test"}:
+        return "test"
+    raise ValueError(f"Unknown split name: {split}")
+
+
+class ArcadeVesselDataset(Dataset):
+    """Binary vessel segmentation loader for ARCADE coronary angiography."""
+
+    def __init__(
+        self,
+        root: str | Path,
+        split: str,
+        objective: str = "syntax",
+        augment: bool = False,
+        crop_size: int | None = None,
+        image_size: tuple[int, int] | None = None,
+    ) -> None:
+        super().__init__()
+        self.root = Path(root)
+        self.split = _normalize_split_name(split)
+        self.objective = str(objective).lower().strip()
+        if self.objective not in {"syntax", "stenosis"}:
+            raise ValueError(f"Unknown ARCADE objective: {objective}. Expected 'syntax' or 'stenosis'.")
+        self.augment = bool(augment)
+        self.crop_size = int(crop_size) if crop_size else None
+        self.image_size = image_size
+        self.dataset_root = self._resolve_dataset_root()
+        self.images_dir = self.dataset_root / self.objective / self.split / "images"
+        self.annotation_path = self.dataset_root / self.objective / self.split / "annotations" / f"{self.split}.json"
+        self.samples = self._collect_samples()
+
+    def _resolve_dataset_root(self) -> Path:
+        candidates = [self.root, self.root / "arcade", self.root / "ARCADE"]
+        for candidate in candidates:
+            images_dir = candidate / self.objective / self.split / "images"
+            ann_path = candidate / self.objective / self.split / "annotations" / f"{self.split}.json"
+            if images_dir.exists() and ann_path.exists():
+                return candidate
+        raise FileNotFoundError(
+            "ARCADE dataset is missing expected structure. "
+            f"Tried roots under {self.root} for {self.objective}/{self.split}/images and annotations/{self.split}.json."
+        )
+
+    @staticmethod
+    def _parse_polygons(segmentation: Any) -> List[List[tuple[float, float]]]:
+        polygons: List[List[tuple[float, float]]] = []
+        if not isinstance(segmentation, list):
+            return polygons
+        for candidate in segmentation:
+            if not isinstance(candidate, list) or len(candidate) < 6:
+                continue
+            points: List[tuple[float, float]] = []
+            for i in range(0, len(candidate) - 1, 2):
+                points.append((float(candidate[i]), float(candidate[i + 1])))
+            if len(points) >= 3:
+                polygons.append(points)
+        return polygons
+
+    def _collect_samples(self) -> List[Dict[str, Any]]:
+        with open(self.annotation_path, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+
+        annotations_by_image: Dict[int, List[List[tuple[float, float]]]] = defaultdict(list)
+        for ann in payload.get("annotations", []):
+            if int(ann.get("iscrowd", 0)) == 1:
+                continue
+            image_id = int(ann["image_id"])
+            annotations_by_image[image_id].extend(self._parse_polygons(ann.get("segmentation")))
+
+        samples: List[Dict[str, Any]] = []
+        missing_images: List[Path] = []
+        for image_rec in sorted(payload.get("images", []), key=lambda rec: int(rec["id"])):
+            image_path = self.images_dir / str(image_rec["file_name"])
+            if not image_path.exists():
+                alt_path = self.images_dir / Path(str(image_rec["file_name"])).name
+                if alt_path.exists():
+                    image_path = alt_path
+                else:
+                    missing_images.append(image_path)
+                    continue
+            samples.append(
+                {
+                    "image_path": image_path,
+                    "height": int(image_rec["height"]),
+                    "width": int(image_rec["width"]),
+                    "polygons": annotations_by_image.get(int(image_rec["id"]), []),
+                }
+            )
+        if missing_images:
+            preview = ", ".join(str(path) for path in missing_images[:3])
+            raise FileNotFoundError(
+                f"ARCADE image files listed in annotations are missing ({len(missing_images)} files), examples: {preview}"
+            )
+        if not samples:
+            raise FileNotFoundError(f"No ARCADE samples found in {self.annotation_path}")
+        return samples
+
+    def __len__(self) -> int:
+        return len(self.samples)
+
+    @staticmethod
+    def _normalize(image: torch.Tensor) -> torch.Tensor:
+        mean = torch.tensor([0.485, 0.456, 0.406], dtype=image.dtype).view(3, 1, 1)
+        std = torch.tensor([0.229, 0.224, 0.225], dtype=image.dtype).view(3, 1, 1)
+        return (image - mean) / std
+
+    @staticmethod
+    def _load_rgb(path: Path) -> torch.Tensor:
+        image = Image.open(path).convert("RGB")
+        arr = np.asarray(image, dtype=np.float32) / 255.0
+        return torch.from_numpy(arr).permute(2, 0, 1)
+
+    @staticmethod
+    def _build_mask(height: int, width: int, polygons: List[List[tuple[float, float]]]) -> torch.Tensor:
+        canvas = Image.new("L", (width, height), color=0)
+        draw = ImageDraw.Draw(canvas)
+        for polygon in polygons:
+            draw.polygon(polygon, fill=255, outline=255)
+        arr = (np.asarray(canvas, dtype=np.float32) > 127.0).astype(np.float32)
+        return torch.from_numpy(arr).unsqueeze(0)
+
+    def _apply_resize(
+        self,
+        image: torch.Tensor,
+        mask: torch.Tensor,
+        valid_mask: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if self.image_size is None:
+            return image, mask, valid_mask
+        target_h, target_w = self.image_size
+        if image.shape[-2:] == (target_h, target_w):
+            return image, mask, valid_mask
+        image = F.interpolate(image.unsqueeze(0), size=(target_h, target_w), mode="bilinear", align_corners=False)[0]
+        mask = F.interpolate(mask.unsqueeze(0), size=(target_h, target_w), mode="nearest")[0]
+        valid_mask = F.interpolate(valid_mask.unsqueeze(0), size=(target_h, target_w), mode="nearest")[0]
+        return image, mask, valid_mask
+
+    def _apply_crop(
+        self,
+        image: torch.Tensor,
+        mask: torch.Tensor,
+        valid_mask: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if self.crop_size is None:
+            return image, mask, valid_mask
+        crop_h = min(int(self.crop_size), image.shape[1])
+        crop_w = min(int(self.crop_size), image.shape[2])
+        max_top = image.shape[1] - crop_h
+        max_left = image.shape[2] - crop_w
+        top = 0 if max_top <= 0 else random.randint(0, max_top)
+        left = 0 if max_left <= 0 else random.randint(0, max_left)
+        sl_h = slice(top, top + crop_h)
+        sl_w = slice(left, left + crop_w)
+        return image[:, sl_h, sl_w], mask[:, sl_h, sl_w], valid_mask[:, sl_h, sl_w]
+
+    @staticmethod
+    def _apply_augment(
+        image: torch.Tensor,
+        mask: torch.Tensor,
+        valid_mask: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if random.random() < 0.5:
+            image = torch.flip(image, dims=[2])
+            mask = torch.flip(mask, dims=[2])
+            valid_mask = torch.flip(valid_mask, dims=[2])
+        if random.random() < 0.5:
+            image = torch.flip(image, dims=[1])
+            mask = torch.flip(mask, dims=[1])
+            valid_mask = torch.flip(valid_mask, dims=[1])
+        if random.random() < 0.5:
+            image = torch.rot90(image, k=2, dims=[1, 2])
+            mask = torch.rot90(mask, k=2, dims=[1, 2])
+            valid_mask = torch.rot90(valid_mask, k=2, dims=[1, 2])
+        return image, mask, valid_mask
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        sample = self.samples[idx]
+        image = self._load_rgb(sample["image_path"])
+        mask = self._build_mask(sample["height"], sample["width"], sample["polygons"])
+        valid_mask = torch.ones_like(mask)
+        image, mask, valid_mask = self._apply_resize(image, mask, valid_mask)
+        image, mask, valid_mask = self._apply_crop(image, mask, valid_mask)
+        if self.augment:
+            image, mask, valid_mask = self._apply_augment(image, mask, valid_mask)
+        image = self._normalize(image)
+        return image, mask, valid_mask
+
+
+def _maybe_subset_dataset(dataset: Dataset, limit: int | None, seed: int) -> Dataset:
+    if limit is None:
+        return dataset
+    limit_i = int(limit)
+    if limit_i <= 0 or limit_i >= len(dataset):
+        return dataset
+    generator = torch.Generator().manual_seed(int(seed))
+    indices = torch.randperm(len(dataset), generator=generator)[:limit_i].tolist()
+    return torch.utils.data.Subset(dataset, indices)
+
+
 def _build_classification_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, DataLoader, int, int]:
     import torchvision
     import torchvision.transforms as T
@@ -711,12 +924,112 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
     return train_loader, val_loader, test_loader, 3, 1
 
 
+def _parse_optional_hw(value: Any) -> tuple[int, int] | None:
+    if value is None:
+        return None
+    if isinstance(value, int):
+        edge = int(value)
+        return (edge, edge)
+    if isinstance(value, str):
+        token = value.strip()
+        if not token:
+            return None
+        if "," in token:
+            parts = [part.strip() for part in token.split(",") if part.strip()]
+            if len(parts) != 2:
+                raise ValueError(f"Expected two integers for image size, got: {value}")
+            return int(parts[0]), int(parts[1])
+        edge = int(token)
+        return (edge, edge)
+    if isinstance(value, (list, tuple)):
+        if len(value) != 2:
+            raise ValueError(f"Expected image size sequence of length 2, got: {value}")
+        return int(value[0]), int(value[1])
+    raise TypeError(f"Unsupported image size value: {value}")
+
+
+def _build_arcade_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, DataLoader, int, int]:
+    batch_size = int(cfg["batch_size"])
+    num_workers = int(cfg.get("num_workers", 0))
+    seed = int(cfg.get("seed", 42))
+    data_root = arcade_dataset_root(cfg.get("data_root", "./data"))
+    dataset_name = canonical_dataset_name(cfg["dataset"])
+    objective_from_name = "stenosis" if dataset_name == "arcade_stenosis" else "syntax"
+    objective = str(cfg.get("arcade_objective", objective_from_name)).lower().strip()
+    if dataset_name == "arcade_syntax":
+        objective = "syntax"
+    elif dataset_name == "arcade_stenosis":
+        objective = "stenosis"
+
+    image_size = _parse_optional_hw(cfg.get("arcade_image_size"))
+    crop_size = cfg.get("arcade_patch_size", cfg.get("retinal_patch_size", cfg.get("drive_patch_size")))
+    crop_size = int(crop_size) if crop_size else None
+
+    train_set = ArcadeVesselDataset(
+        root=data_root,
+        split="train",
+        objective=objective,
+        augment=bool(cfg.get("arcade_augment", True)),
+        crop_size=crop_size,
+        image_size=image_size,
+    )
+    val_set = ArcadeVesselDataset(
+        root=data_root,
+        split="val",
+        objective=objective,
+        augment=False,
+        crop_size=None,
+        image_size=image_size,
+    )
+    test_set = ArcadeVesselDataset(
+        root=data_root,
+        split="test",
+        objective=objective,
+        augment=False,
+        crop_size=None,
+        image_size=image_size,
+    )
+
+    train_set = _maybe_subset_dataset(train_set, cfg.get("arcade_train_limit"), seed=seed)
+    val_set = _maybe_subset_dataset(val_set, cfg.get("arcade_val_limit"), seed=seed + 1)
+    test_set = _maybe_subset_dataset(test_set, cfg.get("arcade_test_limit"), seed=seed + 2)
+
+    train_loader = DataLoader(
+        train_set,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=torch.cuda.is_available(),
+    )
+    val_loader = DataLoader(
+        val_set,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=torch.cuda.is_available(),
+    )
+    test_loader = DataLoader(
+        test_set,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=torch.cuda.is_available(),
+    )
+    return train_loader, val_loader, test_loader, 3, 1
+
+
 def build_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, DataLoader, int, int, str]:
     task = task_for_dataset(cfg["dataset"])
     if task == "classification":
         train_loader, val_loader, test_loader, in_c, num_outputs = _build_classification_dataloaders(cfg)
     else:
-        train_loader, val_loader, test_loader, in_c, num_outputs = _build_drive_dataloaders(cfg)
+        dataset_name = canonical_dataset_name(cfg["dataset"])
+        if dataset_name in RETINAL_SEG_DATASETS:
+            train_loader, val_loader, test_loader, in_c, num_outputs = _build_drive_dataloaders(cfg)
+        elif dataset_name in ARCADE_SEG_DATASETS:
+            train_loader, val_loader, test_loader, in_c, num_outputs = _build_arcade_dataloaders(cfg)
+        else:
+            raise ValueError(f"Unknown segmentation dataset: {cfg['dataset']}")
     return train_loader, val_loader, test_loader, in_c, num_outputs, task
 
 
@@ -841,6 +1154,48 @@ def resolve_segmentation_model_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
     return model_kwargs
 
 
+def resolve_azconv_config_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Resolve optional AZConvConfig overrides from experiment configs."""
+
+    key_map = {
+        "az_use_fuzzy": "use_fuzzy",
+        "az_use_anisotropy": "use_anisotropy",
+        "az_learn_directions": "learn_directions",
+        "az_geometry_mode": "geometry_mode",
+        "az_use_value_projection": "use_value_projection",
+        "az_normalize_kernel": "normalize_kernel",
+        "az_min_hyperbolicity": "min_hyperbolicity",
+    }
+    bool_targets = {
+        "use_fuzzy",
+        "use_anisotropy",
+        "learn_directions",
+        "use_value_projection",
+        "normalize_kernel",
+    }
+    out: Dict[str, Any] = {}
+    for source_key, target_key in key_map.items():
+        if source_key not in cfg:
+            continue
+        value = cfg[source_key]
+        if target_key in bool_targets:
+            out[target_key] = bool(value)
+        elif target_key == "min_hyperbolicity":
+            out[target_key] = float(value)
+        else:
+            out[target_key] = str(value)
+    return out
+
+
+def az_config_from_variant_and_overrides(variant: str, overrides: Dict[str, Any] | None = None) -> AZConvConfig:
+    az_cfg = az_config_for_variant(variant)
+    for key, value in dict(overrides or {}).items():
+        if not hasattr(az_cfg, key):
+            raise ValueError(f"Unknown AZConvConfig override '{key}'.")
+        setattr(az_cfg, key, value)
+    return az_cfg
+
+
 def build_model(
     variant: str,
     num_outputs: int,
@@ -849,13 +1204,15 @@ def build_model(
     task: str = "classification",
     widths: tuple[int, int, int, int] | None = None,
     model_kwargs: Dict[str, Any] | None = None,
+    az_cfg_kwargs: Dict[str, Any] | None = None,
 ) -> nn.Module:
     model_kwargs = dict(model_kwargs or {})
+    az_cfg_kwargs = dict(az_cfg_kwargs or {})
     if task == "classification":
         if variant == "baseline":
             return StandardConvNet(num_classes=num_outputs, in_channels=in_channels)
         if variant.startswith("az_"):
-            cfg = az_config_for_variant(variant)
+            cfg = az_config_from_variant_and_overrides(variant, az_cfg_kwargs)
             return AZConvNet(num_classes=num_outputs, in_channels=in_channels, num_rules=num_rules, cfg=cfg)
     elif task == "segmentation":
         seg_kwargs = {"widths": widths} if widths is not None else {}
@@ -864,7 +1221,7 @@ def build_model(
         if variant == "attention_unet":
             return AttentionUNet(in_channels=in_channels, out_channels=num_outputs, **seg_kwargs)
         if variant == "az_sota":
-            cfg = az_config_for_variant(variant)
+            cfg = az_config_from_variant_and_overrides(variant, az_cfg_kwargs)
             return AZSOTAUNet(
                 in_channels=in_channels,
                 out_channels=num_outputs,
@@ -874,7 +1231,7 @@ def build_model(
                 **seg_kwargs,
             )
         if variant in {"az_sota_pure", "az_thesis"}:
-            cfg = az_config_for_variant(variant)
+            cfg = az_config_from_variant_and_overrides(variant, az_cfg_kwargs)
             return AZSOTAUNet(
                 in_channels=in_channels,
                 out_channels=num_outputs,
@@ -885,7 +1242,7 @@ def build_model(
                 **seg_kwargs,
             )
         if variant.startswith("az_"):
-            cfg = az_config_for_variant(variant)
+            cfg = az_config_from_variant_and_overrides(variant, az_cfg_kwargs)
             return AZUNet(
                 in_channels=in_channels,
                 out_channels=num_outputs,
@@ -1034,6 +1391,8 @@ def spatial_shape_for_dataset(name: str) -> tuple[int, int]:
         return (960, 999)
     if n == "fives":
         return (2048, 2048)
+    if n in ARCADE_SEG_DATASETS:
+        return (512, 512)
     raise ValueError(f"Unknown dataset: {name}")
 
 

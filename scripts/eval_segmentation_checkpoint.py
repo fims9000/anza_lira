@@ -65,6 +65,7 @@ def main() -> None:
         task=task,
         widths=utils.parse_model_widths(cfg.get("model_widths")),
         model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
+        az_cfg_kwargs=utils.resolve_azconv_config_kwargs(cfg),
     ).to(device)
     state_dict = payload.get("model", payload)
     model.load_state_dict(state_dict)

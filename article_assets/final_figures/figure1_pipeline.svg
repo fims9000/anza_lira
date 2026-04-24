@@ -17,8 +17,8 @@
     </style>
   </defs>
   <rect width="1560" height="520" rx="28" fill="url(#bg)"/>
-  <text x="60" y="62" class="title">Segmentation Pipeline for the Applied ANZA/LIRA Article</text>
-  <text x="60" y="94" class="subtitle">Inference path: image -&gt; AZ encoder-decoder -&gt; probability map -&gt; threshold -&gt; vessel mask</text>
+  <text x="60" y="62" class="title">Segmentation Pipeline with Geometry-Aware Local Aggregation</text>
+  <text x="60" y="94" class="subtitle">Inference path: image -&gt; geometry-aware encoder-decoder -&gt; probability map -&gt; threshold -&gt; vessel mask</text>
 
   <rect x="60" y="150" width="170" height="120" rx="20" fill="#fff6dc" stroke="#d8b75a" stroke-width="3"/>
   <text x="88" y="195" class="boxTitle">Input Image</text>
@@ -26,8 +26,8 @@
   <text x="88" y="248" class="boxText">normalized for model</text>
 
   <rect x="300" y="130" width="240" height="160" rx="24" fill="#e7f3ec" stroke="#4f8a6c" stroke-width="3"/>
-  <text x="330" y="175" class="boxTitle">Encoder with AZ Blocks</text>
-  <text x="330" y="205" class="boxText">AZ local aggregation</text>
+  <text x="330" y="175" class="boxTitle">Encoder with Geometry-Aware Blocks</text>
+  <text x="330" y="205" class="boxText">geometry-aware local aggregation</text>
   <text x="330" y="228" class="boxText">downsampling + skips</text>
   <text x="330" y="251" class="boxText">vessel-oriented features</text>
 
@@ -48,7 +48,7 @@
 
   <rect x="1390" y="150" width="110" height="120" rx="20" fill="#eef3dd" stroke="#879944" stroke-width="3"/>
   <text x="1420" y="195" class="boxTitle">Mask</text>
-  <text x="1410" y="225" class="boxText">threshold tau</text>
+  <text x="1410" y="225" class="boxText">threshold</text>
   <text x="1410" y="248" class="boxText">binary output</text>
 
   <path class="arrow" d="M230 210 H300"/>
@@ -61,7 +61,7 @@
   <text x="644" y="408" class="subtitle">Skip connections carry high-resolution vessel cues from encoder to decoder.</text>
 
   <rect x="350" y="332" width="490" height="120" rx="20" fill="#ffffff" stroke="#263238" stroke-width="2.5"/>
-  <text x="378" y="372" class="boxTitle">Inside one AZ block</text>
-  <text x="378" y="402" class="boxText">value branch V(x) + membership branch mu(x) + anisotropic kernel kappa(x,y)</text>
-  <text x="378" y="428" class="boxText">compat = mu(center) * mu(neighbor) * kappa, then normalization and pointwise mixing</text>
+  <text x="378" y="372" class="boxTitle">Inside one geometry-aware block</text>
+  <text x="378" y="402" class="boxText">feature value + local regime score + direction-aware geometry</text>
+  <text x="378" y="428" class="boxText">local compatibility and normalization, then pointwise feature mixing</text>
 </svg>

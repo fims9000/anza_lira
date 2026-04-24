@@ -1,0 +1,27 @@
+{
+  "dataset": "drive",
+  "sample_index": 14,
+  "sample_id": "15_test",
+  "az_run": "az_thesis_seed42",
+  "az_variant": "az_thesis",
+  "az_threshold": 0.65,
+  "baseline_run": "baseline_seed42",
+  "baseline_threshold": 0.675,
+  "selection_mode": "diverse_contribution_patterns",
+  "visual_encoding": {
+    "axes_u_s": "orange/white long axis is sigma_u direction; cyan short axis is compressed sigma_s direction",
+    "contribution": "mu * tanh(log(sigma_u / sigma_s)), gated by proposed probability map",
+    "layer_change": "difference from previous selected layer after the same probability gate",
+    "regime_confidence": "dominant fuzzy membership confidence gated by proposed probability map"
+  },
+  "chosen_layers": [
+    {
+      "layer_index": 0,
+      "layer_name": "enc1.az_body.0",
+      "mean_confidence": 0.47857964038848877,
+      "mean_abs_contribution": 0.42278778553009033,
+      "mean_abs_delta_vs_prev_selected": 0.0
+    }
+  ],
+  "output_image": "C:\\sasha\\anza_lira\\article_assets\\final_figures\\quick_drive_localgeom_story\\figure_geometry_attention_story_drive_15_test.png"
+}

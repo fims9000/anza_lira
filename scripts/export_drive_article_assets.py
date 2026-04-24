@@ -48,6 +48,129 @@ RULE_PALETTE = np.asarray(
 )
 
 
+def _angle_to_rgb(theta: np.ndarray) -> np.ndarray:
+    angle = np.asarray(theta, dtype=np.float32)
+    phase = 2.0 * angle
+    r = 0.5 + 0.5 * np.cos(phase)
+    g = 0.5 + 0.5 * np.cos(phase - (2.0 * np.pi / 3.0))
+    b = 0.5 + 0.5 * np.cos(phase - (4.0 * np.pi / 3.0))
+    return np.stack([r, g, b], axis=-1).astype(np.float32)
+
+
+def _safe_log_ratio(numerator: np.ndarray, denominator: np.ndarray, eps: float = 1e-6) -> np.ndarray:
+    num = np.asarray(numerator, dtype=np.float32)
+    den = np.asarray(denominator, dtype=np.float32)
+    return np.log(np.maximum(num, eps) / np.maximum(den, eps))
+
+
+def _geometry_direction_and_gain_maps(
+    snapshot: dict[str, Any],
+    mu_map: np.ndarray,
+    rule_idx: int,
+    valid_mask: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    mu = np.asarray(mu_map, dtype=np.float32)
+    valid = valid_mask > 0.5
+    theta_map = snapshot.get("theta_map")
+    sigma_u_map = snapshot.get("sigma_u_map")
+    sigma_s_map = snapshot.get("sigma_s_map")
+
+    if theta_map is not None:
+        theta = np.asarray(theta_map, dtype=np.float32)[rule_idx]
+        weight = mu[rule_idx]
+        if sigma_u_map is not None and sigma_s_map is not None:
+            log_ratio = _safe_log_ratio(
+                np.asarray(sigma_u_map, dtype=np.float32)[rule_idx],
+                np.asarray(sigma_s_map, dtype=np.float32)[rule_idx],
+            )
+        else:
+            log_ratio = np.zeros_like(theta, dtype=np.float32)
+        gain = weight * np.tanh(log_ratio)
+        strength = weight * np.tanh(np.abs(log_ratio))
+        direction = theta
+    else:
+        u_vec = snapshot.get("u_vec")
+        sigma_u = snapshot.get("sigma_u")
+        sigma_s = snapshot.get("sigma_s")
+        if u_vec is None or sigma_u is None or sigma_s is None:
+            h, w = mu.shape[-2:]
+            zeros = np.zeros((h, w), dtype=np.float32)
+            return zeros, zeros, zeros
+        u = np.asarray(u_vec, dtype=np.float32)
+        sigma_u_arr = np.asarray(sigma_u, dtype=np.float32)
+        sigma_s_arr = np.asarray(sigma_s, dtype=np.float32)
+        dominant = mu.argmax(axis=0)
+        confidence = mu.max(axis=0)
+        angles = np.arctan2(u[:, 1], u[:, 0]).astype(np.float32)
+        log_ratio_rules = _safe_log_ratio(sigma_u_arr, sigma_s_arr)
+        direction = angles[dominant]
+        gain = confidence * np.tanh(log_ratio_rules[dominant])
+        strength = confidence * np.tanh(np.abs(log_ratio_rules[dominant]))
+
+    direction = direction * valid.astype(np.float32)
+    gain = gain * valid.astype(np.float32)
+    strength = strength * valid.astype(np.float32)
+    return direction, np.clip(strength, 0.0, 1.0), np.clip(gain, -1.0, 1.0)
+
+
+def _geometry_direction_overlay(
+    image_rgb: np.ndarray,
+    direction: np.ndarray,
+    strength: np.ndarray,
+    valid_mask: np.ndarray,
+) -> np.ndarray:
+    valid = valid_mask > 0.5
+    base = image_rgb.astype(np.float32)
+    hue = _angle_to_rgb(direction) * 255.0
+    alpha = np.clip(0.25 + 0.65 * strength, 0.0, 0.85)[..., None]
+    overlay = base * (1.0 - alpha) + hue * alpha
+    overlay[~valid] = np.array([20.0, 20.0, 20.0], dtype=np.float32)
+
+    pil = Image.fromarray(np.clip(overlay, 0.0, 255.0).astype(np.uint8))
+    draw = ImageDraw.Draw(pil)
+    h, w = direction.shape
+    step = max(18, min(h, w) // 18)
+    for y in range(step // 2, h, step):
+        for x in range(step // 2, w, step):
+            if not valid[y, x]:
+                continue
+            s = float(strength[y, x])
+            if s < 0.25:
+                continue
+            angle = float(direction[y, x])
+            length = 5.0 + 11.0 * s
+            dx = np.cos(angle) * length
+            dy = np.sin(angle) * length
+            x0 = x - dx
+            y0 = y - dy
+            x1 = x + dx
+            y1 = y + dy
+            draw.line((x0, y0, x1, y1), fill=(248, 248, 248), width=2)
+    return np.array(pil, dtype=np.uint8)
+
+
+def _geometry_gain_overlay(
+    image_rgb: np.ndarray,
+    gain: np.ndarray,
+    valid_mask: np.ndarray,
+) -> np.ndarray:
+    valid = valid_mask > 0.5
+    score = np.asarray(gain, dtype=np.float32)
+    magnitude = np.clip(np.abs(score), 0.0, 1.0)
+    pos = np.clip(score, 0.0, 1.0)
+    neg = np.clip(-score, 0.0, 1.0)
+
+    pos_rgb = np.array([255.0, 128.0, 54.0], dtype=np.float32)
+    neg_rgb = np.array([67.0, 126.0, 255.0], dtype=np.float32)
+    color = pos[..., None] * pos_rgb + neg[..., None] * neg_rgb
+    alpha = (0.15 + 0.75 * magnitude)[..., None]
+
+    base = image_rgb.astype(np.float32)
+    overlay = base * (1.0 - alpha) + color * alpha
+    overlay[~valid] = np.array([20.0, 20.0, 20.0], dtype=np.float32)
+    return np.clip(overlay, 0.0, 255.0).astype(np.uint8)
+
+
 def _parse_indices(text: str) -> list[int]:
     out = [int(item.strip()) for item in text.split(",") if item.strip()]
     if not out:
@@ -76,6 +199,7 @@ def _load_model_for_run(run, config_path: Path, device_name: str) -> tuple[torch
         task=utils.task_for_dataset(cfg["dataset"]),
         widths=utils.parse_model_widths(cfg.get("model_widths")),
         model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
+        az_cfg_kwargs=utils.resolve_azconv_config_kwargs(cfg),
     )
     model.load_state_dict(payload["model"])
     model.to(device)
@@ -245,6 +369,28 @@ def _save_grid(panels: Sequence[tuple[str, np.ndarray]], out_path: Path, columns
     canvas.save(out_path)
 
 
+def _panel_filename(title: str) -> str:
+    static_aliases = {
+        "Rule Membership Map": "mu_map",
+        "Geometry Kernel Response": "kernel",
+        "Compatibility Map": "compat",
+        "Geometry Overlay": "geometry",
+        "Local Geometry Regimes": "rule_partition",
+        "Rule Uncertainty": "rule_uncertainty",
+        "Geometry Direction Field": "direction_field",
+        "Geometry Contribution Map": "anisotropy_gain",
+        "Rule Statistics": "rule_stats",
+        "Input": "input",
+        "Ground Truth": "ground_truth",
+        "Prediction": "prediction",
+        "Error Map": "error_map",
+    }
+    if title.startswith("Vessel-Focused Regime "):
+        suffix = title.split("Vessel-Focused Regime ", 1)[1].strip().lower().replace(" ", "")
+        return f"vessel_rule_{suffix}"
+    return static_aliases.get(title, title.lower().replace(" ", "_"))
+
+
 def _resolve_run(results_dir: Path, run_name: str | None, variant: str | None):
     runs = discover_drive_runs(results_dir)
     if not runs:
@@ -343,16 +489,35 @@ def main() -> None:
             best_rule_idx = _best_vessel_rule(rule_stats)
             vessel_rule_overlay = _heat_overlay(original, mu_map[best_rule_idx], alpha=0.75)
             rule_stats_rgb = _draw_rule_stats_chart(rule_stats, int(snapshot.get("num_rules", mu_map.shape[0])))
+            direction_map, direction_strength, gain_map = _geometry_direction_and_gain_maps(
+                snapshot,
+                mu_map,
+                best_rule_idx,
+                sample["valid"],
+            )
+            geometry_direction_rgb = _geometry_direction_overlay(
+                original,
+                direction_map,
+                direction_strength,
+                sample["valid"],
+            )
+            geometry_gain_rgb = _geometry_gain_overlay(
+                original,
+                gain_map,
+                sample["valid"],
+            )
             panels.extend(
                 [
-                    ("mu Map", mu_overlay),
-                    ("Kernel", kernel_rgb),
-                    ("Compat", compat_rgb),
-                    ("Geometry", geometry_rgb),
-                    ("Rule Partition", rule_partition_rgb),
+                    ("Rule Membership Map", mu_overlay),
+                    ("Geometry Kernel Response", kernel_rgb),
+                    ("Compatibility Map", compat_rgb),
+                    ("Geometry Overlay", geometry_rgb),
+                    ("Local Geometry Regimes", rule_partition_rgb),
                     ("Rule Uncertainty", rule_entropy_rgb),
-                    (f"Vessel Rule R{best_rule_idx + 1}", vessel_rule_overlay),
-                    ("Rule Stats", rule_stats_rgb),
+                    (f"Vessel-Focused Regime R{best_rule_idx + 1}", vessel_rule_overlay),
+                    ("Geometry Direction Field", geometry_direction_rgb),
+                    ("Geometry Contribution Map", geometry_gain_rgb),
+                    ("Rule Statistics", rule_stats_rgb),
                 ]
             )
             layer_name = layer_info["name"]
@@ -366,7 +531,7 @@ def main() -> None:
         sample_dir.mkdir(parents=True, exist_ok=True)
         _save_grid(panels, sample_dir / "article_grid.png")
         for title, image in panels:
-            safe_title = title.lower().replace(" ", "_")
+            safe_title = _panel_filename(title)
             Image.fromarray(image.astype(np.uint8)).save(sample_dir / f"{safe_title}.png")
         Image.fromarray((pred.astype(np.uint8) * 255)).save(sample_dir / "prediction_mask.png")
         Image.fromarray((gt.astype(np.uint8) * 255)).save(sample_dir / "ground_truth_mask.png")

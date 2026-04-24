@@ -84,6 +84,47 @@ def _make_fives_tree(root) -> None:
         _write_mask(split_dir / "mask" / f"{sample_id}_mask.png", height=48, width=48, invert=True)
 
 
+def _make_arcade_tree(root) -> None:
+    for split, sample_ids in (
+        ("train", [1, 2]),
+        ("val", [3]),
+        ("test", [4]),
+    ):
+        split_dir = root / "ARCADE" / "arcade" / "syntax" / split
+        (split_dir / "images").mkdir(parents=True, exist_ok=True)
+        (split_dir / "annotations").mkdir(parents=True, exist_ok=True)
+
+        images = []
+        annotations = []
+        ann_id = 1
+        for sample_id in sample_ids:
+            file_name = f"{sample_id}.png"
+            _write_mask(split_dir / "images" / file_name, height=64, width=64)
+            images.append({"id": sample_id, "file_name": file_name, "height": 64, "width": 64})
+            polygon = [16, 16, 48, 16, 48, 48, 16, 48]
+            annotations.append(
+                {
+                    "id": ann_id,
+                    "image_id": sample_id,
+                    "category_id": 1,
+                    "iscrowd": 0,
+                    "bbox": [16, 16, 32, 32],
+                    "area": 1024,
+                    "segmentation": [polygon],
+                    "attributes": {},
+                }
+            )
+            ann_id += 1
+
+        payload = {
+            "images": images,
+            "annotations": annotations,
+            "categories": [{"id": 1, "name": "vessel", "supercategory": ""}],
+        }
+        with open(split_dir / "annotations" / f"{split}.json", "w", encoding="utf-8") as handle:
+            json.dump(payload, handle)
+
+
 def test_drive_dataloaders_build_and_batch(tmp_path):
     _make_drive_tree(tmp_path / "data")
     cfg = {
@@ -159,6 +200,34 @@ def test_fives_dataloaders_build_and_batch(tmp_path):
     assert x.shape[2:] == (24, 24)
     assert y.shape[1:] == (1, 24, 24)
     assert fov.shape[1:] == (1, 24, 24)
+    assert len(val_loader.dataset) == 1
+    assert len(test_loader.dataset) == 1
+
+
+def test_arcade_syntax_dataloaders_build_and_batch(tmp_path):
+    _make_arcade_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "arcade_syntax",
+        "data_root": str(tmp_path / "data"),
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "arcade_patch_size": 32,
+        "arcade_train_limit": 1,
+        "arcade_val_limit": 1,
+        "arcade_test_limit": 1,
+    }
+
+    train_loader, val_loader, test_loader, in_channels, num_outputs, task = utils.build_dataloaders(cfg)
+    assert task == "segmentation"
+    assert in_channels == 3
+    assert num_outputs == 1
+
+    x, y, valid = next(iter(train_loader))
+    assert x.shape[1:] == (3, 32, 32)
+    assert y.shape[1:] == (1, 32, 32)
+    assert valid.shape[1:] == (1, 32, 32)
+    assert float(y.sum()) > 0.0
     assert len(val_loader.dataset) == 1
     assert len(test_loader.dataset) == 1
 

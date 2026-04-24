@@ -199,20 +199,20 @@ class DrawIoBuilder:
 
 def build_pipeline_drawio(out_path: Path) -> None:
     builder = DrawIoBuilder(width=1600, height=900)
-    builder.add_text(120, 40, 1360, 40, "Figure 1. Segmentation pipeline based on ANZA/LIRA blocks", font_size=26, bold=True)
+    builder.add_text(120, 40, 1360, 40, "Figure 1. Segmentation pipeline with geometry-aware local aggregation", font_size=26, bold=True)
     box1 = builder.add_box(90, 270, 180, 110, "Input retinal\nimage", fill="#fde8d9")
-    box2 = builder.add_box(340, 250, 230, 150, "Encoder\nAZ residual blocks\n+ skip features", fill="#d8ecff")
-    box3 = builder.add_box(650, 250, 220, 150, "Bottleneck\nAZ / ASPP\nrefinement", fill="#e2d8ff")
-    box4 = builder.add_box(950, 250, 230, 150, "Decoder\nresidual fusion\n+ AZ guidance", fill="#d9f3e6")
+    box2 = builder.add_box(340, 250, 230, 150, "Encoder\ngeometry-aware blocks\n+ skip features", fill="#d8ecff")
+    box3 = builder.add_box(650, 250, 220, 150, "Bottleneck\ncontext\nrefinement", fill="#e2d8ff")
+    box4 = builder.add_box(950, 250, 230, 150, "Decoder\nfeature fusion\n+ geometry guidance", fill="#d9f3e6")
     box5 = builder.add_box(1260, 250, 190, 150, "Probability map\np(x)", fill="#fff0bf")
-    box6 = builder.add_box(1260, 500, 190, 110, "Threshold\nτ", fill="#ffe1bf")
+    box6 = builder.add_box(1260, 500, 190, 110, "Threshold\nphi", fill="#ffe1bf")
     box7 = builder.add_box(1260, 670, 190, 110, "Binary vessel\nmask", fill="#ffd7d7")
     callout = builder.add_box(
         450,
         520,
         520,
         180,
-        "Inside one AZ block:\nvalue projection + fuzzy memberships μr\n+ anisotropic geometry κr\n+ normalized local aggregation",
+        "Inside one geometry-aware block:\nlocal rule scores\n+ direction-aware geometry\n+ normalized local aggregation",
         fill="#f6f7fb",
         stroke="#8b97ad",
     )
@@ -245,8 +245,11 @@ def build_comparison_png(input_dir: Path, baseline_dir: Path, thesis_dir: Path, 
     draw = ImageDraw.Draw(note)
     draw.rounded_rectangle((0, 0, 339, 129), radius=14, outline=(139, 151, 173), width=2, fill=(246, 245, 241))
     note_text = (
-        "Turquoise pixels in the improvement map = baseline errors fixed by the proposed method\n"
-        "Magenta pixels in the improvement map = errors introduced relative to baseline"
+        "Improvement map legend:\n"
+        "green = vessel pixels recovered vs baseline\n"
+        "red = vessel pixels lost vs baseline\n"
+        "blue = baseline false positives removed\n"
+        "orange = new false positives introduced"
     )
     draw.multiline_text((18, 24), note_text, fill=(28, 28, 28), spacing=10)
 
@@ -302,11 +305,10 @@ def build_xai_png(sample_dir: Path, out_path: Path) -> None:
     draw.text((14, 16), "Interpretation Notes", fill=(255, 255, 255))
     body = textwrap.dedent(
         """
-        - sample: 04_test
-        - model: az_thesis_seed42
-        - layer: enc1.body.0
-        - dominant rule map shows how fuzzy rules partition the retina
-        - vessel rule overlay shows the most vessel-preferring rule
+        - representative DRIVE patch
+        - first geometry-aware block
+        - dominant-regime map shows the selected local geometry
+        - vessel-focused regime overlay highlights vessel evidence
         - rule statistics compare vessel vs background memberships
         """
     ).strip()
@@ -315,9 +317,9 @@ def build_xai_png(sample_dir: Path, out_path: Path) -> None:
         ("Input", _load_png(sample_dir / "input.png")),
         ("Prediction", _load_png(sample_dir / "prediction.png")),
         ("Error Map", _load_png(sample_dir / "error_map.png")),
-        ("Rule Partition", _load_png(sample_dir / "rule_partition.png")),
-        (f"Vessel Rule {vessel_rule_name}", _load_png(sample_dir / f"vessel_rule_{vessel_rule_name.lower()}.png")),
-        ("Rule Stats", _load_png(sample_dir / "rule_stats.png")),
+        ("Local Geometry Regimes", _load_png(sample_dir / "rule_partition.png")),
+        (f"Vessel-Focused Regime {vessel_rule_name}", _load_png(sample_dir / f"vessel_rule_{vessel_rule_name.lower()}.png")),
+        ("Rule Statistics", _load_png(sample_dir / "rule_stats.png")),
         ("Interpretation Notes", note),
     ]
     labeled = [_label_panel(image, title, (320, 320)) for title, image in panels]
@@ -344,8 +346,10 @@ def build_xai_local_png(sample_dir: Path, out_path: Path) -> None:
     panels = [
         ("Input Crop", _load_png(sample_dir / "xai_crop_input.png")),
         ("Prediction Crop", _load_png(sample_dir / "xai_crop_prediction.png")),
-        ("Rule Partition", _load_png(sample_dir / "xai_crop_rule_partition.png")),
-        (f"Vessel Rule {vessel_rule_name}", _load_png(sample_dir / f"xai_crop_vessel_rule_{vessel_rule_name.lower()}.png")),
+        ("Geometry Direction Field", _load_png(sample_dir / "xai_crop_direction_field.png")),
+        ("Geometry Contribution Map", _load_png(sample_dir / "xai_crop_anisotropy_gain.png")),
+        ("Local Geometry Regimes", _load_png(sample_dir / "xai_crop_rule_partition.png")),
+        (f"Vessel-Focused Regime {vessel_rule_name}", _load_png(sample_dir / f"xai_crop_vessel_rule_{vessel_rule_name.lower()}.png")),
         ("Rule Statistics", stats_image.copy().resize(panel_size, Image.Resampling.BICUBIC)),
     ]
 
@@ -354,8 +358,11 @@ def build_xai_local_png(sample_dir: Path, out_path: Path) -> None:
     draw.rounded_rectangle((0, 0, panel_size[0] - 1, panel_size[1] - 1), radius=14, outline=(139, 151, 173), width=2, fill=(246, 245, 241))
     note_text = (
         f"Crop {XAI_CROP['label']} is near the optic disc.\n\n"
-        "Rule partition shows where the first AZ block switches dominant rule.\n"
-        f"{vessel_rule_name} is the most vessel-preferring rule here.\n"
+        "Geometry Direction Field shows dominant local orientation.\n"
+        "Geometry Contribution Map: orange = useful elongation,\n"
+        "blue = suppression/compression across structure.\n"
+        "Local Geometry Regimes shows where the first geometry-aware block switches dominant rule.\n"
+        f"{vessel_rule_name} is the most vessel-focused regime here.\n"
         "Rule stats compare vessel vs background memberships."
     )
     draw.multiline_text((18, 20), note_text, fill=(28, 28, 28), spacing=10)
@@ -364,14 +371,16 @@ def build_xai_local_png(sample_dir: Path, out_path: Path) -> None:
     note_panel = _label_panel(note, "Interpretation Notes", panel_size)
     top_left = _label_panel(_load_png(sample_dir / "xai_reference.png"), "Reference Image", (340, 340))
 
-    canvas = Image.new("RGB", (1220, 760), color=(232, 232, 228))
+    canvas = Image.new("RGB", (1510, 760), color=(232, 232, 228))
     canvas.paste(top_left, (20, 20))
     canvas.paste(labeled[0], (390, 20))
     canvas.paste(labeled[1], (660, 20))
-    canvas.paste(labeled[2], (390, 390))
-    canvas.paste(labeled[3], (660, 390))
-    canvas.paste(labeled[4], (20, 390))
-    canvas.paste(note_panel, (930, 390))
+    canvas.paste(labeled[2], (930, 20))
+    canvas.paste(labeled[3], (1200, 20))
+    canvas.paste(labeled[4], (390, 390))
+    canvas.paste(labeled[5], (660, 390))
+    canvas.paste(labeled[6], (930, 390))
+    canvas.paste(note_panel, (1200, 390))
     canvas.save(out_path)
 
 
@@ -409,7 +418,15 @@ def build_comparison_drawio(input_dir: Path, baseline_dir: Path, thesis_dir: Pat
     builder.add_text(120, 30, 1860, 40, "Figure 2. Local comparison of Baseline U-Net and the proposed method on hard DRIVE regions", font_size=26, bold=True)
     builder.add_image(40, 140, 360, 360, input_dir / "comparison_reference.png")
     builder.add_text(40, 110, 360, 24, "Reference image with crop locations", font_size=18, bold=True)
-    builder.add_box(420, 150, 540, 90, "Improvement map: turquoise = baseline errors fixed by the proposed method; magenta = errors introduced by the proposed method", fill="#f6f7fb", stroke="#8b97ad")
+    builder.add_box(
+        420,
+        150,
+        640,
+        110,
+        "Improvement map: green = vessel pixels recovered; red = vessel pixels lost; blue = baseline false positives removed; orange = new false positives introduced",
+        fill="#f6f7fb",
+        stroke="#8b97ad",
+    )
 
     x_positions = [430, 740, 1050, 1360, 1670]
     titles = ["Input Crop", "Ground Truth", "Baseline", "Proposed method", "Improvement map"]
@@ -431,8 +448,8 @@ def build_xai_drawio(sample_dir: Path, out_path: Path) -> None:
     summary = json.loads((sample_dir / "rule_summary.json").read_text(encoding="utf-8"))
     vessel_rule_name = summary.get("best_vessel_rule_name", "R?")
     builder = DrawIoBuilder(width=1800, height=1600)
-    builder.add_text(120, 30, 1560, 40, "Figure 3. XAI view of the first AZ block on a representative DRIVE image", font_size=26, bold=True)
-    titles = ["Input", "Prediction", "Error Map", "Rule Partition", f"Vessel Rule {vessel_rule_name}", "Rule Stats"]
+    builder.add_text(120, 30, 1560, 40, "Figure 3. Geometry-attention XAI view on a representative DRIVE image", font_size=26, bold=True)
+    titles = ["Input", "Prediction", "Prediction Error Map", "Local Geometry Regimes", f"Vessel-Focused Regime {vessel_rule_name}", "Rule Statistics"]
     files = ["input.png", "prediction.png", "error_map.png", "rule_partition.png", f"vessel_rule_{vessel_rule_name.lower()}.png", "rule_stats.png"]
     positions = [(120, 120), (560, 120), (1000, 120), (120, 560), (560, 560), (1000, 560)]
     for title, (x, y), filename in zip(titles, positions, files):
@@ -440,11 +457,10 @@ def build_xai_drawio(sample_dir: Path, out_path: Path) -> None:
         builder.add_image(x, y, 320, 320, sample_dir / filename)
     note = (
         "Interpretation\n\n"
-        "- sample: 04_test\n"
-        "- model: az_thesis_seed42\n"
-        "- layer: enc1.body.0\n"
-        "- dominant-rule map visualizes fuzzy partition of the retina\n"
-        f"- {vessel_rule_name} is the strongest vessel-preferring rule in this sample\n"
+        "- representative DRIVE patch\n"
+        "- first geometry-aware block\n"
+        "- local geometry regimes show the dominant geometry rule at each pixel\n"
+        f"- {vessel_rule_name} is the strongest vessel-focused regime in this sample\n"
         "- rule-stats panel shows which rules prefer vessels vs background"
     )
     builder.add_box(640, 1020, 520, 250, note.replace("\n", "<br>"), fill="#f6f7fb", stroke="#8b97ad")
@@ -454,27 +470,33 @@ def build_xai_drawio(sample_dir: Path, out_path: Path) -> None:
 def build_xai_local_drawio(sample_dir: Path, out_path: Path) -> None:
     summary = json.loads((sample_dir / "rule_summary.json").read_text(encoding="utf-8"))
     vessel_rule_name = summary.get("best_vessel_rule_name", "R?")
-    builder = DrawIoBuilder(width=1800, height=1200)
-    builder.add_text(120, 30, 1560, 40, "Figure 3. Local XAI view of fuzzy rule partition in the first AZ block", font_size=26, bold=True)
+    builder = DrawIoBuilder(width=2200, height=1200)
+    builder.add_text(120, 30, 1560, 40, "Figure 3. Local geometry-attention view in the first geometry-aware block", font_size=26, bold=True)
     builder.add_text(40, 110, 340, 24, "Reference image and XAI crop", font_size=18, bold=True)
     builder.add_image(40, 140, 340, 340, sample_dir / "xai_reference.png")
     builder.add_text(420, 110, 250, 24, "Input Crop", font_size=18, bold=True)
     builder.add_image(420, 140, 250, 250, sample_dir / "xai_crop_input.png")
     builder.add_text(710, 110, 250, 24, "Prediction Crop", font_size=18, bold=True)
     builder.add_image(710, 140, 250, 250, sample_dir / "xai_crop_prediction.png")
-    builder.add_text(1000, 110, 250, 24, "Rule Partition", font_size=18, bold=True)
-    builder.add_image(1000, 140, 250, 250, sample_dir / "xai_crop_rule_partition.png")
-    builder.add_text(420, 470, 250, 24, f"Vessel Rule {vessel_rule_name}", font_size=18, bold=True)
+    builder.add_text(1000, 110, 250, 24, "Geometry Direction Field", font_size=18, bold=True)
+    builder.add_image(1000, 140, 250, 250, sample_dir / "xai_crop_direction_field.png")
+    builder.add_text(1290, 110, 250, 24, "Geometry Contribution Map", font_size=18, bold=True)
+    builder.add_image(1290, 140, 250, 250, sample_dir / "xai_crop_anisotropy_gain.png")
+    builder.add_text(420, 470, 250, 24, f"Vessel-Focused Regime {vessel_rule_name}", font_size=18, bold=True)
     builder.add_image(420, 500, 250, 250, sample_dir / f"xai_crop_vessel_rule_{vessel_rule_name.lower()}.png")
     builder.add_text(710, 470, 250, 24, "Rule Statistics", font_size=18, bold=True)
     builder.add_image(710, 500, 250, 250, sample_dir / "rule_stats.png")
+    builder.add_text(1000, 470, 250, 24, "Local Geometry Regimes", font_size=18, bold=True)
+    builder.add_image(1000, 500, 250, 250, sample_dir / "xai_crop_rule_partition.png")
     note = (
         f"Crop {XAI_CROP['label']}: {XAI_CROP['caption']}<br><br>"
-        "Rule partition shows where the first AZ block switches dominant rule.<br>"
-        f"{vessel_rule_name} is the strongest vessel-preferring rule here.<br>"
+        "Geometry Direction Field shows dominant local vessel orientation.<br>"
+        "Geometry Contribution Map: orange = elongation along vessel-like axis; blue = suppression across it.<br>"
+        "Local Geometry Regimes shows where the first geometry-aware block switches dominant rule.<br>"
+        f"{vessel_rule_name} is the strongest vessel-focused regime here.<br>"
         "Rule statistics compare vessel and background memberships."
     )
-    builder.add_box(1000, 500, 520, 250, note, fill="#f6f7fb", stroke="#8b97ad")
+    builder.add_box(1290, 500, 520, 250, note, fill="#f6f7fb", stroke="#8b97ad")
     builder.save(out_path)
 
 
@@ -497,10 +519,16 @@ def _save_comparison_assets(input_dir: Path, baseline_dir: Path, thesis_dir: Pat
         thesis_mask = np.asarray(Image.open(thesis_dir / "prediction_mask.png").convert("L"), dtype=np.uint8) > 127
         valid_mask = np.asarray(Image.open(input_dir / "valid_mask.png").convert("L"), dtype=np.uint8) > 127
         gain = np.zeros((*gt_mask.shape, 3), dtype=np.uint8)
-        fixed = (base_mask != gt_mask) & (thesis_mask == gt_mask) & valid_mask
-        lost = (base_mask == gt_mask) & (thesis_mask != gt_mask) & valid_mask
-        gain[fixed] = np.array([64, 224, 208], dtype=np.uint8)
-        gain[lost] = np.array([255, 67, 163], dtype=np.uint8)
+        gain_vessel = thesis_mask & gt_mask & (~base_mask) & valid_mask
+        loss_vessel = base_mask & gt_mask & (~thesis_mask) & valid_mask
+        fp_removed = base_mask & (~gt_mask) & (~thesis_mask) & valid_mask
+        fp_added = thesis_mask & (~gt_mask) & (~base_mask) & valid_mask
+        stable = (thesis_mask == base_mask) & valid_mask
+        gain[stable] = np.array([42, 46, 58], dtype=np.uint8)
+        gain[gain_vessel] = np.array([67, 210, 99], dtype=np.uint8)
+        gain[loss_vessel] = np.array([244, 67, 54], dtype=np.uint8)
+        gain[fp_removed] = np.array([79, 195, 247], dtype=np.uint8)
+        gain[fp_added] = np.array([255, 167, 38], dtype=np.uint8)
         _crop_image(Image.fromarray(gain), box, (250, 250), nearest=True).save(thesis_dir / f"gain_{label}.png")
 
 
@@ -508,6 +536,8 @@ def _save_xai_assets(sample_dir: Path) -> None:
     input_image = _load_png(sample_dir / "input.png")
     prediction_image = _load_png(sample_dir / "prediction.png")
     partition_image = _load_png(sample_dir / "rule_partition.png")
+    direction_image = _load_png(sample_dir / "direction_field.png")
+    gain_image = _load_png(sample_dir / "anisotropy_gain.png")
     summary = json.loads((sample_dir / "rule_summary.json").read_text(encoding="utf-8"))
     vessel_rule_name = summary.get("best_vessel_rule_name", "R?")
     vessel_rule_image = _load_png(sample_dir / f"vessel_rule_{vessel_rule_name.lower()}.png")
@@ -516,6 +546,8 @@ def _save_xai_assets(sample_dir: Path) -> None:
     box = XAI_CROP["box"]
     _crop_image(input_image, box, (250, 250)).save(sample_dir / "xai_crop_input.png")
     _crop_image(prediction_image, box, (250, 250)).save(sample_dir / "xai_crop_prediction.png")
+    _crop_image(direction_image, box, (250, 250)).save(sample_dir / "xai_crop_direction_field.png")
+    _crop_image(gain_image, box, (250, 250)).save(sample_dir / "xai_crop_anisotropy_gain.png")
     _crop_image(partition_image, box, (250, 250), nearest=True).save(sample_dir / "xai_crop_rule_partition.png")
     _crop_image(vessel_rule_image, box, (250, 250)).save(sample_dir / f"xai_crop_vessel_rule_{vessel_rule_name.lower()}.png")
 

@@ -1,0 +1,48 @@
+{
+  "dataset": "arcade_syntax",
+  "sample_index": 126,
+  "sample_id": "212",
+  "az_run": "az_thesis_seed42",
+  "az_variant": "az_thesis",
+  "az_threshold": 0.7,
+  "baseline_run": "baseline_seed42",
+  "baseline_threshold": 0.7,
+  "selection_mode": "diverse_contribution_patterns",
+  "visual_encoding": {
+    "axes_u_s": "orange/white long axis is sigma_u direction; cyan short axis is compressed sigma_s direction",
+    "contribution": "mu * tanh(log(sigma_u / sigma_s)), gated by proposed probability map",
+    "layer_change": "difference from previous selected layer after the same probability gate",
+    "regime_confidence": "dominant fuzzy membership confidence gated by proposed probability map"
+  },
+  "chosen_layers": [
+    {
+      "layer_index": 0,
+      "layer_name": "enc1.body.0",
+      "mean_confidence": 0.27947092056274414,
+      "mean_abs_contribution": 0.00010921492503257468,
+      "mean_abs_delta_vs_prev_selected": 0.0
+    },
+    {
+      "layer_index": 3,
+      "layer_name": "bottleneck.0.body.0",
+      "mean_confidence": 0.6028435230255127,
+      "mean_abs_contribution": 0.013638215139508247,
+      "mean_abs_delta_vs_prev_selected": 0.013530002906918526
+    },
+    {
+      "layer_index": 6,
+      "layer_name": "bottleneck.1.body.3",
+      "mean_confidence": 0.6630662083625793,
+      "mean_abs_contribution": 0.009187644347548485,
+      "mean_abs_delta_vs_prev_selected": 0.007910450920462608
+    },
+    {
+      "layer_index": 13,
+      "layer_name": "boundary_head.0",
+      "mean_confidence": 0.8863507509231567,
+      "mean_abs_contribution": 4.284534225007519e-05,
+      "mean_abs_delta_vs_prev_selected": 0.009219067171216011
+    }
+  ],
+  "output_image": "C:\\sasha\\anza_lira\\article_assets\\final_figures\\figure_geometry_attention_story_arcade_syntax_212.png"
+}

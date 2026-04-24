@@ -44,6 +44,7 @@ def _load_model(cfg: dict[str, Any], payload: dict[str, Any], device: torch.devi
         task=utils.task_for_dataset(cfg["dataset"]),
         widths=utils.parse_model_widths(cfg.get("model_widths")),
         model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
+        az_cfg_kwargs=utils.resolve_azconv_config_kwargs(cfg),
     )
     model.load_state_dict(payload["model"], strict=True)
     model.to(device)
