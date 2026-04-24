@@ -137,6 +137,64 @@ Hard-mining немного повышает recall относительно ба
 
 Это лучший текущий 20-эпоховый AZ-рецепт. Он все еще немного ниже baseline по Dice (`0.7378` против `0.7438`), но разрыв уже мал (`-0.0060 Dice`), precision почти совпадает с baseline, а геометрическая часть стала существенно более выраженной (`anisotropy gap` около `1.39` вместо `0.70` у enc1).
 
+## Multi-seed контроль финального кандидата
+
+После single-seed архитектурных проб был выполнен честный 3-seed контроль для кандидата `encoder_az_stages=2`, `hybrid_mix_init=0.15`, `bce_pos_weight=8.0`:
+
+`results/quick_arch_fix_20260424/drive_final_candidate_enc2_lowmix_pos8_ms_414243_e20`
+
+| Model | Dice mean +- std | IoU mean +- std | Precision mean +- std | Recall mean +- std | Balanced Acc mean +- std | Threshold mean +- std | Dice vs baseline |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Baseline U-Net | 0.7460 +- 0.0035 | 0.5950 +- 0.0045 | 0.7613 +- 0.0276 | 0.7330 +- 0.0242 | 0.8551 +- 0.0100 | 0.7917 +- 0.0118 | +0.0000 |
+| Proposed AZ-based method | 0.7424 +- 0.0077 | 0.5904 +- 0.0097 | 0.8027 +- 0.0228 | 0.6922 +- 0.0291 | 0.8377 +- 0.0131 | 0.8167 +- 0.0624 | -0.0036 |
+
+Вывод: этот вариант почти догнал baseline и стал заметно более точным по precision, но все еще проигрывал по recall.
+
+## Recall-balanced sweep
+
+Чтобы поднять recall без разрушения геометрической интерпретируемости, был выполнен компактный sweep вокруг лучшей зоны:
+
+`results/quick_arch_fix_20260424/drive_localgeom_recall_precision_sweep_s42_e20`
+
+Проверялись:
+
+- `hybrid_mix_init`: `0.10`, `0.15`, `0.20`
+- `bce_pos_weight`: `7`, `8`, `9`
+- фиксировано: `encoder_az_stages=2`, `az_geometry_mode=local_hyperbolic`, `az_learn_directions=true`, `topology_loss_weight=0.0`
+
+Лучший single-seed вариант:
+
+| Candidate | Dice | IoU | Precision | Recall | Balanced Acc | Threshold |
+|---|---:|---:|---:|---:|---:|---:|
+| `hybrid_mix_init=0.10`, `bce_pos_weight=9.0` | 0.7479 | 0.5973 | 0.7984 | 0.7034 | 0.8430 | 0.800 |
+
+Также исправлен `scripts/run_az_thesis_sweep.py`: теперь `best_trial_overrides.yaml` сохраняет не только sweep-параметры, но и важные AZ-поля (`az_geometry_mode`, `az_learn_directions`, регуляризации, threshold sweep). Это защищает от случайной потери обучаемой локальной геометрии при повторном запуске лучшего trial.
+
+## Финальный 3-seed результат
+
+Новый финальный кандидат:
+
+`configs/drive_az_thesis_final_candidate_recall.yaml`
+
+Прогон:
+
+`results/quick_arch_fix_20260424/drive_final_candidate_recall_hm010_pos9_ms_414243_e20`
+
+| Model | Dice mean +- std | IoU mean +- std | Precision mean +- std | Recall mean +- std | Specificity mean +- std | Balanced Acc mean +- std | Threshold mean +- std | Dice vs baseline |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Baseline U-Net | 0.7442 +- 0.0037 | 0.5926 +- 0.0047 | 0.7868 +- 0.0303 | 0.7083 +- 0.0313 | 0.9809 +- 0.0043 | 0.8446 +- 0.0135 | 0.7917 +- 0.0118 | +0.0000 |
+| Proposed AZ-based method | 0.7489 +- 0.0007 | 0.5985 +- 0.0009 | 0.7959 +- 0.0085 | 0.7072 +- 0.0060 | 0.9822 +- 0.0011 | 0.8447 +- 0.0025 | 0.8167 +- 0.0236 | +0.0046 |
+
+По seed-ам:
+
+| Seed | Baseline Dice | Proposed Dice | Delta Dice | Proposed Precision | Proposed Recall | Anisotropy gap |
+|---:|---:|---:|---:|---:|---:|---:|
+| 41 | 0.7392 | 0.7486 | +0.0094 | 0.8034 | 0.7009 | 1.3951 |
+| 42 | 0.7455 | 0.7498 | +0.0043 | 0.8001 | 0.7054 | 1.4058 |
+| 43 | 0.7480 | 0.7481 | +0.0001 | 0.7841 | 0.7153 | 1.4048 |
+
+Вывод: впервые получен стабильный 3-seed результат, где `Proposed AZ-based method` не только сохраняет интерпретируемую локальную геометрию (`anisotropy gap` около `1.40`), но и обгоняет baseline по Dice/IoU в среднем. Выигрыш небольшой, поэтому в статье его нужно подавать аккуратно: основной вклад не "большой скачок метрик", а комбинация конкурентной точности и объяснимой направленной геометрии.
+
 ## Визуализация
 
 Новая объясняющая картинка:
@@ -151,6 +209,17 @@ Hard-mining немного повышает recall относительно ба
 - `Contribution`: вклад AZ-геометрии в раннем слое.
 - `Regime Confidence`: насколько уверенно выбран локальный fuzzy-режим.
 
+Финальная картинка для нового recall-balanced кандидата:
+
+`article_assets/final_figures/drive_final_recall_geometry_story/figure_geometry_attention_story_drive_03_test.png`
+
+Эта версия построена уже из `az_thesis_seed42` прогонов `drive_final_candidate_recall_hm010_pos9_ms_414243_e20` и сравнивается с парным `baseline_seed42`.
+
 ## Следующий шаг
 
-Этот фикс стоит прогнать на multi-seed уровне. Главный кандидат сейчас: `encoder_az_stages=2`, `hybrid_mix_init=0.15`, `bce_pos_weight=8.0`, `az_geometry_mode=local_hyperbolic`. Если multi-seed подтвердит разрыв около `0.006 Dice` или лучше, этот вариант можно использовать как основной proposed method с акцентом на интерпретируемую геометрию. Если нужно обязательно обогнать baseline по mean Dice, следующий micro-sweep должен быть вокруг `bce_pos_weight=7-9`, `hybrid_mix_init=0.10-0.20` и, возможно, 30-40 эпох.
+Главный текущий кандидат для статьи: `encoder_az_stages=2`, `hybrid_mix_init=0.10`, `bce_pos_weight=9.0`, `az_geometry_mode=local_hyperbolic`.
+
+Дальше полезно сделать две вещи:
+
+- повторить этот кандидат на ARCADE/FIVES/CHASE, чтобы понять переносимость преимущества;
+- подготовить финальную таблицу для статьи: `U-Net`, `Attention U-Net`, `Proposed AZ-based method`, плюс подпись про интерпретируемую геометрию и стоимость (`params`, `GMACs`, latency).

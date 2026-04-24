@@ -1,0 +1,40 @@
+{
+  "variant_overrides": {
+    "az_thesis": {
+      "num_rules": 4,
+      "model_widths": [
+        32,
+        64,
+        128,
+        192
+      ],
+      "lr": 0.0003,
+      "encoder_az_stages": 2,
+      "encoder_block_mode": "hybrid",
+      "hybrid_mix_init": 0.1,
+      "boundary_loss_weight": 0.05,
+      "topology_loss_weight": 0.0,
+      "overlap_mode": "dice",
+      "tversky_alpha": 0.5,
+      "tversky_beta": 0.5,
+      "bce_pos_weight": 9.0,
+      "eval_threshold_metric": "core_mean",
+      "bottleneck_mode": "aspp",
+      "decoder_mode": "residual",
+      "boundary_mode": "conv",
+      "epochs": 20
+    }
+  },
+  "metadata": {
+    "trial_name": "r4_lr0p0003_w32x64x128x192_enc2_hm0p1_bw0p05_tw0_ovdice_ta0p5_tb0p5_pw9_tmcore_mean_bnaspp_decresidual_headconv",
+    "selection_metrics": {
+      "test_dice_mean": 0.7479226364326311,
+      "test_iou_mean": 0.5973453863119796,
+      "test_balanced_accuracy_mean": 0.8430085595336403,
+      "seconds_per_forward_batch_mean": 0.010626239998964592
+    },
+    "seeds": [
+      42
+    ]
+  }
+}

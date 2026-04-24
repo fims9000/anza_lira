@@ -226,6 +226,32 @@ def _best_trial_artifacts(
         "boundary_mode": str(best_row["boundary_mode"]),
         "epochs": int(best_row["epochs"]),
     }
+    # Keep fixed architecture/loss details from the sweep base config. Without
+    # this, reusing best_trial_overrides.yaml with drive_benchmark.yaml may
+    # accidentally drop the local-hyperbolic AZ geometry that the sweep tested.
+    passthrough_keys = [
+        "aux_loss_weight",
+        "az_geometry_mode",
+        "az_learn_directions",
+        "az_use_fuzzy",
+        "az_use_anisotropy",
+        "az_min_hyperbolicity",
+        "az_normalize_kernel",
+        "az_use_value_projection",
+        "reg_membership_entropy",
+        "reg_membership_smoothness",
+        "reg_geometry_smoothness",
+        "reg_hyperbolicity",
+        "reg_anisotropy_gap",
+        "seg_threshold",
+        "eval_threshold_sweep",
+        "eval_threshold_start",
+        "eval_threshold_end",
+        "eval_threshold_step",
+    ]
+    for key in passthrough_keys:
+        if key in base_cfg:
+            overrides[key] = base_cfg[key]
     full_cfg = dict(base_cfg)
     full_cfg.update(overrides)
     full_cfg["variant"] = "az_thesis"
