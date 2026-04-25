@@ -48,6 +48,7 @@ REG_LOG_KEYS = [
     "geometry_smoothness",
     "hyperbolicity_penalty",
     "anisotropy_gap",
+    "hybrid_mix_target",
 ]
 
 
@@ -544,6 +545,29 @@ def plot_single_run(history: List[Dict[str, Any]], out_dir: Path, variant: str, 
     plt.close()
 
 
+def collect_architecture_state(model: nn.Module) -> Dict[str, Any]:
+    state: Dict[str, Any] = {}
+    mix_rows: List[Dict[str, float]] = []
+    residual_rows: List[Dict[str, float]] = []
+    for name, module in model.named_modules():
+        mix_logit = getattr(module, "mix_logit", None)
+        if isinstance(mix_logit, torch.nn.Parameter):
+            mix_rows.append({"name": name, "value": float(torch.sigmoid(mix_logit.detach()).cpu())})
+        residual_logit = getattr(module, "residual_logit", None)
+        if isinstance(residual_logit, torch.nn.Parameter):
+            residual_rows.append({"name": name, "value": float(torch.sigmoid(residual_logit.detach()).cpu())})
+
+    if mix_rows:
+        mix_vals = [row["value"] for row in mix_rows]
+        state["hybrid_mix_alpha"] = mix_rows
+        state["hybrid_mix_alpha_mean"] = float(sum(mix_vals) / len(mix_vals))
+    if residual_rows:
+        residual_vals = [row["value"] for row in residual_rows]
+        state["az_input_residual_alpha"] = residual_rows
+        state["az_input_residual_alpha_mean"] = float(sum(residual_vals) / len(residual_vals))
+    return state
+
+
 def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, Any]:
     set_seed(int(cfg["seed"]), deterministic=bool(cfg.get("deterministic", False)))
     device_str = cfg.get("device") or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -590,6 +614,14 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
     best_state = None
     best_epoch = 0
     threshold_selection_metric = str(cfg.get("eval_threshold_metric", "dice"))
+    threshold_selection_reference_cfg = cfg.get("eval_threshold_reference")
+    threshold_selection_score_tolerance = float(cfg.get("eval_threshold_score_tolerance", 0.0))
+    threshold_selection_max = cfg.get("eval_threshold_max")
+    threshold_selection_max = float(threshold_selection_max) if threshold_selection_max is not None else None
+    threshold_selection_min_recall = cfg.get("eval_threshold_min_recall")
+    threshold_selection_min_recall = (
+        float(threshold_selection_min_recall) if threshold_selection_min_recall is not None else None
+    )
     threshold_grid_for_selection: List[float] = []
     if task == "segmentation" and bool(cfg.get("eval_threshold_sweep", True)):
         threshold_grid_for_selection = build_threshold_grid(
@@ -621,7 +653,14 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
             best_val_row = select_best_threshold(
                 val_sweep_rows,
                 metric=threshold_selection_metric,
-                reference_threshold=loss_cfg["threshold"],
+                reference_threshold=(
+                    float(threshold_selection_reference_cfg)
+                    if threshold_selection_reference_cfg is not None
+                    else float(loss_cfg["threshold"])
+                ),
+                score_tolerance=threshold_selection_score_tolerance,
+                max_threshold=threshold_selection_max,
+                min_recall=threshold_selection_min_recall,
             )
             val_selection_score = float(threshold_metric_value(best_val_row, threshold_selection_metric))
             val_selection_threshold = float(best_val_row["threshold"])
@@ -712,7 +751,14 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         best_threshold_row = select_best_threshold(
             threshold_sweep_rows,
             metric=threshold_metric,
-            reference_threshold=selected_threshold,
+            reference_threshold=(
+                float(threshold_selection_reference_cfg)
+                if threshold_selection_reference_cfg is not None
+                else float(selected_threshold)
+            ),
+            score_tolerance=threshold_selection_score_tolerance,
+            max_threshold=threshold_selection_max,
+            min_recall=threshold_selection_min_recall,
         )
         selected_threshold = float(best_threshold_row["threshold"])
         loss_cfg["threshold"] = selected_threshold
@@ -747,6 +793,7 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         "encoder_az_stages": cfg.get("encoder_az_stages"),
         "encoder_block_mode": cfg.get("encoder_block_mode"),
         "hybrid_mix_init": cfg.get("hybrid_mix_init"),
+        "hybrid_mix_target": cfg.get("hybrid_mix_target"),
         "bottleneck_mode": cfg.get("bottleneck_mode"),
         "decoder_mode": cfg.get("decoder_mode"),
         "boundary_mode": cfg.get("boundary_mode"),
@@ -755,6 +802,11 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         "az_use_fuzzy": cfg.get("az_use_fuzzy"),
         "az_use_anisotropy": cfg.get("az_use_anisotropy"),
         "az_min_hyperbolicity": cfg.get("az_min_hyperbolicity"),
+        "az_fuzzy_temperature": cfg.get("az_fuzzy_temperature"),
+        "az_normalize_mode": str(cfg.get("az_normalize_mode", "variant_default")),
+        "az_compatibility_floor": cfg.get("az_compatibility_floor"),
+        "az_use_input_residual": cfg.get("az_use_input_residual"),
+        "az_residual_init": cfg.get("az_residual_init"),
         "lr_scheduler": str(cfg.get("lr_scheduler", "none")),
         "lr_min": float(cfg.get("lr_min", 0.0)),
         "eval_tta": str(cfg.get("eval_tta", "none")),
@@ -811,6 +863,14 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         metrics["topology_num_iters"] = int(cfg.get("topology_num_iters", 10))
         if threshold_selection_metric_name is not None:
             metrics["threshold_selection_metric"] = threshold_selection_metric_name
+            metrics["threshold_selection_reference"] = (
+                float(threshold_selection_reference_cfg)
+                if threshold_selection_reference_cfg is not None
+                else None
+            )
+            metrics["threshold_selection_score_tolerance"] = threshold_selection_score_tolerance
+            metrics["threshold_selection_max"] = threshold_selection_max
+            metrics["threshold_selection_min_recall"] = threshold_selection_min_recall
             metrics["val_threshold_sweep"] = threshold_sweep_rows
         if val_selected_metrics is not None:
             metrics["val_selected_threshold_metrics"] = val_selected_metrics
@@ -843,6 +903,9 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
             metrics["test_threshold_dominance_search"] = search_report
     if history:
         metrics["final_anisotropy_gap"] = history[-1].get("reg_anisotropy_gap", 0.0)
+    arch_state = collect_architecture_state(model)
+    if arch_state:
+        metrics["architecture_state"] = arch_state
     save_json(run_dir / "metrics.json", metrics)
     if task == "segmentation" and str(cfg["dataset"]).lower().replace("-", "_") == "drive":
         update_drive_comparison_summary(run_dir.parent)

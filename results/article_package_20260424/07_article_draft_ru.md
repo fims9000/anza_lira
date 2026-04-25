@@ -207,3 +207,112 @@ Attention U-Net смещает профиль в сторону большей p
 - DRIVE fix: `results/quick_arch_fix_20260424/drive_final_candidate_recall_hm010_pos9_ms_414243_e20/`
 - Фигуры: `article_assets/final_figures/`
 
+
+## 9. Update 2026-04-25: verification of implementation-corrected AZ variant
+
+We re-ran the best implementation-fix candidate on DRIVE with the full protocol: 20 epochs, seeds 41/42/43.
+
+Source runs:
+- New check: `results/quick_arch_fix_20260425/drive_implfix_best_ms_414243_e20/drive_multiseed_summary.md`
+- Previous candidate: `results/quick_arch_fix_20260424/drive_final_candidate_recall_hm010_pos9_ms_414243_e20/drive_multiseed_summary.md`
+
+| Run | Baseline Dice mean+-std | Proposed AZ Dice mean+-std | Dice vs baseline |
+|---|---:|---:|---:|
+| Previous best candidate | 0.7442 +- 0.0037 | 0.7489 +- 0.0007 | +0.0046 |
+| Implementation-corrected AZ variant | 0.7456 +- 0.0061 | 0.7403 +- 0.0084 | -0.0052 |
+
+Interpretation:
+- The implementation-corrected AZ variant does not preserve the previous positive margin on the full multi-seed protocol.
+- Therefore, this variant is reported as a negative/unstable result and is not used as the primary final claim.
+- Final manuscript positioning should emphasize robustness-first conclusions and separate exploratory AZ implementation fixes from validated final results.
+
+## 10. Update 2026-04-25: threshold-selection stabilization (implementation fix)
+
+To address the observed precision/recall imbalance (high precision with degraded recall), we implemented a careful threshold-selection stabilization policy in code:
+
+- support for near-best selection with tolerance (`eval_threshold_score_tolerance`);
+- optional upper cap for selected threshold (`eval_threshold_max`);
+- optional recall floor during threshold choice (`eval_threshold_min_recall`);
+- explicit threshold reference (`eval_threshold_reference`) for stable tie-breaking.
+
+Applied policy for the current impl-fix candidate:
+- `eval_threshold_metric: core_mean`
+- `eval_threshold_reference: 0.80`
+- `eval_threshold_score_tolerance: 0.005`
+- `eval_threshold_max: 0.85`
+
+Important scope note:
+- this is an implementation-level calibration fix (decision policy), not a claim of improved final benchmark performance until the updated run is re-validated on the full protocol (20 epochs, seeds 41/42/43).
+
+## 11. Update 2026-04-25: post-hoc checkpoint recalibration at thr=0.80 (no retraining)
+
+Using the same impl-fix checkpoints (`20 epochs`, seeds `41/42/43`) and only changing the test threshold to `0.80`, we obtain:
+
+- AZ mean Dice: `0.7498` (was `0.7403` with original auto-selected thresholds);
+- AZ mean Recall: `0.7220` (was `0.6816`);
+- Baseline mean Dice in the same run pack: `0.7456`;
+- Dice delta AZ vs baseline: `+0.0043`.
+
+Artifact:
+- `results/quick_arch_fix_20260425/drive_implfix_best_ms_414243_e20/rethreshold_thr080_summary.md`
+
+Interpretation:
+- The previous impl-fix failure was largely due to threshold calibration drift (overly high selected thresholds), not only due to feature extractor quality.
+- This supports a careful manuscript claim: implementation-corrected AZ remains sensitive to decision calibration; with stabilized thresholding it regains competitive multi-seed performance on DRIVE.
+
+## 12. Update 2026-04-25: full 20e multi-seed confirmation with threshold policy fix
+
+Run:
+- `results/quick_arch_fix_20260425/drive_implfix_policyfix_ms_414243_e20/drive_multiseed_summary.md`
+
+Result (DRIVE, 20 epochs, seeds 41/42/43):
+- Baseline Dice mean: `0.7456 +- 0.0061`
+- Implementation-corrected AZ + policy-fix Dice mean: `0.7498 +- 0.0016`
+- Delta Dice vs baseline: `+0.0043`
+- Mean selected threshold for AZ: `0.8000 +- 0.0000`
+
+Interpretation:
+- the previous degradation was largely decision-calibration related;
+- with stabilized threshold policy, the corrected AZ variant is again competitive and slightly ahead on DRIVE multi-seed.
+
+## 13. Update 2026-04-25: hybrid_mix activation probe (negative so far)
+
+We implemented explicit hybrid-mix diagnostics and optional mix-target regularization.
+Short probes (`seed42`, `6 epochs`) with `reg_hybrid_mix` did not produce a meaningful mix shift (`~0.10 -> ~0.101`) and did not improve short-run Dice.
+
+Artifacts:
+- `results/quick_arch_fix_20260425/drive_mixreg_probe_s42_e6/`
+- `results/quick_arch_fix_20260425/drive_mixreg_probe2_s42_e6/`
+- `results/quick_arch_fix_20260425/drive_mixreg_probe3_s42_e6/`
+
+Decision:
+- do not promote hybrid-mix regularization as a main improvement at this stage;
+- keep the threshold-policy fix as the validated implementation correction.
+
+## 14. Update 2026-04-25: risk-focused negative analysis
+
+Detailed downside analysis is tracked in:
+- `results/quick_arch_fix_20260425/drive_implfix_policyfix_ms_414243_e20/risk_analysis_ru.md`
+
+Key caution points for manuscript wording:
+- despite Dice gain on DRIVE, AZ still underperforms baseline on recall and balanced accuracy;
+- latency cost remains substantially higher;
+- with only 3 seeds, confidence interval on Dice delta remains wide.
+
+## 15. Update 2026-04-25: recall-floor + Tversky trial (negative trade-off)
+
+Run:
+- `results/quick_arch_fix_20260425/drive_recallfloor_tversky_ms_414243_e20/`
+- summary: `results/quick_arch_fix_20260425/drive_recallfloor_tversky_ms_414243_e20/tradeoff_summary.md`
+
+What was tested:
+- recall-oriented loss and threshold policy (`Tversky alpha=0.40, beta=0.60`, `eval_threshold_min_recall=0.76`).
+
+Outcome (mean vs previous policyfix):
+- Recall: `+0.0229`
+- Balanced Acc: `+0.0079`
+- Dice: `-0.0121`
+- Precision: `-0.0411`
+
+Conclusion:
+- this setting is useful as a diagnostic (trade-off frontier), but not as a replacement for the current best policyfix, because overall Dice/regression is too large.

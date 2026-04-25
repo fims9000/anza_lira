@@ -314,7 +314,23 @@ class _RegularizedSegmentationMixin:
                         totals[key] = totals[key] + value
                     else:
                         totals[key] = value
+        mix_terms: list[torch.Tensor] = []
+        for module in self.modules():
+            mix_logit = getattr(module, "mix_logit", None)
+            if isinstance(mix_logit, nn.Parameter):
+                mix_terms.append(torch.sigmoid(mix_logit))
+
+        if mix_terms:
+            mix_values = torch.stack(mix_terms)
+            mix_target = getattr(self, "hybrid_mix_target", None)
+            if mix_target is None:
+                totals["hybrid_mix_target"] = mix_values.new_zeros(())
+            else:
+                # L1-style attraction gives a stronger gradient than MSE when
+                # the mix branch is far from the desired operating region.
+                totals["hybrid_mix_target"] = (mix_values - float(mix_target)).abs().mean()
         if totals:
+            totals.setdefault("hybrid_mix_target", next(self.parameters()).new_zeros(()))
             return totals
 
         zero = next(self.parameters()).new_zeros(())
@@ -324,6 +340,7 @@ class _RegularizedSegmentationMixin:
             "geometry_smoothness": zero,
             "hyperbolicity_penalty": zero,
             "anisotropy_gap": zero,
+            "hybrid_mix_target": zero,
         }
 
 
@@ -442,6 +459,7 @@ class AZSOTAUNet(_RegularizedSegmentationMixin, nn.Module):
         encoder_az_stages: int = 3,
         encoder_block_mode: str = "az",
         hybrid_mix_init: float = 0.5,
+        hybrid_mix_target: float | None = None,
         bottleneck_mode: str | None = None,
         decoder_mode: str | None = None,
         boundary_mode: str | None = None,
@@ -477,6 +495,7 @@ class AZSOTAUNet(_RegularizedSegmentationMixin, nn.Module):
         self.encoder_az_stages = int(encoder_az_stages)
         self.encoder_block_mode = encoder_block_mode
         self.hybrid_mix_init = float(hybrid_mix_init)
+        self.hybrid_mix_target = float(hybrid_mix_target) if hybrid_mix_target is not None else None
 
         def _encoder_block(stage_index: int, in_ch: int, out_ch: int) -> nn.Module:
             if stage_index <= self.encoder_az_stages:

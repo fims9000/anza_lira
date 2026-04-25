@@ -1,0 +1,48 @@
+# Implementation-focused probe for unresolved AZConv issues:
+# 1) soften fuzzy gating (avoid premature over-confident regimes);
+# 2) use per-rule neighbor normalization to preserve geometry signal;
+# 3) add tiny compatibility floor to reduce brittle sparse kernels.
+
+variant_overrides:
+  az_thesis:
+    num_rules: 4
+    model_widths: [32, 64, 128, 192]
+
+    encoder_az_stages: 2
+    encoder_block_mode: hybrid
+    hybrid_mix_init: 0.10
+    bottleneck_mode: aspp
+    decoder_mode: residual
+    boundary_mode: conv
+
+    az_geometry_mode: local_hyperbolic
+    az_learn_directions: true
+    az_min_hyperbolicity: 0.15
+
+    # New AZConv implementation knobs
+    az_fuzzy_temperature: 1.35
+    az_normalize_mode: per_rule
+    az_compatibility_floor: 0.0005
+
+    lr: 0.0003
+    overlap_mode: dice
+    tversky_alpha: 0.5
+    tversky_beta: 0.5
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.0
+    bce_pos_weight: 9.0
+
+    reg_membership_entropy: 0.0
+    reg_membership_smoothness: 0.0
+    reg_geometry_smoothness: 0.0001
+    reg_hyperbolicity: 0.01
+    reg_anisotropy_gap: 0.0
+
+    seg_threshold: 0.5
+    eval_threshold_sweep: true
+    eval_threshold_metric: core_mean
+    eval_threshold_start: 0.25
+    eval_threshold_end: 0.95
+    eval_threshold_step: 0.05
+

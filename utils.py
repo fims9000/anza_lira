@@ -1118,6 +1118,7 @@ def az_regularization_weights(cfg: Dict[str, Any]) -> Dict[str, float]:
         "geometry_smoothness": float(cfg.get("reg_geometry_smoothness", 0.0)),
         "hyperbolicity_penalty": float(cfg.get("reg_hyperbolicity", 0.0)),
         "anisotropy_gap": float(cfg.get("reg_anisotropy_gap", 0.0)),
+        "hybrid_mix_target": float(cfg.get("reg_hybrid_mix", 0.0)),
     }
 
 
@@ -1151,6 +1152,9 @@ def resolve_segmentation_model_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
     hybrid_mix_init = cfg.get("hybrid_mix_init")
     if hybrid_mix_init is not None:
         model_kwargs["hybrid_mix_init"] = float(hybrid_mix_init)
+    hybrid_mix_target = cfg.get("hybrid_mix_target")
+    if hybrid_mix_target is not None:
+        model_kwargs["hybrid_mix_target"] = float(hybrid_mix_target)
     return model_kwargs
 
 
@@ -1165,6 +1169,11 @@ def resolve_azconv_config_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
         "az_use_value_projection": "use_value_projection",
         "az_normalize_kernel": "normalize_kernel",
         "az_min_hyperbolicity": "min_hyperbolicity",
+        "az_fuzzy_temperature": "fuzzy_temperature",
+        "az_normalize_mode": "normalize_mode",
+        "az_compatibility_floor": "compatibility_floor",
+        "az_use_input_residual": "use_input_residual",
+        "az_residual_init": "residual_init",
     }
     bool_targets = {
         "use_fuzzy",
@@ -1172,6 +1181,7 @@ def resolve_azconv_config_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
         "learn_directions",
         "use_value_projection",
         "normalize_kernel",
+        "use_input_residual",
     }
     out: Dict[str, Any] = {}
     for source_key, target_key in key_map.items():
@@ -1180,7 +1190,7 @@ def resolve_azconv_config_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
         value = cfg[source_key]
         if target_key in bool_targets:
             out[target_key] = bool(value)
-        elif target_key == "min_hyperbolicity":
+        elif target_key in {"min_hyperbolicity", "fuzzy_temperature", "compatibility_floor", "residual_init"}:
             out[target_key] = float(value)
         else:
             out[target_key] = str(value)
@@ -1713,12 +1723,46 @@ def select_best_threshold(
     sweep_rows: Sequence[Dict[str, float]],
     metric: str = "dice",
     reference_threshold: float = 0.5,
+    score_tolerance: float = 0.0,
+    max_threshold: float | None = None,
+    min_recall: float | None = None,
 ) -> Dict[str, float]:
     if not sweep_rows:
         raise ValueError("Threshold sweep rows must not be empty.")
+    if float(score_tolerance) < 0.0:
+        raise ValueError("score_tolerance must be non-negative.")
+
+    candidates: List[Dict[str, float]] = list(sweep_rows)
+
+    if max_threshold is not None:
+        filtered = [row for row in candidates if float(row["threshold"]) <= float(max_threshold) + 1e-12]
+        if filtered:
+            candidates = filtered
+
+    if min_recall is not None:
+        filtered = [row for row in candidates if float(row.get("recall", 0.0)) >= float(min_recall)]
+        if filtered:
+            candidates = filtered
+
+    if float(score_tolerance) > 0.0:
+        scored = [(row, threshold_metric_value(row, metric)) for row in candidates]
+        best_score = max(score for _, score in scored)
+        eps = float(score_tolerance) + 1e-12
+        near_best_rows = [row for row, score in scored if score >= best_score - eps]
+        # Conservative policy for vessel segmentation:
+        # if multiple thresholds are effectively equal by selection score,
+        # prefer a lower threshold to protect recall.
+        return min(
+            near_best_rows,
+            key=lambda row: (
+                abs(float(row["threshold"]) - float(reference_threshold)),
+                float(row["threshold"]),
+                -threshold_metric_value(row, metric),
+            ),
+        )
 
     return max(
-        sweep_rows,
+        candidates,
         key=lambda row: (
             threshold_metric_value(row, metric),
             -abs(float(row["threshold"]) - float(reference_threshold)),

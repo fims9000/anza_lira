@@ -36,6 +36,11 @@ class AZConvConfig:
     use_value_projection: bool = True
     normalize_kernel: bool = True
     min_hyperbolicity: float = 0.1
+    fuzzy_temperature: float = 1.0
+    normalize_mode: str = "global"
+    compatibility_floor: float = 0.0
+    use_input_residual: bool = False
+    residual_init: float = 0.0
 
 
 class AZConv2d(nn.Module):
@@ -79,6 +84,18 @@ class AZConv2d(nn.Module):
                 f"Unknown geometry_mode={self.cfg.geometry_mode!r}; "
                 f"expected one of {sorted(valid_modes)}."
             )
+        if float(self.cfg.fuzzy_temperature) <= 0.0:
+            raise ValueError("fuzzy_temperature must be positive.")
+        valid_norm_modes = {"global", "per_rule", "none"}
+        if self.cfg.normalize_mode not in valid_norm_modes:
+            raise ValueError(
+                f"Unknown normalize_mode={self.cfg.normalize_mode!r}; "
+                f"expected one of {sorted(valid_norm_modes)}."
+            )
+        if float(self.cfg.compatibility_floor) < 0.0:
+            raise ValueError("compatibility_floor must be non-negative.")
+        if not 0.0 <= float(self.cfg.residual_init) <= 1.0:
+            raise ValueError("residual_init must be in [0, 1].")
 
         self.gate_conv = nn.Conv2d(in_channels, num_rules, kernel_size=1, bias=True)
         self.value_conv = (
@@ -117,6 +134,17 @@ class AZConv2d(nn.Module):
 
         self.raw_sigma_iso = nn.Parameter(torch.zeros(num_rules))
         self.pointwise = nn.Conv2d(in_channels * num_rules, out_channels, kernel_size=1, bias=bias)
+        self.use_input_residual = bool(self.cfg.use_input_residual)
+        if self.use_input_residual:
+            init = float(min(max(self.cfg.residual_init, 1e-4), 1.0 - 1e-4))
+            self.residual_logit = nn.Parameter(torch.logit(torch.tensor(init, dtype=torch.float32)))
+            if in_channels == out_channels:
+                self.residual_proj = nn.Identity()
+            else:
+                self.residual_proj = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
+        else:
+            self.register_parameter("residual_logit", None)
+            self.residual_proj = nn.Identity()
 
         self._register_offset_buffers()
         self._register_cat_map_buffers()
@@ -392,7 +420,7 @@ class AZConv2d(nn.Module):
 
         logits = self.gate_conv(x)
         if self.cfg.use_fuzzy:
-            mu = F.softmax(logits, dim=1)
+            mu = F.softmax(logits / float(self.cfg.fuzzy_temperature), dim=1)
         else:
             mu = torch.full_like(logits, 1.0 / self.R)
 
@@ -420,15 +448,29 @@ class AZConv2d(nn.Module):
             }
 
         compat = mu_center * mu_un * kern
+        if self.cfg.compatibility_floor > 0.0:
+            compat = compat + float(self.cfg.compatibility_floor)
         if self.cfg.normalize_kernel:
-            compat_sum = compat.sum(dim=(1, 2), keepdim=True).clamp_min(1e-8)
-            compat = compat / compat_sum
+            if self.cfg.normalize_mode == "global":
+                compat_sum = compat.sum(dim=(1, 2), keepdim=True).clamp_min(1e-8)
+                compat = compat / compat_sum
+            elif self.cfg.normalize_mode == "per_rule":
+                # Normalize neighbors within each rule while preserving per-rule
+                # center mass. This keeps fuzzy rule weighting and prevents
+                # geometry from being washed out by cross-rule global scaling.
+                neighbor_sum = compat.sum(dim=2, keepdim=True).clamp_min(1e-8)
+                compat = (compat / neighbor_sum) * mu_center
+            # normalize_mode == "none" -> keep raw compatibilities unchanged.
 
         self._update_regularization_terms(mu, gap, geom_smoothness)
         self._update_interpretation_cache(mu, kern, compat, interp)
         agg = torch.einsum("brsl,bcsl->brcl", compat, v_un)
         agg_flat = agg.reshape(batch, self.R * channels, height, width)
-        return self.pointwise(agg_flat)
+        out = self.pointwise(agg_flat)
+        if self.use_input_residual and self.residual_logit is not None:
+            alpha = torch.sigmoid(self.residual_logit)
+            out = out + alpha * self.residual_proj(x)
+        return out
 
 
 def _conv_block_az(in_c: int, out_c: int, num_rules: int, cfg: AZConvConfig) -> nn.Sequential:

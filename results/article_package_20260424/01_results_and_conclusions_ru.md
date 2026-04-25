@@ -61,3 +61,53 @@
 - `The proposed AZ-based model provides interpretable local geometry and reaches competitive (slightly higher) DRIVE multi-seed accuracy after architecture-level balancing.`
 - `The current gain is modest; therefore, we position the contribution as a combination of competitive segmentation quality and explicit geometry-aware interpretability.`
 
+
+## UPDATE (2026-04-25): implementation-corrected AZ variant check
+
+Источник:
+- `results/quick_arch_fix_20260425/drive_implfix_best_ms_414243_e20/drive_multiseed_summary.md`
+- контроль: `results/quick_arch_fix_20260424/drive_final_candidate_recall_hm010_pos9_ms_414243_e20/drive_multiseed_summary.md`
+
+Сравнение на DRIVE (20 epochs, seeds 41/42/43):
+
+| Run | Baseline Dice mean+-std | AZ Dice mean+-std | Dice vs baseline |
+|---|---:|---:|---:|
+| `drive_final_candidate_recall_hm010_pos9_ms_414243_e20` | 0.7442 +- 0.0037 | 0.7489 +- 0.0007 | +0.0046 |
+| `drive_implfix_best_ms_414243_e20` | 0.7456 +- 0.0061 | 0.7403 +- 0.0084 | -0.0052 |
+
+Вывод для статьи:
+- `implementation-corrected AZ variant` в текущей реализации **не удерживает** преимущество на полном протоколе (20e, 3 seed).
+- Этот вариант **не выносить как основной лучший результат**.
+- Основной честный тезис: пока фиксируется, что baseline стабильнее, а AZ-кандидаты требуют дополнительной стабилизации реализации.
+
+## UPDATE (2026-04-25): post-hoc threshold recalibration of the same impl-fix checkpoints
+
+Источник:
+- `results/quick_arch_fix_20260425/drive_implfix_best_ms_414243_e20/rethreshold_thr080_summary.md`
+
+Что сделано:
+- без переобучения, только переоценка тех же `checkpoint_best.pt` при `threshold=0.80`.
+
+Результат (mean по seeds 41/42/43):
+- AZ Dice: `0.7498` (вместо `0.7403` в оригинальной auto-threshold оценке),
+- AZ Recall: `0.7220` (вместо `0.6816`),
+- baseline Dice: `0.7456`,
+- Dice vs baseline: `+0.0043`.
+
+Интерпретация:
+- основной провал impl-fix был связан не только с feature-learning, но и с calibration drift при выборе порога.
+- Для статьи корректнее отдельно фиксировать вклад model-level изменений и вклад decision-level threshold calibration.
+
+## UPDATE (2026-04-25): full 20e multi-seed confirmation with threshold policy fix
+
+Источник:
+- `results/quick_arch_fix_20260425/drive_implfix_policyfix_ms_414243_e20/drive_multiseed_summary.md`
+
+Итог:
+- Baseline Dice mean: `0.7456 +- 0.0061`
+- Corrected AZ (with threshold policy fix) Dice mean: `0.7498 +- 0.0016`
+- Dice vs baseline: `+0.0043`
+- AZ threshold mean: `0.8000 +- 0.0000`
+
+Короткий вывод:
+- На полном протоколе 20e/3-seed policy-fix подтверждает, что деградация impl-fix была в значительной части связана с пороговой калибровкой.
