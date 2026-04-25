@@ -84,6 +84,26 @@ def _make_fives_tree(root) -> None:
         _write_mask(split_dir / "mask" / f"{sample_id}_mask.png", height=48, width=48, invert=True)
 
 
+def _make_gis_roads_tree(root, count: int = 6) -> None:
+    images_dir = root / "Roads_HF" / "images"
+    masks_dir = root / "Roads_HF" / "masks"
+    images_dir.mkdir(parents=True, exist_ok=True)
+    masks_dir.mkdir(parents=True, exist_ok=True)
+    for idx in range(count):
+        _write_rgb(images_dir / f"{idx}.png", height=36, width=48)
+        _write_mask(masks_dir / f"{idx}.png", height=36, width=48)
+
+
+def _make_global_roads_tree(root) -> None:
+    for split, count in (("train", 4), ("val", 2), ("in-domain-test", 2)):
+        split_dir = root / "GlobalScaleRoad" / split / "1"
+        split_dir.mkdir(parents=True, exist_ok=True)
+        for idx in range(count):
+            sample_id = f"region_{split}_{idx}"
+            _write_rgb(split_dir / f"{sample_id}_sat.png", height=40, width=44)
+            _write_mask(split_dir / f"{sample_id}_gt.png", height=40, width=44)
+
+
 def _make_arcade_tree(root) -> None:
     for split, sample_ids in (
         ("train", [1, 2]),
@@ -148,6 +168,32 @@ def test_drive_dataloaders_build_and_batch(tmp_path):
     assert fov.shape[1:] == (1, 32, 40)
     assert len(val_loader.dataset) == 1
     assert len(test_loader.dataset) == 1
+
+
+def test_drive_dataloaders_fallback_to_validation_when_official_test_labels_are_missing(tmp_path):
+    _make_drive_tree(tmp_path / "data")
+    test_manual_dir = tmp_path / "data" / "DRIVE" / "test" / "1st_manual"
+    for path in test_manual_dir.glob("*"):
+        path.unlink()
+    test_manual_dir.rmdir()
+    cfg = {
+        "dataset": "drive",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.5,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "use_fov_mask": True,
+    }
+
+    _train_loader, val_loader, test_loader, _in_channels, _num_outputs, _task = utils.build_dataloaders(cfg)
+
+    assert cfg["_resolved_test_split"] == "validation_fallback_missing_test_labels"
+    assert len(test_loader.dataset) == len(val_loader.dataset)
+    x, y, fov = next(iter(test_loader))
+    assert x.shape[1:] == (3, 32, 40)
+    assert y.shape[1:] == (1, 32, 40)
+    assert fov.shape[1:] == (1, 32, 40)
 
 
 def test_chase_db1_dataloaders_build_and_batch(tmp_path):
@@ -228,6 +274,66 @@ def test_arcade_syntax_dataloaders_build_and_batch(tmp_path):
     assert y.shape[1:] == (1, 32, 32)
     assert valid.shape[1:] == (1, 32, 32)
     assert float(y.sum()) > 0.0
+    assert len(val_loader.dataset) == 1
+    assert len(test_loader.dataset) == 1
+
+
+def test_gis_roads_dataloaders_build_and_batch(tmp_path):
+    _make_gis_roads_tree(tmp_path / "data", count=6)
+    cfg = {
+        "dataset": "gis_roads",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.2,
+        "gis_test_fraction": 0.2,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "gis_image_size": [32, 40],
+        "gis_patch_size": 16,
+        "gis_foreground_bias": 1.0,
+    }
+
+    train_loader, val_loader, test_loader, in_channels, num_outputs, task = utils.build_dataloaders(cfg)
+    assert task == "segmentation"
+    assert in_channels == 3
+    assert num_outputs == 1
+    assert cfg["_resolved_test_split"] == "deterministic_test_split"
+
+    x, y, valid = next(iter(train_loader))
+    assert x.shape[1:] == (3, 16, 16)
+    assert y.shape[1:] == (1, 16, 16)
+    assert valid.shape[1:] == (1, 16, 16)
+    assert len(train_loader.dataset) == 4
+    assert len(val_loader.dataset) == 1
+    assert len(test_loader.dataset) == 1
+
+
+def test_global_roads_dataloaders_use_official_split_folders(tmp_path):
+    _make_global_roads_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "global_roads",
+        "data_root": str(tmp_path / "data"),
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "gis_image_size": [32, 32],
+        "gis_patch_size": 16,
+        "gis_train_limit": 3,
+        "gis_val_limit": 1,
+        "gis_test_limit": 1,
+    }
+
+    train_loader, val_loader, test_loader, in_channels, num_outputs, task = utils.build_dataloaders(cfg)
+    assert task == "segmentation"
+    assert in_channels == 3
+    assert num_outputs == 1
+    assert cfg["_resolved_test_split"] == "in-domain-test"
+
+    x, y, valid = next(iter(train_loader))
+    assert x.shape[1:] == (3, 16, 16)
+    assert y.shape[1:] == (1, 16, 16)
+    assert valid.shape[1:] == (1, 16, 16)
+    assert len(train_loader.dataset) == 3
     assert len(val_loader.dataset) == 1
     assert len(test_loader.dataset) == 1
 

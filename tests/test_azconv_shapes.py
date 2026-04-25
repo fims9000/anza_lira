@@ -142,6 +142,35 @@ def test_local_hyperbolic_forward_and_snapshot_stay_finite():
         assert torch.isfinite(snapshot[key].float()).all(), key
 
 
+def test_compatibility_floor_does_not_weight_padded_neighbors():
+    x = torch.ones(1, 1, 5, 5)
+    layer = AZConv2d(
+        1,
+        1,
+        kernel_size=3,
+        num_rules=4,
+        cfg=AZConvConfig(
+            use_fuzzy=True,
+            use_anisotropy=True,
+            learn_directions=True,
+            geometry_mode="local_hyperbolic",
+            normalize_kernel=True,
+            normalize_mode="global",
+            compatibility_floor=5e-4,
+        ),
+        bias=False,
+    )
+    with torch.no_grad():
+        layer.value_conv.weight.fill_(1.0)
+        layer.pointwise.weight.fill_(1.0)
+        layer.gate_conv.weight.zero_()
+        layer.gate_conv.bias.zero_()
+
+    y = layer(x)
+
+    assert torch.allclose(y, torch.ones_like(y), atol=1e-5)
+
+
 def test_local_hyperbolic_pair_geometry_is_symmetric_for_opposite_neighbor_views():
     x = torch.randn(1, 3, 5, 6)
     layer = AZConv2d(

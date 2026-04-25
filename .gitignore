@@ -9,6 +9,7 @@ venv/
 
 data/*
 !data/README.md
+external/
 
 !results/README.md
 !results/drive_real_comparison.md

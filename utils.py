@@ -86,6 +86,8 @@ THRESHOLD_DERIVED_METRICS = {
 
 RETINAL_SEG_DATASETS = {"drive", "chase_db1", "chasedb1", "chase", "fives"}
 ARCADE_SEG_DATASETS = {"arcade", "arcade_syntax", "arcade_stenosis"}
+GLOBAL_ROAD_DATASETS = {"global_roads", "global_scale_roads", "globalscale_roads"}
+GIS_SEG_DATASETS = {"gis_roads", "roads", "road_segmentation", "roads_hf"} | GLOBAL_ROAD_DATASETS
 
 
 def segmentation_tta_num_views(mode: str | None) -> int:
@@ -230,6 +232,15 @@ def arcade_dataset_root(data_root: str | Path) -> Path:
     return Path(data_root) / "ARCADE"
 
 
+def gis_dataset_root(data_root: str | Path, name: str) -> Path:
+    n = canonical_dataset_name(name)
+    if n in GLOBAL_ROAD_DATASETS:
+        return Path(data_root) / "GlobalScaleRoad"
+    if n in GIS_SEG_DATASETS:
+        return Path(data_root) / "Roads_HF"
+    raise ValueError(f"Unknown GIS dataset: {name}")
+
+
 def _retinal_sample_id(path: Path) -> str:
     stem = path.stem
     for suffix in ("_manual1", "_training_mask", "_test_mask", "_mask", "_1stHO", "_2ndHO"):
@@ -247,7 +258,7 @@ def task_for_dataset(name: str) -> str:
     n = canonical_dataset_name(name)
     if n in ("cifar10", "cifar_10", "fashion_mnist", "fashionmnist"):
         return "classification"
-    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS:
+    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS or n in GIS_SEG_DATASETS:
         return "segmentation"
     raise ValueError(f"Unknown dataset: {name}")
 
@@ -258,7 +269,7 @@ def dataset_channels_and_outputs(name: str) -> Tuple[int, int]:
         return 3, 10
     if n in ("fashion_mnist", "fashionmnist"):
         return 1, 10
-    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS:
+    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS or n in GIS_SEG_DATASETS:
         return 3, 1
     raise ValueError(f"Unknown dataset: {name}")
 
@@ -545,6 +556,156 @@ class DriveDataset(Dataset):
             image, mask, fov = self._apply_augment(image, mask, fov)
         image = self._normalize(image)
         return image, mask, fov
+
+
+class GISRoadDataset(Dataset):
+    """Binary road segmentation loader for GIS/remote-sensing road folders."""
+
+    def __init__(
+        self,
+        root: str | Path,
+        augment: bool = False,
+        crop_size: int | None = None,
+        image_size: tuple[int, int] | None = None,
+        foreground_bias: float = 0.0,
+    ) -> None:
+        super().__init__()
+        self.root = Path(root)
+        self.augment = bool(augment)
+        self.crop_size = int(crop_size) if crop_size else None
+        self.image_size = image_size
+        self.foreground_bias = max(0.0, min(1.0, float(foreground_bias)))
+        self.samples = self._collect_samples()
+
+    def _collect_samples(self) -> List[Tuple[Path, Path]]:
+        images_dir = self.root / "images"
+        masks_dir = self.root / "masks"
+        if images_dir.exists() and masks_dir.exists():
+            image_map = {path.stem: path for path in sorted(images_dir.glob("*.*"))}
+            mask_map = {path.stem: path for path in sorted(masks_dir.glob("*.*"))}
+            common_ids = sorted(set(image_map) & set(mask_map))
+            if common_ids:
+                return [(image_map[idx], mask_map[idx]) for idx in common_ids]
+
+        sat_paths = sorted(self.root.rglob("*_sat.png"))
+        samples: List[Tuple[Path, Path]] = []
+        for image_path in sat_paths:
+            mask_path = image_path.with_name(image_path.name.replace("_sat.png", "_gt.png"))
+            if mask_path.exists():
+                samples.append((image_path, mask_path))
+        if samples:
+            return samples
+
+        raise FileNotFoundError(
+            f"No matched GIS road samples found under {self.root}. Expected either images/ + masks/ "
+            "or recursive Global-Scale files named *_sat.png and *_gt.png."
+        )
+
+    def __len__(self) -> int:
+        return len(self.samples)
+
+    @staticmethod
+    def _normalize(image: torch.Tensor) -> torch.Tensor:
+        mean = torch.tensor([0.485, 0.456, 0.406], dtype=image.dtype).view(3, 1, 1)
+        std = torch.tensor([0.229, 0.224, 0.225], dtype=image.dtype).view(3, 1, 1)
+        return (image - mean) / std
+
+    @staticmethod
+    def _load_rgb(path: Path) -> torch.Tensor:
+        image = Image.open(path).convert("RGB")
+        arr = np.asarray(image, dtype=np.float32) / 255.0
+        return torch.from_numpy(arr).permute(2, 0, 1)
+
+    @staticmethod
+    def _load_mask(path: Path) -> torch.Tensor:
+        mask = Image.open(path).convert("L")
+        arr = (np.asarray(mask, dtype=np.float32) > 127.0).astype(np.float32)
+        return torch.from_numpy(arr).unsqueeze(0)
+
+    def _apply_resize(
+        self,
+        image: torch.Tensor,
+        mask: torch.Tensor,
+        valid_mask: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if self.image_size is None:
+            return image, mask, valid_mask
+        size = tuple(int(v) for v in self.image_size)
+        image = F.interpolate(image.unsqueeze(0), size=size, mode="bilinear", align_corners=False)[0]
+        mask = F.interpolate(mask.unsqueeze(0), size=size, mode="nearest")[0]
+        valid_mask = F.interpolate(valid_mask.unsqueeze(0), size=size, mode="nearest")[0]
+        return image, mask, valid_mask
+
+    @staticmethod
+    def _sample_crop_anchor(
+        candidate_mask: torch.Tensor,
+        crop_h: int,
+        crop_w: int,
+        max_top: int,
+        max_left: int,
+    ) -> tuple[int, int] | None:
+        if not candidate_mask.any():
+            return None
+        ys, xs = torch.nonzero(candidate_mask[0], as_tuple=True)
+        pick = random.randint(0, ys.numel() - 1)
+        center_y = int(ys[pick].item())
+        center_x = int(xs[pick].item())
+        top = min(max(center_y - crop_h // 2, 0), max_top)
+        left = min(max(center_x - crop_w // 2, 0), max_left)
+        return top, left
+
+    def _apply_crop(
+        self,
+        image: torch.Tensor,
+        mask: torch.Tensor,
+        valid_mask: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if self.crop_size is None:
+            return image, mask, valid_mask
+        crop_h = min(int(self.crop_size), image.shape[1])
+        crop_w = min(int(self.crop_size), image.shape[2])
+        max_top = image.shape[1] - crop_h
+        max_left = image.shape[2] - crop_w
+        top = 0 if max_top <= 0 else random.randint(0, max_top)
+        left = 0 if max_left <= 0 else random.randint(0, max_left)
+
+        foreground = (mask > 0.5) & (valid_mask > 0.5)
+        if self.foreground_bias > 0.0 and random.random() < self.foreground_bias:
+            anchor = self._sample_crop_anchor(foreground, crop_h, crop_w, max_top, max_left)
+            if anchor is not None:
+                top, left = anchor
+
+        sl_h = slice(top, top + crop_h)
+        sl_w = slice(left, left + crop_w)
+        return image[:, sl_h, sl_w], mask[:, sl_h, sl_w], valid_mask[:, sl_h, sl_w]
+
+    @staticmethod
+    def _apply_augment(
+        image: torch.Tensor,
+        mask: torch.Tensor,
+        valid_mask: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if random.random() < 0.5:
+            image = torch.flip(image, dims=[2])
+            mask = torch.flip(mask, dims=[2])
+            valid_mask = torch.flip(valid_mask, dims=[2])
+        if random.random() < 0.5:
+            image = torch.flip(image, dims=[1])
+            mask = torch.flip(mask, dims=[1])
+            valid_mask = torch.flip(valid_mask, dims=[1])
+        return image, mask, valid_mask
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        image_path, mask_path = self.samples[idx]
+        image = self._load_rgb(image_path)
+        mask = self._load_mask(mask_path)
+        valid_mask = torch.ones_like(mask)
+        image, mask, valid_mask = self._apply_resize(image, mask, valid_mask)
+        image, mask, valid_mask = self._apply_crop(image, mask, valid_mask)
+        if self.augment:
+            image, mask, valid_mask = self._apply_augment(image, mask, valid_mask)
+        image = self._normalize(image)
+        return image, mask, valid_mask
 
 
 def _normalize_split_name(split: str) -> str:
@@ -872,17 +1033,6 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
         input_mode=input_mode,
         green_blend_alpha=green_blend_alpha,
     )
-    test_set = DriveDataset(
-        data_root,
-        split="test",
-        augment=False,
-        use_fov_mask=use_fov_mask,
-        crop_size=None,
-        foreground_bias=0.0,
-        input_mode=input_mode,
-        green_blend_alpha=green_blend_alpha,
-    )
-
     val_fraction = float(cfg.get("val_fraction", 0.2))
     n_train = len(train_aug)
     n_val = max(1, int(round(n_train * val_fraction)))
@@ -899,6 +1049,28 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
     # Use an unbiased full-image reference for class-imbalance estimation so
     # pos_weight is not distorted by foreground-biased training crops.
     train_split.pos_weight_reference = torch.utils.data.Subset(train_eval, train_idx)
+
+    test_manual_dir = data_root / "test" / "1st_manual"
+    if test_manual_dir.exists():
+        test_set = DriveDataset(
+            data_root,
+            split="test",
+            augment=False,
+            use_fov_mask=use_fov_mask,
+            crop_size=None,
+            foreground_bias=0.0,
+            input_mode=input_mode,
+            green_blend_alpha=green_blend_alpha,
+        )
+        cfg["_resolved_test_split"] = "test"
+    else:
+        # The official DRIVE challenge download provides test images and FOV
+        # masks, but keeps test vessel annotations private for leaderboard
+        # submission. Keep local smoke/debug runs labeled by evaluating on the
+        # deterministic validation subset instead of pretending test labels
+        # exist.
+        test_set = val_split
+        cfg["_resolved_test_split"] = "validation_fallback_missing_test_labels"
 
     train_loader = DataLoader(
         train_split,
@@ -1018,6 +1190,94 @@ def _build_arcade_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoad
     return train_loader, val_loader, test_loader, 3, 1
 
 
+def _build_gis_road_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, DataLoader, int, int]:
+    batch_size = int(cfg["batch_size"])
+    num_workers = int(cfg.get("num_workers", 0))
+    seed = int(cfg.get("seed", 42))
+    dataset_name = canonical_dataset_name(cfg["dataset"])
+    data_root = gis_dataset_root(cfg.get("data_root", "./data"), cfg["dataset"])
+    image_size = _parse_optional_hw(cfg.get("gis_image_size", cfg.get("road_image_size")))
+    crop_size = cfg.get("gis_patch_size", cfg.get("road_patch_size", cfg.get("retinal_patch_size")))
+    crop_size = int(crop_size) if crop_size else None
+    foreground_bias = float(cfg.get("gis_foreground_bias", cfg.get("road_foreground_bias", 0.0)))
+
+    if dataset_name in GLOBAL_ROAD_DATASETS and (data_root / "train").exists():
+        train_set: Dataset = GISRoadDataset(
+            data_root / "train",
+            augment=bool(cfg.get("gis_augment", True)),
+            crop_size=crop_size,
+            image_size=image_size,
+            foreground_bias=foreground_bias,
+        )
+        val_set: Dataset = GISRoadDataset(data_root / "val", augment=False, crop_size=None, image_size=image_size)
+        test_dir_name = str(cfg.get("gis_test_split", "in-domain-test"))
+        test_set: Dataset = GISRoadDataset(data_root / test_dir_name, augment=False, crop_size=None, image_size=image_size)
+        train_set = _maybe_subset_dataset(train_set, cfg.get("gis_train_limit"), seed=seed)
+        val_set = _maybe_subset_dataset(val_set, cfg.get("gis_val_limit"), seed=seed + 1)
+        test_set = _maybe_subset_dataset(test_set, cfg.get("gis_test_limit"), seed=seed + 2)
+        if isinstance(train_set, torch.utils.data.Subset):
+            train_set.pos_weight_reference = GISRoadDataset(data_root / "train", augment=False, crop_size=None, image_size=image_size)
+        cfg["_resolved_test_split"] = test_dir_name
+    else:
+        train_full = GISRoadDataset(
+            data_root,
+            augment=bool(cfg.get("gis_augment", True)),
+            crop_size=crop_size,
+            image_size=image_size,
+            foreground_bias=foreground_bias,
+        )
+        eval_full = GISRoadDataset(data_root, augment=False, crop_size=None, image_size=image_size, foreground_bias=0.0)
+
+        n_total = len(train_full)
+        if n_total < 3:
+            raise ValueError(f"GIS road dataset needs at least 3 paired samples, found {n_total}.")
+        val_fraction = float(cfg.get("val_fraction", 0.2))
+        test_fraction = float(cfg.get("gis_test_fraction", cfg.get("test_fraction", 0.2)))
+        n_test = max(1, int(round(n_total * test_fraction)))
+        n_val = max(1, int(round(n_total * val_fraction)))
+        if n_test + n_val >= n_total:
+            n_test = max(1, min(n_test, n_total - 2))
+            n_val = max(1, min(n_val, n_total - n_test - 1))
+
+        generator = torch.Generator().manual_seed(seed)
+        perm = torch.randperm(n_total, generator=generator).tolist()
+        test_idx = perm[:n_test]
+        val_idx = perm[n_test : n_test + n_val]
+        train_idx = perm[n_test + n_val :]
+
+        train_set = torch.utils.data.Subset(train_full, train_idx)
+        val_set = torch.utils.data.Subset(eval_full, val_idx)
+        test_set = torch.utils.data.Subset(eval_full, test_idx)
+        train_set.pos_weight_reference = torch.utils.data.Subset(eval_full, train_idx)
+        cfg["_resolved_test_split"] = "deterministic_test_split"
+
+    if not hasattr(train_set, "pos_weight_reference"):
+        train_set.pos_weight_reference = train_set
+
+    train_loader = DataLoader(
+        train_set,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        pin_memory=torch.cuda.is_available(),
+    )
+    val_loader = DataLoader(
+        val_set,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=torch.cuda.is_available(),
+    )
+    test_loader = DataLoader(
+        test_set,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        pin_memory=torch.cuda.is_available(),
+    )
+    return train_loader, val_loader, test_loader, 3, 1
+
+
 def build_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, DataLoader, int, int, str]:
     task = task_for_dataset(cfg["dataset"])
     if task == "classification":
@@ -1028,6 +1288,8 @@ def build_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, Data
             train_loader, val_loader, test_loader, in_c, num_outputs = _build_drive_dataloaders(cfg)
         elif dataset_name in ARCADE_SEG_DATASETS:
             train_loader, val_loader, test_loader, in_c, num_outputs = _build_arcade_dataloaders(cfg)
+        elif dataset_name in GIS_SEG_DATASETS:
+            train_loader, val_loader, test_loader, in_c, num_outputs = _build_gis_road_dataloaders(cfg)
         else:
             raise ValueError(f"Unknown segmentation dataset: {cfg['dataset']}")
     return train_loader, val_loader, test_loader, in_c, num_outputs, task
@@ -1403,6 +1665,8 @@ def spatial_shape_for_dataset(name: str) -> tuple[int, int]:
         return (2048, 2048)
     if n in ARCADE_SEG_DATASETS:
         return (512, 512)
+    if n in GIS_SEG_DATASETS:
+        return (256, 256)
     raise ValueError(f"Unknown dataset: {name}")
 
 

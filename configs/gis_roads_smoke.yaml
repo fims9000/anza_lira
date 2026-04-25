@@ -1,0 +1,53 @@
+# Fast smoke config for GIS/remote-sensing road segmentation.
+
+dataset: gis_roads
+data_root: ./data
+val_fraction: 0.2
+gis_test_fraction: 0.2
+
+variant: az_cat
+num_rules: 6
+model_widths: [32, 64, 128, 192]
+
+epochs: 2
+batch_size: 2
+lr: 0.0003
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+gis_image_size: [256, 256]
+gis_patch_size: 256
+gis_foreground_bias: 0.7
+gis_augment: true
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: dice
+seg_threshold: 0.5
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.3
+eval_threshold_end: 0.7
+eval_threshold_step: 0.05
+aux_loss_weight: 0.2
+boundary_loss_weight: 0.1
+topology_loss_weight: 0.0
+topology_num_iters: 8
+bce_pos_weight: auto
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 20.0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+reg_anisotropy_gap: 0.0005
+
+results_dir: ./results
+run_name: gis_roads_smoke
+device: null
+
+timing_warmup: 1
+timing_iters: 3

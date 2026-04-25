@@ -427,6 +427,12 @@ class AZConv2d(nn.Module):
         mu_unfold = F.unfold(mu, kernel_size=self.k, padding=self.pad, stride=1)
         assert mu_unfold.shape == (batch, self.R * patch_area, locations)
         mu_un = mu_unfold.view(batch, self.R, patch_area, locations)
+        valid_un = F.unfold(
+            torch.ones(batch, 1, height, width, device=x.device, dtype=x.dtype),
+            kernel_size=self.k,
+            padding=self.pad,
+            stride=1,
+        ).view(batch, 1, patch_area, locations)
 
         center_index = (self.k // 2) * self.k + (self.k // 2)
         mu_center = mu_un[:, :, center_index : center_index + 1, :]
@@ -447,9 +453,9 @@ class AZConv2d(nn.Module):
                 "gap": gap.detach(),
             }
 
-        compat = mu_center * mu_un * kern
+        compat = mu_center * mu_un * kern * valid_un
         if self.cfg.compatibility_floor > 0.0:
-            compat = compat + float(self.cfg.compatibility_floor)
+            compat = compat + float(self.cfg.compatibility_floor) * valid_un
         if self.cfg.normalize_kernel:
             if self.cfg.normalize_mode == "global":
                 compat_sum = compat.sum(dim=(1, 2), keepdim=True).clamp_min(1e-8)
