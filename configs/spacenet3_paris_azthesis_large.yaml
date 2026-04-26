@@ -1,0 +1,73 @@
+# SpaceNet3 AOI_3_Paris (new large GIS dataset) with AZ-Thesis.
+# Prepared dataset root is expected at:
+#   data/SpaceNet3_prepared/GlobalScaleRoad/{train,val,in-domain-test}/{images,masks}
+
+dataset: global_roads
+data_root: ./data/SpaceNet3_prepared
+gis_test_split: in-domain-test
+
+variant: az_thesis
+num_rules: 8
+model_widths: [32, 64, 128, 192]
+encoder_az_stages: 2
+encoder_block_mode: hybrid
+hybrid_mix_init: 0.12
+bottleneck_mode: aspp
+decoder_mode: residual
+boundary_mode: conv
+
+# Geometry fix against anisotropy collapse in deeper AZ layers.
+az_geometry_mode: local_hyperbolic
+az_learn_directions: true
+az_min_hyperbolicity: 0.20
+az_normalize_mode: per_rule
+az_compatibility_floor: 0.0001
+az_geometry_kernel_size: 3
+az_use_input_residual: true
+az_residual_init: 0.05
+az_fuzzy_temperature: 1.25
+
+epochs: 30
+batch_size: 1
+lr: 0.0002
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+gis_image_size: [512, 512]
+gis_patch_size: 512
+gis_foreground_bias: 0.75
+gis_augment: true
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: tversky
+tversky_alpha: 0.40
+tversky_beta: 0.60
+seg_threshold: 0.6
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.30
+eval_threshold_end: 0.90
+eval_threshold_step: 0.05
+aux_loss_weight: 0.0
+boundary_loss_weight: 0.1
+topology_loss_weight: 0.01
+topology_num_iters: 10
+bce_pos_weight: auto
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 25.0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.01
+reg_anisotropy_gap: 0.001
+
+results_dir: ./results
+run_name: spacenet3_paris_large_azthesis_s42_e30
+device: cuda
+
+timing_warmup: 1
+timing_iters: 5
