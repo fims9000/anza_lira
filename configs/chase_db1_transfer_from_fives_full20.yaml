@@ -1,5 +1,5 @@
-# Recommended benchmark config for CHASE_DB1 retinal vessel comparisons.
-# Use together with scripts/run_drive_multiseed.py and an explicit run-name.
+# CHASE_DB1 transfer fine-tuning from the stronger FIVES full run.
+# Goal: recover CHASE metrics versus weak from-scratch runs.
 
 dataset: chase_db1
 data_root: ./data
@@ -7,37 +7,40 @@ val_fraction: 0.25
 use_fov_mask: true
 
 variant: az_thesis
+
 num_rules: 8
 model_widths: [40, 80, 144, 208]
 encoder_az_stages: 2
 encoder_block_mode: hybrid
 hybrid_mix_init: 0.5
-az_init_anisotropy_gap: 0.35
 bottleneck_mode: aspp
 decoder_mode: residual
 boundary_mode: conv
 
-epochs: 80
+epochs: 20
 batch_size: 1
-lr: 0.0002
+lr: 5.0e-5
 weight_decay: 0.0001
 seed: 42
 deterministic: false
 num_workers: 0
+
+init_checkpoint: ./results/article_full_dataset/fives_full_azthesis_s42_e20/az_thesis_seed42/checkpoint_best.pt
+init_checkpoint_strict: true
+lr_scheduler: cosine
+lr_min: 2.0e-6
 
 retinal_patch_size: 512
 retinal_foreground_bias: 0.7
 
 bce_weight: 1.0
 dice_weight: 1.0
-overlap_mode: tversky
-tversky_alpha: 0.35
-tversky_beta: 0.6
+overlap_mode: dice
 seg_threshold: 0.6
 eval_threshold_sweep: true
 eval_threshold_metric: dice
 eval_threshold_start: 0.3
-eval_threshold_end: 0.8
+eval_threshold_end: 0.85
 eval_threshold_step: 0.05
 aux_loss_weight: 0.0
 boundary_loss_weight: 0.1
@@ -53,9 +56,9 @@ reg_geometry_smoothness: 0.0005
 reg_hyperbolicity: 0.001
 reg_anisotropy_gap: 0.0005
 
-results_dir: ./results
-run_name: null
-device: null
+results_dir: ./results/article_metric_recovery
+run_name: chase_transfer_from_fivesfull_s42_e20
+device: cuda
 
 timing_warmup: 1
 timing_iters: 5

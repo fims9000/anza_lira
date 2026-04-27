@@ -6,6 +6,7 @@ data_root: ./data
 
 variant: az_cat
 num_rules: 6
+az_init_anisotropy_gap: 0.35
 model_widths: [32, 64, 128, 192]
 
 epochs: 40

@@ -12,6 +12,7 @@ model_widths: [40, 80, 144, 208]
 encoder_az_stages: 2
 encoder_block_mode: hybrid
 hybrid_mix_init: 0.5
+az_init_anisotropy_gap: 0.35
 bottleneck_mode: aspp
 decoder_mode: residual
 boundary_mode: conv

@@ -72,6 +72,9 @@ def _seg_metrics(dice: float) -> dict[str, float]:
         "val_specificity": dice,
         "val_accuracy": dice,
         "val_balanced_accuracy": dice,
+        "val_cldice": dice,
+        "val_skeleton_precision": dice,
+        "val_skeleton_recall": dice,
     }
 
 
@@ -120,6 +123,25 @@ def test_apply_retinal_foreground_bias_schedule_linear():
     assert first == pytest.approx(0.8)
     assert mid == pytest.approx(0.5)
     assert last == pytest.approx(0.2)
+
+
+def test_apply_foreground_bias_schedule_uses_gis_keys_for_road_datasets():
+    loader = DataLoader(_ToySegDataset(), batch_size=1, shuffle=False)
+    cfg = {
+        "dataset": "global_roads",
+        "gis_foreground_bias": 0.7,
+        "gis_foreground_bias_end": 0.3,
+        "gis_foreground_bias_schedule": "linear",
+        "drive_foreground_bias": 0.0,
+    }
+
+    first = train.apply_retinal_foreground_bias_schedule(loader, cfg, epoch=1, epochs=5)
+    mid = train.apply_retinal_foreground_bias_schedule(loader, cfg, epoch=3, epochs=5)
+    last = train.apply_retinal_foreground_bias_schedule(loader, cfg, epoch=5, epochs=5)
+
+    assert first == pytest.approx(0.7)
+    assert mid == pytest.approx(0.5)
+    assert last == pytest.approx(0.3)
 
 
 def test_apply_retinal_thin_vessel_bias_schedule_linear():

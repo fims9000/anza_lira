@@ -1,0 +1,12 @@
+# Article-facing method naming only.
+# These overrides do not change the internal training recipe; they only make
+# metrics traceable to the single paper method name.
+
+variant_overrides:
+  az_cat:
+    article_model_name: AZ-Thesis
+    article_internal_recipe: fixed_directional_metric_soft_rules_topology
+
+  az_thesis:
+    article_model_name: AZ-Thesis
+    article_internal_recipe: local_directional_metric_soft_rules

@@ -1,0 +1,68 @@
+# CHASE_DB1 AZ-Thesis recovery probe A (precision-oriented).
+
+dataset: chase_db1
+data_root: ./data
+val_fraction: 0.25
+use_fov_mask: true
+
+variant: az_thesis
+
+num_rules: 4
+model_widths: [32, 64, 128, 192]
+encoder_az_stages: 2
+encoder_block_mode: hybrid
+hybrid_mix_init: 0.08
+bottleneck_mode: aspp
+decoder_mode: residual
+boundary_mode: conv
+
+az_geometry_mode: local_hyperbolic
+az_learn_directions: true
+az_min_hyperbolicity: 0.15
+az_fuzzy_temperature: 1.35
+az_normalize_mode: global
+az_compatibility_floor: 0.0005
+az_use_input_residual: true
+az_residual_init: 0.12
+az_geometry_kernel_size: 3
+
+epochs: 20
+batch_size: 1
+lr: 0.00025
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+retinal_patch_size: 512
+retinal_foreground_bias: 0.7
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: tversky
+tversky_alpha: 0.65
+tversky_beta: 0.35
+seg_threshold: 0.5
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.25
+eval_threshold_end: 0.95
+eval_threshold_step: 0.05
+aux_loss_weight: 0.1
+boundary_loss_weight: 0.05
+topology_loss_weight: 0.0
+topology_num_iters: 10
+bce_pos_weight: 7.0
+
+reg_membership_entropy: 0.0
+reg_membership_smoothness: 0.0
+reg_geometry_smoothness: 0.0001
+reg_hyperbolicity: 0.01
+reg_anisotropy_gap: 0.0
+
+results_dir: ./results/chase_metric_recovery
+run_name: null
+device: cuda
+
+timing_warmup: 1
+timing_iters: 5

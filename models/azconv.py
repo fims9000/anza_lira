@@ -41,6 +41,8 @@ class AZConvConfig:
     compatibility_floor: float = 0.0
     use_input_residual: bool = False
     residual_init: float = 0.0
+    geometry_kernel_size: int = 1
+    init_anisotropy_gap: float = 0.35
 
 
 class AZConv2d(nn.Module):
@@ -96,6 +98,10 @@ class AZConv2d(nn.Module):
             raise ValueError("compatibility_floor must be non-negative.")
         if not 0.0 <= float(self.cfg.residual_init) <= 1.0:
             raise ValueError("residual_init must be in [0, 1].")
+        if int(self.cfg.geometry_kernel_size) <= 0 or int(self.cfg.geometry_kernel_size) % 2 != 1:
+            raise ValueError("geometry_kernel_size must be a positive odd integer.")
+        if float(self.cfg.init_anisotropy_gap) < 0.0:
+            raise ValueError("init_anisotropy_gap must be non-negative.")
 
         self.gate_conv = nn.Conv2d(in_channels, num_rules, kernel_size=1, bias=True)
         self.value_conv = (
@@ -115,7 +121,14 @@ class AZConv2d(nn.Module):
 
         if self.cfg.geometry_mode in {"learned_hyperbolic", "local_hyperbolic"}:
             if self.cfg.geometry_mode == "local_hyperbolic":
-                self.geometry_conv = nn.Conv2d(in_channels, 3 * num_rules, kernel_size=1, bias=True)
+                geom_k = int(self.cfg.geometry_kernel_size)
+                self.geometry_conv = nn.Conv2d(
+                    in_channels,
+                    3 * num_rules,
+                    kernel_size=geom_k,
+                    padding=geom_k // 2,
+                    bias=True,
+                )
                 self._init_local_geometry_head(theta_init)
                 self.register_parameter("raw_base_scale", None)
                 self.register_parameter("raw_hyperbolicity", None)
@@ -128,6 +141,7 @@ class AZConv2d(nn.Module):
         else:
             self.raw_sigma_u = nn.Parameter(torch.zeros(num_rules))
             self.raw_sigma_s = nn.Parameter(torch.zeros(num_rules))
+            self._init_global_sigma_anisotropy()
             self.register_parameter("raw_base_scale", None)
             self.register_parameter("raw_hyperbolicity", None)
             self.geometry_conv = None
@@ -155,6 +169,25 @@ class AZConv2d(nn.Module):
         nn.init.zeros_(self.geometry_conv.bias)
         with torch.no_grad():
             self.geometry_conv.bias[: self.R].copy_(theta_init)
+
+    @staticmethod
+    def _inverse_softplus(value: torch.Tensor) -> torch.Tensor:
+        value = value.clamp_min(1e-6)
+        return value + torch.log(-torch.expm1(-value))
+
+    def _init_global_sigma_anisotropy(self) -> None:
+        gap = float(self.cfg.init_anisotropy_gap)
+        if gap <= 0.0:
+            return
+        base_sigma = F.softplus(torch.zeros((), dtype=torch.float32)) + 1e-4
+        sigma_u = base_sigma * math.exp(0.5 * gap)
+        sigma_s = base_sigma * math.exp(-0.5 * gap)
+        raw_u = self._inverse_softplus(torch.tensor(float(sigma_u) - 1e-4, dtype=torch.float32))
+        raw_s = self._inverse_softplus(torch.tensor(float(sigma_s) - 1e-4, dtype=torch.float32))
+        with torch.no_grad():
+            assert self.raw_sigma_u is not None and self.raw_sigma_s is not None
+            self.raw_sigma_u.fill_(float(raw_u))
+            self.raw_sigma_s.fill_(float(raw_s))
 
     def _register_offset_buffers(self) -> None:
         dx_list = []
@@ -353,6 +386,44 @@ class AZConv2d(nn.Module):
             "hyperbolicity_penalty": zero,
             "anisotropy_gap": zero,
         }
+
+    @torch.no_grad()
+    def metric_tensor_summary(self) -> dict[str, float | str]:
+        """Return compact diagnostics for the quadratic metric used by the layer."""
+
+        summary: dict[str, float | str] = {
+            "geometry_mode": self.cfg.geometry_mode if self.cfg.use_anisotropy else "isotropic",
+            "normalize_mode": self.cfg.normalize_mode,
+            "use_fuzzy": float(bool(self.cfg.use_fuzzy)),
+            "use_anisotropy": float(bool(self.cfg.use_anisotropy)),
+        }
+        if not self.cfg.use_anisotropy:
+            summary.update({"metric_min_eig": 1.0, "metric_max_eig": 1.0, "metric_condition": 1.0})
+            return summary
+        if self.cfg.geometry_mode == "local_hyperbolic":
+            reg = self.regularization_terms()
+            summary["anisotropy_gap"] = float(reg["anisotropy_gap"].detach().cpu())
+            return summary
+
+        device = self.pointwise.weight.device
+        u_x, u_y, s_x, s_y = self._direction_components_global(device)
+        sigma_u, sigma_s, gap = self._global_anisotropic_sigmas()
+        u = torch.stack([u_x.reshape(-1), u_y.reshape(-1)], dim=-1)
+        s = torch.stack([s_x.reshape(-1), s_y.reshape(-1)], dim=-1)
+        inv_u = 1.0 / sigma_u.reshape(-1).pow(2)
+        inv_s = 1.0 / sigma_s.reshape(-1).pow(2)
+        metric = inv_u[:, None, None] * (u[:, :, None] @ u[:, None, :])
+        metric = metric + inv_s[:, None, None] * (s[:, :, None] @ s[:, None, :])
+        eigvals = torch.linalg.eigvalsh(metric).clamp_min(1e-12)
+        summary.update(
+            {
+                "metric_min_eig": float(eigvals[:, 0].min().detach().cpu()),
+                "metric_max_eig": float(eigvals[:, 1].max().detach().cpu()),
+                "metric_condition": float((eigvals[:, 1] / eigvals[:, 0]).max().detach().cpu()),
+                "anisotropy_gap": float(gap.mean().detach().cpu()),
+            }
+        )
+        return summary
 
     def _tensor_to_cpu(self, tensor: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         return tensor.detach().to(dtype=dtype, device="cpu")

@@ -84,6 +84,23 @@ def _make_fives_tree(root) -> None:
         _write_mask(split_dir / "mask" / f"{sample_id}_mask.png", height=48, width=48, invert=True)
 
 
+def _make_hrf_segplus_tree(root) -> None:
+    samples = [
+        ("training", "01_h"),
+        ("training", "01_dr"),
+        ("test", "11_g"),
+    ]
+    for split, sample_id in samples:
+        split_dir = root / "HRF_SegPlus" / split
+        (split_dir / "images").mkdir(parents=True, exist_ok=True)
+        (split_dir / "1st_manual").mkdir(parents=True, exist_ok=True)
+        (split_dir / "mask").mkdir(parents=True, exist_ok=True)
+
+        _write_rgb(split_dir / "images" / f"{sample_id}.jpg", height=50, width=50)
+        _write_mask(split_dir / "1st_manual" / f"{sample_id}_manual1.png", height=50, width=50)
+        _write_mask(split_dir / "mask" / f"{sample_id}_mask.png", height=50, width=50, invert=True)
+
+
 def _make_gis_roads_tree(root, count: int = 6) -> None:
     images_dir = root / "Roads_HF" / "images"
     masks_dir = root / "Roads_HF" / "masks"
@@ -92,6 +109,17 @@ def _make_gis_roads_tree(root, count: int = 6) -> None:
     for idx in range(count):
         _write_rgb(images_dir / f"{idx}.png", height=36, width=48)
         _write_mask(masks_dir / f"{idx}.png", height=36, width=48)
+
+
+def _make_thin_gis_roads_tree(root) -> None:
+    images_dir = root / "Roads_HF" / "images"
+    masks_dir = root / "Roads_HF" / "masks"
+    images_dir.mkdir(parents=True, exist_ok=True)
+    masks_dir.mkdir(parents=True, exist_ok=True)
+    _write_rgb(images_dir / "0.png", height=8, width=8)
+    mask = np.zeros((8, 8), dtype=np.uint8)
+    mask[:, 3] = 255
+    Image.fromarray(mask).save(masks_dir / "0.png")
 
 
 def _make_global_roads_tree(root) -> None:
@@ -250,6 +278,33 @@ def test_fives_dataloaders_build_and_batch(tmp_path):
     assert len(test_loader.dataset) == 1
 
 
+def test_hrf_segplus_dataloaders_build_and_batch(tmp_path):
+    _make_hrf_segplus_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "hrf_seg_plus",
+        "data_root": str(tmp_path / "data"),
+        "val_fraction": 0.5,
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "use_fov_mask": True,
+        "retinal_patch_size": 32,
+        "retinal_foreground_bias": 1.0,
+    }
+
+    train_loader, val_loader, test_loader, in_channels, num_outputs, task = utils.build_dataloaders(cfg)
+    assert task == "segmentation"
+    assert in_channels == 3
+    assert num_outputs == 1
+
+    x, y, fov = next(iter(train_loader))
+    assert x.shape[2:] == (32, 32)
+    assert y.shape[1:] == (1, 32, 32)
+    assert fov.shape[1:] == (1, 32, 32)
+    assert len(val_loader.dataset) == 1
+    assert len(test_loader.dataset) == 1
+
+
 def test_arcade_syntax_dataloaders_build_and_batch(tmp_path):
     _make_arcade_tree(tmp_path / "data")
     cfg = {
@@ -308,6 +363,27 @@ def test_gis_roads_dataloaders_build_and_batch(tmp_path):
     assert len(test_loader.dataset) == 1
 
 
+def test_gis_mask_area_downsample_preserves_thin_roads(tmp_path):
+    _make_thin_gis_roads_tree(tmp_path / "data")
+    nearest = utils.GISRoadDataset(
+        tmp_path / "data" / "Roads_HF",
+        image_size=(2, 2),
+        mask_downsample_mode="nearest",
+    )
+    area = utils.GISRoadDataset(
+        tmp_path / "data" / "Roads_HF",
+        image_size=(2, 2),
+        mask_downsample_mode="area",
+        mask_downsample_threshold=0.01,
+    )
+
+    _x_nearest, y_nearest, _valid_nearest = nearest[0]
+    _x_area, y_area, _valid_area = area[0]
+
+    assert float(y_nearest.sum()) == 0.0
+    assert float(y_area.sum()) > 0.0
+
+
 def test_global_roads_dataloaders_use_official_split_folders(tmp_path):
     _make_global_roads_tree(tmp_path / "data")
     cfg = {
@@ -336,6 +412,44 @@ def test_global_roads_dataloaders_use_official_split_folders(tmp_path):
     assert len(train_loader.dataset) == 3
     assert len(val_loader.dataset) == 1
     assert len(test_loader.dataset) == 1
+
+
+def test_global_roads_loader_plumbs_mask_downsample_config(tmp_path):
+    _make_global_roads_tree(tmp_path / "data")
+    cfg = {
+        "dataset": "global_roads",
+        "data_root": str(tmp_path / "data"),
+        "batch_size": 1,
+        "num_workers": 0,
+        "seed": 0,
+        "gis_image_size": [32, 32],
+        "gis_train_limit": 3,
+        "gis_val_limit": 1,
+        "gis_test_limit": 1,
+        "gis_mask_downsample_mode": "area",
+        "gis_mask_downsample_threshold": 0.25,
+    }
+
+    train_loader, _val_loader, _test_loader, _in_channels, _num_outputs, _task = utils.build_dataloaders(cfg)
+    base_dataset = train_loader.dataset.dataset if isinstance(train_loader.dataset, torch.utils.data.Subset) else train_loader.dataset
+
+    assert base_dataset.mask_downsample_mode == "area"
+    assert base_dataset.mask_downsample_threshold == pytest.approx(0.25)
+
+
+def test_sliding_window_segmentation_wrapper_stitches_large_images():
+    class FirstChannelModel(torch.nn.Module):
+        def forward(self, x):
+            return {"logits": x[:, :1]}
+
+    model = FirstChannelModel()
+    wrapper = utils.SlidingWindowSegmentationWrapper(model, tile_size=4, overlap=2)
+    x = torch.randn(2, 3, 7, 9)
+
+    out = wrapper(x)
+
+    assert torch.allclose(out["logits"], x[:, :1])
+
 
 
 def test_retinal_photometric_augmentation_changes_image_but_preserves_masks(tmp_path, monkeypatch):
@@ -827,6 +941,35 @@ def test_segmentation_metrics_reach_one_for_perfect_prediction():
     assert metrics["balanced_accuracy"] > 0.999
 
 
+def test_skeleton_metrics_reach_one_for_perfect_centerline_prediction():
+    target = torch.zeros(1, 1, 9, 9)
+    target[:, :, 4, 2:7] = 1.0
+    logits = torch.full_like(target, -8.0)
+    logits[target > 0.5] = 8.0
+    valid_mask = torch.ones_like(target)
+
+    counts = utils.skeleton_confusion_counts(logits, target, valid_mask, threshold=0.5, num_iters=5)
+    metrics = utils.skeleton_metrics_from_counts(*counts)
+
+    assert metrics["cldice"] > 0.999
+    assert metrics["skeleton_precision"] > 0.999
+    assert metrics["skeleton_recall"] > 0.999
+
+
+def test_skeleton_metrics_penalize_all_foreground_overprediction():
+    target = torch.zeros(1, 1, 9, 9)
+    target[:, :, 4, 2:7] = 1.0
+    logits = torch.full_like(target, 8.0)
+    valid_mask = torch.ones_like(target)
+
+    counts = utils.skeleton_confusion_counts(logits, target, valid_mask, threshold=0.5, num_iters=5)
+    metrics = utils.skeleton_metrics_from_counts(*counts)
+
+    assert metrics["skeleton_recall"] > 0.999
+    assert metrics["skeleton_precision"] < 0.2
+    assert metrics["cldice"] < 0.35
+
+
 def test_threshold_grid_and_selection():
     grid = utils.build_threshold_grid(0.3, 0.5, 0.1)
     assert grid == [0.3, 0.4, 0.5]
@@ -1220,6 +1363,31 @@ def test_select_best_threshold_supports_core_mean_metric():
     best = utils.select_best_threshold(sweep_rows, metric="core_mean", reference_threshold=0.6)
 
     assert abs(best["threshold"] - 0.725) < 1e-9
+
+
+def test_select_best_threshold_supports_structure_metrics():
+    sweep_rows = [
+        {
+            "threshold": 0.35,
+            "dice": 0.40,
+            "iou": 0.25,
+            "cldice": 0.70,
+            "skeleton_recall": 0.85,
+            "recall": 0.90,
+        },
+        {
+            "threshold": 0.55,
+            "dice": 0.55,
+            "iou": 0.38,
+            "cldice": 0.56,
+            "skeleton_recall": 0.45,
+            "recall": 0.65,
+        },
+    ]
+
+    best = utils.select_best_threshold(sweep_rows, metric="structure_mean", reference_threshold=0.5)
+
+    assert abs(best["threshold"] - 0.35) < 1e-9
 
 
 def test_az_regularization_weights_include_anisotropy_gap():

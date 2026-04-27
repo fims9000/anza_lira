@@ -1,5 +1,6 @@
 """Shape and finiteness checks for AZConv2d (pytest)."""
 
+import pytest
 import torch
 
 from models.azconv import AZConv2d, AZConvConfig
@@ -142,6 +143,44 @@ def test_local_hyperbolic_forward_and_snapshot_stay_finite():
         assert torch.isfinite(snapshot[key].float()).all(), key
 
 
+def test_local_hyperbolic_spatial_geometry_head_runs_and_preserves_shape():
+    x = torch.randn(2, 5, 17, 19)
+    layer = AZConv2d(
+        5,
+        6,
+        kernel_size=3,
+        num_rules=4,
+        cfg=AZConvConfig(
+            use_fuzzy=True,
+            use_anisotropy=True,
+            learn_directions=True,
+            geometry_mode="local_hyperbolic",
+            normalize_kernel=True,
+            geometry_kernel_size=3,
+        ),
+    )
+
+    y = layer(x)
+    snapshot = layer.interpretation_snapshot()
+
+    assert layer.geometry_conv is not None
+    assert layer.geometry_conv.kernel_size == (3, 3)
+    assert y.shape == (2, 6, 17, 19)
+    assert torch.isfinite(y).all()
+    assert "theta_map" in snapshot
+
+
+def test_local_hyperbolic_rejects_even_geometry_head_kernel():
+    cfg = AZConvConfig(geometry_mode="local_hyperbolic", geometry_kernel_size=2)
+
+    try:
+        AZConv2d(3, 4, kernel_size=3, num_rules=2, cfg=cfg)
+    except ValueError as exc:
+        assert "geometry_kernel_size" in str(exc)
+    else:
+        raise AssertionError("Expected even geometry_kernel_size to be rejected.")
+
+
 def test_compatibility_floor_does_not_weight_padded_neighbors():
     x = torch.ones(1, 1, 5, 5)
     layer = AZConv2d(
@@ -169,6 +208,51 @@ def test_compatibility_floor_does_not_weight_padded_neighbors():
     y = layer(x)
 
     assert torch.allclose(y, torch.ones_like(y), atol=1e-5)
+
+
+def test_fixed_cat_map_metric_tensor_is_positive_definite_and_logged():
+    layer = AZConv2d(
+        3,
+        4,
+        kernel_size=3,
+        num_rules=6,
+        cfg=AZConvConfig(
+            use_fuzzy=True,
+            use_anisotropy=True,
+            learn_directions=False,
+            geometry_mode="fixed_cat_map",
+            normalize_kernel=True,
+        ),
+    )
+
+    summary = layer.metric_tensor_summary()
+
+    assert summary["geometry_mode"] == "fixed_cat_map"
+    assert float(summary["metric_min_eig"]) > 0.0
+    assert float(summary["metric_max_eig"]) >= float(summary["metric_min_eig"])
+    assert float(summary["metric_condition"]) > 1.5
+    assert float(summary["anisotropy_gap"]) > 0.25
+
+
+def test_fixed_cat_map_can_disable_initial_anisotropy_for_ablation():
+    layer = AZConv2d(
+        3,
+        4,
+        kernel_size=3,
+        num_rules=6,
+        cfg=AZConvConfig(
+            use_fuzzy=True,
+            use_anisotropy=True,
+            learn_directions=False,
+            geometry_mode="fixed_cat_map",
+            normalize_kernel=True,
+            init_anisotropy_gap=0.0,
+        ),
+    )
+
+    summary = layer.metric_tensor_summary()
+
+    assert float(summary["metric_condition"]) == pytest.approx(1.0, rel=1e-4, abs=1e-4)
 
 
 def test_local_hyperbolic_pair_geometry_is_symmetric_for_opposite_neighbor_views():

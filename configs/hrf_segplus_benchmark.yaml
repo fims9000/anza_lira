@@ -1,9 +1,10 @@
-# Recommended benchmark config for CHASE_DB1 retinal vessel comparisons.
-# Use together with scripts/run_drive_multiseed.py and an explicit run-name.
+# Auxiliary HRF-Seg+ retinal vessel benchmark/pretrain config.
+# HRF-Seg+ is useful as a small external retinal-domain set, not as the main
+# evidence table dataset.
 
-dataset: chase_db1
+dataset: hrf_seg_plus
 data_root: ./data
-val_fraction: 0.25
+val_fraction: 0.2
 use_fov_mask: true
 
 variant: az_thesis
@@ -17,7 +18,7 @@ bottleneck_mode: aspp
 decoder_mode: residual
 boundary_mode: conv
 
-epochs: 80
+epochs: 60
 batch_size: 1
 lr: 0.0002
 weight_decay: 0.0001
@@ -25,8 +26,11 @@ seed: 42
 deterministic: false
 num_workers: 0
 
-retinal_patch_size: 512
-retinal_foreground_bias: 0.7
+retinal_patch_size: 384
+retinal_foreground_bias: 0.75
+retinal_brightness_jitter: 0.12
+retinal_contrast_jitter: 0.12
+retinal_gamma_jitter: 0.08
 
 bce_weight: 1.0
 dice_weight: 1.0

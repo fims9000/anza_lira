@@ -1,0 +1,77 @@
+# Ablation on the corrected Global-Scale Road preprocessing.
+# Uses area-downsampled masks and GIS foreground-biased crop scheduling.
+
+dataset: global_roads
+data_root: ./data
+gis_test_split: in-domain-test
+
+variant: az_thesis
+num_rules: 6
+model_widths: [32, 64, 128, 192]
+encoder_az_stages: 2
+encoder_block_mode: hybrid
+hybrid_mix_init: 0.10
+bottleneck_mode: aspp
+decoder_mode: residual
+boundary_mode: conv
+
+az_geometry_mode: local_hyperbolic
+az_learn_directions: true
+az_geometry_kernel_size: 3
+az_normalize_mode: per_rule
+az_compatibility_floor: 0.0001
+az_use_input_residual: true
+az_residual_init: 0.08
+az_fuzzy_temperature: 1.50
+az_min_hyperbolicity: 0.10
+
+epochs: 8
+batch_size: 4
+lr: 0.00035
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 4
+
+gis_image_size: [256, 256]
+gis_patch_size: 256
+gis_foreground_bias: 0.55
+gis_augment: true
+gis_mask_downsample_mode: area
+gis_mask_downsample_threshold: 0.25
+gis_train_limit: 768
+gis_val_limit: 160
+gis_test_limit: 160
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: tversky
+tversky_alpha: 0.70
+tversky_beta: 0.30
+seg_threshold: 0.50
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.30
+eval_threshold_end: 0.85
+eval_threshold_step: 0.05
+eval_threshold_min_recall: 0.10
+aux_loss_weight: 0.1
+boundary_loss_weight: 0.1
+topology_loss_weight: 0.0
+topology_num_iters: 8
+bce_pos_weight: 3.0
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 20.0
+
+reg_membership_entropy: 0.0002
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+reg_anisotropy_gap: 0.0002
+
+results_dir: ./results
+run_name: global_roads_area_ablation
+device: cuda
+
+timing_warmup: 1
+timing_iters: 3

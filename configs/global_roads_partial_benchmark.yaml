@@ -1,0 +1,68 @@
+# Preliminary Global-Scale Road benchmark while the full dataset is still downloading.
+# This is intentionally smaller than configs/global_roads_benchmark.yaml so it can
+# run in the background and produce early baseline-vs-AZ signals.
+
+dataset: global_roads
+data_root: ./data
+
+# The official test split may still be downloading when this config is used.
+# Use validation as a temporary test-like split for early diagnostics only.
+gis_test_split: val
+
+variant: az_thesis
+num_rules: 6
+model_widths: [32, 64, 128, 192]
+encoder_az_stages: 2
+encoder_block_mode: hybrid
+hybrid_mix_init: 0.35
+bottleneck_mode: aspp
+decoder_mode: residual
+boundary_mode: conv
+
+epochs: 20
+batch_size: 2
+lr: 0.0003
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+gis_image_size: [256, 256]
+gis_patch_size: 256
+gis_foreground_bias: 0.7
+gis_augment: true
+gis_train_limit: 512
+gis_val_limit: 128
+gis_test_limit: 128
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: tversky
+tversky_alpha: 0.35
+tversky_beta: 0.6
+seg_threshold: 0.55
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.3
+eval_threshold_end: 0.8
+eval_threshold_step: 0.05
+aux_loss_weight: 0.1
+boundary_loss_weight: 0.1
+topology_loss_weight: 0.01
+topology_num_iters: 8
+bce_pos_weight: 8.0
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 20.0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+reg_anisotropy_gap: 0.0005
+
+results_dir: ./results
+run_name: global_roads_partial_benchmark
+device: cuda
+
+timing_warmup: 1
+timing_iters: 5

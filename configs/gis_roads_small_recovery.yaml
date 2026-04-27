@@ -1,0 +1,56 @@
+# Small GIS recovery config (Roads_HF, 31 samples total).
+# Goal: fast stable benchmark while full GlobalScaleRoad training is running.
+
+dataset: gis_roads
+data_root: ./data
+val_fraction: 0.2
+gis_test_fraction: 0.2
+
+variant: az_thesis
+num_rules: 6
+model_widths: [24, 48, 96, 144]
+
+epochs: 25
+batch_size: 2
+lr: 0.0003
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+gis_image_size: [256, 256]
+gis_patch_size: 256
+gis_foreground_bias: 0.8
+gis_augment: true
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: dice
+tversky_alpha: 0.5
+tversky_beta: 0.5
+seg_threshold: 0.5
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.25
+eval_threshold_end: 0.85
+eval_threshold_step: 0.05
+aux_loss_weight: 0.1
+boundary_loss_weight: 0.05
+topology_loss_weight: 0.0
+topology_num_iters: 8
+bce_pos_weight: auto
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 20.0
+
+reg_membership_entropy: 0.0002
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+reg_anisotropy_gap: 0.0002
+
+results_dir: ./results
+run_name: gis_roads_small_recovery
+device: cuda
+
+timing_warmup: 1
+timing_iters: 3

@@ -1,0 +1,128 @@
+# Fast small-dataset probe overrides (CPU-friendly).
+# Purpose: get directional signal while long GPU jobs are running.
+
+variant_overrides:
+  baseline:
+    model_widths: [24, 48, 96, 144]
+    retinal_patch_size: 256
+    lr: 0.0003
+    overlap_mode: dice
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.03
+    topology_num_iters: 10
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 25.0
+    seg_threshold: 0.6
+    eval_threshold_sweep: true
+    eval_threshold_metric: dice
+    eval_threshold_start: 0.3
+    eval_threshold_end: 0.8
+    eval_threshold_step: 0.05
+
+  attention_unet:
+    model_widths: [24, 48, 96, 144]
+    retinal_patch_size: 256
+    lr: 0.0003
+    overlap_mode: dice
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.03
+    topology_num_iters: 10
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 25.0
+    seg_threshold: 0.6
+    eval_threshold_sweep: true
+    eval_threshold_metric: dice
+    eval_threshold_start: 0.3
+    eval_threshold_end: 0.8
+    eval_threshold_step: 0.05
+
+  az_no_fuzzy:
+    num_rules: 6
+    model_widths: [24, 48, 96, 144]
+    retinal_patch_size: 256
+    lr: 0.0003
+    overlap_mode: dice
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.03
+    topology_num_iters: 10
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 25.0
+    seg_threshold: 0.6
+    eval_threshold_sweep: true
+    eval_threshold_metric: dice
+    eval_threshold_start: 0.3
+    eval_threshold_end: 0.8
+    eval_threshold_step: 0.05
+
+  az_no_aniso:
+    num_rules: 6
+    model_widths: [24, 48, 96, 144]
+    retinal_patch_size: 256
+    lr: 0.0003
+    overlap_mode: dice
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.03
+    topology_num_iters: 10
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 25.0
+    seg_threshold: 0.6
+    eval_threshold_sweep: true
+    eval_threshold_metric: dice
+    eval_threshold_start: 0.3
+    eval_threshold_end: 0.8
+    eval_threshold_step: 0.05
+
+  az_cat:
+    num_rules: 6
+    model_widths: [24, 48, 96, 144]
+    retinal_patch_size: 256
+    lr: 0.0003
+    overlap_mode: dice
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.03
+    topology_num_iters: 10
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 25.0
+    seg_threshold: 0.6
+    eval_threshold_sweep: true
+    eval_threshold_metric: dice
+    eval_threshold_start: 0.3
+    eval_threshold_end: 0.8
+    eval_threshold_step: 0.05
+
+  az_thesis:
+    num_rules: 8
+    model_widths: [24, 48, 96, 144]
+    encoder_az_stages: 2
+    encoder_block_mode: hybrid
+    hybrid_mix_init: 0.15
+    az_init_anisotropy_gap: 0.35
+    bottleneck_mode: aspp
+    decoder_mode: residual
+    boundary_mode: conv
+    retinal_patch_size: 256
+    lr: 0.0003
+    overlap_mode: dice
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.03
+    topology_num_iters: 10
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 25.0
+    seg_threshold: 0.6
+    eval_threshold_sweep: true
+    eval_threshold_metric: dice
+    eval_threshold_start: 0.3
+    eval_threshold_end: 0.8
+    eval_threshold_step: 0.05

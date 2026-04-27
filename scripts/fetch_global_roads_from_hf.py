@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 from typing import Iterable
@@ -25,8 +26,23 @@ def _resolve_url(path: str) -> str:
     return f"https://huggingface.co/datasets/{REPO_ID}/resolve/{REVISION}/{quote(path, safe='/')}"
 
 
-def _request_json(url: str) -> list[dict]:
-    response = requests.get(url, timeout=60)
+def _resolve_hf_token() -> str | None:
+    for env_name in ("HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "HUGGINGFACE_HUB_TOKEN"):
+        token = os.environ.get(env_name)
+        if token:
+            return token.strip()
+
+    token_path = Path.home() / ".cache" / "huggingface" / "token"
+    if token_path.exists():
+        token = token_path.read_text(encoding="utf-8").strip()
+        if token:
+            return token
+    return None
+
+
+def _request_json(url: str, session: requests.Session | None = None) -> list[dict]:
+    http = session or requests
+    response = http.get(url, timeout=60)
     response.raise_for_status()
     payload = response.json()
     if not isinstance(payload, list):
@@ -34,14 +50,14 @@ def _request_json(url: str) -> list[dict]:
     return payload
 
 
-def _split_items(split: str) -> list[dict]:
-    root_items = _request_json(_api_tree_url(split))
+def _split_items(split: str, session: requests.Session | None = None) -> list[dict]:
+    root_items = _request_json(_api_tree_url(split), session=session)
     out: list[dict] = []
     for item in root_items:
         path = str(item.get("path", ""))
         item_type = str(item.get("type", ""))
         if item_type == "directory":
-            out.extend(_request_json(_api_tree_url(path)))
+            out.extend(_request_json(_api_tree_url(path), session=session))
         else:
             out.append(item)
     return out
@@ -85,7 +101,7 @@ def _select_tile_files(items: Iterable[dict], max_tiles: int | None, include_gra
     return out
 
 
-def _download_file(path: str, out_root: Path, retries: int = 3) -> None:
+def _download_file(path: str, out_root: Path, retries: int = 8, session: requests.Session | None = None) -> None:
     out_path = out_root / path
     out_path.parent.mkdir(parents=True, exist_ok=True)
     if out_path.exists() and out_path.stat().st_size > 0:
@@ -93,9 +109,10 @@ def _download_file(path: str, out_root: Path, retries: int = 3) -> None:
 
     tmp_path = out_path.with_suffix(out_path.suffix + ".tmp")
     url = _resolve_url(path)
+    http = session or requests
     for attempt in range(1, retries + 1):
         try:
-            with requests.get(url, stream=True, timeout=(30, 180)) as response:
+            with http.get(url, stream=True, timeout=(30, 240)) as response:
                 response.raise_for_status()
                 with tmp_path.open("wb") as handle:
                     for chunk in response.iter_content(chunk_size=1024 * 1024):
@@ -108,7 +125,7 @@ def _download_file(path: str, out_root: Path, retries: int = 3) -> None:
                 tmp_path.unlink()
             if attempt >= retries:
                 raise
-            time.sleep(2.0 * attempt)
+            time.sleep(min(60.0, 3.0 * attempt))
 
 
 def main() -> None:
@@ -122,19 +139,26 @@ def main() -> None:
         help="Download only the first N tiles from each split. Omit for full selected splits.",
     )
     parser.add_argument("--include-graph", action="store_true", help="Also download graph labels in addition to sat/gt masks.")
+    parser.add_argument("--retries", type=int, default=8, help="Retry count for each file before failing.")
     args = parser.parse_args()
 
     out_root = Path(args.out_root)
     total_files = 0
-    for split in args.splits:
-        items = _split_items(split)
-        paths = _select_tile_files(items, max_tiles=args.max_tiles_per_split, include_graph=bool(args.include_graph))
-        print(f"{split}: downloading {len(paths)} files", flush=True)
-        for index, path in enumerate(paths, start=1):
-            _download_file(path, out_root)
-            if index == 1 or index == len(paths) or index % 50 == 0:
-                print(f"{split}: {index}/{len(paths)} {path}", flush=True)
-        total_files += len(paths)
+    with requests.Session() as session:
+        session.headers.update({"User-Agent": "anza-lira-global-roads-downloader/1.0"})
+        token = _resolve_hf_token()
+        if token:
+            session.headers.update({"Authorization": f"Bearer {token}"})
+            print("Using HuggingFace token authentication.", flush=True)
+        for split in args.splits:
+            items = _split_items(split, session=session)
+            paths = _select_tile_files(items, max_tiles=args.max_tiles_per_split, include_graph=bool(args.include_graph))
+            print(f"{split}: downloading {len(paths)} files", flush=True)
+            for index, path in enumerate(paths, start=1):
+                _download_file(path, out_root, retries=max(1, int(args.retries)), session=session)
+                if index == 1 or index == len(paths) or index % 50 == 0:
+                    print(f"{split}: {index}/{len(paths)} {path}", flush=True)
+            total_files += len(paths)
     print(f"Done. Downloaded/verified {total_files} files under {out_root}.", flush=True)
 
 

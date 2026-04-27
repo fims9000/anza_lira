@@ -1,0 +1,78 @@
+# Global-Scale Road protocol probe that preserves native local resolution.
+# Train: foreground-biased 512x512 crops from original 2048x2048 tiles.
+# Val/test: full 2048x2048 tiles evaluated by sliding-window stitching.
+
+dataset: global_roads
+data_root: ./data
+gis_test_split: in-domain-test
+
+variant: az_thesis
+num_rules: 6
+model_widths: [32, 64, 128, 192]
+encoder_az_stages: 2
+encoder_block_mode: hybrid
+hybrid_mix_init: 0.10
+bottleneck_mode: aspp
+decoder_mode: residual
+boundary_mode: conv
+
+az_geometry_mode: local_hyperbolic
+az_learn_directions: true
+az_geometry_kernel_size: 3
+az_normalize_mode: per_rule
+az_compatibility_floor: 0.0001
+az_use_input_residual: true
+az_residual_init: 0.08
+az_fuzzy_temperature: 1.50
+az_min_hyperbolicity: 0.10
+
+epochs: 6
+batch_size: 1
+lr: 0.00035
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 4
+
+gis_patch_size: 512
+gis_foreground_bias: 0.80
+gis_augment: true
+gis_train_limit: 512
+gis_val_limit: 64
+gis_test_limit: 64
+
+eval_tile_size: 512
+eval_tile_overlap: 128
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: tversky
+tversky_alpha: 0.30
+tversky_beta: 0.70
+seg_threshold: 0.50
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.25
+eval_threshold_end: 0.80
+eval_threshold_step: 0.05
+eval_threshold_min_recall: 0.20
+aux_loss_weight: 0.1
+boundary_loss_weight: 0.1
+topology_loss_weight: 0.01
+topology_num_iters: 8
+bce_pos_weight: 4.0
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 20.0
+
+reg_membership_entropy: 0.0002
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+reg_anisotropy_gap: 0.0002
+
+results_dir: ./results
+run_name: global_roads_tiled_crop_probe
+device: cuda
+
+timing_warmup: 1
+timing_iters: 3

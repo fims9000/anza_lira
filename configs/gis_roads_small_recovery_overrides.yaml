@@ -1,0 +1,88 @@
+variant_overrides:
+  baseline:
+    model_widths: [24, 48, 96, 144]
+    overlap_mode: dice
+    tversky_alpha: 0.5
+    tversky_beta: 0.5
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.0
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 20.0
+    seg_threshold: 0.5
+    eval_threshold_sweep: true
+    eval_threshold_metric: dice
+    eval_threshold_start: 0.25
+    eval_threshold_end: 0.85
+    eval_threshold_step: 0.05
+
+  az_cat:
+    num_rules: 6
+    model_widths: [24, 48, 96, 144]
+    encoder_az_stages: 2
+    encoder_block_mode: hybrid
+    hybrid_mix_init: 0.10
+    bottleneck_mode: aspp
+    decoder_mode: residual
+    boundary_mode: conv
+    az_geometry_mode: fixed_cat_map
+    az_learn_directions: false
+    az_min_hyperbolicity: 0.10
+    az_fuzzy_temperature: 1.25
+    az_normalize_mode: per_rule
+    az_compatibility_floor: 0.0001
+    az_use_input_residual: true
+    az_residual_init: 0.08
+    az_geometry_kernel_size: 3
+    overlap_mode: tversky
+    tversky_alpha: 0.35
+    tversky_beta: 0.65
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.01
+    topology_num_iters: 8
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 20.0
+    seg_threshold: 0.5
+    eval_threshold_sweep: true
+    eval_threshold_metric: structure_mean
+    eval_threshold_start: 0.25
+    eval_threshold_end: 0.85
+    eval_threshold_step: 0.05
+
+  az_thesis:
+    num_rules: 6
+    model_widths: [24, 48, 96, 144]
+    encoder_az_stages: 2
+    encoder_block_mode: hybrid
+    hybrid_mix_init: 0.10
+    bottleneck_mode: aspp
+    decoder_mode: residual
+    boundary_mode: conv
+    az_geometry_mode: local_hyperbolic
+    az_learn_directions: true
+    az_min_hyperbolicity: 0.10
+    az_fuzzy_temperature: 1.25
+    az_normalize_mode: per_rule
+    az_compatibility_floor: 0.0001
+    az_use_input_residual: true
+    az_residual_init: 0.08
+    az_geometry_kernel_size: 3
+    overlap_mode: tversky
+    tversky_alpha: 0.35
+    tversky_beta: 0.65
+    aux_loss_weight: 0.1
+    boundary_loss_weight: 0.05
+    topology_loss_weight: 0.01
+    topology_num_iters: 8
+    bce_pos_weight: auto
+    bce_pos_weight_min: 1.0
+    bce_pos_weight_max: 20.0
+    seg_threshold: 0.5
+    eval_threshold_sweep: true
+    eval_threshold_metric: structure_mean
+    eval_threshold_start: 0.25
+    eval_threshold_end: 0.85
+    eval_threshold_step: 0.05

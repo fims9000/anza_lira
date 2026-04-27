@@ -60,6 +60,9 @@ DRIVE_SUPERIORITY_METRICS = [
 DRIVE_MULTI_SEED_METRICS = [
     "test_dice",
     "test_iou",
+    "test_cldice",
+    "test_skeleton_precision",
+    "test_skeleton_recall",
     "test_precision",
     "test_recall",
     "test_specificity",
@@ -71,6 +74,9 @@ DRIVE_MULTI_SEED_METRICS = [
 DRIVE_METRIC_LABELS = {
     "test_dice": "Dice",
     "test_iou": "IoU",
+    "test_cldice": "clDice",
+    "test_skeleton_precision": "Skeleton Precision",
+    "test_skeleton_recall": "Skeleton Recall",
     "test_precision": "Precision",
     "test_recall": "Recall",
     "test_specificity": "Specificity",
@@ -82,9 +88,20 @@ THRESHOLD_DERIVED_METRICS = {
     "core_mean": ("dice", "iou", "precision", "recall", "specificity", "balanced_accuracy"),
     "core_min": ("dice", "iou", "precision", "recall", "specificity", "balanced_accuracy"),
     "dice_balanced_mean": ("dice", "balanced_accuracy"),
+    "dice_cldice_mean": ("dice", "cldice"),
+    "structure_mean": ("dice", "iou", "cldice", "skeleton_recall"),
 }
 
-RETINAL_SEG_DATASETS = {"drive", "chase_db1", "chasedb1", "chase", "fives"}
+RETINAL_SEG_DATASETS = {
+    "drive",
+    "chase_db1",
+    "chasedb1",
+    "chase",
+    "fives",
+    "hrf_seg_plus",
+    "hrf_segplus",
+    "hrf",
+}
 ARCADE_SEG_DATASETS = {"arcade", "arcade_syntax", "arcade_stenosis"}
 GLOBAL_ROAD_DATASETS = {"global_roads", "global_scale_roads", "globalscale_roads"}
 GIS_SEG_DATASETS = {"gis_roads", "roads", "road_segmentation", "roads_hf"} | GLOBAL_ROAD_DATASETS
@@ -157,6 +174,59 @@ class SegmentationTTAWrapper(nn.Module):
         return {"logits": torch.stack(logits, dim=0).mean(dim=0)}
 
 
+class SlidingWindowSegmentationWrapper(nn.Module):
+    """Evaluate large segmentation images by stitching overlapping tiles."""
+
+    def __init__(self, model: nn.Module, tile_size: int, overlap: int = 0) -> None:
+        super().__init__()
+        self.model = model
+        self.tile_size = int(tile_size)
+        self.overlap = int(overlap)
+        if self.tile_size <= 0:
+            raise ValueError("tile_size must be positive.")
+        if self.overlap < 0 or self.overlap >= self.tile_size:
+            raise ValueError("overlap must be in [0, tile_size).")
+
+    @staticmethod
+    def _main_logits(output: torch.Tensor | Dict[str, Any]) -> torch.Tensor:
+        main_logits, _, _ = unpack_segmentation_outputs(output)
+        return main_logits
+
+    @staticmethod
+    def _positions(length: int, tile: int, stride: int) -> List[int]:
+        if length <= tile:
+            return [0]
+        starts = list(range(0, max(length - tile, 0) + 1, stride))
+        last = length - tile
+        if starts[-1] != last:
+            starts.append(last)
+        return starts
+
+    def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
+        _, _, height, width = x.shape
+        if height <= self.tile_size and width <= self.tile_size:
+            return {"logits": self._main_logits(self.model(x))}
+
+        stride = max(1, self.tile_size - self.overlap)
+        y_positions = self._positions(height, self.tile_size, stride)
+        x_positions = self._positions(width, self.tile_size, stride)
+        logits_acc: torch.Tensor | None = None
+        weight_acc: torch.Tensor | None = None
+
+        for top in y_positions:
+            for left in x_positions:
+                tile = x[:, :, top : top + self.tile_size, left : left + self.tile_size]
+                tile_logits = self._main_logits(self.model(tile))
+                if logits_acc is None:
+                    logits_acc = tile_logits.new_zeros((x.shape[0], tile_logits.shape[1], height, width))
+                    weight_acc = tile_logits.new_zeros((x.shape[0], 1, height, width))
+                logits_acc[:, :, top : top + self.tile_size, left : left + self.tile_size] += tile_logits
+                weight_acc[:, :, top : top + self.tile_size, left : left + self.tile_size] += 1.0
+
+        assert logits_acc is not None and weight_acc is not None
+        return {"logits": logits_acc / weight_acc.clamp_min(1.0)}
+
+
 def _strip_metric_prefix(metric_name: str) -> str:
     if metric_name.startswith("test_"):
         return metric_name[5:]
@@ -177,6 +247,12 @@ def threshold_metric_value(row: Dict[str, float], metric_name: str) -> float:
         return float(min(float(row[key]) for key in keys))
     if metric_key == "dice_balanced_mean":
         keys = THRESHOLD_DERIVED_METRICS["dice_balanced_mean"]
+        return float(sum(float(row[key]) for key in keys) / len(keys))
+    if metric_key == "dice_cldice_mean":
+        keys = THRESHOLD_DERIVED_METRICS["dice_cldice_mean"]
+        return float(sum(float(row[key]) for key in keys) / len(keys))
+    if metric_key == "structure_mean":
+        keys = THRESHOLD_DERIVED_METRICS["structure_mean"]
         return float(sum(float(row[key]) for key in keys) / len(keys))
     raise KeyError(f"Threshold metric '{metric_name}' is not present in threshold sweep rows.")
 
@@ -209,6 +285,17 @@ def ensure_dir(path: str | Path) -> Path:
     return out
 
 
+def dataloader_kwargs(num_workers: int) -> Dict[str, Any]:
+    kwargs: Dict[str, Any] = {
+        "num_workers": int(num_workers),
+        "pin_memory": torch.cuda.is_available(),
+    }
+    if int(num_workers) > 0:
+        kwargs["persistent_workers"] = True
+        kwargs["prefetch_factor"] = 2
+    return kwargs
+
+
 def canonical_dataset_name(name: str) -> str:
     return str(name).lower().replace("-", "_")
 
@@ -221,6 +308,8 @@ def retinal_dataset_dirname(name: str) -> str:
         return "CHASE_DB1"
     if n == "fives":
         return "FIVES"
+    if n in {"hrf_seg_plus", "hrf_segplus", "hrf"}:
+        return "HRF_SegPlus"
     raise ValueError(f"Unknown retinal dataset: {name}")
 
 
@@ -568,6 +657,8 @@ class GISRoadDataset(Dataset):
         crop_size: int | None = None,
         image_size: tuple[int, int] | None = None,
         foreground_bias: float = 0.0,
+        mask_downsample_mode: str = "nearest",
+        mask_downsample_threshold: float = 0.5,
     ) -> None:
         super().__init__()
         self.root = Path(root)
@@ -575,6 +666,10 @@ class GISRoadDataset(Dataset):
         self.crop_size = int(crop_size) if crop_size else None
         self.image_size = image_size
         self.foreground_bias = max(0.0, min(1.0, float(foreground_bias)))
+        self.mask_downsample_mode = str(mask_downsample_mode).lower().strip()
+        self.mask_downsample_threshold = float(mask_downsample_threshold)
+        if self.mask_downsample_mode not in {"nearest", "area", "max"}:
+            raise ValueError("mask_downsample_mode must be one of: nearest, area, max.")
         self.samples = self._collect_samples()
 
     def _collect_samples(self) -> List[Tuple[Path, Path]]:
@@ -632,9 +727,23 @@ class GISRoadDataset(Dataset):
             return image, mask, valid_mask
         size = tuple(int(v) for v in self.image_size)
         image = F.interpolate(image.unsqueeze(0), size=size, mode="bilinear", align_corners=False)[0]
-        mask = F.interpolate(mask.unsqueeze(0), size=size, mode="nearest")[0]
+        mask = self._resize_binary_mask(mask, size)
         valid_mask = F.interpolate(valid_mask.unsqueeze(0), size=size, mode="nearest")[0]
         return image, mask, valid_mask
+
+    def _resize_binary_mask(self, mask: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
+        source_h, source_w = mask.shape[-2:]
+        target_h, target_w = size
+        if (source_h, source_w) == (target_h, target_w):
+            return mask
+        if self.mask_downsample_mode == "nearest":
+            return F.interpolate(mask.unsqueeze(0), size=size, mode="nearest")[0]
+        if self.mask_downsample_mode == "max" and source_h % target_h == 0 and source_w % target_w == 0:
+            kernel = (source_h // target_h, source_w // target_w)
+            return F.max_pool2d(mask.unsqueeze(0), kernel_size=kernel, stride=kernel)[0]
+
+        occupancy = F.interpolate(mask.unsqueeze(0), size=size, mode="area")[0]
+        return (occupancy >= float(self.mask_downsample_threshold)).float()
 
     @staticmethod
     def _sample_crop_anchor(
@@ -966,22 +1075,19 @@ def _build_classification_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, 
         train_split,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     val_loader = DataLoader(
         val_split,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     test_loader = DataLoader(
         test_full,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     return train_loader, val_loader, test_loader, in_c, num_outputs
 
@@ -1076,22 +1182,19 @@ def _build_drive_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoade
         train_split,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     val_loader = DataLoader(
         val_split,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     test_loader = DataLoader(
         test_set,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     return train_loader, val_loader, test_loader, 3, 1
 
@@ -1170,22 +1273,19 @@ def _build_arcade_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoad
         train_set,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     val_loader = DataLoader(
         val_set,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     test_loader = DataLoader(
         test_set,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     return train_loader, val_loader, test_loader, 3, 1
 
@@ -1200,6 +1300,8 @@ def _build_gis_road_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLo
     crop_size = cfg.get("gis_patch_size", cfg.get("road_patch_size", cfg.get("retinal_patch_size")))
     crop_size = int(crop_size) if crop_size else None
     foreground_bias = float(cfg.get("gis_foreground_bias", cfg.get("road_foreground_bias", 0.0)))
+    mask_downsample_mode = str(cfg.get("gis_mask_downsample_mode", "nearest"))
+    mask_downsample_threshold = float(cfg.get("gis_mask_downsample_threshold", 0.5))
 
     if dataset_name in GLOBAL_ROAD_DATASETS and (data_root / "train").exists():
         train_set: Dataset = GISRoadDataset(
@@ -1208,15 +1310,38 @@ def _build_gis_road_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLo
             crop_size=crop_size,
             image_size=image_size,
             foreground_bias=foreground_bias,
+            mask_downsample_mode=mask_downsample_mode,
+            mask_downsample_threshold=mask_downsample_threshold,
         )
-        val_set: Dataset = GISRoadDataset(data_root / "val", augment=False, crop_size=None, image_size=image_size)
+        val_set: Dataset = GISRoadDataset(
+            data_root / "val",
+            augment=False,
+            crop_size=None,
+            image_size=image_size,
+            mask_downsample_mode=mask_downsample_mode,
+            mask_downsample_threshold=mask_downsample_threshold,
+        )
         test_dir_name = str(cfg.get("gis_test_split", "in-domain-test"))
-        test_set: Dataset = GISRoadDataset(data_root / test_dir_name, augment=False, crop_size=None, image_size=image_size)
+        test_set: Dataset = GISRoadDataset(
+            data_root / test_dir_name,
+            augment=False,
+            crop_size=None,
+            image_size=image_size,
+            mask_downsample_mode=mask_downsample_mode,
+            mask_downsample_threshold=mask_downsample_threshold,
+        )
         train_set = _maybe_subset_dataset(train_set, cfg.get("gis_train_limit"), seed=seed)
         val_set = _maybe_subset_dataset(val_set, cfg.get("gis_val_limit"), seed=seed + 1)
         test_set = _maybe_subset_dataset(test_set, cfg.get("gis_test_limit"), seed=seed + 2)
         if isinstance(train_set, torch.utils.data.Subset):
-            train_set.pos_weight_reference = GISRoadDataset(data_root / "train", augment=False, crop_size=None, image_size=image_size)
+            train_set.pos_weight_reference = GISRoadDataset(
+                data_root / "train",
+                augment=False,
+                crop_size=None,
+                image_size=image_size,
+                mask_downsample_mode=mask_downsample_mode,
+                mask_downsample_threshold=mask_downsample_threshold,
+            )
         cfg["_resolved_test_split"] = test_dir_name
     else:
         train_full = GISRoadDataset(
@@ -1225,8 +1350,18 @@ def _build_gis_road_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLo
             crop_size=crop_size,
             image_size=image_size,
             foreground_bias=foreground_bias,
+            mask_downsample_mode=mask_downsample_mode,
+            mask_downsample_threshold=mask_downsample_threshold,
         )
-        eval_full = GISRoadDataset(data_root, augment=False, crop_size=None, image_size=image_size, foreground_bias=0.0)
+        eval_full = GISRoadDataset(
+            data_root,
+            augment=False,
+            crop_size=None,
+            image_size=image_size,
+            foreground_bias=0.0,
+            mask_downsample_mode=mask_downsample_mode,
+            mask_downsample_threshold=mask_downsample_threshold,
+        )
 
         n_total = len(train_full)
         if n_total < 3:
@@ -1258,22 +1393,19 @@ def _build_gis_road_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLo
         train_set,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     val_loader = DataLoader(
         val_set,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     test_loader = DataLoader(
         test_set,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=torch.cuda.is_available(),
+        **dataloader_kwargs(num_workers),
     )
     return train_loader, val_loader, test_loader, 3, 1
 
@@ -1436,6 +1568,8 @@ def resolve_azconv_config_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
         "az_compatibility_floor": "compatibility_floor",
         "az_use_input_residual": "use_input_residual",
         "az_residual_init": "residual_init",
+        "az_geometry_kernel_size": "geometry_kernel_size",
+        "az_init_anisotropy_gap": "init_anisotropy_gap",
     }
     bool_targets = {
         "use_fuzzy",
@@ -1452,8 +1586,16 @@ def resolve_azconv_config_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
         value = cfg[source_key]
         if target_key in bool_targets:
             out[target_key] = bool(value)
-        elif target_key in {"min_hyperbolicity", "fuzzy_temperature", "compatibility_floor", "residual_init"}:
+        elif target_key in {
+            "min_hyperbolicity",
+            "fuzzy_temperature",
+            "compatibility_floor",
+            "residual_init",
+            "init_anisotropy_gap",
+        }:
             out[target_key] = float(value)
+        elif target_key == "geometry_kernel_size":
+            out[target_key] = int(value)
         else:
             out[target_key] = str(value)
     return out
@@ -1925,6 +2067,50 @@ def segmentation_metrics_from_counts(tp: float, fp: float, tn: float, fn: float,
     }
 
 
+def skeleton_confusion_counts(
+    logits: torch.Tensor,
+    target: torch.Tensor,
+    valid_mask: torch.Tensor,
+    threshold: float = 0.5,
+    num_iters: int = 10,
+) -> tuple[float, float, float, float]:
+    probs = torch.sigmoid(logits)
+    pred = (probs >= threshold).float() * valid_mask
+    target = (target > 0.5).float() * valid_mask
+
+    skel_pred = _soft_skeletonize(pred, num_iters=num_iters) * valid_mask
+    skel_target = _soft_skeletonize(target, num_iters=num_iters) * valid_mask
+    if float(skel_pred.sum().item()) <= 0.0 and float(pred.sum().item()) > 0.0:
+        skel_pred = pred
+    if float(skel_target.sum().item()) <= 0.0 and float(target.sum().item()) > 0.0:
+        skel_target = target
+
+    pred_on_target = float((skel_pred * target).sum().item())
+    pred_skeleton = float(skel_pred.sum().item())
+    target_on_pred = float((skel_target * pred).sum().item())
+    target_skeleton = float(skel_target.sum().item())
+    return pred_on_target, pred_skeleton, target_on_pred, target_skeleton
+
+
+def skeleton_metrics_from_counts(
+    pred_on_target: float,
+    pred_skeleton: float,
+    target_on_pred: float,
+    target_skeleton: float,
+    eps: float = 1e-8,
+) -> Dict[str, float]:
+    skeleton_precision = (pred_on_target + eps) / (pred_skeleton + eps)
+    skeleton_recall = (target_on_pred + eps) / (target_skeleton + eps)
+    cldice = (2.0 * skeleton_precision * skeleton_recall + eps) / (
+        skeleton_precision + skeleton_recall + eps
+    )
+    return {
+        "cldice": float(cldice),
+        "skeleton_precision": float(skeleton_precision),
+        "skeleton_recall": float(skeleton_recall),
+    }
+
+
 def build_threshold_grid(start: float, end: float, step: float) -> List[float]:
     if step <= 0.0:
         raise ValueError("Threshold step must be positive.")
@@ -1945,12 +2131,14 @@ def sweep_segmentation_thresholds(
     loader: DataLoader,
     device: torch.device,
     thresholds: Sequence[float],
+    skeleton_num_iters: int = 10,
 ) -> List[Dict[str, float]]:
     if not thresholds:
         return []
 
     model.eval()
     counts = {float(thr): [0.0, 0.0, 0.0, 0.0] for thr in thresholds}
+    skeleton_counts = {float(thr): [0.0, 0.0, 0.0, 0.0] for thr in thresholds}
 
     for x, y, valid_mask in loader:
         x = x.to(device, non_blocking=True)
@@ -1974,12 +2162,25 @@ def sweep_segmentation_thresholds(
             c[1] += fp
             c[2] += tn
             c[3] += fn
+            s = skeleton_confusion_counts(
+                main_logits,
+                y,
+                valid_mask,
+                threshold=float(thr),
+                num_iters=int(skeleton_num_iters),
+            )
+            sc = skeleton_counts[float(thr)]
+            sc[0] += s[0]
+            sc[1] += s[1]
+            sc[2] += s[2]
+            sc[3] += s[3]
 
     rows: List[Dict[str, float]] = []
     for thr in thresholds:
         tp, fp, tn, fn = counts[float(thr)]
         metrics = segmentation_metrics_from_counts(tp, fp, tn, fn)
-        rows.append({"threshold": float(thr), **metrics})
+        skel_metrics = skeleton_metrics_from_counts(*skeleton_counts[float(thr)])
+        rows.append({"threshold": float(thr), **metrics, **skel_metrics})
     return rows
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import time
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +17,7 @@ import torch.nn as nn
 from tqdm import tqdm
 
 import utils
+from models.azconv import AZConv2d
 from utils import (
     az_regularization_weights,
     binary_confusion_counts,
@@ -36,6 +38,8 @@ from utils import (
     segmentation_metrics_from_counts,
     segmentation_objective,
     set_seed,
+    skeleton_confusion_counts,
+    skeleton_metrics_from_counts,
     spatial_shape_for_dataset,
     threshold_metric_value,
     sweep_segmentation_thresholds,
@@ -84,14 +88,26 @@ def apply_retinal_foreground_bias_schedule(
     epoch: int,
     epochs: int,
 ) -> float | None:
+    dataset_name = utils.canonical_dataset_name(str(cfg.get("dataset", "")))
+    if dataset_name in utils.GIS_SEG_DATASETS:
+        start_key = "gis_foreground_bias"
+        end_key = "gis_foreground_bias_end"
+        schedule_key = "gis_foreground_bias_schedule"
+        fallback_start = float(cfg.get("road_foreground_bias", 0.0))
+    else:
+        start_key = "retinal_foreground_bias"
+        end_key = "retinal_foreground_bias_end"
+        schedule_key = "retinal_foreground_bias_schedule"
+        fallback_start = float(cfg.get("drive_foreground_bias", 0.0))
+
     target = _scheduled_retinal_bias(
         cfg,
         epoch,
         epochs,
-        start_key="retinal_foreground_bias",
-        end_key="retinal_foreground_bias_end",
-        schedule_key="retinal_foreground_bias_schedule",
-        fallback_start=float(cfg.get("drive_foreground_bias", 0.0)),
+        start_key=start_key,
+        end_key=end_key,
+        schedule_key=schedule_key,
+        fallback_start=fallback_start,
     )
     base_dataset = _unwrap_dataset(train_loader.dataset)
     if hasattr(base_dataset, "set_foreground_bias"):
@@ -169,6 +185,17 @@ def summarize_score(task: str, split: str, metrics: Dict[str, float]) -> str:
 
 def spatial_shape_for_run(cfg: Dict[str, Any], task: str) -> tuple[int, int]:
     if task == "segmentation":
+        dataset_name = utils.canonical_dataset_name(str(cfg.get("dataset", "")))
+        if dataset_name in utils.GIS_SEG_DATASETS:
+            patch_size = cfg.get("gis_patch_size", cfg.get("road_patch_size"))
+            if patch_size:
+                patch = int(patch_size)
+                return (patch, patch)
+            image_size = cfg.get("gis_image_size", cfg.get("road_image_size"))
+            if image_size:
+                parsed = utils._parse_optional_hw(image_size)
+                if parsed is not None:
+                    return parsed
         patch_size = cfg.get("retinal_patch_size", cfg.get("drive_patch_size"))
         if patch_size:
             patch = int(patch_size)
@@ -280,10 +307,18 @@ def build_lr_scheduler(
 def build_eval_model(model: nn.Module, task: str, cfg: Dict[str, Any]) -> nn.Module:
     if task != "segmentation":
         return model
+    eval_model: nn.Module = model
+    tile_size = cfg.get("eval_tile_size", cfg.get("gis_eval_tile_size"))
+    if tile_size:
+        eval_model = utils.SlidingWindowSegmentationWrapper(
+            eval_model,
+            tile_size=int(tile_size),
+            overlap=int(cfg.get("eval_tile_overlap", cfg.get("gis_eval_tile_overlap", 0))),
+        )
     tta_mode = str(cfg.get("eval_tta", "none")).lower().strip()
     if tta_mode in {"", "none", "off"}:
-        return model
-    return utils.SegmentationTTAWrapper(model, mode=tta_mode)
+        return eval_model
+    return utils.SegmentationTTAWrapper(eval_model, mode=tta_mode)
 
 
 @torch.no_grad()
@@ -320,6 +355,7 @@ def evaluate_epoch(
     topology_sum = 0.0
     n = 0
     tp = fp = tn = fn = 0.0
+    skel_pred_on_target = skel_pred_total = skel_target_on_pred = skel_target_total = 0.0
     for x, y, valid_mask in loader:
         x = x.to(device, non_blocking=True)
         y = y.to(device, non_blocking=True)
@@ -354,9 +390,26 @@ def evaluate_epoch(
         fp += c_fp
         tn += c_tn
         fn += c_fn
+        s_pot, s_pred, s_top, s_target = skeleton_confusion_counts(
+            main_logits,
+            y,
+            valid_mask,
+            threshold=loss_cfg["threshold"],
+            num_iters=int(loss_cfg["topology_num_iters"]),
+        )
+        skel_pred_on_target += s_pot
+        skel_pred_total += s_pred
+        skel_target_on_pred += s_top
+        skel_target_total += s_target
         n += x.size(0)
 
     metrics = segmentation_metrics_from_counts(tp, fp, tn, fn)
+    skeleton_metrics = skeleton_metrics_from_counts(
+        skel_pred_on_target,
+        skel_pred_total,
+        skel_target_on_pred,
+        skel_target_total,
+    )
     return {
         "val_loss": loss_sum / max(n, 1),
         "val_bce_loss": bce_sum / max(n, 1),
@@ -369,6 +422,9 @@ def evaluate_epoch(
         "val_specificity": metrics["specificity"],
         "val_accuracy": metrics["accuracy"],
         "val_balanced_accuracy": metrics["balanced_accuracy"],
+        "val_cldice": skeleton_metrics["cldice"],
+        "val_skeleton_precision": skeleton_metrics["skeleton_precision"],
+        "val_skeleton_recall": skeleton_metrics["skeleton_recall"],
     }
 
 
@@ -428,6 +484,7 @@ def train_one_epoch(
         boundary_sum = 0.0
         topology_sum = 0.0
         tp = fp = tn = fn = 0.0
+        skel_pred_on_target = skel_pred_total = skel_target_on_pred = skel_target_total = 0.0
         for x, y, valid_mask in tqdm(loader, desc="train", leave=False):
             x = x.to(device, non_blocking=True)
             y = y.to(device, non_blocking=True)
@@ -480,9 +537,26 @@ def train_one_epoch(
             fp += c_fp
             tn += c_tn
             fn += c_fn
+            s_pot, s_pred, s_top, s_target = skeleton_confusion_counts(
+                main_logits.detach(),
+                y,
+                valid_mask,
+                threshold=loss_cfg["threshold"],
+                num_iters=int(loss_cfg["topology_num_iters"]),
+            )
+            skel_pred_on_target += s_pot
+            skel_pred_total += s_pred
+            skel_target_on_pred += s_top
+            skel_target_total += s_target
             n += x.size(0)
 
         seg_metrics = segmentation_metrics_from_counts(tp, fp, tn, fn)
+        skeleton_metrics = skeleton_metrics_from_counts(
+            skel_pred_on_target,
+            skel_pred_total,
+            skel_target_on_pred,
+            skel_target_total,
+        )
         metrics = {
             "train_loss": loss_sum / max(n, 1),
             "train_objective": objective_sum / max(n, 1),
@@ -498,6 +572,9 @@ def train_one_epoch(
             "train_specificity": seg_metrics["specificity"],
             "train_accuracy": seg_metrics["accuracy"],
             "train_balanced_accuracy": seg_metrics["balanced_accuracy"],
+            "train_cldice": skeleton_metrics["cldice"],
+            "train_skeleton_precision": skeleton_metrics["skeleton_precision"],
+            "train_skeleton_recall": skeleton_metrics["skeleton_recall"],
         }
 
     for key in REG_LOG_KEYS:
@@ -549,6 +626,7 @@ def collect_architecture_state(model: nn.Module) -> Dict[str, Any]:
     state: Dict[str, Any] = {}
     mix_rows: List[Dict[str, float]] = []
     residual_rows: List[Dict[str, float]] = []
+    az_rows: List[Dict[str, Any]] = []
     for name, module in model.named_modules():
         mix_logit = getattr(module, "mix_logit", None)
         if isinstance(mix_logit, torch.nn.Parameter):
@@ -556,6 +634,19 @@ def collect_architecture_state(model: nn.Module) -> Dict[str, Any]:
         residual_logit = getattr(module, "residual_logit", None)
         if isinstance(residual_logit, torch.nn.Parameter):
             residual_rows.append({"name": name, "value": float(torch.sigmoid(residual_logit.detach()).cpu())})
+        if isinstance(module, AZConv2d):
+            row: Dict[str, Any] = {"name": name, "rules": int(module.R), "kernel_size": int(module.k)}
+            row.update(module.metric_tensor_summary())
+            snapshot = module.interpretation_snapshot()
+            mu_rule_mean = snapshot.get("mu_rule_mean")
+            if isinstance(mu_rule_mean, torch.Tensor):
+                probs = mu_rule_mean.float().clamp_min(1e-8)
+                probs = probs / probs.sum().clamp_min(1e-8)
+                row["rule_usage_entropy_norm"] = float((-(probs * probs.log()).sum() / math.log(max(int(module.R), 2))).cpu())
+            compat_map = snapshot.get("compat_map")
+            if isinstance(compat_map, torch.Tensor):
+                row["compat_mass"] = float(compat_map.float().sum().cpu())
+            az_rows.append(row)
 
     if mix_rows:
         mix_vals = [row["value"] for row in mix_rows]
@@ -565,6 +656,24 @@ def collect_architecture_state(model: nn.Module) -> Dict[str, Any]:
         residual_vals = [row["value"] for row in residual_rows]
         state["az_input_residual_alpha"] = residual_rows
         state["az_input_residual_alpha_mean"] = float(sum(residual_vals) / len(residual_vals))
+    if az_rows:
+        state["az_layer_count"] = len(az_rows)
+        state["az_layers"] = az_rows
+        mode_counts: Dict[str, int] = {}
+        normalize_counts: Dict[str, int] = {}
+        for row in az_rows:
+            mode = str(row.get("geometry_mode", "unknown"))
+            norm = str(row.get("normalize_mode", "unknown"))
+            mode_counts[mode] = mode_counts.get(mode, 0) + 1
+            normalize_counts[norm] = normalize_counts.get(norm, 0) + 1
+        state["az_geometry_mode_counts"] = mode_counts
+        state["az_normalize_mode_counts"] = normalize_counts
+        for key in ("metric_min_eig", "metric_condition", "anisotropy_gap", "rule_usage_entropy_norm", "compat_mass"):
+            vals = [float(row[key]) for row in az_rows if key in row]
+            if vals:
+                state[f"az_{key}_mean"] = float(sum(vals) / len(vals))
+                state[f"az_{key}_min"] = float(min(vals))
+                state[f"az_{key}_max"] = float(max(vals))
     return state
 
 
@@ -649,7 +758,13 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         val_selection_score = float(val_metrics[selection_key])
         val_selection_threshold = float(loss_cfg["threshold"])
         if threshold_grid_for_selection:
-            val_sweep_rows = sweep_segmentation_thresholds(eval_model, val_loader, device, threshold_grid_for_selection)
+            val_sweep_rows = sweep_segmentation_thresholds(
+                eval_model,
+                val_loader,
+                device,
+                threshold_grid_for_selection,
+                skeleton_num_iters=int(loss_cfg["topology_num_iters"]),
+            )
             best_val_row = select_best_threshold(
                 val_sweep_rows,
                 metric=threshold_selection_metric,
@@ -747,7 +862,13 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         threshold_end = float(cfg.get("eval_threshold_end", 0.8))
         threshold_step = float(cfg.get("eval_threshold_step", 0.05))
         threshold_grid = build_threshold_grid(threshold_start, threshold_end, threshold_step)
-        threshold_sweep_rows = sweep_segmentation_thresholds(eval_model, val_loader, device, threshold_grid)
+        threshold_sweep_rows = sweep_segmentation_thresholds(
+            eval_model,
+            val_loader,
+            device,
+            threshold_grid,
+            skeleton_num_iters=int(loss_cfg["topology_num_iters"]),
+        )
         best_threshold_row = select_best_threshold(
             threshold_sweep_rows,
             metric=threshold_metric,
@@ -782,6 +903,8 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
     metrics: Dict[str, Any] = {
         "run_name": run_dir.name,
         "variant": variant,
+        "article_model_name": cfg.get("article_model_name"),
+        "article_internal_recipe": cfg.get("article_internal_recipe"),
         "dataset": cfg["dataset"],
         "task": task,
         "epochs": epochs,
@@ -805,6 +928,8 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         "az_fuzzy_temperature": cfg.get("az_fuzzy_temperature"),
         "az_normalize_mode": str(cfg.get("az_normalize_mode", "variant_default")),
         "az_compatibility_floor": cfg.get("az_compatibility_floor"),
+        "az_geometry_kernel_size": cfg.get("az_geometry_kernel_size"),
+        "az_init_anisotropy_gap": cfg.get("az_init_anisotropy_gap"),
         "az_use_input_residual": cfg.get("az_use_input_residual"),
         "az_residual_init": cfg.get("az_residual_init"),
         "lr_scheduler": str(cfg.get("lr_scheduler", "none")),
@@ -885,6 +1010,9 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         metrics["test_specificity"] = test_metrics["val_specificity"]
         metrics["test_accuracy"] = test_metrics["val_accuracy"]
         metrics["test_balanced_accuracy"] = test_metrics["val_balanced_accuracy"]
+        metrics["test_cldice"] = test_metrics["val_cldice"]
+        metrics["test_skeleton_precision"] = test_metrics["val_skeleton_precision"]
+        metrics["test_skeleton_recall"] = test_metrics["val_skeleton_recall"]
         if bool(cfg.get("search_beats_baseline", False)):
             search_metric = str(cfg.get("search_selection_metric", "dice"))
             search_grid = threshold_grid or build_threshold_grid(
@@ -892,7 +1020,13 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
                 float(cfg.get("eval_threshold_end", 0.8)),
                 float(cfg.get("eval_threshold_step", 0.05)),
             )
-            search_rows = sweep_segmentation_thresholds(model, test_loader, device, search_grid)
+            search_rows = sweep_segmentation_thresholds(
+                model,
+                test_loader,
+                device,
+                search_grid,
+                skeleton_num_iters=int(loss_cfg["topology_num_iters"]),
+            )
             baseline_metrics = select_best_drive_record(utils.collect_drive_metrics_records(run_dir.parent), variant="baseline")
             search_report = build_drive_threshold_search_report(
                 sweep_rows=search_rows,
