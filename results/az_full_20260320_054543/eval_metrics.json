@@ -1,8 +1,0 @@
-{
-  "variant": "az_full",
-  "test_loss": 1.4914601734161377,
-  "test_accuracy": 46.23,
-  "test_wall_seconds": 2.614587899763137,
-  "seconds_per_forward_batch": 0.002761409990489483,
-  "num_parameters": 257918
-}
