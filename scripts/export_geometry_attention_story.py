@@ -117,6 +117,34 @@ def _build_eval_dataset(cfg: dict[str, Any]) -> tuple[Any, str]:
         )
         return dataset, dataset_name
 
+    if dataset_name in utils.GIS_SEG_DATASETS:
+        data_root = (PROJECT_ROOT / utils.gis_dataset_root(cfg.get("data_root", "./data"), cfg["dataset"])).resolve()
+        image_size = utils._parse_optional_hw(cfg.get("gis_image_size", cfg.get("road_image_size")))
+        mask_downsample_mode = str(cfg.get("gis_mask_downsample_mode", "nearest"))
+        mask_downsample_threshold = float(cfg.get("gis_mask_downsample_threshold", 0.5))
+
+        if dataset_name in utils.GLOBAL_ROAD_DATASETS and (data_root / "train").exists():
+            test_dir_name = str(cfg.get("gis_test_split", "in-domain-test"))
+            dataset = utils.GISRoadDataset(
+                root=data_root / test_dir_name,
+                augment=False,
+                crop_size=None,
+                image_size=image_size,
+                mask_downsample_mode=mask_downsample_mode,
+                mask_downsample_threshold=mask_downsample_threshold,
+            )
+            return dataset, dataset_name
+
+        dataset = utils.GISRoadDataset(
+            root=data_root,
+            augment=False,
+            crop_size=None,
+            image_size=image_size,
+            mask_downsample_mode=mask_downsample_mode,
+            mask_downsample_threshold=mask_downsample_threshold,
+        )
+        return dataset, dataset_name
+
     raise ValueError(f"Unsupported dataset for segmentation story: {cfg['dataset']}")
 
 

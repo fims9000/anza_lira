@@ -27,6 +27,50 @@ Thin elongated structures appear in both medical and remote-sensing imaging, but
 
 The model uses a U-Net style encoder-decoder with anisotropic fuzzy local aggregation blocks. Local compatibility combines directional geometry and fuzzy local agreement, followed by normalization in the local neighborhood. Baseline and AZ variants are trained under matched dataset protocols.
 
+### II-A. Geometry Visualization Protocol (core contribution of Paper 3)
+
+To avoid purely qualitative overlays, we visualize internal AZ geometry using explicit per-pixel quantities from AZ snapshots.
+
+For each valid pixel `p`:
+- fuzzy memberships `mu_r(p)`, `r=1..R`;
+- dominant regime `r*(p) = argmax_r mu_r(p)`;
+- regime confidence `c(p) = max_r mu_r(p)`.
+
+Directional field:
+- if `theta_map` is available:
+  `theta(p) = theta_map[r*(p), p]`;
+- otherwise:
+  `theta(p) = atan2(u_{r*,y}, u_{r*,x})`.
+
+Signed anisotropy contribution:
+`g(p) = tanh(log(sigma_u/sigma_s)) * c(p)`, clipped to `[-1, 1]`.
+
+This gives three interpretable maps:
+1. direction `theta(p)`,
+2. anisotropy contribution `g(p)`,
+3. confidence `c(p)`.
+
+### II-B. Figure construction used in this paper
+
+We build one 4-panel figure per case:
+1. `Input + GT`,
+2. `error-centric Baseline vs AZ difference`,
+3. `AZ direction arrows`,
+4. `anisotropy strength map`.
+
+Error-centric difference map (relative to GT):
+- green: AZ fixed baseline false negative,
+- blue: AZ removed baseline false positive,
+- orange: AZ added false positive,
+- red: AZ introduced new false negative.
+
+Direction arrows are drawn on object support
+`M_obj = (AZ_pred OR GT) AND valid_mask`,
+then skeletonized and pruned (small components removed), so arrows follow elongated structures rather than background texture.
+
+Anisotropy strength map uses `|g(p)|` with robust in-object normalization
+(10th to 95th percentile) and a colorblind-friendly blue-to-orange ramp.
+
 ## III. Datasets and Protocol
 
 - **Roads_HF**: 31 image/mask pairs, split `train 19 / val 6 / test 6`, resolution `1280x720`.
@@ -61,6 +105,8 @@ Common setup:
 
 The same geometric local prior is transferable, but the best operating regime is domain-dependent. SpaceNet3 illustrates this clearly: an initial AZ setup was conservative and underperformed baseline; after calibration of AZ depth/mix and residual contribution, AZ surpassed baseline on overlap and structure metrics. This indicates that deployment should include lightweight domain-specific calibration rather than a fixed universal setting.
 
+From the visualization side, the same runs show that AZ improvements are spatially concentrated on thin elongated fragments where directional agreement is high and anisotropy strength is non-zero. This supports the interpretation that gains are linked to geometric local aggregation rather than threshold-only effects.
+
 ## VI. Conclusion
 
 Cross-domain evaluation shows that anisotropic fuzzy local aggregation is practically reusable across heterogeneous thin-structure segmentation tasks. With calibrated settings, AZ improves overlap on HRF and SpaceNet3, while remaining near parity on Roads_HF.
@@ -73,3 +119,7 @@ Cross-domain evaluation shows that anisotropic fuzzy local aggregation is practi
 - SpaceNet3 AZ recovered: `results/article3_spacenet_recover_azthesis_continue_s42_e12_20260428_135128/metrics.json`
 - HRF baseline: `results/article3_hrf_baseline_s42_e40/metrics.json`
 - HRF AZ: `results/article3_hrf_final_s42_e40/metrics.json`
+
+Figure assets for this paper:
+- Main geometry figure: `results/a3_final_package/final_article3/figures/geometry_clean_global_roads_spacenet3_paris_img0087.png`
+- Case-analysis report: `results/a3_final_package/final_article3/figures/spacenet_v3_advantage_report_ru.md`
