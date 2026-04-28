@@ -1,0 +1,48 @@
+dataset: global_roads
+data_root: ./data/SpaceNet3_prepared
+gis_test_split: in-domain-test
+
+variant: baseline
+model_widths: [32, 64, 128, 192]
+bottleneck_mode: aspp
+decoder_mode: residual
+boundary_mode: conv
+
+epochs: 18
+batch_size: 2
+lr: 0.0003
+weight_decay: 0.0001
+seed: 42
+deterministic: false
+num_workers: 0
+
+gis_image_size: [256, 256]
+gis_patch_size: 256
+gis_foreground_bias: 0.70
+gis_augment: true
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: tversky
+tversky_alpha: 0.35
+tversky_beta: 0.60
+seg_threshold: 0.55
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.25
+eval_threshold_end: 0.85
+eval_threshold_step: 0.05
+aux_loss_weight: 0.1
+boundary_loss_weight: 0.05
+topology_loss_weight: 0.0
+topology_num_iters: 8
+bce_pos_weight: 6.0
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 20.0
+
+results_dir: ./results
+run_name: article3_spacenet_sprint_v3_baseline
+device: cuda
+
+timing_warmup: 1
+timing_iters: 5

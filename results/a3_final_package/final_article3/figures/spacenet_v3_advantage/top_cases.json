@@ -1,0 +1,89 @@
+[
+  {
+    "idx": 3,
+    "full_base_dice": 1.1025358324023977e-11,
+    "full_az_dice": 0.42127325124594894,
+    "zoom_base_dice": 2.040816326488963e-11,
+    "zoom_az_dice": 0.5697522816194932,
+    "zoom_delta_dice": 0.5697522815990851,
+    "zoom_base_iou": 2.040816326488963e-11,
+    "zoom_az_iou": 0.39835916135461846,
+    "zoom_delta_iou": 0.3983591613342103,
+    "zoom_base_precision": 1.0,
+    "zoom_az_precision": 0.4185823754844964,
+    "zoom_base_recall": 2.040816326488963e-11,
+    "zoom_az_recall": 0.8918367346960849,
+    "bbox": [
+      2,
+      1,
+      197,
+      196
+    ],
+    "counts": {
+      "az_gain": 437,
+      "az_loss": 0,
+      "fp_removed": 0,
+      "fp_added": 607
+    },
+    "rank_score": 1.7551571016445018,
+    "figure_path": "C:/Users/Comp1/SASHA/anza_lira/results/a3_final_package/final_article3/figures/spacenet_v3_advantage/case_003_advantage.png"
+  },
+  {
+    "idx": 5,
+    "full_base_dice": 0.295899309785387,
+    "full_az_dice": 0.4335700451908111,
+    "zoom_base_dice": 0.30691952844766074,
+    "zoom_az_dice": 0.48239467081972276,
+    "zoom_delta_dice": 0.17547514237206202,
+    "zoom_base_iou": 0.18127875999130383,
+    "zoom_az_iou": 0.3178656937643166,
+    "zoom_delta_iou": 0.1365869337730128,
+    "zoom_base_precision": 0.44185360094615744,
+    "zoom_az_precision": 0.5369799691842508,
+    "zoom_base_recall": 0.23511858018024953,
+    "zoom_az_recall": 0.4378828333603928,
+    "bbox": [
+      31,
+      60,
+      226,
+      255
+    ],
+    "counts": {
+      "az_gain": 1638,
+      "az_loss": 347,
+      "fp_removed": 901,
+      "fp_added": 1414
+    },
+    "rank_score": 0.6960606535099024,
+    "figure_path": "C:/Users/Comp1/SASHA/anza_lira/results/a3_final_package/final_article3/figures/spacenet_v3_advantage/case_005_advantage.png"
+  },
+  {
+    "idx": 7,
+    "full_base_dice": 0.6757521596666103,
+    "full_az_dice": 0.6972405752042773,
+    "zoom_base_dice": 0.6819868683989695,
+    "zoom_az_dice": 0.7472242249462909,
+    "zoom_delta_dice": 0.06523735654732143,
+    "zoom_base_iou": 0.5174355642202352,
+    "zoom_az_iou": 0.5964548802955882,
+    "zoom_delta_iou": 0.07901931607535306,
+    "zoom_base_precision": 0.6810148232620268,
+    "zoom_az_precision": 0.7538551061979812,
+    "zoom_base_recall": 0.682961692396561,
+    "zoom_az_recall": 0.7407089765587744,
+    "bbox": [
+      59,
+      18,
+      254,
+      213
+    ],
+    "counts": {
+      "az_gain": 338,
+      "az_loss": 136,
+      "fp_removed": 443,
+      "fp_added": 170
+    },
+    "rank_score": 0.30090532613871346,
+    "figure_path": "C:/Users/Comp1/SASHA/anza_lira/results/a3_final_package/final_article3/figures/spacenet_v3_advantage/case_007_advantage.png"
+  }
+]

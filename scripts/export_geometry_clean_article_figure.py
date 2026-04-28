@@ -180,6 +180,7 @@ def _draw_direction_arrows(
     direction: np.ndarray,
     skeleton: np.ndarray,
     valid: np.ndarray,
+    confidence: np.ndarray | None = None,
     step: int = 14,
 ) -> np.ndarray:
     base = image_rgb.astype(np.float32)
@@ -189,20 +190,25 @@ def _draw_direction_arrows(
     points = _sample_skeleton_points(skeleton, valid > 0.5, max_points=5000)
     points = _grid_filter_points(points, cell=6)
     for i, (y, x) in enumerate(points):
-        ang_tan = _local_tangent_angle(skeleton, y, x)
-        if ang_tan is None:
-            continue
-        ln = 7.2
-        dx = math.cos(ang_tan) * ln
-        dy = math.sin(ang_tan) * ln
+        if confidence is not None:
+            c = float(confidence[y, x])
+            if c < 0.12:
+                continue
+        else:
+            c = 1.0
+        # Use model-derived AZ direction directly (not only geometric tangent).
+        ang = float(direction[y, x])
+        ln = 5.5 + 5.5 * c
+        dx = math.cos(ang) * ln
+        dy = math.sin(ang) * ln
         x1, y1 = x - dx, y - dy
         x2, y2 = x + dx, y + dy
         # dark outline + white core improves readability on bright/dark regions.
         draw.line((x1, y1, x2, y2), fill=(25, 25, 25), width=3)
         draw.line((x1, y1, x2, y2), fill=(250, 250, 250), width=2)
         ah = 3.0
-        a1 = ang_tan + 2.55
-        a2 = ang_tan - 2.55
+        a1 = ang + 2.55
+        a2 = ang - 2.55
         hx1, hy1 = x2 + ah * math.cos(a1), y2 + ah * math.sin(a1)
         hx2, hy2 = x2 + ah * math.cos(a2), y2 + ah * math.sin(a2)
         draw.line((x2, y2, hx1, hy1), fill=(25, 25, 25), width=3)
@@ -374,7 +380,8 @@ def main() -> None:
     _, snap = az_layers[-1]
     direction, signed_gain, conf = story._direction_gain_confidence_maps(snap, v)
 
-    object_mask = (gt > 0.5) & (v > 0.5)
+    # For geometry visualization, rely on model prediction support plus GT fallback.
+    object_mask = ((az_pred > 0.5) | (gt > 0.5)) & (v > 0.5)
     skeleton = _to_skeleton(object_mask.astype(np.float32))
     skeleton = _prune_small_components(skeleton, min_size=24)
     skeleton = skeleton & object_mask
@@ -382,7 +389,14 @@ def main() -> None:
     panel_a = _overlay_mask(image_rgb, gt, (86, 180, 233), alpha=0.44)
     panel_b = _difference_map(base_pred, az_pred, gt, v)
     panel_b = _add_diff_legend(panel_b)
-    panel_c = _draw_direction_arrows(image_rgb, direction, skeleton, v > 0.5, step=14)
+    panel_c = _draw_direction_arrows(
+        image_rgb=image_rgb,
+        direction=direction,
+        skeleton=skeleton,
+        valid=v > 0.5,
+        confidence=conf,
+        step=14,
+    )
     panel_d = _draw_anisotropy_strength_map(
         image_rgb=image_rgb,
         signed_gain=signed_gain * conf,
@@ -393,7 +407,7 @@ def main() -> None:
     w, h = 620, 620
     p1 = _panel(panel_a, "Input + Ground Truth", w, h)
     p2 = _panel(panel_b, "Baseline vs AZ (error difference vs GT)", w, h)
-    p3 = _panel(panel_c, "Direction Arrows Along Vessels", w, h)
+    p3 = _panel(panel_c, "AZ Direction Arrows (Model-Derived)", w, h)
     p4 = _panel(panel_d, "Anisotropy Strength Map", w, h)
 
     canvas = Image.new("RGB", (2 * w, 2 * (h + 38)), color=(232, 232, 228))

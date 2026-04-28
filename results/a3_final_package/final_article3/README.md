@@ -1,25 +1,26 @@
-# Final Article 3 Package
+# Final Article 3 Package (Current)
 
-This folder contains the curated final materials for paper writing.
+This package is aligned with the new SpaceNet3 v3 training/evaluation cycle.
 
-## Structure
+## Main text
 
-- `text/`
-  - `a3.md` — final internal article-3 summary
-  - `stdh2026_paper_draft_en.md` — working English draft (if present)
-- `figures/`
-  - `geometry_clean_hrf_seg_plus_11_h.png` — final clean geometry figure
-  - `geometry_clean_hrf_seg_plus_11_h.json` — metadata for the figure
-- `metrics/`
-  - `hrf_final_metrics.json`
-  - `hrf_precision_target_t085.json` (if present)
-  - `roads_hf_az_metrics.json`
-  - `roads_hf_baseline_metrics.json`
-  - `spacenet_az_recovered_metrics.json`
-  - `spacenet_baseline_metrics.json`
+- `text/a3.md` — current article-3 summary (updated paths/figures).
 
-## Recommended usage
+## Main figures (current)
 
-1. Use `figures/geometry_clean_hrf_seg_plus_11_h.png` as the main method-interpretability figure.
-2. Use `metrics/*.json` for final table extraction.
-3. Use `text/a3.md` as the canonical narrative/checklist source.
+- `figures/spacenet_v3_simple_compare_best1.png`
+- `figures/spacenet_v3_simple_compare_best2.png`
+- `figures/spacenet_v3_top1_advantage.png`
+- `figures/spacenet_v3_top2_advantage.png`
+- `figures/spacenet_v3_advantage/` (full case set + JSON)
+- `figures/spacenet_v3_advantage_report_ru.md`
+
+## Metrics (current runs)
+
+- `../../article3_spacenet_sprint_v3_baseline/metrics.json`
+- `../../article3_spacenet_sprint_v3_recover/metrics.json`
+- `../../article3_sprint_eval/` (post-hoc flips/threshold probes)
+
+## Legacy files
+
+`geometry_clean_hrf_seg_plus_11_h.png` is retained for archive only and is not the main figure for the updated SpaceNet3 v3 block.
