@@ -21,6 +21,8 @@ archive.zip
 *.tar
 *.tar.gz
 *.zip
+*.docx
+*.pdf
 results/**/history.json
 results/**/dice_curves.png
 results/**/loss_curves.png

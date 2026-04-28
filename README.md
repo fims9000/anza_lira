@@ -6,8 +6,10 @@ Clean repo entry point for current paper materials.
 
 - Article 2 (medical, **FIVES only**):  
   [results/a2_final_package](results/a2_final_package)
-- Article 3 (GIS, **Roads_HF only**):  
+- Article 3 (cross-domain: Roads_HF + SpaceNet3 + HRF):  
   [results/a3_final_package](results/a3_final_package)
+- Article 3 (public-safe, no metrics):  
+  [results/a3_final_package/a3_math_impl_only.md](results/a3_final_package/a3_math_impl_only.md)
 
 ## Train
 
