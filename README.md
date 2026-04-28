@@ -1,91 +1,131 @@
 # ANZA-LIRA
 
-ANZA-LIRA is a research codebase for thin-structure segmentation with a focus on
-anisotropic fuzzy local aggregation.
+ANZA-LIRA is a research codebase for segmentation of thin elongated structures
+(retinal vessels, roads, line-like objects) using anisotropic fuzzy local
+aggregation in U-Net style pipelines.
 
-This README is intentionally project-level (open-repo version): method,
-mathematical idea, datasets, and implementation workflow, without reporting
-paper-specific metric tables.
+This README is project-level and publication-safe: method, implementation,
+reproducibility, and usage workflow.
 
-## Core idea
+## 1) What this project does
 
-Standard local convolution is isotropic. For elongated structures (vessels,
-roads), local evidence is directional and uncertain.  
-ANZA-LIRA uses a local operator that combines:
+The repository provides:
 
-1. directional geometric sensitivity (anisotropy),
-2. fuzzy local agreement (soft membership),
-3. normalized neighborhood aggregation.
+1. baseline segmentation models,
+2. AZ-enhanced models (`az_cat`, `az_thesis`, related variants),
+3. training + validation threshold sweep,
+4. geometry diagnostics and figure export scripts.
 
-## Mathematical formulation (compact)
+Primary task type is binary segmentation.
 
-For center point `p`, neighbor `q`, and local mode `r`:
+## 2) Core method (compact)
+
+For center pixel `p`, neighbor `q`, local rule `r`:
 
 `w_r(p, q) = mu_r(p) * mu_r(q) * kappa_r(q - p)`
 
 where:
-- `mu_r(.)` is fuzzy membership,
-- `kappa_r(.)` is anisotropic directional kernel.
+- `mu_r` is fuzzy rule membership,
+- `kappa_r` is directional anisotropic compatibility.
 
-Normalized local weight:
+Normalized aggregation:
 
 `w_tilde_r(p, q) = w_r(p, q) / (sum_{q in N(p)} sum_{m=1..R} w_m(p, q) + eps)`
 
-Local aggregation:
-
 `z(p) = sum_{q in N(p)} sum_{r=1..R} w_tilde_r(p, q) * V(q)`
 
-The operator is integrated into a U-Net style segmentation pipeline
-(`baseline`, `az_cat`, `az_thesis`, and related variants).
+In practice this is implemented as an AZ block inserted into encoder/decoder
+stages of segmentation architectures.
 
-## Geometry implementation notes
+## 3) Datasets supported
 
-- Fixed directional metric (`fixed_cat_map`) and learned/hybrid modes are
-  supported.
-- The code logs geometry diagnostics (anisotropy gap, metric conditioning,
-  rule-usage entropy) for interpretability and stability checks.
-- The operator is used as a finite feature-space local block (practical neural
-  implementation), not as a full dynamical-system solver.
+Medical vessel segmentation:
+- `DRIVE`
+- `CHASE_DB1`
+- `FIVES`
+- `HRF_SegPlus`
 
-## Supported dataset families
+GIS road segmentation:
+- `Roads_HF`
+- `global_roads` (SpaceNet3 prepared split)
 
-- Retinal/medical vessel segmentation:
-  - `DRIVE`
-  - `CHASE_DB1`
-  - `FIVES`
-  - `HRF_SegPlus`
-- GIS road segmentation:
-  - `Roads_HF`
-  - `GlobalScaleRoad / SpaceNet3_prepared`
-- Synthetic/auxiliary domain-specific sets (when present in `data/`).
+Dataset routing and canonical names are handled in `utils.py`.
 
-See dataset/config routing in:
-- `utils.py` (`build_dataloaders`, dataset resolvers)
-- `configs/` (task-specific experiment setups)
+## 4) Repo layout
 
-## Repository structure
+- `models/` — AZ layers and segmentation networks
+- `train.py` — training + evaluation entry point
+- `utils.py` — data loading, losses, metrics, threshold policy, reporting
+- `configs/` — ready experiment configs
+- `scripts/` — utility scripts (figure export, run helpers, diagnostics)
+- `results/` — experiment outputs and prepared assets
+- `tests/` — lightweight checks
 
-- `models/` — AZ blocks and segmentation architectures
-- `train.py` — main training/evaluation entry point
-- `utils.py` — data loading, losses, metrics, threshold sweep, reporting
-- `configs/` — experiment configs
-- `scripts/` — helper pipelines (training queues, evaluation, asset prep)
-- `results/` — run outputs and paper materials
-
-## Quick start
+## 5) Environment setup
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+```
+
+## 6) Run training
+
+Example:
+
+```powershell
 python train.py --config configs/fives_benchmark.yaml --variants baseline,az_thesis
 ```
 
-## Public repository note
+Important:
+- `metrics.json` is written per run in `results/<run_name>/`.
+- threshold for test metrics is selected by validation sweep.
 
-This repository is maintained in public-safe form:
-- no private manuscripts in tracked files,
-- generated run artifacts are partially ignored,
-- project-level docs are preferred over conference-specific internal notes.
+## 7) Geometry visualization (model-native)
 
-Public URL: `https://github.com/fims9000/anza_lira`
+Main export scripts:
+- `scripts/export_geometry_attention_story.py`
+- `scripts/export_geometry_clean_article_figure.py`
+
+Example:
+
+```powershell
+python scripts/export_geometry_clean_article_figure.py `
+  --results-dir results `
+  --run article3_spacenet_sprint_v3_recover `
+  --baseline-run article3_spacenet_sprint_v3_baseline `
+  --sample-index 30 `
+  --output-dir results/a3_final_package/final_article3/figures `
+  --device cpu
+```
+
+The generated 2x2 figure includes:
+1. input + GT,
+2. error-centric baseline-vs-AZ map,
+3. AZ orientation axis (model-derived),
+4. anisotropy strength map.
+
+## 8) Reproducibility notes
+
+- Config-driven runs (`configs/*.yaml`)
+- Fixed seeds in configs when required
+- Per-run saved artifacts:
+  - `metrics.json`
+  - `checkpoint_best.pt`
+  - `history.json` (if enabled)
+- Scripted figure generation from checkpoints/results
+
+## 9) Current status of defaults
+
+AZ experiments support both legacy and newer geometry modes.
+Checkpoint loading includes backward compatibility for older AZ snapshots.
+
+## 10) Public repo policy
+
+This repository is kept in public-safe form:
+- no private manuscript binaries in tracked files,
+- generated heavy artifacts are mostly ignored via `.gitignore`,
+- project-level technical documentation is preferred.
+
+Repository:
+`https://github.com/fims9000/anza_lira`
