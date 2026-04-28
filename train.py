@@ -221,6 +221,8 @@ def resolve_loss_cfg(
         "boundary_weight": float(cfg.get("boundary_loss_weight", 0.1)),
         "topology_weight": float(cfg.get("topology_loss_weight", 0.0)),
         "topology_num_iters": int(cfg.get("topology_num_iters", 10)),
+        "axis_alignment_weight": float(cfg.get("axis_alignment_weight", 0.0)),
+        "axis_alignment_num_iters": int(cfg.get("axis_alignment_num_iters", 8)),
         "pos_weight": None,
         "pos_weight_value": 1.0,
     }
@@ -354,6 +356,7 @@ def evaluate_epoch(
     bce_sum = 0.0
     dice_loss_sum = 0.0
     topology_sum = 0.0
+    axis_sum = 0.0
     n = 0
     tp = fp = tn = fn = 0.0
     skel_pred_on_target = skel_pred_total = skel_target_on_pred = skel_target_total = 0.0
@@ -377,10 +380,20 @@ def evaluate_epoch(
             topology_weight=loss_cfg["topology_weight"],
             topology_num_iters=loss_cfg["topology_num_iters"],
         )
+        axis_loss_value = main_logits.new_zeros(())
+        axis_weight = float(loss_cfg.get("axis_alignment_weight", 0.0))
+        if axis_weight > 0.0 and hasattr(model, "axis_alignment_loss"):
+            axis_loss_value = model.axis_alignment_loss(
+                y,
+                valid_mask,
+                num_iters=int(loss_cfg.get("axis_alignment_num_iters", 8)),
+            )
+            loss = loss + axis_weight * axis_loss_value
         loss_sum += loss.item() * x.size(0)
         bce_sum += aux["bce_loss"] * x.size(0)
         dice_loss_sum += aux["dice_loss"] * x.size(0)
         topology_sum += aux["topology_loss"] * x.size(0)
+        axis_sum += axis_loss_value.item() * x.size(0)
         c_tp, c_fp, c_tn, c_fn = binary_confusion_counts(
             main_logits,
             y,
@@ -416,6 +429,7 @@ def evaluate_epoch(
         "val_bce_loss": bce_sum / max(n, 1),
         "val_dice_loss": dice_loss_sum / max(n, 1),
         "val_topology_loss": topology_sum / max(n, 1),
+        "val_axis_loss": axis_sum / max(n, 1),
         "val_dice": metrics["dice"],
         "val_iou": metrics["iou"],
         "val_precision": metrics["precision"],
@@ -484,6 +498,7 @@ def train_one_epoch(
         aux_sum = 0.0
         boundary_sum = 0.0
         topology_sum = 0.0
+        axis_sum = 0.0
         tp = fp = tn = fn = 0.0
         skel_pred_on_target = skel_pred_total = skel_target_on_pred = skel_target_total = 0.0
         for x, y, valid_mask in tqdm(loader, desc="train", leave=False):
@@ -508,6 +523,15 @@ def train_one_epoch(
                 topology_num_iters=loss_cfg["topology_num_iters"],
             )
             loss = base_loss
+            axis_loss_value = main_logits.new_zeros(())
+            axis_weight = float(loss_cfg.get("axis_alignment_weight", 0.0))
+            if axis_weight > 0.0 and hasattr(model, "axis_alignment_loss"):
+                axis_loss_value = model.axis_alignment_loss(
+                    y,
+                    valid_mask,
+                    num_iters=int(loss_cfg.get("axis_alignment_num_iters", 8)),
+                )
+                loss = loss + axis_weight * axis_loss_value
 
             if hasattr(model, "regularization_terms"):
                 reg_terms = model.regularization_terms()
@@ -528,6 +552,7 @@ def train_one_epoch(
             aux_sum += aux["aux_loss"] * x.size(0)
             boundary_sum += aux["boundary_loss"] * x.size(0)
             topology_sum += aux["topology_loss"] * x.size(0)
+            axis_sum += axis_loss_value.item() * x.size(0)
             c_tp, c_fp, c_tn, c_fn = binary_confusion_counts(
                 main_logits.detach(),
                 y,
@@ -566,6 +591,7 @@ def train_one_epoch(
             "train_aux_loss": aux_sum / max(n, 1),
             "train_boundary_loss": boundary_sum / max(n, 1),
             "train_topology_loss": topology_sum / max(n, 1),
+            "train_axis_loss": axis_sum / max(n, 1),
             "train_dice": seg_metrics["dice"],
             "train_iou": seg_metrics["iou"],
             "train_precision": seg_metrics["precision"],

@@ -47,6 +47,8 @@ aux_loss_weight: 0.1
 boundary_loss_weight: 0.05
 topology_loss_weight: 0.0
 topology_num_iters: 8
+axis_alignment_weight: 0.02
+axis_alignment_num_iters: 8
 bce_pos_weight: 6.0
 bce_pos_weight_min: 1.0
 bce_pos_weight_max: 20.0

@@ -1,141 +1,84 @@
-# STDH-2026 Paper 3 Draft (finalized metrics)
+# STDH-2026 Paper 3 Draft (Full Text)
 
-Paper title: **Cross-Domain Evaluation of Anisotropic Fuzzy Local Convolution for Thin-Structure Segmentation**
+## Title
+**Cross-Domain Evaluation of Anisotropic Fuzzy Local Convolution for Thin-Structure Segmentation**
 
-## Positioning (non-overlap)
+## Abstract
+Thin elongated structures are difficult to segment in both medical and remote-sensing images because they combine weak local contrast, branching topology, and local ambiguity. This paper presents a cross-domain evaluation of anisotropic fuzzy local convolution (AZ) used as a local aggregation mechanism inside a U-Net style segmentation pipeline. We evaluate the same mechanism on three datasets with different visual statistics: Roads_HF (small GIS roads), SpaceNet3/GlobalScaleRoad (larger satellite roads), and HRF_SegPlus (retinal vessels). The main claim is not universal superiority on every metric, but robust geometry-aware behavior in ambiguous regions and stronger structure preservation after domain calibration. In addition to overlap metrics, we analyze the internal geometric state of AZ by visualizing model-native orientation and anisotropy strength. Results show clear gains on SpaceNet3 and HRF after calibration, while Roads_HF remains near parity with baseline. We conclude that anisotropic fuzzy local aggregation is transferable across domains when geometry settings are tuned and interpreted consistently.
 
-- Paper 1: theoretical operator properties.
-- Paper 2: single-domain medical benchmark.
-- Paper 3 (this paper): cross-domain transfer behavior of one local mechanism.
-
-Domains used here:
-1. Roads_HF (small GIS roads),
-2. SpaceNet3/GlobalScaleRoad (larger GIS roads),
-3. HRF_SegPlus (medical vessels).
-
-## Abstract (ready)
-
-This paper presents a cross-domain study of anisotropic fuzzy local convolution for thin-structure segmentation. We evaluate one local aggregation mechanism on three domains with different visual statistics: a small road dataset (Roads_HF), a larger satellite road dataset (SpaceNet3/GlobalScaleRoad), and a medical vessel dataset (HRF_SegPlus). The method is integrated into a U-Net style pipeline and compared against a matched baseline. Our primary claim is not universal superiority on every metric, but better preservation of thin-structure connectivity in low-contrast and locally ambiguous regions. Accordingly, we report overlap and structure-aware metrics and analyze precision-recall operating regimes across domains. The results show that with domain-specific calibration, anisotropic fuzzy aggregation improves overlap on HRF and SpaceNet3 while remaining near parity on Roads_HF. This supports practical reuse of one geometric local mechanism across heterogeneous imaging tasks.
-
-Keywords: thin-structure segmentation, anisotropic fuzzy local convolution, vessel segmentation, road segmentation, cross-domain evaluation
+**Keywords:** thin-structure segmentation, anisotropic fuzzy local convolution, retinal vessels, road extraction, cross-domain evaluation, geometric interpretability
 
 ## I. Introduction
+Segmentation of thin structures remains unstable when the target class is long, narrow, branching, and partially low-contrast. This pattern appears in both digital healthcare (vessels) and geospatial vision (roads). Standard isotropic local aggregation often treats longitudinal and transverse neighborhoods too similarly, which may reduce continuity and damage weak branches.
 
-Thin elongated structures appear in both medical and remote-sensing imaging, but local ambiguity and weak contrast make segmentation unstable. Standard isotropic local aggregation often loses weak branches and breaks continuity. We evaluate anisotropic fuzzy local aggregation as a transferable local mechanism and study how its operating regime changes across domains.
+The method studied in this work introduces anisotropic fuzzy local aggregation. Its local compatibility combines directional geometry and fuzzy local agreement, so that neighborhood contributions are weighted by both spatial orientation and regime confidence. This mechanism has been analyzed in our previous works from theoretical and single-domain perspectives. The purpose of the current paper is different: we evaluate whether one geometric local mechanism is reusable across heterogeneous domains and how its operating regime should be interpreted.
 
-## II. Method (compact)
+The paper makes three contributions:
+1. A cross-domain benchmark on Roads_HF, SpaceNet3, and HRF_SegPlus under matched baseline/proposed protocols.
+2. A model-native geometry visualization protocol that connects segmentation changes to internal AZ directional states.
+3. A practical architecture correction: thesis-default AZ geometry is configured to learn local hyperbolic orientation instead of relying on fixed legacy geometry.
 
-The model uses a U-Net style encoder-decoder with anisotropic fuzzy local aggregation blocks. Local compatibility combines directional geometry and fuzzy local agreement, followed by normalization in the local neighborhood. Baseline and AZ variants are trained under matched dataset protocols.
+## II. Method
 
-### II-A. Geometry Visualization Protocol (core contribution of Paper 3)
+### A. AZ local aggregation
+For pixel \(p\), neighborhood point \(q\), and regime \(r \in \{1,\dots,R\}\), local compatibility is:
 
-To avoid purely qualitative overlays, we visualize internal AZ geometry using explicit per-pixel quantities from AZ snapshots.
+\[
+w_r(p,q)=\mu_r(p)\mu_r(q)\exp\left(-\frac{d_u^2}{\sigma_u^2}-\frac{d_s^2}{\sigma_s^2}\right),
+\]
 
-For each valid pixel `p`:
-- fuzzy memberships `mu_r(p)`, `r=1..R`;
-- dominant regime `r*(p) = argmax_r mu_r(p)`;
-- regime confidence `c(p) = max_r mu_r(p)`.
+where \(d_u=\langle q-p,u_r\rangle\), \(d_s=\langle q-p,s_r\rangle\), \(\mu_r\in[0,1]\) is fuzzy membership, and \((u_r,s_r)\) defines local directional axes. Weighted local aggregation is followed by normalization and feature mixing in a U-Net style encoder-decoder pipeline.
 
-Directional field:
-- if `theta_map` is available:
-  `theta(p) = theta_map[r*(p), p]`;
-- otherwise:
-  `theta(p) = atan2(u_{r*,y}, u_{r*,x})`.
+### B. Why we visualize orientation axis, not signed flow
+Because the kernel uses squared projections \(d_u^2,d_s^2\), it is invariant to sign flip of direction:
 
-Signed anisotropy contribution:
-`g(p) = tanh(log(sigma_u/sigma_s)) * c(p)`, clipped to `[-1, 1]`.
+\[
+u_r \equiv -u_r,\quad \theta \equiv \theta+\pi.
+\]
 
-This gives three interpretable maps:
-1. direction `theta(p)`,
-2. anisotropy contribution `g(p)`,
-3. confidence `c(p)`.
+Therefore, the current model identifies orientation axis (angle modulo \(\pi\)), not one-way polarity (“forward/backward flow”). For this reason, the correct interpretation for panel-level geometry visualization is axis glyphs aligned with model \(\theta\), not one-way arrows with semantic flow direction.
 
-For reproducibility, direction visualization is model-native:
-- panel-3 direction is rendered directly from raw `theta_map` of AZ snapshot,
-- no tangent fitting or external directional post-correction is applied.
-- to prevent directional collapse to a single angle, training includes a
-  direction-collapse regularizer computed from model-native `theta_map`
-  concentration statistics.
+### C. Geometry states used for interpretation
+From the AZ snapshot for valid pixel \(p\):
+- dominant regime \(r^*(p)=\arg\max_r \mu_r(p)\),
+- confidence \(c(p)=\max_r \mu_r(p)\),
+- model orientation \(\theta(p)\) from `theta_map`,
+- signed anisotropy gain:
+\[
+g(p)=\tanh(\log(\sigma_u/\sigma_s))\cdot c(p), \quad g\in[-1,1].
+\]
 
-### II-B. Figure construction used in this paper
+Interpretation panels:
+1. Input + GT overlay.
+2. Error-centric baseline vs AZ difference map.
+3. Model orientation axis map on skeletonized object support.
+4. Anisotropy strength map using robust normalization of \(|g(p)|\).
 
-We build one 4-panel figure per case:
-1. `Input + GT`,
-2. `error-centric Baseline vs AZ difference`,
-3. `AZ orientation axis map`,
-4. `anisotropy strength map`.
+### D. Architecture correction applied
+To keep interpretation and training consistent, `az_thesis` defaults were corrected:
+- geometry mode: `local_hyperbolic`,
+- learnable directions: `learn_directions=True`,
+- anti-collapse regularization: `direction_collapse` enabled (small positive weight by default or explicit config).
 
-Error-centric difference map (relative to GT):
-- green: AZ fixed baseline false negative,
-- blue: AZ removed baseline false positive,
-- orange: AZ added false positive,
-- red: AZ introduced new false negative.
+Backward compatibility for older checkpoints (historical fixed-cat geometry) is preserved by loader fallback.
 
-Orientation-axis glyphs are drawn on object support
-`M_obj = (AZ_pred OR GT) AND valid_mask`,
-then skeletonized and pruned (small components removed), so axis glyphs follow elongated structures rather than background texture.
+## III. Experimental Setup
 
-Anisotropy strength map uses `|g(p)|` with robust in-object normalization
-(10th to 95th percentile) and a colorblind-friendly blue-to-orange ramp.
+### A. Datasets
+1. **Roads_HF**: 31 image/mask pairs; split train/val/test = 19/6/6; nominal image size \(1280\times720\).
+2. **SpaceNet3 prepared (GlobalScaleRoad split)**: train 179 / val 39 / in-domain-test 39.
+3. **HRF_SegPlus**: train 30 / test 15; nominal size around \(500\times500\).
 
-### II-C. Why orientation axis is correct for the current AZ model
-
-The current AZ local kernel is even with respect to directional projection:
-
-`w_r(p,q) = mu_r(p) mu_r(q) exp(-(d_u^2/sigma_u^2) - (d_s^2/sigma_s^2))`,
-
-where `d_u = <q-p, u_r>` and `d_s = <q-p, s_r>`.
-
-Because squared terms are used, the kernel is invariant to sign flip:
-
-`u_r` and `-u_r` produce the same local compatibility.
-
-Therefore, the model identifies an **orientation axis** (`theta` modulo `pi`), not a signed flow direction ("forward/backward").  
-This is why one-way arrowheads can be misleading for the current formulation, while bidirectional line glyphs along structures are mathematically correct.
-
-Practical implication for this paper:
-- panel-3 is interpreted as **model orientation field** (`theta_map`), not vessel flow.
-- signed anisotropy magnitude is still meaningful through `|g(p)|` and confidence `c(p)`.
-
-If signed direction is required in future work, the model must be extended with:
-1. an additional signed direction head (e.g., `(v_x, v_y)`),
-2. a sign-aware supervision term (directional, not axial),
-3. a reproducible pseudo-target construction on skeleton graph for polarity.
-
-### II-D. Reproducibility note for final visualization
-
-Final orientation-axis figure was generated by:
-
-`python scripts/export_geometry_clean_article_figure.py --results-dir results --run article3_spacenet_sprint_v3_recover --baseline-run article3_spacenet_sprint_v3_baseline --output-dir results/a3_final_package/final_article3/figures --device cpu`
-
-Current exported file for paper package:
-
-`results/a3_final_package/final_article3/figures/geometry_clean_global_roads_spacenet3_paris_img0175.png`
-
-### II-E. Architecture correction applied in codebase
-
-To keep geometric interpretation consistent with training defaults, the AZ thesis variant was corrected in the code:
-
-- `az_thesis` now defaults to learnable local hyperbolic geometry (`local_hyperbolic`, `learn_directions=True`);
-- legacy fixed-cat setup is kept only for historical `az_sota` variants;
-- a small default direction-collapse regularization is automatically enabled for `az_thesis` when not explicitly set in config.
-
-This change removes the previous mismatch where visualization expected learnable orientation behavior but the default thesis variant was initialized with fixed cat-map directions.
-
-## III. Datasets and Protocol
-
-- **Roads_HF**: 31 image/mask pairs, split `train 19 / val 6 / test 6`, resolution `1280x720`.
-- **SpaceNet3 prepared**: split `train 179 / val 39 / in-domain-test 39`.
-- **HRF_SegPlus**: `train 30 / test 15`, nominal image size `500x500`.
-
-Common setup:
-- optimizer: Adam,
-- threshold selection: validation sweep,
-- reported metrics: Dice, IoU, Precision, Recall, clDice.
+### B. Protocol
+- Baseline: U-Net style model without AZ block.
+- Proposed: AZ-Thesis variant with anisotropic fuzzy local aggregation.
+- Optimizer: Adam.
+- Threshold policy: validation sweep (Dice-based selection).
+- Main metrics: Dice, IoU, Precision, Recall, clDice.
 
 ## IV. Results
 
-### A. Main table
+### A. Main quantitative table
 
 | Dataset | Model | Dice | IoU | Precision | Recall | clDice |
 |---|---|---:|---:|---:|---:|---:|
@@ -146,71 +89,40 @@ Common setup:
 | HRF_SegPlus | Baseline | 0.6458 | 0.4769 | 0.6165 | 0.6780 | 0.5361 |
 | HRF_SegPlus | AZ-Thesis | 0.6822 | 0.5177 | 0.7103 | 0.6562 | 0.5140 |
 
-### B. Delta (AZ - Baseline)
-
-- Roads_HF: Dice `-0.0014`, IoU `-0.0026`, Precision `+0.0006`, Recall `-0.0033`, clDice `+0.0017`.
-- SpaceNet3 (recovered): Dice `+0.0448`, IoU `+0.0437`, Precision `+0.0525`, Recall `+0.0370`, clDice `+0.0664`.
-- HRF_SegPlus: Dice `+0.0364`, IoU `+0.0408`, Precision `+0.0938`, Recall `-0.0219`, clDice `-0.0220`.
+### B. Delta AZ - Baseline
+- **Roads_HF:** Dice -0.0014, IoU -0.0026, Precision +0.0006, Recall -0.0033, clDice +0.0017.
+- **SpaceNet3:** Dice +0.0448, IoU +0.0437, Precision +0.0525, Recall +0.0370, clDice +0.0664.
+- **HRF_SegPlus:** Dice +0.0364, IoU +0.0408, Precision +0.0938, Recall -0.0219, clDice -0.0220.
 
 ## V. Discussion
 
-The same geometric local prior is transferable, but the best operating regime is domain-dependent. SpaceNet3 illustrates this clearly: an initial AZ setup was conservative and underperformed baseline; after calibration of AZ depth/mix and residual contribution, AZ surpassed baseline on overlap and structure metrics. This indicates that deployment should include lightweight domain-specific calibration rather than a fixed universal setting.
+### A. Cross-domain behavior
+The same AZ mechanism does not produce identical gains across domains. This is expected because target geometry, contrast profile, and annotation style differ. The strongest quantitative gain is observed on SpaceNet3 after calibration, indicating that the mechanism can improve both overlap and structure-sensitive behavior when configured to the domain.
 
-From the visualization side, the same runs show that AZ improvements are spatially concentrated on thin elongated fragments where directional agreement is high and anisotropy strength is non-zero. This supports the interpretation that gains are linked to geometric local aggregation rather than threshold-only effects.
+### B. Structure-aware interpretation
+The geometry protocol shows where AZ corrections happen and how they align with model orientation and anisotropy activity. Instead of purely qualitative “pretty masks,” the analysis links error corrections to explicit internal quantities \((\theta, g, c)\). This is especially useful in reviewer dialogue because improvements become mechanistically explainable.
+
+### C. Limitations
+1. Current formulation models orientation axis, not signed directional flow.
+2. Trade-offs between Precision and Recall can vary by domain.
+3. Full statistical significance analysis over many seeds remains future work for this cross-domain package.
 
 ## VI. Conclusion
+Anisotropic fuzzy local convolution is a practical cross-domain local mechanism for thin-structure segmentation when domain calibration is applied. The method improves key metrics on SpaceNet3 and HRF while staying near baseline on Roads_HF, and the proposed model-native geometry visualization provides interpretable evidence of how local anisotropic behavior influences segmentation outcomes. This combination of transferability and interpretability makes AZ a useful candidate for robust elongated-structure analysis in digital healthcare and remote sensing workflows.
 
-Cross-domain evaluation shows that anisotropic fuzzy local aggregation is practically reusable across heterogeneous thin-structure segmentation tasks. With calibrated settings, AZ improves overlap on HRF and SpaceNet3, while remaining near parity on Roads_HF.
+## VII. Reproducibility Notes
+- Final geometry figure command:
 
-## Run references (final)
+`python scripts/export_geometry_clean_article_figure.py --results-dir results --run article3_spacenet_sprint_v3_recover --baseline-run article3_spacenet_sprint_v3_baseline --sample-index 13 --output-dir results/a3_final_package/final_article3/figures --device cpu`
 
+- Final figure used in paper:
+
+`results/a3_final_package/final_article3/figures/geometry_clean_global_roads_spacenet3_paris_img0175.png`
+
+## VIII. Run References
 - Roads_HF baseline: `results/article3_roads_hf_s42_e25_gpu_20260428_123652_baseline/metrics.json`
 - Roads_HF AZ: `results/article3_roads_hf_s42_e25_gpu_20260428_123652_az_thesis/metrics.json`
 - SpaceNet3 baseline: `results/article3_spacenet_s42_e12_gpu_20260428_123652_baseline/metrics.json`
 - SpaceNet3 AZ recovered: `results/article3_spacenet_recover_azthesis_continue_s42_e12_20260428_135128/metrics.json`
 - HRF baseline: `results/article3_hrf_baseline_s42_e40/metrics.json`
 - HRF AZ: `results/article3_hrf_final_s42_e40/metrics.json`
-
-Figure assets for this paper:
-- Main geometry figure: `results/a3_final_package/final_article3/figures/geometry_clean_global_roads_spacenet3_paris_img0175.png`
-- Case-analysis report: `results/a3_final_package/final_article3/figures/spacenet_v3_advantage_report_ru.md`
-
-## VII. Final Summary (ready to paste)
-
-This study validates anisotropic fuzzy local convolution as a reusable local mechanism for thin-structure segmentation across heterogeneous domains.  
-The key practical result is not uniform superiority on every metric, but a stable geometry-driven gain regime: strong improvement on SpaceNet3 and HRF after domain calibration, with near-parity behavior on Roads_HF.  
-Model interpretation is made explicit through a reproducible geometry protocol (error-centric delta map, model-native orientation axis map, anisotropy strength map), which links segmentation changes to internal AZ geometric states.
-
-## VIII. What to submit (article package checklist)
-
-1. Manuscript text source (DOC): based on this draft.
-2. Final PDF.
-3. Main figure:
-   - `results/a3_final_package/final_article3/figures/geometry_clean_global_roads_spacenet3_paris_img0175.png`
-4. Optional supplementary case note:
-   - `results/a3_final_package/final_article3/figures/spacenet_v3_advantage_report_ru.md`
-5. If needed for reproducibility statement, include the command from section II-D.
-
-## IX. One-paragraph final conclusion (camera-ready style)
-
-In conclusion, anisotropic fuzzy local convolution is effective as a cross-domain local aggregation mechanism for elongated structures when configured per domain. On SpaceNet3 and HRF, calibrated AZ settings provide meaningful overlap gains and improved structure-sensitive behavior, while on Roads_HF the method remains close to baseline quality. The proposed visualization protocol further improves interpretability by exposing model-native orientation and anisotropy activity, making performance differences explainable in geometric terms rather than by threshold effects alone.
-
-## X. Technical Validation Status (implementation check)
-
-Performed checks before release:
-
-1. Code integrity:
-   - `python -m py_compile train.py utils.py models/azconv.py scripts/export_geometry_attention_story.py scripts/export_geometry_clean_article_figure.py scripts/eval_direction_diversity.py`
-   - status: passed.
-
-2. Architecture defaults:
-   - `az_thesis` defaults switched to learnable local geometry (`local_hyperbolic`, `learn_directions=True`);
-   - explicit SpaceNet3 recover config fixed accordingly (`configs/article3_spacenet_sprint_v3_recover.yaml`).
-
-3. Backward compatibility:
-   - old checkpoints with historical `fixed_cat_map` geometry now load through compatibility fallback in `scripts/export_geometry_attention_story.py`.
-
-4. Visualization consistency:
-   - panel-3 is orientation-axis (model `theta_map`), not signed flow direction;
-   - final figure selected for readability and article usage:
-     `results/a3_final_package/final_article3/figures/geometry_clean_global_roads_spacenet3_paris_img0175.png`.

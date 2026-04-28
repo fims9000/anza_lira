@@ -272,28 +272,47 @@ def _direction_gain_confidence_maps(snapshot: dict[str, Any], valid_mask: np.nda
     mu = np.asarray(snapshot["mu_map"], dtype=np.float32)
     valid = valid_mask > 0.5
     dominant = mu.argmax(axis=0)
-    confidence = mu.max(axis=0)
+    rule_confidence = mu.max(axis=0)
 
     if "theta_map" in snapshot:
         theta_map = np.asarray(snapshot["theta_map"], dtype=np.float32)
         sigma_u_map = np.asarray(snapshot["sigma_u_map"], dtype=np.float32)
         sigma_s_map = np.asarray(snapshot["sigma_s_map"], dtype=np.float32)
-        h, w = dominant.shape
-        yy, xx = np.indices((h, w))
-        direction = theta_map[dominant, yy, xx]
+        # Axis (undirected) aggregation from model outputs:
+        # theta is periodic modulo pi -> use doubled-angle mean.
+        cos2 = np.cos(2.0 * theta_map)
+        sin2 = np.sin(2.0 * theta_map)
+        wsum = np.maximum(mu.sum(axis=0), 1e-6)
+        c = (mu * cos2).sum(axis=0) / wsum
+        s = (mu * sin2).sum(axis=0) / wsum
+        direction = 0.5 * np.arctan2(s, c)
+        # consistency in [0,1]: 1 = all rules agree on one axis.
+        axis_consistency = np.clip(np.sqrt(c * c + s * s), 0.0, 1.0)
+        confidence = np.clip(rule_confidence * axis_consistency, 0.0, 1.0)
+
         log_ratio = _safe_log_ratio(sigma_u_map, sigma_s_map)
-        signed_gain = np.tanh(log_ratio[dominant, yy, xx]) * confidence
+        gain_per_rule = np.tanh(log_ratio)
+        signed_gain = ((mu * gain_per_rule).sum(axis=0) / wsum) * confidence
     else:
         u_vec = np.asarray(snapshot.get("u_vec"), dtype=np.float32)
         sigma_u = np.asarray(snapshot.get("sigma_u"), dtype=np.float32)
         sigma_s = np.asarray(snapshot.get("sigma_s"), dtype=np.float32)
         if u_vec.size == 0:
-            zeros = np.zeros_like(confidence, dtype=np.float32)
+            zeros = np.zeros_like(rule_confidence, dtype=np.float32)
             return zeros, zeros, zeros
         angles = np.arctan2(u_vec[:, 1], u_vec[:, 0])
         rule_log_ratio = _safe_log_ratio(sigma_u, sigma_s)
-        direction = angles[dominant]
-        signed_gain = np.tanh(rule_log_ratio[dominant]) * confidence
+        cos2 = np.cos(2.0 * angles)[:, None, None]
+        sin2 = np.sin(2.0 * angles)[:, None, None]
+        wsum = np.maximum(mu.sum(axis=0), 1e-6)
+        c = (mu * cos2).sum(axis=0) / wsum
+        s = (mu * sin2).sum(axis=0) / wsum
+        direction = 0.5 * np.arctan2(s, c)
+        axis_consistency = np.clip(np.sqrt(c * c + s * s), 0.0, 1.0)
+        confidence = np.clip(rule_confidence * axis_consistency, 0.0, 1.0)
+
+        gain_per_rule = np.tanh(rule_log_ratio)[:, None, None]
+        signed_gain = ((mu * gain_per_rule).sum(axis=0) / wsum) * confidence
 
     target_h, target_w = valid.shape
     if direction.shape != (target_h, target_w):

@@ -79,6 +79,7 @@ class AZConv2d(nn.Module):
         self.pad = kernel_size // 2
         self._last_reg_terms: dict[str, torch.Tensor] = {}
         self._last_interpretation: dict[str, Any] = {}
+        self._last_live_interpretation: dict[str, torch.Tensor] = {}
 
         valid_modes = {"learned_angle", "fixed_cat_map", "learned_hyperbolic", "local_hyperbolic"}
         if self.cfg.geometry_mode not in valid_modes:
@@ -513,6 +514,79 @@ class AZConv2d(nn.Module):
     def interpretation_snapshot(self) -> dict[str, Any]:
         return self._last_interpretation
 
+    @staticmethod
+    def _soft_erode(mask: torch.Tensor) -> torch.Tensor:
+        p1 = -F.max_pool2d(-mask, kernel_size=(3, 1), stride=1, padding=(1, 0))
+        p2 = -F.max_pool2d(-mask, kernel_size=(1, 3), stride=1, padding=(0, 1))
+        return torch.minimum(p1, p2)
+
+    @staticmethod
+    def _soft_dilate(mask: torch.Tensor) -> torch.Tensor:
+        return F.max_pool2d(mask, kernel_size=3, stride=1, padding=1)
+
+    @classmethod
+    def _soft_open(cls, mask: torch.Tensor) -> torch.Tensor:
+        return cls._soft_dilate(cls._soft_erode(mask))
+
+    @classmethod
+    def _soft_skeletonize(cls, mask: torch.Tensor, num_iters: int = 10) -> torch.Tensor:
+        x = mask.clamp(0.0, 1.0)
+        skel = F.relu(x - cls._soft_open(x))
+        for _ in range(max(0, int(num_iters) - 1)):
+            x = cls._soft_erode(x)
+            delta = F.relu(x - cls._soft_open(x))
+            skel = skel + F.relu(delta - skel * delta)
+        return skel
+
+    def axis_alignment_loss(
+        self,
+        target: torch.Tensor,
+        valid_mask: torch.Tensor,
+        num_iters: int = 8,
+    ) -> torch.Tensor:
+        """Axis-only orientation alignment loss from model theta to GT structure tangent.
+
+        This is sign-invariant (theta and theta+pi are equivalent) and therefore
+        compatible with the current AZ kernel geometry.
+        """
+        live = self._last_live_interpretation
+        theta_map = live.get("theta_map")
+        mu = live.get("mu")
+        if theta_map is None or mu is None:
+            return target.new_zeros(())
+
+        # Differentiable dominant-axis estimate from rule mixture:
+        # theta_pred = 0.5 * atan2(sum_r mu_r sin(2 theta_r), sum_r mu_r cos(2 theta_r))
+        c2 = torch.cos(2.0 * theta_map)
+        s2 = torch.sin(2.0 * theta_map)
+        c_mix = (mu * c2).sum(dim=1)
+        s_mix = (mu * s2).sum(dim=1)
+        theta_pred = 0.5 * torch.atan2(s_mix, c_mix)
+
+        h, w = theta_pred.shape[-2:]
+        target_rs = F.interpolate(target, size=(h, w), mode="nearest")
+        valid_rs = F.interpolate(valid_mask, size=(h, w), mode="nearest")
+        target_rs = (target_rs > 0.5).float() * (valid_rs > 0.5).float()
+
+        # Build GT structural axis from soft skeleton + gradient tangent.
+        with torch.no_grad():
+            skel = self._soft_skeletonize(target_rs, num_iters=max(1, int(num_iters)))
+            skel = F.avg_pool2d(skel, kernel_size=5, stride=1, padding=2)
+            kx = target.new_tensor([[-1.0, 0.0, 1.0], [-2.0, 0.0, 2.0], [-1.0, 0.0, 1.0]]).view(1, 1, 3, 3)
+            ky = target.new_tensor([[-1.0, -2.0, -1.0], [0.0, 0.0, 0.0], [1.0, 2.0, 1.0]]).view(1, 1, 3, 3)
+            gx = F.conv2d(skel, kx, padding=1)
+            gy = F.conv2d(skel, ky, padding=1)
+            amp = torch.sqrt(gx * gx + gy * gy + 1e-8)
+            theta_gt = torch.atan2(gy, gx) + (math.pi * 0.5)
+            weight = (amp / (amp.amax(dim=(-2, -1), keepdim=True).clamp_min(1e-6))).clamp(0.0, 1.0)
+            weight = weight * target_rs * valid_rs
+
+        # Axis loss (sign-invariant): 1 - cos(2*(theta_pred - theta_gt))
+        d = theta_pred.unsqueeze(1) - theta_gt
+        loss_map = 1.0 - torch.cos(2.0 * d)
+        denom = weight.sum().clamp_min(1.0)
+        return (loss_map * weight).sum() / denom
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch, channels, height, width = x.shape
         patch_area = self.k * self.k
@@ -574,6 +648,11 @@ class AZConv2d(nn.Module):
             # normalize_mode == "none" -> keep raw compatibilities unchanged.
 
         self._update_regularization_terms(mu, gap, geom_smoothness, interp)
+        live_theta = interp.get("theta_map")
+        self._last_live_interpretation = {
+            "mu": mu,
+            "theta_map": live_theta if isinstance(live_theta, torch.Tensor) else None,
+        }
         self._update_interpretation_cache(mu, kern, compat, interp)
         agg = torch.einsum("brsl,bcsl->brcl", compat, v_un)
         agg_flat = agg.reshape(batch, self.R * channels, height, width)
@@ -637,6 +716,15 @@ class AZConvNet(nn.Module):
                     else:
                         totals[key] = value
         return totals
+
+    def axis_alignment_loss(self, target: torch.Tensor, valid_mask: torch.Tensor, num_iters: int = 8) -> torch.Tensor:
+        losses: list[torch.Tensor] = []
+        for module in self.modules():
+            if isinstance(module, AZConv2d):
+                losses.append(module.axis_alignment_loss(target, valid_mask, num_iters=num_iters))
+        if not losses:
+            return target.new_zeros(())
+        return torch.stack(losses).mean()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.head(self.features(x))

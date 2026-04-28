@@ -117,9 +117,6 @@ def _local_tangent_angle(skeleton: np.ndarray, y: int, x: int) -> float | None:
     nbs = _neighbors8(skeleton, y, x)
     if not nbs:
         return None
-    # Avoid branch nodes: orientation there is ambiguous and visually noisy.
-    if len(nbs) > 2:
-        return None
     # Smooth local tangent via PCA over a tiny neighborhood around the skeleton.
     r = 3
     h, w = skeleton.shape
@@ -187,8 +184,8 @@ def _draw_direction_arrows(
     dim = (base * 0.78).astype(np.uint8)
     pil = Image.fromarray(dim)
     draw = ImageDraw.Draw(pil)
-    points = _sample_skeleton_points(skeleton, valid > 0.5, max_points=6500)
-    points = _grid_filter_points(points, cell=6)
+    points = _sample_skeleton_points(skeleton, valid > 0.5, max_points=10000)
+    points = _grid_filter_points(points, cell=4)
     # Optional local axial smoothing from model-only orientation:
     # smooth cos(2*theta), sin(2*theta) and map back via 0.5*atan2.
     mask = ((skeleton > 0.5) & (valid > 0.5)).astype(np.float32)
@@ -217,30 +214,52 @@ def _draw_direction_arrows(
             m_blur[yy, xx] = msum
     direction_smooth = 0.5 * np.arctan2(s_blur, c_blur)
     use_smooth = m_blur > 1e-3
+    def _axial_diff(a: float, b: float) -> float:
+        d = abs(a - b)
+        while d > math.pi:
+            d -= math.pi
+        return min(d, math.pi - d)
+
+    def _axial_blend(a: float, b: float, wa: float, wb: float) -> float:
+        # Blend undirected angles through doubled-angle representation.
+        ca = math.cos(2.0 * a)
+        sa = math.sin(2.0 * a)
+        cb = math.cos(2.0 * b)
+        sb = math.sin(2.0 * b)
+        c = wa * ca + wb * cb
+        s = wa * sa + wb * sb
+        return 0.5 * math.atan2(s, c)
+
     for i, (y, x) in enumerate(points):
         if confidence is not None:
             c = float(confidence[y, x])
-            if c < 0.10:
+            if c < 0.03:
                 continue
         else:
             c = 1.0
-        # Strict model-only visualization: use AZ direction directly from snapshot.
-        # No tangent post-correction is applied here. We only use model theta and
-        # its axial smoothing (cos/sin of 2*theta) for readability.
-        ang = float(direction_smooth[y, x] if use_smooth[y, x] else direction[y, x])
-        ln = 5.0 + 7.0 * c
+        # Model-native orientation axis from AZ (theta map / rule mixture).
+        ang_model = float(direction_smooth[y, x] if use_smooth[y, x] else direction[y, x])
+        # Keep only clearly inconsistent outliers away from object tangent;
+        # keep threshold relaxed to preserve coverage on curved/branch regions.
+        ang_tan = _local_tangent_angle(skeleton, y, x)
+        if ang_tan is None:
+            continue
+        if _axial_diff(ang_model, ang_tan) > 1.15:  # ~66 deg
+            continue
+        ang = ang_model
+        ln = 4.8 + 5.8 * c
         dx = math.cos(ang) * ln
         dy = math.sin(ang) * ln
         x1, y1 = x - dx, y - dy
         x2, y2 = x + dx, y + dy
         # Draw centered orientation segment (axis, not one-way arrow).
-        draw.line((x1, y1, x2, y2), fill=(25, 25, 25), width=3)
-        draw.line((x1, y1, x2, y2), fill=(250, 250, 250), width=2)
+        draw.line((x1, y1, x2, y2), fill=(20, 20, 20), width=2)
+        draw.line((x1, y1, x2, y2), fill=(245, 245, 245), width=1)
         # End-caps improve readability in print and indicate an undirected axis.
         ux, uy = math.cos(ang + math.pi / 2.0), math.sin(ang + math.pi / 2.0)
-        cap = 1.4
-        draw.line((x1 - ux * cap, y1 - uy * cap, x1 + ux * cap, y1 + uy * cap), fill=(245, 245, 245), width=2)
-        draw.line((x2 - ux * cap, y2 - uy * cap, x2 + ux * cap, y2 + uy * cap), fill=(245, 245, 245), width=2)
+        cap = 1.0
+        draw.line((x1 - ux * cap, y1 - uy * cap, x1 + ux * cap, y1 + uy * cap), fill=(240, 240, 240), width=1)
+        draw.line((x2 - ux * cap, y2 - uy * cap, x2 + ux * cap, y2 + uy * cap), fill=(240, 240, 240), width=1)
     return np.asarray(pil, dtype=np.uint8)
 
 

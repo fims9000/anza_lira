@@ -343,6 +343,15 @@ class _RegularizedSegmentationMixin:
             "hybrid_mix_target": zero,
         }
 
+    def axis_alignment_loss(self, target: torch.Tensor, valid_mask: torch.Tensor, num_iters: int = 8) -> torch.Tensor:
+        losses: list[torch.Tensor] = []
+        for module in self.modules():
+            if isinstance(module, AZConv2d):
+                losses.append(module.axis_alignment_loss(target, valid_mask, num_iters=num_iters))
+        if not losses:
+            return target.new_zeros(())
+        return torch.stack(losses).mean()
+
 
 class BaselineUNet(_RegularizedSegmentationMixin, nn.Module):
     """Small U-Net baseline for retinal vessel segmentation."""
