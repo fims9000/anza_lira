@@ -187,34 +187,60 @@ def _draw_direction_arrows(
     dim = (base * 0.78).astype(np.uint8)
     pil = Image.fromarray(dim)
     draw = ImageDraw.Draw(pil)
-    points = _sample_skeleton_points(skeleton, valid > 0.5, max_points=5000)
+    points = _sample_skeleton_points(skeleton, valid > 0.5, max_points=6500)
     points = _grid_filter_points(points, cell=6)
+    # Optional local axial smoothing from model-only orientation:
+    # smooth cos(2*theta), sin(2*theta) and map back via 0.5*atan2.
+    mask = ((skeleton > 0.5) & (valid > 0.5)).astype(np.float32)
+    theta2_c = np.cos(2.0 * direction).astype(np.float32) * mask
+    theta2_s = np.sin(2.0 * direction).astype(np.float32) * mask
+    k = 5
+    r = k // 2
+    pad_mode = "edge"
+    c_pad = np.pad(theta2_c, ((r, r), (r, r)), mode=pad_mode)
+    s_pad = np.pad(theta2_s, ((r, r), (r, r)), mode=pad_mode)
+    m_pad = np.pad(mask, ((r, r), (r, r)), mode=pad_mode)
+    c_blur = np.zeros_like(theta2_c)
+    s_blur = np.zeros_like(theta2_s)
+    m_blur = np.zeros_like(mask)
+    for yy in range(theta2_c.shape[0]):
+        y0 = yy
+        y1 = yy + k
+        for xx in range(theta2_c.shape[1]):
+            x0 = xx
+            x1 = xx + k
+            msum = float(m_pad[y0:y1, x0:x1].sum())
+            if msum <= 1e-6:
+                continue
+            c_blur[yy, xx] = float(c_pad[y0:y1, x0:x1].sum()) / msum
+            s_blur[yy, xx] = float(s_pad[y0:y1, x0:x1].sum()) / msum
+            m_blur[yy, xx] = msum
+    direction_smooth = 0.5 * np.arctan2(s_blur, c_blur)
+    use_smooth = m_blur > 1e-3
     for i, (y, x) in enumerate(points):
         if confidence is not None:
             c = float(confidence[y, x])
-            if c < 0.12:
+            if c < 0.10:
                 continue
         else:
             c = 1.0
-        # Use model-derived AZ direction directly (not only geometric tangent).
-        ang = float(direction[y, x])
-        ln = 5.5 + 5.5 * c
+        # Strict model-only visualization: use AZ direction directly from snapshot.
+        # No tangent post-correction is applied here. We only use model theta and
+        # its axial smoothing (cos/sin of 2*theta) for readability.
+        ang = float(direction_smooth[y, x] if use_smooth[y, x] else direction[y, x])
+        ln = 5.0 + 7.0 * c
         dx = math.cos(ang) * ln
         dy = math.sin(ang) * ln
         x1, y1 = x - dx, y - dy
         x2, y2 = x + dx, y + dy
-        # dark outline + white core improves readability on bright/dark regions.
+        # Draw centered orientation segment (axis, not one-way arrow).
         draw.line((x1, y1, x2, y2), fill=(25, 25, 25), width=3)
         draw.line((x1, y1, x2, y2), fill=(250, 250, 250), width=2)
-        ah = 3.0
-        a1 = ang + 2.55
-        a2 = ang - 2.55
-        hx1, hy1 = x2 + ah * math.cos(a1), y2 + ah * math.sin(a1)
-        hx2, hy2 = x2 + ah * math.cos(a2), y2 + ah * math.sin(a2)
-        draw.line((x2, y2, hx1, hy1), fill=(25, 25, 25), width=3)
-        draw.line((x2, y2, hx2, hy2), fill=(25, 25, 25), width=3)
-        draw.line((x2, y2, hx1, hy1), fill=(250, 250, 250), width=2)
-        draw.line((x2, y2, hx2, hy2), fill=(250, 250, 250), width=2)
+        # End-caps improve readability in print and indicate an undirected axis.
+        ux, uy = math.cos(ang + math.pi / 2.0), math.sin(ang + math.pi / 2.0)
+        cap = 1.4
+        draw.line((x1 - ux * cap, y1 - uy * cap, x1 + ux * cap, y1 + uy * cap), fill=(245, 245, 245), width=2)
+        draw.line((x2 - ux * cap, y2 - uy * cap, x2 + ux * cap, y2 + uy * cap), fill=(245, 245, 245), width=2)
     return np.asarray(pil, dtype=np.uint8)
 
 
@@ -295,38 +321,77 @@ def _draw_anisotropy_strength_map(
 
 
 def _panel(img: np.ndarray, title: str, w: int, h: int) -> Image.Image:
-    bar = 38
+    top_bar = 62
+    bottom_bar = 44
     panel = Image.fromarray(img.astype(np.uint8)).resize((w, h), Image.Resampling.LANCZOS)
-    out = Image.new("RGB", (w, h + bar), color=(244, 243, 239))
-    out.paste(panel, (0, bar))
+    out = Image.new("RGB", (w, h + top_bar + bottom_bar), color=(244, 243, 239))
+    out.paste(panel, (0, top_bar))
     d = ImageDraw.Draw(out)
-    d.rectangle((0, 0, w, bar), fill=(22, 30, 44))
-    d.text((10, 11), title, fill=(255, 255, 255))
+    d.rectangle((0, 0, w, top_bar), fill=(22, 30, 44))
+    d.rectangle((0, h + top_bar, w, h + top_bar + bottom_bar), fill=(18, 26, 36))
+    words = title.split()
+    lines: list[str] = []
+    cur = ""
+    max_w = w - 20
+    for token in words:
+        cand = token if not cur else f"{cur} {token}"
+        if d.textlength(cand) <= max_w or not cur:
+            cur = cand
+        else:
+            lines.append(cur)
+            cur = token
+    if cur:
+        lines.append(cur)
+    lines = lines[:2]
+    y = 9
+    for ln in lines:
+        d.text((10, y), ln, fill=(255, 255, 255))
+        y += 20
     return out
 
 
-def _add_diff_legend(image: np.ndarray) -> np.ndarray:
-    pil = Image.fromarray(image.astype(np.uint8))
-    d = ImageDraw.Draw(pil)
-    h, w = image.shape[:2]
-    bar_h = 34
-    x0, y0, x1, y1 = 10, h - bar_h - 10, w - 10, h - 10
-    d.rounded_rectangle((x0, y0, x1, y1), radius=9, fill=(18, 26, 36), outline=(90, 110, 130), width=1)
+def _panel_with_bottom_legend(
+    img: np.ndarray,
+    title: str,
+    w: int,
+    h: int,
+    legend_items: list[tuple[tuple[int, int, int], str]],
+) -> Image.Image:
+    top_bar = 62
+    bottom_bar = 44
+    panel = Image.fromarray(img.astype(np.uint8)).resize((w, h), Image.Resampling.LANCZOS)
+    out = Image.new("RGB", (w, h + top_bar + bottom_bar), color=(244, 243, 239))
+    out.paste(panel, (0, top_bar))
+    d = ImageDraw.Draw(out)
+    d.rectangle((0, 0, w, top_bar), fill=(22, 30, 44))
+    d.rectangle((0, h + top_bar, w, h + top_bar + bottom_bar), fill=(18, 26, 36))
 
-    # One-line compact legend (left-to-right), so we do not hide image details.
-    items = [
-        ((72, 194, 110), "fix FN"),
-        ((56, 128, 196), "remove FP"),
-        ((232, 166, 35), "add FP"),
-        ((220, 78, 72), "new FN"),
-    ]
-    cursor_x = x0 + 10
-    y_box = y0 + 10
-    for color, label in items:
+    words = title.split()
+    lines: list[str] = []
+    cur = ""
+    max_w = w - 20
+    for token in words:
+        cand = token if not cur else f"{cur} {token}"
+        if d.textlength(cand) <= max_w or not cur:
+            cur = cand
+        else:
+            lines.append(cur)
+            cur = token
+    if cur:
+        lines.append(cur)
+    lines = lines[:2]
+    y = 9
+    for ln in lines:
+        d.text((10, y), ln, fill=(255, 255, 255))
+        y += 20
+
+    cursor_x = 10
+    y_box = h + top_bar + 14
+    for color, label in legend_items:
         d.rectangle((cursor_x, y_box, cursor_x + 12, y_box + 12), fill=color)
         d.text((cursor_x + 18, y_box - 1), label, fill=(218, 226, 235))
-        cursor_x += 110
-    return np.asarray(pil, dtype=np.uint8)
+        cursor_x += 150
+    return out
 
 
 def main() -> None:
@@ -388,7 +453,6 @@ def main() -> None:
 
     panel_a = _overlay_mask(image_rgb, gt, (86, 180, 233), alpha=0.44)
     panel_b = _difference_map(base_pred, az_pred, gt, v)
-    panel_b = _add_diff_legend(panel_b)
     panel_c = _draw_direction_arrows(
         image_rgb=image_rgb,
         direction=direction,
@@ -406,15 +470,28 @@ def main() -> None:
 
     w, h = 620, 620
     p1 = _panel(panel_a, "Input + Ground Truth", w, h)
-    p2 = _panel(panel_b, "Baseline vs AZ (error difference vs GT)", w, h)
-    p3 = _panel(panel_c, "AZ Direction Arrows (Model-Derived)", w, h)
+    p2 = _panel_with_bottom_legend(
+        panel_b,
+        "Baseline vs AZ error difference vs GT",
+        w,
+        h,
+        legend_items=[
+            ((72, 194, 110), "green: fix FN"),
+            ((56, 128, 196), "blue: remove FP"),
+            ((232, 166, 35), "orange: add FP"),
+            ((220, 78, 72), "red: new FN"),
+        ],
+    )
+    p3 = _panel(panel_c, "AZ Orientation Axis (model theta map)", w, h)
     p4 = _panel(panel_d, "Anisotropy Strength Map", w, h)
 
-    canvas = Image.new("RGB", (2 * w, 2 * (h + 38)), color=(232, 232, 228))
+    top_h = max(p1.size[1], p2.size[1])
+    bot_h = max(p3.size[1], p4.size[1])
+    canvas = Image.new("RGB", (2 * w, top_h + bot_h), color=(232, 232, 228))
     canvas.paste(p1, (0, 0))
     canvas.paste(p2, (w, 0))
-    canvas.paste(p3, (0, h + 38))
-    canvas.paste(p4, (w, h + 38))
+    canvas.paste(p3, (0, top_h))
+    canvas.paste(p4, (w, top_h))
 
     sample_id = story._sample_id(dataset, idx)
     out_png = out_dir / f"geometry_clean_{dataset_name}_{sample_id}.png"

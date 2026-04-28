@@ -72,17 +72,43 @@ def _load_model(run_dir: Path, device: torch.device) -> tuple[torch.nn.Module, d
     metrics = _load_json(run_dir / "metrics.json")
     variant = str(payload.get("variant", metrics.get("variant", "baseline")))
     in_channels, num_outputs = utils.dataset_channels_and_outputs(cfg["dataset"])
-    model = build_model(
-        variant,
-        num_outputs=num_outputs,
-        in_channels=in_channels,
-        num_rules=int(cfg.get("num_rules", 4)),
-        task=utils.task_for_dataset(cfg["dataset"]),
-        widths=utils.parse_model_widths(cfg.get("model_widths")),
-        model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
-        az_cfg_kwargs=utils.resolve_azconv_config_kwargs(cfg),
-    ).to(device)
-    model.load_state_dict(payload["model"])
+    task = utils.task_for_dataset(cfg["dataset"])
+    az_overrides = utils.resolve_azconv_config_kwargs(cfg)
+
+    def _build_with_overrides(extra: dict[str, Any] | None = None) -> torch.nn.Module:
+        merged = dict(az_overrides)
+        if extra:
+            merged.update(extra)
+        return build_model(
+            variant,
+            num_outputs=num_outputs,
+            in_channels=in_channels,
+            num_rules=int(cfg.get("num_rules", 4)),
+            task=task,
+            widths=utils.parse_model_widths(cfg.get("model_widths")),
+            model_kwargs=utils.resolve_segmentation_model_kwargs(cfg),
+            az_cfg_kwargs=merged,
+        ).to(device)
+
+    model = _build_with_overrides()
+    state = payload["model"]
+    try:
+        model.load_state_dict(state)
+    except RuntimeError as exc:
+        # Backward compatibility:
+        # old az_thesis checkpoints may use fixed_cat_map with raw_sigma_* params,
+        # while newer defaults use local_hyperbolic with geometry_conv.
+        state_keys = set(state.keys())
+        has_old_sigma = any(key.endswith("raw_sigma_u") or key.endswith("raw_sigma_s") for key in state_keys)
+        has_local_head = any("geometry_conv.weight" in key or "geometry_conv.bias" in key for key in state_keys)
+        if variant == "az_thesis" and has_old_sigma and not has_local_head:
+            legacy = _build_with_overrides({"geometry_mode": "fixed_cat_map", "learn_directions": False})
+            legacy.load_state_dict(state)
+            model = legacy
+            cfg.setdefault("az_geometry_mode", "fixed_cat_map")
+            cfg.setdefault("az_learn_directions", False)
+        else:
+            raise exc
     model.eval()
     return model, cfg, metrics, variant
 

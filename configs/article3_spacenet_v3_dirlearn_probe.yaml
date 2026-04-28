@@ -16,10 +16,12 @@ boundary_mode: conv
 az_use_input_residual: true
 az_residual_init: 0.20
 az_compatibility_floor: 0.0005
+
+# Critical for model-native direction field (not fixed cat-map orientation)
 az_geometry_mode: local_hyperbolic
 az_learn_directions: true
 
-epochs: 18
+epochs: 10
 batch_size: 2
 lr: 0.0003
 weight_decay: 0.0001
@@ -56,11 +58,11 @@ reg_membership_smoothness: 0.0003
 reg_geometry_smoothness: 0.0003
 reg_hyperbolicity: 0.0005
 reg_anisotropy_gap: 0.0001
-reg_direction_collapse: 0.0005
+reg_direction_collapse: 0.0010
 reg_hybrid_mix: 0.001
 
 results_dir: ./results
-run_name: article3_spacenet_sprint_v3_recover
+run_name: article3_spacenet_v3_dirlearn_probe_s42_e10
 device: cuda
 
 timing_warmup: 1

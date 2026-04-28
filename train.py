@@ -52,6 +52,7 @@ REG_LOG_KEYS = [
     "geometry_smoothness",
     "hyperbolicity_penalty",
     "anisotropy_gap",
+    "direction_collapse",
     "hybrid_mix_target",
 ]
 
@@ -630,10 +631,19 @@ def collect_architecture_state(model: nn.Module) -> Dict[str, Any]:
     for name, module in model.named_modules():
         mix_logit = getattr(module, "mix_logit", None)
         if isinstance(mix_logit, torch.nn.Parameter):
-            mix_rows.append({"name": name, "value": float(torch.sigmoid(mix_logit.detach()).cpu())})
+            mix_alpha = float(torch.sigmoid(mix_logit.detach()).cpu())
+            conv_alpha = float(max(1.0 - mix_alpha, 1e-8))
+            mix_rows.append(
+                {
+                    "name": name,
+                    "value": mix_alpha,
+                    "az_to_conv_ratio": float(mix_alpha / conv_alpha),
+                }
+            )
         residual_logit = getattr(module, "residual_logit", None)
         if isinstance(residual_logit, torch.nn.Parameter):
-            residual_rows.append({"name": name, "value": float(torch.sigmoid(residual_logit.detach()).cpu())})
+            residual_alpha = float(torch.sigmoid(residual_logit.detach()).cpu())
+            residual_rows.append({"name": name, "value": residual_alpha})
         if isinstance(module, AZConv2d):
             row: Dict[str, Any] = {"name": name, "rules": int(module.R), "kernel_size": int(module.k)}
             row.update(module.metric_tensor_summary())
@@ -646,12 +656,50 @@ def collect_architecture_state(model: nn.Module) -> Dict[str, Any]:
             compat_map = snapshot.get("compat_map")
             if isinstance(compat_map, torch.Tensor):
                 row["compat_mass"] = float(compat_map.float().sum().cpu())
+
+            # Model-native direction diversity diagnostics from raw theta_map.
+            theta_map = snapshot.get("theta_map")
+            mu_map = snapshot.get("mu_map")
+            if isinstance(theta_map, torch.Tensor) and isinstance(mu_map, torch.Tensor):
+                theta = theta_map.float()
+                mu = mu_map.float()
+                if theta.ndim == 3 and mu.ndim == 3 and theta.shape == mu.shape:
+                    dominant = mu.argmax(dim=0)
+                    yy, xx = torch.meshgrid(
+                        torch.arange(theta.shape[1], device=theta.device),
+                        torch.arange(theta.shape[2], device=theta.device),
+                        indexing="ij",
+                    )
+                    theta_dom = theta[dominant, yy, xx].reshape(-1)
+                    if theta_dom.numel() > 0:
+                        complex_dir = torch.polar(torch.ones_like(theta_dom), theta_dom)
+                        resultant_dir = complex_dir.mean()
+                        r_dir = torch.abs(resultant_dir).clamp(0.0, 1.0)
+                        row["direction_resultant_r"] = float(r_dir.detach().cpu())
+                        row["direction_diversity"] = float((1.0 - r_dir).detach().cpu())
+
+                        # Orientation periodicity pi (theta and theta+pi equivalent).
+                        theta2 = 2.0 * theta_dom
+                        complex_ori = torch.polar(torch.ones_like(theta2), theta2)
+                        resultant_ori = complex_ori.mean()
+                        r_ori = torch.abs(resultant_ori).clamp(0.0, 1.0)
+                        row["orientation_resultant_r"] = float(r_ori.detach().cpu())
+                        row["orientation_diversity"] = float((1.0 - r_ori).detach().cpu())
+
+                        bins = 12
+                        hist = torch.histc(theta_dom, bins=bins, min=-math.pi, max=math.pi)
+                        nonzero = (hist > 0).float().mean()
+                        row["direction_hist_nonzero_frac"] = float(nonzero.detach().cpu())
             az_rows.append(row)
 
     if mix_rows:
         mix_vals = [row["value"] for row in mix_rows]
+        mix_ratio_vals = [row["az_to_conv_ratio"] for row in mix_rows]
         state["hybrid_mix_alpha"] = mix_rows
         state["hybrid_mix_alpha_mean"] = float(sum(mix_vals) / len(mix_vals))
+        state["hybrid_az_to_conv_ratio_mean"] = float(sum(mix_ratio_vals) / len(mix_ratio_vals))
+        state["hybrid_az_to_conv_ratio_min"] = float(min(mix_ratio_vals))
+        state["hybrid_az_to_conv_ratio_max"] = float(max(mix_ratio_vals))
     if residual_rows:
         residual_vals = [row["value"] for row in residual_rows]
         state["az_input_residual_alpha"] = residual_rows
@@ -668,7 +716,18 @@ def collect_architecture_state(model: nn.Module) -> Dict[str, Any]:
             normalize_counts[norm] = normalize_counts.get(norm, 0) + 1
         state["az_geometry_mode_counts"] = mode_counts
         state["az_normalize_mode_counts"] = normalize_counts
-        for key in ("metric_min_eig", "metric_condition", "anisotropy_gap", "rule_usage_entropy_norm", "compat_mass"):
+        for key in (
+            "metric_min_eig",
+            "metric_condition",
+            "anisotropy_gap",
+            "rule_usage_entropy_norm",
+            "compat_mass",
+            "direction_resultant_r",
+            "direction_diversity",
+            "orientation_resultant_r",
+            "orientation_diversity",
+            "direction_hist_nonzero_frac",
+        ):
             vals = [float(row[key]) for row in az_rows if key in row]
             if vals:
                 state[f"az_{key}_mean"] = float(sum(vals) / len(vals))

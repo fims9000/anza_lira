@@ -1442,12 +1442,25 @@ def estimate_drive_pos_weight(dataset: Dataset, min_weight: float = 1.0, max_wei
 
 
 def az_config_for_variant(variant: str) -> AZConvConfig:
-    if variant in {"az_sota", "az_sota_pure", "az_thesis"}:
+    # Legacy SOTA-style setting kept for reproducibility with older runs.
+    if variant in {"az_sota", "az_sota_pure"}:
         return AZConvConfig(
             use_fuzzy=True,
             use_anisotropy=True,
             learn_directions=False,
             geometry_mode="fixed_cat_map",
+            use_value_projection=True,
+            normalize_kernel=True,
+            min_hyperbolicity=0.1,
+        )
+    # Thesis default: model-native learnable local hyperbolic geometry.
+    # This avoids hard-coded fixed-cat direction collapse by default.
+    if variant == "az_thesis":
+        return AZConvConfig(
+            use_fuzzy=True,
+            use_anisotropy=True,
+            learn_directions=True,
+            geometry_mode="local_hyperbolic",
             use_value_projection=True,
             normalize_kernel=True,
             min_hyperbolicity=0.1,
@@ -1506,12 +1519,22 @@ def az_config_for_variant(variant: str) -> AZConvConfig:
 
 
 def az_regularization_weights(cfg: Dict[str, Any]) -> Dict[str, float]:
+    # Direction-collapse regularization defaults to a small positive value
+    # for learnable AZ geometry unless explicitly overridden in config.
+    direction_collapse_default = 0.0
+    if "reg_direction_collapse" not in cfg:
+        geometry_mode = str(cfg.get("az_geometry_mode", "")).strip().lower()
+        learn_dirs = cfg.get("az_learn_directions")
+        variant = str(cfg.get("variant", "")).strip().lower()
+        if geometry_mode == "local_hyperbolic" or learn_dirs is True or variant == "az_thesis":
+            direction_collapse_default = 5e-4
     return {
         "membership_entropy": float(cfg.get("reg_membership_entropy", 0.0)),
         "membership_smoothness": float(cfg.get("reg_membership_smoothness", 0.0)),
         "geometry_smoothness": float(cfg.get("reg_geometry_smoothness", 0.0)),
         "hyperbolicity_penalty": float(cfg.get("reg_hyperbolicity", 0.0)),
         "anisotropy_gap": float(cfg.get("reg_anisotropy_gap", 0.0)),
+        "direction_collapse": float(cfg.get("reg_direction_collapse", direction_collapse_default)),
         "hybrid_mix_target": float(cfg.get("reg_hybrid_mix", 0.0)),
     }
 

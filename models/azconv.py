@@ -349,6 +349,7 @@ class AZConv2d(nn.Module):
         mu: torch.Tensor,
         gap: torch.Tensor,
         geometry_smoothness: torch.Tensor,
+        interp: dict[str, Any],
     ) -> None:
         mu_clamped = mu.clamp_min(1e-8)
         entropy = -(mu_clamped * mu_clamped.log()).sum(dim=1).mean()
@@ -366,12 +367,44 @@ class AZConv2d(nn.Module):
             hyper_penalty = mu.new_zeros(())
             anisotropy_gap = mu.new_zeros(())
 
+        direction_collapse = mu.new_zeros(())
+        theta_map = interp.get("theta_map")
+        if isinstance(theta_map, torch.Tensor):
+            theta = theta_map.float()
+            dominant = mu.argmax(dim=1, keepdim=True)
+            theta_dom = torch.gather(theta, dim=1, index=dominant).squeeze(1)
+            cos_t = torch.cos(theta_dom).mean()
+            sin_t = torch.sin(theta_dom).mean()
+            r_dir = torch.sqrt(cos_t.pow(2) + sin_t.pow(2)).clamp(0.0, 1.0)
+
+            theta2 = 2.0 * theta_dom
+            cos_2t = torch.cos(theta2).mean()
+            sin_2t = torch.sin(theta2).mean()
+            r_ori = torch.sqrt(cos_2t.pow(2) + sin_2t.pow(2)).clamp(0.0, 1.0)
+            direction_collapse = 0.5 * (r_dir + r_ori)
+        elif "u_x" in interp and "u_y" in interp:
+            ux = interp["u_x"].float().reshape(1, self.R)
+            uy = interp["u_y"].float().reshape(1, self.R)
+            theta_rules = torch.atan2(uy, ux)
+            weights = mu.mean(dim=(2, 3))
+            weights = weights / weights.sum(dim=1, keepdim=True).clamp_min(1e-8)
+            cos_t = (weights * torch.cos(theta_rules)).sum(dim=1).mean()
+            sin_t = (weights * torch.sin(theta_rules)).sum(dim=1).mean()
+            r_dir = torch.sqrt(cos_t.pow(2) + sin_t.pow(2)).clamp(0.0, 1.0)
+
+            theta2 = 2.0 * theta_rules
+            cos_2t = (weights * torch.cos(theta2)).sum(dim=1).mean()
+            sin_2t = (weights * torch.sin(theta2)).sum(dim=1).mean()
+            r_ori = torch.sqrt(cos_2t.pow(2) + sin_2t.pow(2)).clamp(0.0, 1.0)
+            direction_collapse = 0.5 * (r_dir + r_ori)
+
         self._last_reg_terms = {
             "membership_entropy": entropy,
             "membership_smoothness": smoothness,
             "geometry_smoothness": geometry_smoothness,
             "hyperbolicity_penalty": hyper_penalty,
             "anisotropy_gap": anisotropy_gap,
+            "direction_collapse": direction_collapse,
         }
 
     def regularization_terms(self) -> dict[str, torch.Tensor]:
@@ -385,6 +418,7 @@ class AZConv2d(nn.Module):
             "geometry_smoothness": zero,
             "hyperbolicity_penalty": zero,
             "anisotropy_gap": zero,
+            "direction_collapse": zero,
         }
 
     @torch.no_grad()
@@ -539,7 +573,7 @@ class AZConv2d(nn.Module):
                 compat = (compat / neighbor_sum) * mu_center
             # normalize_mode == "none" -> keep raw compatibilities unchanged.
 
-        self._update_regularization_terms(mu, gap, geom_smoothness)
+        self._update_regularization_terms(mu, gap, geom_smoothness, interp)
         self._update_interpretation_cache(mu, kern, compat, interp)
         agg = torch.einsum("brsl,bcsl->brcl", compat, v_un)
         agg_flat = agg.reshape(batch, self.R * channels, height, width)
