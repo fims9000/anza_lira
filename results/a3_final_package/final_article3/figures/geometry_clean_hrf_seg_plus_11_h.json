@@ -1,0 +1,10 @@
+{
+  "dataset": "hrf_seg_plus",
+  "sample_index": 2,
+  "sample_id": "11_h",
+  "az_run": "article3_hrf_final_s42_e40",
+  "baseline_run": "article3_hrf_baseline_s42_e40",
+  "az_threshold": 0.65,
+  "baseline_threshold": 0.8,
+  "output_image": "C:\\Users\\Comp1\\SASHA\\anza_lira\\results\\a3_final_package\\fig_geometry_clean\\geometry_clean_hrf_seg_plus_11_h.png"
+}
