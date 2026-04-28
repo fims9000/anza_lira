@@ -25,6 +25,7 @@ results/**/history.json
 results/**/dice_curves.png
 results/**/loss_curves.png
 results/**/pid*.txt
+results/article3_*/
 
 *.log
 Thumbs.db
