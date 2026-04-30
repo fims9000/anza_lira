@@ -670,3 +670,188 @@ Roads_HF лучше оставить как qualitative/sanity-check:
 - статья 1: математические свойства оператора;
 - статья 2: алгоритм сегментации и базовый эксперимент;
 - статья 3: воспроизводимая медицинская валидация, сильные baseline, ablation, диагностика anisotropy gap / clDice / skeleton recall и честный анализ ограничений.
+
+---
+
+## 27) Source-of-truth для исправления замечаний рецензента
+
+Этот раздел нужен как рабочая выжимка: что именно менять в статье и что писать в ответе рецензенту. Ниже только факты, которые уже подтверждены кодом и reviewer-pack от `2026-04-30`.
+
+### 27.1 Главная корректировка позиции статьи
+
+Старый рискованный claim:
+
+> The proposed AZ method improves segmentation quality over U-Net.
+
+Так больше писать нельзя, потому что полный reviewer-pack показывает: `az_thesis` не превосходит сильные U-Net-family baselines и не превосходит vanilla baseline на всех медицинских датасетах.
+
+Новый корректный claim:
+
+> This work evaluates anisotropic fuzzy local convolution as an interpretable geometric local aggregation module for thin-structure segmentation. The experiments show that the current full AZ configuration is not universally superior to strong U-Net-family baselines, but the proposed diagnostics reveal when anisotropic aggregation becomes over-selective and how this affects overlap and skeleton-based metrics.
+
+Короткий русский смысл:
+
+> Мы не заявляем "лучше всех". Мы показываем воспроизводимый анализ геометрического модуля: где он помогает, где переограничивает тонкие структуры, и какими метриками это видно.
+
+### 27.2 Что вставить вместо старой основной таблицы
+
+Для медицинской статьи основная таблица должна быть не про Roads_HF и не про SpaceNet3 как главный результат, а про медицинские датасеты:
+
+- DRIVE;
+- CHASE_DB1;
+- HRF_SegPlus.
+
+Минимальная таблица для paper body:
+
+| Dataset | Variant | Dice | IoU | clDice | Precision | Recall |
+|---|---|---:|---:|---:|---:|---:|
+| DRIVE | baseline | 0.7646 +- 0.0286 | 0.6198 +- 0.0370 | 0.7499 +- 0.0281 | 0.7753 +- 0.0322 | 0.7543 +- 0.0252 |
+| DRIVE | Attention U-Net | 0.7668 +- 0.0239 | 0.6224 +- 0.0311 | 0.7568 +- 0.0235 | 0.7716 +- 0.0113 | 0.7625 +- 0.0363 |
+| DRIVE | U-Net++ | **0.7748 +- 0.0304** | **0.6333 +- 0.0401** | **0.7652 +- 0.0329** | **0.7811 +- 0.0208** | **0.7693 +- 0.0444** |
+| DRIVE | AZ full | 0.7005 +- 0.0398 | 0.5405 +- 0.0461 | 0.6678 +- 0.0317 | 0.7260 +- 0.0444 | 0.6769 +- 0.0356 |
+| CHASE_DB1 | baseline | 0.6907 +- 0.0422 | 0.5291 +- 0.0484 | 0.7156 +- 0.0152 | 0.6277 +- 0.0755 | 0.7761 +- 0.0232 |
+| CHASE_DB1 | Attention U-Net | 0.7148 +- 0.0185 | 0.5566 +- 0.0226 | **0.7271 +- 0.0218** | 0.6622 +- 0.0244 | **0.7777 +- 0.0262** |
+| CHASE_DB1 | U-Net++ | **0.7224 +- 0.0071** | **0.5655 +- 0.0087** | 0.7266 +- 0.0030 | **0.6893 +- 0.0217** | 0.7600 +- 0.0183 |
+| CHASE_DB1 | AZ full | 0.6864 +- 0.0161 | 0.5227 +- 0.0186 | 0.6819 +- 0.0106 | 0.6299 +- 0.0504 | 0.7609 +- 0.0381 |
+| HRF_SegPlus | baseline | 0.6551 +- 0.0184 | 0.4874 +- 0.0206 | 0.5546 +- 0.0118 | 0.6300 +- 0.0405 | **0.6842 +- 0.0064** |
+| HRF_SegPlus | Attention U-Net | 0.6679 +- 0.0177 | 0.5016 +- 0.0199 | **0.5550 +- 0.0129** | 0.6611 +- 0.0330 | 0.6757 +- 0.0089 |
+| HRF_SegPlus | U-Net++ | **0.6723 +- 0.0156** | **0.5066 +- 0.0175** | 0.5478 +- 0.0141 | **0.6723 +- 0.0164** | 0.6724 +- 0.0162 |
+| HRF_SegPlus | AZ full | 0.6510 +- 0.0066 | 0.4826 +- 0.0072 | 0.5345 +- 0.0087 | 0.6293 +- 0.0202 | 0.6751 +- 0.0117 |
+
+Подпись к таблице:
+
+`Table X. Multi-seed medical segmentation results (mean +- std over seeds 41/42/43). The current full AZ configuration is included as an interpretable geometric aggregation module rather than claimed as a state-of-the-art model.`
+
+### 27.3 Таблица ablation для закрытия вопроса "что дает fuzzy и anisotropy"
+
+Эту таблицу лучше вынести в paper body или appendix:
+
+| Dataset | Variant | Dice | clDice | Skeleton Recall | Anisotropy gap | Interpretation |
+|---|---|---:|---:|---:|---:|---|
+| DRIVE | baseline | 0.7646 | 0.7499 | 0.6850 | 0.0000 | standard U-Net reference |
+| DRIVE | AZ no fuzzy | 0.7519 | 0.7366 | 0.6597 | 2.1185 | geometry active, fuzzy off |
+| DRIVE | AZ no aniso | 0.7511 | 0.7353 | 0.6581 | 0.0000 | fuzzy/local block without anisotropy |
+| DRIVE | AZ full | 0.7005 | 0.6678 | 0.5675 | 9.3260 | over-selective anisotropy |
+| CHASE_DB1 | baseline | 0.6907 | 0.7156 | 0.6783 | 0.0000 | standard U-Net reference |
+| CHASE_DB1 | AZ no fuzzy | 0.6975 | 0.7103 | 0.6705 | 2.1270 | mild Dice gain over baseline |
+| CHASE_DB1 | AZ no aniso | 0.6951 | 0.6972 | 0.6276 | 0.0000 | fuzzy-only/local effect |
+| CHASE_DB1 | AZ full | 0.6864 | 0.6819 | 0.6511 | 1.3284 | full coupling below baseline |
+| HRF_SegPlus | baseline | 0.6551 | 0.5546 | 0.4727 | 0.0000 | standard U-Net reference |
+| HRF_SegPlus | AZ no fuzzy | 0.6578 | 0.5366 | 0.4357 | 2.1940 | small Dice gain, lower topology |
+| HRF_SegPlus | AZ no aniso | 0.6628 | 0.5468 | 0.4386 | 0.0000 | best AZ ablation by Dice |
+| HRF_SegPlus | AZ full | 0.6510 | 0.5345 | 0.4405 | 1.2951 | full coupling below baseline |
+
+Главный вывод из ablation:
+
+> The ablation does not show a simple monotonic benefit from adding both fuzzy weighting and anisotropy. Instead, it shows that the geometric module is sensitive to calibration. High anisotropy strength may suppress weak continuations and reduce skeleton recall.
+
+### 27.4 Как переписать Results
+
+Готовый английский блок:
+
+`Table X reports multi-seed results on DRIVE, CHASE_DB1 and HRF_SegPlus. The strongest overlap scores are obtained by U-Net++ on all three datasets, while Attention U-Net also improves over the vanilla U-Net baseline. The current full AZ configuration does not outperform these stronger baselines and in several cases remains below vanilla U-Net. This result is important because it indicates that anisotropic fuzzy aggregation should not be presented as an accuracy-only replacement for established encoder-decoder architectures. Instead, it should be interpreted as a geometric local module whose behavior depends on calibration.`
+
+Продолжение:
+
+`The ablation study shows that disabling either fuzzy weighting or anisotropy can be preferable to the current full coupling on some datasets. On DRIVE, the full AZ model reaches a high anisotropy gap but suffers a substantial decrease in Dice and skeleton recall. On HRF_SegPlus, the no-anisotropy variant slightly improves Dice over vanilla U-Net, whereas the full AZ variant decreases both Dice and clDice. These results suggest over-selective propagation along local modes and motivate topology-aware calibration of anisotropy strength.`
+
+### 27.5 Как переписать Discussion
+
+Готовый английский блок:
+
+`The main lesson from the reviewer-oriented experiment is that geometry-aware aggregation is not automatically beneficial when inserted into a segmentation network. The anisotropy gap provides a useful diagnostic: when it becomes too large, the model may become overly selective and suppress faint continuations of thin structures. This is consistent with the observed decrease in skeleton recall and clDice for the full AZ configuration. Therefore, future versions should regularize anisotropy strength, include topology-preserving losses, and tune the number of local regimes.`
+
+Еще один блок:
+
+`The negative and mixed results are valuable because they identify the operating regime of the proposed mechanism. The current full AZ layer is best viewed as an interpretable geometric component, not as a finished state-of-the-art architecture. Its diagnostic maps make it possible to connect local errors with internal orientation and anisotropy states, which is difficult to obtain from standard U-Net baselines.`
+
+### 27.6 Как переписать Limitations
+
+Готовый английский блок:
+
+`This study has several limitations. First, although Attention U-Net and U-Net++ were added as stronger baselines, we have not yet included nnU-Net, transformer-based segmentation models, or vessel-specific architectures such as CS-Net or IterNet. Second, the current AZ configuration does not consistently improve overlap metrics, and its full fuzzy-anisotropic coupling may over-suppress weak vessel continuations. Third, the sensitivity to the number of local regimes has not yet been fully evaluated, although the repository includes a launcher for an R sweep. Finally, the current visualization estimates orientation axes modulo pi rather than signed flow direction.`
+
+### 27.7 Что написать в ответ рецензенту
+
+**Пункт 1. Слабый baseline.**
+
+`Исправлено частично. Мы добавили сравнение с Attention U-Net и U-Net++ в дополнение к vanilla U-Net. Результаты приведены в новой таблице multi-seed эксперимента на DRIVE, CHASE_DB1 и HRF_SegPlus. Специализированные сосудистые методы CS-Net/IterNet и transformer/nnU-Net пока вынесены в ограничения и future work.`
+
+**Пункт 2. Недостаточно медицинских датасетов.**
+
+`Исправлено. Экспериментальная часть расширена до трех медицинских наборов: DRIVE, CHASE_DB1 и HRF_SegPlus. Для каждого набора использованы одинаковые варианты моделей, seeds 41/42/43 и единая политика выбора порога.`
+
+**Пункт 3. Нет ablation study.**
+
+`Исправлено. Добавлены варианты az_no_fuzzy, az_no_aniso и az_thesis. Это позволяет отдельно оценить вклад fuzzy weighting, анизотропии и их полной комбинации. Результаты показывают, что текущая полная комбинация не всегда оптимальна и требует калибровки.`
+
+**Пункт 4. Падение clDice.**
+
+`Исправлено объяснением и дополнительными метриками. Мы явно показываем clDice и skeleton recall. Падение clDice трактуется как признак over-suppression слабых продолжений сосудов при слишком селективной анизотропной агрегации. В Discussion добавлено, что это требует topology-aware loss, например clDice/skeleton loss.`
+
+**Пункт 5. Масштабируемость и число режимов.**
+
+`Частично исправлено. В репозиторий добавлен launcher scripts/run_article3_regime_count_sweep.ps1 для эксперимента R=1,2,4,8,16. Полный sweep пока не включен в основные результаты и указан как обязательное направление дальнейшей работы.`
+
+**Пункт 6. Статистическая значимость.**
+
+`Исправлено на уровне conference revision. Добавлен multi-seed протокол seeds 41/42/43 и mean +- std для всех основных метрик. Более строгие confidence intervals и per-image boxplots оставлены для расширенной версии.`
+
+**Пункт 7. Ссылка на Аносова.**
+
+`Исправлено концептуально. В финальной версии рекомендуется убрать акцент на Аносова и позиционировать направленную часть через steerable filters / anisotropic diffusion.`
+
+**Пункт 8. Reproducibility.**
+
+`Исправлено. Реализация, конфиги, launchers и скрипты визуализации доступны в публичном репозитории: https://github.com/fims9000/anza_lira.`
+
+**Пункт 9. Roads_HF бесполезен как main metric.**
+
+`Исправлено. Roads_HF не следует включать в основную медицинскую таблицу. Его можно оставить только как качественный/санити пример или убрать из статьи полностью, если статья позиционируется как медицинская.`
+
+**Пункт 10. Precision/Recall не раскрыты.**
+
+`Исправлено. Новые таблицы включают Dice, IoU, clDice, Precision, Recall, skeleton precision, skeleton recall и balanced accuracy.`
+
+### 27.8 Что срочно поменять в `stdh2026_paper_draft_en.md`
+
+1. Убрать старую таблицу, где HRF `AZ-Thesis` выглядит как улучшение Dice `0.6822`.
+2. Заменить main quantitative table на таблицу из `27.2`.
+3. Убрать формулировку `AZ improves HRF`; вместо этого написать:
+   `On HRF_SegPlus, U-Net++ gives the best Dice/IoU, while the current full AZ configuration remains below the vanilla baseline.`
+4. Переписать conclusion:
+   - не "AZ is a practical mechanism when calibration is applied";
+   - а "AZ is an interpretable geometric module whose current configuration reveals both potential and limitations".
+5. Добавить subsection `Ablation and Diagnostic Metrics`.
+6. Добавить subsection `Reviewer-Oriented Limitations`.
+7. В References/Introduction не продавливать Аносова; лучше Freeman & Adelson / Perona-Malik / U-Net / Attention U-Net / U-Net++.
+
+### 27.9 Минимальная новая структура статьи
+
+1. Introduction
+   - thin vascular structures;
+   - why local geometry matters;
+   - why this paper is not only about Dice, but about diagnostic geometry.
+2. Method
+   - AZ local aggregation;
+   - orientation axis, not signed flow;
+   - anisotropy gap and fuzzy memberships.
+3. Experimental Setup
+   - DRIVE, CHASE_DB1, HRF_SegPlus;
+   - variants: U-Net, Attention U-Net, U-Net++, AZ ablations;
+   - seeds, epochs, optimizer/loss/threshold.
+4. Results
+   - main table from 27.2;
+   - ablation table from 27.3.
+5. Discussion
+   - strong baselines win;
+   - current full AZ over-selects;
+   - anisotropy gap explains failures;
+   - why visualization is still useful.
+6. Limitations and Future Work
+   - no nnU-Net/transformer/CS-Net yet;
+   - R sweep not completed;
+   - need topology-aware loss;
+   - axis not signed flow.
+7. Conclusion
+   - honest contribution: interpretable geometric module + reproducible diagnosis, not SOTA claim.
