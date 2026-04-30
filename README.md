@@ -12,9 +12,10 @@ reproducibility, and usage workflow.
 The repository provides:
 
 1. baseline segmentation models,
-2. AZ-enhanced models (`az_cat`, `az_thesis`, related variants),
-3. training + validation threshold sweep,
-4. geometry diagnostics and figure export scripts.
+2. stronger comparison baselines (`attention_unet`, `unet_plus_plus`),
+3. AZ-enhanced models (`az_cat`, `az_thesis`, related variants),
+4. training + validation threshold sweep,
+5. geometry diagnostics and figure export scripts.
 
 Primary task type is binary segmentation.
 
@@ -105,7 +106,32 @@ The generated 2x2 figure includes:
 3. AZ orientation axis (model-derived),
 4. anisotropy strength map.
 
-## 8) Reproducibility notes
+## 8) Reviewer-oriented experiment packs
+
+Medical reviewer pack (DRIVE, CHASE_DB1, HRF_SegPlus):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_article3_reviewer_medical_pack.ps1 `
+  -Device cuda `
+  -Seeds "41,42,43" `
+  -Epochs 60
+```
+
+This pack compares:
+
+`baseline, attention_unet, unet_plus_plus, az_no_fuzzy, az_no_aniso, az_thesis`
+
+Regime-count sweep:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/run_article3_regime_count_sweep.ps1 `
+  -Config configs/drive_benchmark.yaml `
+  -Device cuda `
+  -Seed "42" `
+  -Epochs 40
+```
+
+## 9) Reproducibility notes
 
 - Config-driven runs (`configs/*.yaml`)
 - Fixed seeds in configs when required
@@ -115,12 +141,12 @@ The generated 2x2 figure includes:
   - `history.json` (if enabled)
 - Scripted figure generation from checkpoints/results
 
-## 9) Current status of defaults
+## 10) Current status of defaults
 
 AZ experiments support both legacy and newer geometry modes.
 Checkpoint loading includes backward compatibility for older AZ snapshots.
 
-## 10) Public repo policy
+## 11) Public repo policy
 
 This repository is kept in public-safe form:
 - no private manuscript binaries in tracked files,

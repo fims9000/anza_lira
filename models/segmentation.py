@@ -411,6 +411,50 @@ class AttentionUNet(_RegularizedSegmentationMixin, nn.Module):
         return self.head(y)
 
 
+class UNetPlusPlus(_RegularizedSegmentationMixin, nn.Module):
+    """Lightweight U-Net++ baseline with nested dense skip pathways."""
+
+    def __init__(self, in_channels: int = 3, out_channels: int = 1, widths: tuple[int, ...] = (32, 64, 128, 192)) -> None:
+        super().__init__()
+        w1, w2, w3, wb = widths
+        self.pool = nn.MaxPool2d(2)
+
+        self.x00 = ConvBlock(in_channels, w1)
+        self.x10 = ConvBlock(w1, w2)
+        self.x20 = ConvBlock(w2, w3)
+        self.x30 = ConvBlock(w3, wb)
+
+        self.x01 = ConvBlock(w1 + w2, w1)
+        self.x11 = ConvBlock(w2 + w3, w2)
+        self.x21 = ConvBlock(w3 + wb, w3)
+
+        self.x02 = ConvBlock(w1 * 2 + w2, w1)
+        self.x12 = ConvBlock(w2 * 2 + w3, w2)
+
+        self.x03 = ConvBlock(w1 * 3 + w2, w1)
+        self.head = nn.Conv2d(w1, out_channels, kernel_size=1)
+
+    @staticmethod
+    def _up(x: torch.Tensor, ref: torch.Tensor) -> torch.Tensor:
+        return F.interpolate(x, size=ref.shape[-2:], mode="bilinear", align_corners=False)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x00 = self.x00(x)
+        x10 = self.x10(self.pool(x00))
+        x20 = self.x20(self.pool(x10))
+        x30 = self.x30(self.pool(x20))
+
+        x01 = self.x01(torch.cat([x00, self._up(x10, x00)], dim=1))
+        x11 = self.x11(torch.cat([x10, self._up(x20, x10)], dim=1))
+        x21 = self.x21(torch.cat([x20, self._up(x30, x20)], dim=1))
+
+        x02 = self.x02(torch.cat([x00, x01, self._up(x11, x00)], dim=1))
+        x12 = self.x12(torch.cat([x10, x11, self._up(x21, x10)], dim=1))
+
+        x03 = self.x03(torch.cat([x00, x01, x02, self._up(x12, x00)], dim=1))
+        return self.head(x03)
+
+
 class AZUNet(_RegularizedSegmentationMixin, nn.Module):
     """AZ-enhanced U-Net for DRIVE vessel segmentation."""
 

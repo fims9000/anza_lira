@@ -129,7 +129,7 @@ The geometry protocol shows where AZ corrections happen and how they align with 
 On HRF_SegPlus, AZ improves Dice, IoU, and Precision, but Recall and clDice decrease. This suggests that the layer can suppress faint vessel continuations while reducing false positives. The effect is important and should not be hidden: it indicates that the current loss is not sufficiently topology-preserving for weak vessels. A natural correction is to include a topology-preserving term such as clDice loss or skeleton recall regularization in future training.
 
 ### D. Limitations
-We acknowledge that the current evaluation is limited to datasets of modest size, the baseline comparison omits attention-based and vessel-specific architectures, and no fully retrained component ablation has been performed. The present study should therefore be read as a geometry-interpretability and proof-of-concept evaluation rather than as a complete state-of-the-art benchmark.
+We acknowledge that the current evaluation is limited to datasets of modest size and no fully retrained component ablation has been completed yet. The codebase now includes reviewer-oriented scripts for Attention U-Net, U-Net++, and AZ component ablations on DRIVE, CHASE_DB1, and HRF_SegPlus; however, the corresponding full training grid is not yet reported in this short version. The present study should therefore be read as a geometry-interpretability and proof-of-concept evaluation rather than as a complete state-of-the-art benchmark.
 
 Additional limitations are:
 1. Current formulation models orientation axis, not signed directional flow.
@@ -139,11 +139,12 @@ Additional limitations are:
 
 ### E. Future work
 Future work will address:
-1. comparison with Attention U-Net, U-Net++, nnU-Net, and at least one transformer-based segmentation model;
-2. evaluation on additional medical datasets such as DRIVE, CHASE_DB1, and STARE;
-3. full ablation over fuzzy-only, anisotropy-only, and full AZ variants;
-4. sensitivity analysis over the number of regimes \(R=1,2,4,8,16\);
-5. topology-aware training with clDice or skeleton-based losses.
+1. reporting the full reviewer pack with Attention U-Net, U-Net++, and AZ ablations on DRIVE, CHASE_DB1, and HRF_SegPlus;
+2. adding nnU-Net, one transformer-based segmentation model, and one vessel-specific method such as CS-Net or IterNet;
+3. evaluation on additional medical datasets such as STARE;
+4. full ablation over fuzzy-only, anisotropy-only, and full AZ variants;
+5. sensitivity analysis over the number of regimes \(R=1,2,4,8,16\);
+6. topology-aware training with clDice or skeleton-based losses.
 
 ### F. References to prioritize
 The final manuscript should avoid overemphasizing dynamical-systems terminology for the longitudinal/transverse split. The directional part should instead be positioned through standard image-processing references such as steerable filters and anisotropic diffusion.
@@ -171,5 +172,7 @@ Public-repo reproducible SpaceNet3 materials:
 - SpaceNet3 AZ recovered: `results/article3_spacenet_sprint_v3_recover/metrics.json`
 - direction-diversity probe: `results/article3_spacenet_v3_dirlearn_probe_s42_e10/metrics.json`
 - visual bundle: `results/a3_final_package/final_article3/article3_final_visual_bundle_ru.md`
+- reviewer medical pack launcher: `scripts/run_article3_reviewer_medical_pack.ps1`
+- regime-count sweep launcher: `scripts/run_article3_regime_count_sweep.ps1`
 
 Medical HRF and Roads_HF values in this draft are retained as local experimental results. For a final public submission, either include the corresponding reproducible artifacts or move those numbers to supplementary/local notes.

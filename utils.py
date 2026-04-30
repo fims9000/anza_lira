@@ -16,11 +16,12 @@ import torch.nn.functional as F
 from PIL import Image, ImageDraw, ImageOps
 from torch.utils.data import DataLoader, Dataset
 
-from models import AZConv2d, AZConvConfig, AZConvNet, AZSOTAUNet, AZUNet, AttentionUNet, BaselineUNet, StandardConvNet, count_parameters
+from models import AZConv2d, AZConvConfig, AZConvNet, AZSOTAUNet, AZUNet, AttentionUNet, BaselineUNet, StandardConvNet, UNetPlusPlus, count_parameters
 
 VARIANTS = [
     "baseline",
     "attention_unet",
+    "unet_plus_plus",
     "az_full",
     "az_no_fuzzy",
     "az_no_aniso",
@@ -42,6 +43,7 @@ CANONICAL_DRIVE_VARIANTS = [
 ARTICLE_DRIVE_VARIANTS = [
     "baseline",
     "attention_unet",
+    "unet_plus_plus",
     "az_no_fuzzy",
     "az_no_aniso",
     "az_cat",
@@ -1657,6 +1659,8 @@ def build_model(
             return BaselineUNet(in_channels=in_channels, out_channels=num_outputs, **seg_kwargs)
         if variant == "attention_unet":
             return AttentionUNet(in_channels=in_channels, out_channels=num_outputs, **seg_kwargs)
+        if variant == "unet_plus_plus":
+            return UNetPlusPlus(in_channels=in_channels, out_channels=num_outputs, **seg_kwargs)
         if variant == "az_sota":
             cfg = az_config_from_variant_and_overrides(variant, az_cfg_kwargs)
             return AZSOTAUNet(

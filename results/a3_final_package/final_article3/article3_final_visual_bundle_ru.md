@@ -483,10 +483,83 @@ Roads_HF лучше оставить как qualitative/sanity-check:
 
 Честно:
 
-1. Нет retrained Attention U-Net / U-Net++ / nnU-Net / transformer baseline.
-2. Нет retrained ablation grid по fuzzy-only / anisotropy-only / full.
-3. Нет sweep по \(R=1,2,4,8,16\).
-4. Нет multi-seed confidence intervals для всех датасетов.
-5. HRF/Roads reproducibility artifacts в public repo надо либо добавить, либо оставить эти числа как local/supplementary.
+1. Attention U-Net и U-Net++ уже добавлены/подключены, но их надо реально дообучить в reviewer-pack.
+2. Нет nnU-Net / transformer baseline.
+3. Нет специализированного vessel baseline уровня CS-Net/IterNet.
+4. Нет retrained ablation grid по fuzzy-only / anisotropy-only / full для всех medical datasets.
+5. Нет завершённого sweep по \(R=1,2,4,8,16\).
+6. Нет multi-seed confidence intervals для всех датасетов.
+7. HRF/Roads reproducibility artifacts в public repo надо либо добавить, либо оставить эти числа как local/supplementary.
 
 Если статья короткая conference paper, это можно оставить как limitations. Если хотим journal/Q1 — это всё придётся реально дообучать.
+
+---
+
+## 25) Что теперь реально добавлено в код для закрытия рецензента
+
+### 25.1 Stronger baselines
+
+В репозитории теперь доступны:
+
+- `baseline` — vanilla U-Net;
+- `attention_unet` — Attention U-Net;
+- `unet_plus_plus` — lightweight U-Net++;
+- `az_no_fuzzy` — ablation без fuzzy-factor;
+- `az_no_aniso` — ablation без anisotropy;
+- `az_thesis` — полный предлагаемый вариант.
+
+Проверка сборки выполнена: все варианты возвращают segmentation logits размера `(B, 1, H, W)`.
+Для `unet_plus_plus` дополнительно проверен synthetic forward/backward pass.
+
+### 25.2 Medical reviewer pack
+
+Команда:
+
+`powershell -ExecutionPolicy Bypass -File scripts/run_article3_reviewer_medical_pack.ps1 -Device cuda -Seeds "41,42,43" -Epochs 60`
+
+Что запускает:
+
+- DRIVE;
+- CHASE_DB1;
+- HRF_SegPlus;
+- `baseline, attention_unet, unet_plus_plus, az_no_fuzzy, az_no_aniso, az_thesis`;
+- seeds `41,42,43`;
+- одинаковую loss/threshold policy через `configs/reviewer_drive_lossmatched_overrides.yaml`.
+
+Это закрывает:
+
+- слабый baseline;
+- medical datasets;
+- ablation;
+- multi-seed statistics.
+
+### 25.3 Regime-count sweep
+
+Команда:
+
+`powershell -ExecutionPolicy Bypass -File scripts/run_article3_regime_count_sweep.ps1 -Config configs/drive_benchmark.yaml -Device cuda -Seed "42" -Epochs 40`
+
+Что запускает:
+
+- `az_thesis`;
+- \(R=1,2,4,8,16\);
+- один выбранный dataset/config;
+- фиксированный seed.
+
+Это закрывает пункт рецензента “почему столько режимов”.
+
+### 25.4 Что всё ещё нельзя честно заявлять
+
+Пока не запускали reviewer-pack до конца, в статье нельзя писать:
+
+- “we outperform Attention U-Net / U-Net++”;
+- “we prove the ablation experimentally”;
+- “we studied R sensitivity”.
+
+Можно писать:
+
+- “we provide the reviewer-oriented experiment protocol”;
+- “the current conference version includes analytical ablation and reproducible scripts”;
+- “full retraining grid is planned / in progress”.
+
+Локальная заметка: `train.py` smoke-run на Windows может падать на уровне runtime/OpenMP без Python traceback. Сама архитектура `unet_plus_plus` проверена отдельно через forward/backward; полный reviewer-pack лучше запускать в стабильном CUDA/conda окружении.
