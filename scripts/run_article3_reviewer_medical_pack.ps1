@@ -9,6 +9,10 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
 
+$env:KMP_DUPLICATE_LIB_OK = "TRUE"
+$env:PYTHONUTF8 = "1"
+$env:PYTHONIOENCODING = "utf-8"
+
 $LogDir = "logs/article3_reviewer_medical_pack"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
@@ -32,6 +36,11 @@ foreach ($Item in $Commands) {
     $Config = $Item[0]
     $RunName = $Item[1]
     "===== $RunName / $Config =====" | Out-File -FilePath $OutLog -Encoding utf8 -Append
+    # tqdm writes progress to stderr. With ErrorActionPreference=Stop, PowerShell
+    # can treat that native stderr stream as a terminating NativeCommandError even
+    # when Python exits successfully, so check LASTEXITCODE explicitly instead.
+    $PreviousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     python scripts/run_drive_multiseed.py `
         --config $Config `
         --variants $Variants `
@@ -41,6 +50,11 @@ foreach ($Item in $Commands) {
         --variant-overrides $Overrides `
         --run-name $RunName `
         1>> $OutLog 2>> $ErrLog
+    $PythonExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $PreviousErrorActionPreference
+    if ($PythonExitCode -ne 0) {
+        throw "Python run failed for $RunName with exit code $PythonExitCode. See $OutLog and $ErrLog"
+    }
 }
 
 "Finished reviewer medical pack at $(Get-Date)" | Out-File -FilePath $OutLog -Encoding utf8 -Append

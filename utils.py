@@ -439,6 +439,17 @@ class DriveDataset(Dataset):
         return len(self.samples)
 
     def _load_rgb(self, path: Path) -> torch.Tensor:
+        if path.suffix.lower() in {".tif", ".tiff"}:
+            try:
+                import cv2
+
+                image_bgr = cv2.imread(str(path), cv2.IMREAD_COLOR)
+            except Exception:
+                image_bgr = None
+            if image_bgr is not None:
+                arr = image_bgr[..., ::-1].astype(np.float32) / 255.0
+                return torch.from_numpy(arr.copy()).permute(2, 0, 1)
+
         image = Image.open(path).convert("RGB")
         if self.input_mode == "green":
             green = np.asarray(image.getchannel("G"), dtype=np.float32)[..., None]

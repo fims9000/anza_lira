@@ -10,6 +10,10 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
 
+$env:KMP_DUPLICATE_LIB_OK = "TRUE"
+$env:PYTHONUTF8 = "1"
+$env:PYTHONIOENCODING = "utf-8"
+
 $LogDir = "logs/article3_regime_sweep"
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
@@ -26,6 +30,11 @@ $SeedInt = [int]$Seed
 foreach ($R in $Rules) {
     $RunName = "article3_regime_R${R}_s${Seed}_e${Epochs}_$Stamp"
     "===== R=$R / $RunName =====" | Out-File -FilePath $OutLog -Encoding utf8 -Append
+    # tqdm writes progress to stderr. With ErrorActionPreference=Stop, PowerShell
+    # can treat that native stderr stream as a terminating NativeCommandError even
+    # when Python exits successfully, so check LASTEXITCODE explicitly instead.
+    $PreviousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
     python train.py `
         --config $Config `
         --variant az_thesis `
@@ -35,6 +44,11 @@ foreach ($R in $Rules) {
         --device $Device `
         --run-name $RunName `
         1>> $OutLog 2>> $ErrLog
+    $PythonExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $PreviousErrorActionPreference
+    if ($PythonExitCode -ne 0) {
+        throw "Python run failed for $RunName with exit code $PythonExitCode. See $OutLog and $ErrLog"
+    }
 }
 
 "Finished regime-count sweep at $(Get-Date)" | Out-File -FilePath $OutLog -Encoding utf8 -Append
