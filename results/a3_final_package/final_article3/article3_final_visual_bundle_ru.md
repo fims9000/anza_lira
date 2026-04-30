@@ -563,3 +563,110 @@ Roads_HF лучше оставить как qualitative/sanity-check:
 - “full retraining grid is planned / in progress”.
 
 Локальная заметка: `train.py` smoke-run на Windows может падать на уровне runtime/OpenMP без Python traceback. Сама архитектура `unet_plus_plus` проверена отдельно через forward/backward; полный reviewer-pack лучше запускать в стабильном CUDA/conda окружении.
+
+---
+
+## 26) Финальный reviewer-pack от 2026-04-30: фактические результаты
+
+Источник:
+
+- DRIVE: `results/article3_reviewer_drive_ms_20260430_142712/all_metrics.json`
+- CHASE_DB1: `results/article3_reviewer_chase_ms_20260430_142712/all_metrics.json`
+- HRF_SegPlus: `results/article3_reviewer_hrf_ms_20260430_142712/all_metrics.json`
+- Лог запуска: `logs/article3_reviewer_medical_pack/reviewer_medical_pack_20260430_142712.out.log`
+- Команда: `powershell -ExecutionPolicy Bypass -File scripts/run_article3_reviewer_medical_pack.ps1 -Device cuda -Seeds "41,42,43" -Epochs 60`
+
+Протокол:
+
+- datasets: DRIVE, CHASE_DB1, HRF_SegPlus;
+- variants: `baseline`, `attention_unet`, `unet_plus_plus`, `az_no_fuzzy`, `az_no_aniso`, `az_thesis`;
+- seeds: `41,42,43`;
+- epochs: `60`;
+- threshold policy: validation sweep по Dice;
+- loss policy: BCE + Dice/Tversky-style overlap + boundary/topology auxiliary terms по общему reviewer config;
+- baseline architecture: standard U-Net;
+- stronger baselines: Attention U-Net и U-Net++;
+- ablation variants:
+  - `az_no_fuzzy`: геометрическая часть AZ есть, fuzzy-согласование отключено;
+  - `az_no_aniso`: fuzzy/локальный AZ-механизм есть, но анизотропия отключена;
+  - `az_thesis`: полный вариант.
+
+### 26.1 DRIVE
+
+| Variant | Dice | IoU | clDice | Precision | Recall | Skel Prec | Skel Rec | Bal Acc | Aniso gap |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| baseline | 0.7646 +- 0.0286 | 0.6198 +- 0.0370 | 0.7499 +- 0.0281 | 0.7753 +- 0.0322 | 0.7543 +- 0.0252 | 0.8291 +- 0.0165 | 0.6850 +- 0.0378 | 0.8617 +- 0.0151 | 0.0000 +- 0.0000 |
+| attention_unet | 0.7668 +- 0.0239 | 0.6224 +- 0.0311 | 0.7568 +- 0.0235 | 0.7716 +- 0.0113 | 0.7625 +- 0.0363 | 0.8368 +- 0.0051 | 0.6919 +- 0.0395 | 0.8654 +- 0.0185 | 0.0000 +- 0.0000 |
+| unet_plus_plus | 0.7748 +- 0.0304 | 0.6333 +- 0.0401 | 0.7652 +- 0.0329 | 0.7811 +- 0.0208 | 0.7693 +- 0.0444 | 0.8250 +- 0.0255 | 0.7148 +- 0.0471 | 0.8695 +- 0.0227 | 0.0000 +- 0.0000 |
+| az_no_fuzzy | 0.7519 +- 0.0295 | 0.6033 +- 0.0374 | 0.7366 +- 0.0314 | 0.7663 +- 0.0210 | 0.7382 +- 0.0372 | 0.8355 +- 0.0101 | 0.6597 +- 0.0455 | 0.8533 +- 0.0198 | 2.1185 +- 0.0119 |
+| az_no_aniso | 0.7511 +- 0.0288 | 0.6022 +- 0.0366 | 0.7353 +- 0.0384 | 0.7660 +- 0.0223 | 0.7368 +- 0.0346 | 0.8344 +- 0.0202 | 0.6581 +- 0.0496 | 0.8526 +- 0.0186 | 0.0000 +- 0.0000 |
+| az_thesis | 0.7005 +- 0.0398 | 0.5405 +- 0.0461 | 0.6678 +- 0.0317 | 0.7260 +- 0.0444 | 0.6769 +- 0.0356 | 0.8114 +- 0.0382 | 0.5675 +- 0.0277 | 0.8204 +- 0.0212 | 9.3260 +- 0.1992 |
+
+Вывод по DRIVE: текущий полный `az_thesis` не надо подавать как улучшение. Сильнейший результат здесь дает `unet_plus_plus`. При этом диагностически видно, что full AZ формирует очень большую анизотропию (`anisotropy gap` около `9.33`), но эта жесткая геометрия ухудшает overlap и skeleton recall. Для статьи это аргумент не в пользу "мы лучше", а в пользу необходимости калибровки силы анизотропии.
+
+### 26.2 CHASE_DB1
+
+| Variant | Dice | IoU | clDice | Precision | Recall | Skel Prec | Skel Rec | Bal Acc | Aniso gap |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| baseline | 0.6907 +- 0.0422 | 0.5291 +- 0.0484 | 0.7156 +- 0.0152 | 0.6277 +- 0.0755 | 0.7761 +- 0.0232 | 0.7610 +- 0.0537 | 0.6783 +- 0.0225 | 0.8647 +- 0.0100 | 0.0000 +- 0.0000 |
+| attention_unet | 0.7148 +- 0.0185 | 0.5566 +- 0.0226 | 0.7271 +- 0.0218 | 0.6622 +- 0.0244 | 0.7777 +- 0.0262 | 0.7768 +- 0.0247 | 0.6837 +- 0.0237 | 0.8695 +- 0.0127 | 0.0000 +- 0.0000 |
+| unet_plus_plus | 0.7224 +- 0.0071 | 0.5655 +- 0.0087 | 0.7266 +- 0.0030 | 0.6893 +- 0.0217 | 0.7600 +- 0.0183 | 0.8040 +- 0.0105 | 0.6630 +- 0.0082 | 0.8634 +- 0.0074 | 0.0000 +- 0.0000 |
+| az_no_fuzzy | 0.6975 +- 0.0051 | 0.5355 +- 0.0061 | 0.7103 +- 0.0063 | 0.6437 +- 0.0315 | 0.7650 +- 0.0380 | 0.7587 +- 0.0327 | 0.6705 +- 0.0354 | 0.8617 +- 0.0152 | 2.1270 +- 0.0076 |
+| az_no_aniso | 0.6951 +- 0.0218 | 0.5331 +- 0.0258 | 0.6972 +- 0.0311 | 0.6613 +- 0.0055 | 0.7336 +- 0.0439 | 0.7878 +- 0.0045 | 0.6276 +- 0.0544 | 0.8486 +- 0.0212 | 0.0000 +- 0.0000 |
+| az_thesis | 0.6864 +- 0.0161 | 0.5227 +- 0.0186 | 0.6819 +- 0.0106 | 0.6299 +- 0.0504 | 0.7609 +- 0.0381 | 0.7260 +- 0.0679 | 0.6511 +- 0.0468 | 0.8582 +- 0.0137 | 1.3284 +- 0.0117 |
+
+Вывод по CHASE_DB1: Attention U-Net и U-Net++ сильнее текущего полного AZ по Dice/IoU. `az_no_fuzzy` немного выше vanilla baseline по Dice (`+0.0068`), но full `az_thesis` ниже baseline. Это говорит, что текущая комбинация fuzzy + anisotropy в полной модели переограничивает локальную агрегацию; сама геометрическая часть полезна только при мягком режиме.
+
+### 26.3 HRF_SegPlus
+
+| Variant | Dice | IoU | clDice | Precision | Recall | Skel Prec | Skel Rec | Bal Acc | Aniso gap |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| baseline | 0.6551 +- 0.0184 | 0.4874 +- 0.0206 | 0.5546 +- 0.0118 | 0.6300 +- 0.0405 | 0.6842 +- 0.0064 | 0.6714 +- 0.0247 | 0.4727 +- 0.0108 | 0.7712 +- 0.0091 | 0.0000 +- 0.0000 |
+| attention_unet | 0.6679 +- 0.0177 | 0.5016 +- 0.0199 | 0.5550 +- 0.0129 | 0.6611 +- 0.0330 | 0.6757 +- 0.0089 | 0.7029 +- 0.0300 | 0.4592 +- 0.0148 | 0.7771 +- 0.0098 | 0.0000 +- 0.0000 |
+| unet_plus_plus | 0.6723 +- 0.0156 | 0.5066 +- 0.0175 | 0.5478 +- 0.0141 | 0.6723 +- 0.0164 | 0.6724 +- 0.0162 | 0.6984 +- 0.0472 | 0.4517 +- 0.0114 | 0.7791 +- 0.0105 | 0.0000 +- 0.0000 |
+| az_no_fuzzy | 0.6578 +- 0.0162 | 0.4903 +- 0.0179 | 0.5366 +- 0.0213 | 0.6549 +- 0.0473 | 0.6639 +- 0.0168 | 0.7018 +- 0.0196 | 0.4357 +- 0.0305 | 0.7697 +- 0.0065 | 2.1940 +- 0.0035 |
+| az_no_aniso | 0.6628 +- 0.0170 | 0.4959 +- 0.0191 | 0.5468 +- 0.0304 | 0.6605 +- 0.0499 | 0.6704 +- 0.0371 | 0.7305 +- 0.0251 | 0.4386 +- 0.0386 | 0.7735 +- 0.0097 | 0.0000 +- 0.0000 |
+| az_thesis | 0.6510 +- 0.0066 | 0.4826 +- 0.0072 | 0.5345 +- 0.0087 | 0.6293 +- 0.0202 | 0.6751 +- 0.0117 | 0.6808 +- 0.0166 | 0.4405 +- 0.0143 | 0.7679 +- 0.0028 | 1.2951 +- 0.0329 |
+
+Вывод по HRF_SegPlus: текущий full `az_thesis` ниже baseline по Dice (`-0.0041`) и clDice (`-0.0201`). На HRF лучше всего работает U-Net++ по Dice/IoU, а `az_no_aniso` дает небольшой прирост над baseline по Dice (`+0.0077`) и skeleton precision, но снижает skeleton recall. Это означает, что fuzzy/local filtering может повышать избирательность, но текущая постановка не сохраняет слабые продолжения сосудов достаточно хорошо.
+
+### 26.4 Что честно писать в 3 статье после reviewer-pack
+
+Не писать:
+
+- "the proposed full AZ model outperforms U-Net, Attention U-Net and U-Net++";
+- "anisotropic fuzzy convolution improves Dice on all medical datasets";
+- "the current full configuration is final".
+
+Писать:
+
+- "The proposed layer is evaluated as a geometric local aggregation mechanism, and the reviewer-oriented experiment shows both its potential and its current limitations."
+- "Strong U-Net-family baselines remain competitive and often outperform the current full AZ configuration."
+- "The ablation indicates that the effect of geometry is sensitive to calibration: removing fuzzy weighting or disabling anisotropy may be better than the current full coupling on some datasets."
+- "A large anisotropy gap does not automatically imply better segmentation. On DRIVE it correlates with lower skeleton recall, which suggests over-selective propagation along local modes."
+- "Future work must include topology-aware loss calibration, learnable/regularized anisotropy strength, and a sweep over the number of local modes."
+
+### 26.5 Как закрывать замечания рецензента
+
+| Замечание | Что теперь есть | Честный статус |
+|---|---|---|
+| Слабый baseline | Добавлены `attention_unet` и `unet_plus_plus` | Закрыто частично; CS-Net/IterNet/transformer еще нет |
+| Недостаточно medical datasets | DRIVE, CHASE_DB1, HRF_SegPlus | Закрыто для conference-level revision |
+| Нет ablation | `az_no_fuzzy`, `az_no_aniso`, `az_thesis` | Закрыто |
+| Нет multi-seed | seeds `41,42,43`, mean/std | Закрыто |
+| Нет Precision/Recall/clDice | Таблицы выше включают Precision, Recall, clDice, skeleton precision/recall | Закрыто |
+| Падение clDice | Теперь явно видно и объясняется как over-suppression weak vessel continuations | Закрыто объяснением, но не исправлено качественно |
+| Почему число режимов | Есть launcher `run_article3_regime_count_sweep.ps1` | Протокол есть, но sweep еще надо запускать |
+| Reproducibility | Код, configs и launchers в public repo | Закрыто |
+
+### 26.6 Главная новая мысль для статьи
+
+После этих результатов третью статью лучше строить не как "мы победили U-Net", а как честную инженерно-научную работу:
+
+**"Анизотропная нечеткая локальная свертка как диагностируемый геометрический модуль: когда направленная локальная агрегация помогает, когда переограничивает сосудистую структуру, и какие метрики показывают этот режим."**
+
+Так статья отличается от первых двух:
+
+- статья 1: математические свойства оператора;
+- статья 2: алгоритм сегментации и базовый эксперимент;
+- статья 3: воспроизводимая медицинская валидация, сильные baseline, ablation, диагностика anisotropy gap / clDice / skeleton recall и честный анализ ограничений.
