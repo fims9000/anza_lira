@@ -4,7 +4,7 @@
 **Cross-Domain Evaluation of Anisotropic Fuzzy Local Convolution for Thin-Structure Segmentation**
 
 ## Abstract
-Thin elongated structures are difficult to segment in both medical and remote-sensing images because they combine weak local contrast, branching topology, and local ambiguity. This paper presents a cross-domain evaluation of anisotropic fuzzy local convolution (AZ) used as a local aggregation mechanism inside a U-Net style segmentation pipeline. We evaluate the same mechanism on three datasets with different visual statistics: Roads_HF (small GIS roads), SpaceNet3/GlobalScaleRoad (larger satellite roads), and HRF_SegPlus (retinal vessels). The main claim is not universal superiority on every metric, but robust geometry-aware behavior in ambiguous regions and stronger structure preservation after domain calibration. In addition to overlap metrics, we analyze the internal geometric state of AZ by visualizing model-native orientation and anisotropy strength. Results show clear gains on SpaceNet3 and HRF after calibration, while Roads_HF remains near parity with baseline. We conclude that anisotropic fuzzy local aggregation is transferable across domains when geometry settings are tuned and interpreted consistently.
+Thin elongated structures are difficult to segment in both medical and remote-sensing images because they combine weak local contrast, branching topology, and local ambiguity. This paper presents an evaluation of anisotropic fuzzy local convolution (AZ) used as a local aggregation mechanism inside a U-Net style segmentation pipeline. The main claim is not universal superiority on every metric, but geometry-aware behavior that can be inspected through model-native orientation and anisotropy diagnostics. We report quantitative results on SpaceNet3/GlobalScaleRoad and HRF_SegPlus, and use Roads_HF only as an auxiliary qualitative sanity check because its baseline performance is already saturated. The proposed visualization protocol links local error corrections to explicit internal states of the AZ layer. This makes the method more interpretable and helps identify both successful and failure regimes.
 
 **Keywords:** thin-structure segmentation, anisotropic fuzzy local convolution, retinal vessels, road extraction, cross-domain evaluation, geometric interpretability
 
@@ -14,9 +14,9 @@ Segmentation of thin structures remains unstable when the target class is long, 
 The method studied in this work introduces anisotropic fuzzy local aggregation. Its local compatibility combines directional geometry and fuzzy local agreement, so that neighborhood contributions are weighted by both spatial orientation and regime confidence. This mechanism has been analyzed in our previous works from theoretical and single-domain perspectives. The purpose of the current paper is different: we evaluate whether one geometric local mechanism is reusable across heterogeneous domains and how its operating regime should be interpreted.
 
 The paper makes three contributions:
-1. A cross-domain benchmark on Roads_HF, SpaceNet3, and HRF_SegPlus under matched baseline/proposed protocols.
+1. A matched U-Net vs AZ comparison on representative thin-structure datasets, with Roads_HF treated as a qualitative saturated-baseline case rather than as primary evidence.
 2. A model-native geometry visualization protocol that connects segmentation changes to internal AZ directional states.
-3. A practical architecture correction: thesis-default AZ geometry is configured to learn local hyperbolic orientation instead of relying on fixed legacy geometry.
+3. A transparent discussion of operating regimes, including precision-recall trade-offs, clDice degradation on HRF, and limitations requiring larger ablation studies.
 
 ## II. Method
 
@@ -65,9 +65,9 @@ Backward compatibility for older checkpoints (historical fixed-cat geometry) is 
 ## III. Experimental Setup
 
 ### A. Datasets
-1. **Roads_HF**: 31 image/mask pairs; split train/val/test = 19/6/6; nominal image size \(1280\times720\).
-2. **SpaceNet3 prepared (GlobalScaleRoad split)**: train 179 / val 39 / in-domain-test 39.
-3. **HRF_SegPlus**: train 30 / test 15; nominal size around \(500\times500\).
+1. **SpaceNet3 prepared (GlobalScaleRoad split)**: train 179 / val 39 / in-domain-test 39.
+2. **HRF_SegPlus**: train 30 / test 15; nominal size around \(500\times500\).
+3. **Roads_HF**: 31 image/mask pairs; split train/val/test = 19/6/6; used only as a qualitative saturated-baseline check.
 
 ### B. Protocol
 - Baseline: U-Net style model without AZ block.
@@ -82,17 +82,25 @@ Backward compatibility for older checkpoints (historical fixed-cat geometry) is 
 
 | Dataset | Model | Dice | IoU | Precision | Recall | clDice |
 |---|---|---:|---:|---:|---:|---:|
-| Roads_HF | Baseline | 0.9740 | 0.9493 | 0.9704 | 0.9777 | 0.9147 |
-| Roads_HF | AZ-Thesis | 0.9727 | 0.9468 | 0.9710 | 0.9744 | 0.9164 |
 | SpaceNet3 | Baseline | 0.5466 | 0.3761 | 0.5429 | 0.5503 | 0.6138 |
 | SpaceNet3 | AZ-Thesis (recovered) | 0.5914 | 0.4198 | 0.5955 | 0.5873 | 0.6802 |
 | HRF_SegPlus | Baseline | 0.6458 | 0.4769 | 0.6165 | 0.6780 | 0.5361 |
 | HRF_SegPlus | AZ-Thesis | 0.6822 | 0.5177 | 0.7103 | 0.6562 | 0.5140 |
 
+Roads_HF is omitted from the main quantitative table because the baseline is already near saturation (Dice about 0.974), and the AZ variant remains within noise-level parity. We keep this dataset only for qualitative visualization and sanity checking.
+
 ### B. Delta AZ - Baseline
-- **Roads_HF:** Dice -0.0014, IoU -0.0026, Precision +0.0006, Recall -0.0033, clDice +0.0017.
 - **SpaceNet3:** Dice +0.0448, IoU +0.0437, Precision +0.0525, Recall +0.0370, clDice +0.0664.
 - **HRF_SegPlus:** Dice +0.0364, IoU +0.0408, Precision +0.0938, Recall -0.0219, clDice -0.0220.
+
+### C. Component interpretation / analytical ablation
+The current submission does not include a full retrained ablation grid. However, the role of the two components can be analyzed directly from the local weight:
+
+- Without the fuzzy factor, \(w_r(p,q)\) reduces to a purely geometric anisotropic kernel. This keeps directional selectivity but loses the ability to down-weight neighbors with weak structural agreement.
+- Without anisotropy, setting \(\sigma_u=\sigma_s\) collapses the kernel to an isotropic fuzzy local aggregation. This keeps soft membership weighting but removes longitudinal/transverse discrimination.
+- The full AZ layer combines both terms, so local evidence is selected both by orientation and by fuzzy structural agreement.
+
+A full retrained ablation with `baseline`, `baseline + topology loss`, `AZ without fuzzy`, `AZ without anisotropy`, and `AZ full` is required for a journal-level extension.
 
 ## V. Discussion
 
@@ -102,27 +110,48 @@ The same AZ mechanism does not produce identical gains across domains. This is e
 ### B. Structure-aware interpretation
 The geometry protocol shows where AZ corrections happen and how they align with model orientation and anisotropy activity. Instead of purely qualitative “pretty masks,” the analysis links error corrections to explicit internal quantities \((\theta, g, c)\). This is especially useful in reviewer dialogue because improvements become mechanistically explainable.
 
-### C. Limitations
+### C. clDice and recall trade-off
+On HRF_SegPlus, AZ improves Dice, IoU, and Precision, but Recall and clDice decrease. This suggests that the layer can suppress faint vessel continuations while reducing false positives. The effect is important and should not be hidden: it indicates that the current loss is not sufficiently topology-preserving for weak vessels. A natural correction is to include a topology-preserving term such as clDice loss or skeleton recall regularization in future training.
+
+### D. Limitations
+We acknowledge that the current evaluation is limited to datasets of modest size, the baseline comparison omits attention-based and vessel-specific architectures, and no fully retrained component ablation has been performed. The present study should therefore be read as a geometry-interpretability and proof-of-concept evaluation rather than as a complete state-of-the-art benchmark.
+
+Additional limitations are:
 1. Current formulation models orientation axis, not signed directional flow.
 2. Trade-offs between Precision and Recall can vary by domain.
-3. Full statistical significance analysis over many seeds remains future work for this cross-domain package.
+3. Full statistical significance analysis over many seeds remains future work.
+4. The influence of the number of fuzzy regimes \(R\) has not yet been systematically evaluated.
+
+### E. Future work
+Future work will address:
+1. comparison with Attention U-Net, U-Net++, nnU-Net, and at least one transformer-based segmentation model;
+2. evaluation on additional medical datasets such as DRIVE, CHASE_DB1, and STARE;
+3. full ablation over fuzzy-only, anisotropy-only, and full AZ variants;
+4. sensitivity analysis over the number of regimes \(R=1,2,4,8,16\);
+5. topology-aware training with clDice or skeleton-based losses.
 
 ## VI. Conclusion
-Anisotropic fuzzy local convolution is a practical cross-domain local mechanism for thin-structure segmentation when domain calibration is applied. The method improves key metrics on SpaceNet3 and HRF while staying near baseline on Roads_HF, and the proposed model-native geometry visualization provides interpretable evidence of how local anisotropic behavior influences segmentation outcomes. This combination of transferability and interpretability makes AZ a useful candidate for robust elongated-structure analysis in digital healthcare and remote sensing workflows.
+Anisotropic fuzzy local convolution is a practical local mechanism for thin-structure segmentation when domain calibration is applied. The current evidence is strongest for geometry-aware interpretability and for selected calibrated cases rather than for universal superiority. The proposed model-native visualization protocol provides interpretable evidence of how local anisotropic behavior influences segmentation outcomes and where it fails. This makes AZ a useful candidate for further study in robust elongated-structure analysis.
 
 ## VII. Reproducibility Notes
+- Public repository:
+
+`https://github.com/fims9000/anza_lira`
+
 - Final geometry figure command:
 
 `python scripts/export_geometry_clean_article_figure.py --results-dir results --run article3_spacenet_sprint_v3_recover --baseline-run article3_spacenet_sprint_v3_baseline --sample-index 13 --output-dir results/a3_final_package/final_article3/figures --device cpu`
+Recommended main sample index for the paper body: `30` (`spacenet3_paris_img0417`).
 
 - Final figure used in paper:
 
-`results/a3_final_package/final_article3/figures/geometry_clean_global_roads_spacenet3_paris_img0175.png`
+`results/a3_final_package/final_article3/figures/geometry_clean_global_roads_spacenet3_paris_img0417.png`
 
 ## VIII. Run References
-- Roads_HF baseline: `results/article3_roads_hf_s42_e25_gpu_20260428_123652_baseline/metrics.json`
-- Roads_HF AZ: `results/article3_roads_hf_s42_e25_gpu_20260428_123652_az_thesis/metrics.json`
-- SpaceNet3 baseline: `results/article3_spacenet_s42_e12_gpu_20260428_123652_baseline/metrics.json`
-- SpaceNet3 AZ recovered: `results/article3_spacenet_recover_azthesis_continue_s42_e12_20260428_135128/metrics.json`
-- HRF baseline: `results/article3_hrf_baseline_s42_e40/metrics.json`
-- HRF AZ: `results/article3_hrf_final_s42_e40/metrics.json`
+Public-repo reproducible SpaceNet3 materials:
+- SpaceNet3 baseline: `results/article3_spacenet_sprint_v3_baseline/metrics.json`
+- SpaceNet3 AZ recovered: `results/article3_spacenet_sprint_v3_recover/metrics.json`
+- direction-diversity probe: `results/article3_spacenet_v3_dirlearn_probe_s42_e10/metrics.json`
+- visual bundle: `results/a3_final_package/final_article3/article3_final_visual_bundle_ru.md`
+
+Medical HRF and Roads_HF values in this draft are retained as local experimental results. For a final public submission, either include the corresponding reproducible artifacts or move those numbers to supplementary/local notes.

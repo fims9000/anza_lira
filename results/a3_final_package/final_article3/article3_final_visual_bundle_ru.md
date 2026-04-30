@@ -339,3 +339,91 @@ g(p)=\frac{\sum_r \mu_r(p)g_r(p)}{\sum_r \mu_r(p)+\varepsilon}\cdot c(p).
 - Что главное на рисунках: error map + axis + anisotropy strength.
 - Что честно говорим: есть и failure-cases.
 - Что защищаем перед рецензентом: воспроизводимость, математика, не-overclaim.
+
+---
+
+## 19) Major Revision hardening: что обязательно учесть в 3-й статье
+
+Это блок именно под жёсткого рецензента. Его задача — заранее закрыть самые очевидные претензии, не обещая того, чего у нас ещё нет.
+
+### 19.1 Слабый baseline
+
+Что написать честно:
+
+`The present study uses a matched U-Net baseline to isolate the effect of the AZ local aggregation block. We acknowledge that comparison with Attention U-Net, U-Net++, nnU-Net, and transformer-based segmentation models is required for a complete state-of-the-art evaluation and leave it for the extended version.`
+
+Почему так нормально:
+- мы не притворяемся, что победили все архитектуры;
+- мы объясняем, что текущая цель — изолировать локальный блок.
+
+### 19.2 Roads_HF не ставить как главный quantitative win
+
+Roads_HF лучше оставить как qualitative/sanity-check:
+
+`Roads_HF is not used as primary quantitative evidence because the baseline is already near saturation. We retain it only as an auxiliary qualitative case for geometry visualization.`
+
+Это защищает от вопроса: “зачем показывать датасет, где нет прироста”.
+
+### 19.3 clDice на HRF упал — не скрывать
+
+Готовый абзац:
+
+`On HRF_SegPlus, the proposed model improves Dice, IoU, and Precision, but clDice decreases. This indicates that the current configuration may over-suppress faint vessel continuations while reducing false positives. We therefore interpret the HRF result as a precision-oriented operating regime rather than a topology-optimal one. Incorporating clDice or skeleton-recall loss is a natural next step.`
+
+### 19.4 Ablation, если нет времени переобучать
+
+В основной текст вставить как analytical ablation:
+
+- `without fuzzy`: остаётся только геометрическая анизотропия, но нет подавления weak-agreement соседей;
+- `without anisotropy`: \(\sigma_u=\sigma_s\), то есть fuzzy isotropic aggregation;
+- `full AZ`: совместное действие membership + directional metric.
+
+Важно: не писать “we experimentally prove”, если нет полного retraining. Писать “analytically, the components correspond to...”.
+
+### 19.5 Статистика
+
+Минимально честная формулировка:
+
+`Because the current test sets are modest, we report per-image examples and explicitly mark the study as proof-of-concept. Full confidence intervals and multi-seed significance analysis are planned for the extended version.`
+
+Если успеем посчитать per-image std, добавить:
+
+`Per-image standard deviations are provided in supplementary material.`
+
+### 19.6 Reproducibility
+
+В статье обязательно вставить:
+
+`The implementation and figure-generation scripts are available at https://github.com/fims9000/anza_lira.`
+
+И отдельно:
+
+`All geometry figures are generated from model checkpoints using deterministic scripts, not manual drawing.`
+
+### 19.7 Ссылка на Аносова
+
+В 3-й статье не тянуть Аносова в основной текст. Лучше опираться на:
+
+- steerable filters;
+- anisotropic diffusion;
+- U-Net;
+- retinal vessel segmentation reviews.
+
+Формулировка:
+
+`The directional part of the layer follows the general intuition of steerable and anisotropic filtering, but the proposed mechanism combines it with fuzzy rule memberships inside a trainable segmentation model.`
+
+---
+
+## 20) Что реально успеть за короткое время
+
+Приоритеты:
+
+1. Убрать Roads_HF из главной quantitative table.
+2. Добавить честный Limitations paragraph.
+3. Объяснить clDice drop на HRF.
+4. Добавить analytical ablation paragraph.
+5. Добавить GitHub/reproducibility sentence.
+6. Поставить одну strong positive figure + одну failure figure.
+
+Этого достаточно, чтобы статья выглядела не как “сырой proof-of-concept”, а как честная короткая conference paper с понятным scope.
