@@ -427,3 +427,66 @@ Roads_HF лучше оставить как qualitative/sanity-check:
 6. Поставить одну strong positive figure + одну failure figure.
 
 Этого достаточно, чтобы статья выглядела не как “сырой proof-of-concept”, а как честная короткая conference paper с понятным scope.
+
+---
+
+## 21) Таблица “замечание рецензента -> что исправлено”
+
+| Замечание | Что сделано в материалах | Статус |
+|---|---|---|
+| Слабый baseline: только U-Net | В draft добавлен честный scope: U-Net используется как matched baseline для изоляции AZ-блока; Attention U-Net, U-Net++, nnU-Net и transformer-модель вынесены в Future work | закрыто текстом / future work |
+| Недостаточно медицинских датасетов | HRF оставлен как medical case, но явно указано, что DRIVE/CHASE/STARE нужны для extended version | закрыто как limitation |
+| Нет ablation study | Добавлен analytical ablation: without fuzzy, without anisotropy, full AZ; полный retraining grid заявлен как required extension | частично закрыто |
+| clDice на HRF упал | Добавлен отдельный абзац: AZ улучшает Precision/Dice, но может подавлять faint vessel continuations; решение — clDice/skeleton loss | закрыто объяснением |
+| Почему такое число режимов R | Добавлен пункт про regime-count scalability и необходимость sweep \(R=1,2,4,8,16\) | закрыто как future work |
+| Нет статистической значимости | Для SpaceNet3 посчитана per-image статистика mean ± std по 39 test tiles; добавлены CSV/JSON supplementary artifacts | частично закрыто |
+| Аносов выглядит чужеродно | В 3-й статье рекомендовано не использовать Аносова; вместо этого опираться на steerable filters / anisotropic diffusion | закрыто рекомендацией |
+| Нет reproducibility | Добавлена ссылка на GitHub и команда генерации фигур; README приведён в публичный вид | закрыто |
+| Roads_HF бесполезен в таблице | Roads_HF убран из main quantitative table, оставлен как qualitative/sanity-check | закрыто |
+| Precision вырос, Recall упал | В main table есть Precision/Recall; в Discussion объяснён trade-off | закрыто |
+
+---
+
+## 22) Per-image statistics для SpaceNet3 (готово в supplementary)
+
+Файлы:
+
+- `results/a3_final_package/final_article3/spacenet_v3_per_image_metrics.csv`
+- `results/a3_final_package/final_article3/spacenet_v3_per_image_summary.json`
+
+Порог:
+- baseline: `0.70`
+- AZ: `0.80`
+
+Количество test tiles: `39`.
+
+| Metric | Baseline mean ± std | AZ mean ± std | Delta mean ± std |
+|---|---:|---:|---:|
+| Dice | 0.4931 ± 0.2246 | 0.5248 ± 0.2001 | +0.0318 ± 0.1238 |
+| IoU | 0.3538 ± 0.1854 | 0.3790 ± 0.1776 | +0.0252 ± 0.0987 |
+| Precision | 0.4958 ± 0.2112 | 0.5071 ± 0.2055 | +0.0113 ± 0.1618 |
+| Recall | 0.5112 ± 0.2598 | 0.5956 ± 0.2317 | +0.0844 ± 0.1833 |
+
+Готовый абзац:
+
+`For the reproducible SpaceNet3 split, we additionally computed per-image statistics over 39 test tiles. The AZ variant improves mean Dice, IoU, Precision, and Recall, but the standard deviation of the delta remains substantial. Therefore, we interpret these results as a promising trend rather than a statistically final claim.`
+
+---
+
+## 23) Минимальный “response to reviewer” для письма/формы
+
+`We thank the reviewer for the constructive comments. We revised the paper to clarify that the current work is a geometry-interpretability and proof-of-concept study rather than a complete state-of-the-art benchmark. We removed Roads_HF from the main quantitative table and retained it only as a qualitative saturated-baseline sanity check. We added a complete metric table with Dice, IoU, Precision, Recall, and clDice; discussed the HRF clDice decrease and its likely reason; added an analytical component ablation; provided per-image SpaceNet3 statistics; added an explicit limitations paragraph and future work plan covering stronger baselines, additional medical datasets, regime-count sensitivity, and topology-aware losses. The implementation and deterministic figure-generation scripts are available at https://github.com/fims9000/anza_lira.`
+
+---
+
+## 24) Что осталось не закрыто экспериментально
+
+Честно:
+
+1. Нет retrained Attention U-Net / U-Net++ / nnU-Net / transformer baseline.
+2. Нет retrained ablation grid по fuzzy-only / anisotropy-only / full.
+3. Нет sweep по \(R=1,2,4,8,16\).
+4. Нет multi-seed confidence intervals для всех датасетов.
+5. HRF/Roads reproducibility artifacts в public repo надо либо добавить, либо оставить эти числа как local/supplementary.
+
+Если статья короткая conference paper, это можно оставить как limitations. Если хотим journal/Q1 — это всё придётся реально дообучать.

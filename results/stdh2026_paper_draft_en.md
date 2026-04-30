@@ -93,7 +93,19 @@ Roads_HF is omitted from the main quantitative table because the baseline is alr
 - **SpaceNet3:** Dice +0.0448, IoU +0.0437, Precision +0.0525, Recall +0.0370, clDice +0.0664.
 - **HRF_SegPlus:** Dice +0.0364, IoU +0.0408, Precision +0.0938, Recall -0.0219, clDice -0.0220.
 
-### C. Component interpretation / analytical ablation
+### C. Per-image SpaceNet3 statistics
+For the reproducible SpaceNet3 split, we additionally computed per-image metrics over 39 test tiles. This avoids relying only on aggregate pixel-level scores.
+
+| Metric | Baseline mean ± std | AZ mean ± std | Delta mean ± std |
+|---|---:|---:|---:|
+| Dice | 0.4931 ± 0.2246 | 0.5248 ± 0.2001 | +0.0318 ± 0.1238 |
+| IoU | 0.3538 ± 0.1854 | 0.3790 ± 0.1776 | +0.0252 ± 0.0987 |
+| Precision | 0.4958 ± 0.2112 | 0.5071 ± 0.2055 | +0.0113 ± 0.1618 |
+| Recall | 0.5112 ± 0.2598 | 0.5956 ± 0.2317 | +0.0844 ± 0.1833 |
+
+The per-image table confirms the positive trend on SpaceNet3, but also shows substantial tile-to-tile variance. Therefore, the result should be interpreted as promising but not yet statistically conclusive.
+
+### D. Component interpretation / analytical ablation
 The current submission does not include a full retrained ablation grid. However, the role of the two components can be analyzed directly from the local weight:
 
 - Without the fuzzy factor, \(w_r(p,q)\) reduces to a purely geometric anisotropic kernel. This keeps directional selectivity but loses the ability to down-weight neighbors with weak structural agreement.
@@ -101,6 +113,9 @@ The current submission does not include a full retrained ablation grid. However,
 - The full AZ layer combines both terms, so local evidence is selected both by orientation and by fuzzy structural agreement.
 
 A full retrained ablation with `baseline`, `baseline + topology loss`, `AZ without fuzzy`, `AZ without anisotropy`, and `AZ full` is required for a journal-level extension.
+
+### E. Regime-count scalability
+The current reproducible SpaceNet3 runs use a fixed number of fuzzy regimes. We do not claim that this value is optimal. A systematic sweep over \(R=1,2,4,8,16\) is required to characterize scalability and rule redundancy. This is listed as a required extension rather than a completed result.
 
 ## V. Discussion
 
@@ -129,6 +144,9 @@ Future work will address:
 3. full ablation over fuzzy-only, anisotropy-only, and full AZ variants;
 4. sensitivity analysis over the number of regimes \(R=1,2,4,8,16\);
 5. topology-aware training with clDice or skeleton-based losses.
+
+### F. References to prioritize
+The final manuscript should avoid overemphasizing dynamical-systems terminology for the longitudinal/transverse split. The directional part should instead be positioned through standard image-processing references such as steerable filters and anisotropic diffusion.
 
 ## VI. Conclusion
 Anisotropic fuzzy local convolution is a practical local mechanism for thin-structure segmentation when domain calibration is applied. The current evidence is strongest for geometry-aware interpretability and for selected calibrated cases rather than for universal superiority. The proposed model-native visualization protocol provides interpretable evidence of how local anisotropic behavior influences segmentation outcomes and where it fails. This makes AZ a useful candidate for further study in robust elongated-structure analysis.
