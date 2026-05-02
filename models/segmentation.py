@@ -336,6 +336,7 @@ class _RegularizedSegmentationMixin:
         zero = next(self.parameters()).new_zeros(())
         return {
             "membership_entropy": zero,
+            "membership_entropy_deficit": zero,
             "membership_smoothness": zero,
             "geometry_smoothness": zero,
             "hyperbolicity_penalty": zero,

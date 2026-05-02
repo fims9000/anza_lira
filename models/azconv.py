@@ -43,6 +43,8 @@ class AZConvConfig:
     residual_init: float = 0.0
     geometry_kernel_size: int = 1
     init_anisotropy_gap: float = 0.35
+    max_hyperbolicity: float = 1.0
+    min_membership_entropy: float = 0.0
 
 
 class AZConv2d(nn.Module):
@@ -103,6 +105,10 @@ class AZConv2d(nn.Module):
             raise ValueError("geometry_kernel_size must be a positive odd integer.")
         if float(self.cfg.init_anisotropy_gap) < 0.0:
             raise ValueError("init_anisotropy_gap must be non-negative.")
+        if float(self.cfg.max_hyperbolicity) <= 0.0:
+            raise ValueError("max_hyperbolicity must be positive.")
+        if not 0.0 <= float(self.cfg.min_membership_entropy) <= 1.0:
+            raise ValueError("min_membership_entropy must be in [0, 1].")
 
         self.gate_conv = nn.Conv2d(in_channels, num_rules, kernel_size=1, bias=True)
         self.value_conv = (
@@ -137,6 +143,14 @@ class AZConv2d(nn.Module):
                 self.raw_base_scale = nn.Parameter(torch.zeros(num_rules))
                 self.raw_hyperbolicity = nn.Parameter(torch.zeros(num_rules))
                 self.geometry_conv = None
+                hyper_init = max(
+                    float(self.cfg.min_hyperbolicity),
+                    0.5 * float(self.cfg.init_anisotropy_gap),
+                )
+                hyper_init = min(hyper_init, float(self.cfg.max_hyperbolicity))
+                raw_hyper = self._inverse_softplus(torch.tensor(hyper_init, dtype=torch.float32))
+                with torch.no_grad():
+                    self.raw_hyperbolicity.fill_(float(raw_hyper))
             self.register_parameter("raw_sigma_u", None)
             self.register_parameter("raw_sigma_s", None)
         else:
@@ -168,8 +182,21 @@ class AZConv2d(nn.Module):
         assert self.geometry_conv is not None
         nn.init.zeros_(self.geometry_conv.weight)
         nn.init.zeros_(self.geometry_conv.bias)
+        base_init = torch.tensor(1.0, dtype=torch.float32)
+        # In local_hyperbolic mode sigma_u/sigma_s = exp(2 * hyper).
+        # Match init_anisotropy_gap to the initial log-axis ratio, while
+        # keeping at least the requested minimum hyperbolicity.
+        hyper_init = max(
+            float(self.cfg.min_hyperbolicity),
+            0.5 * float(self.cfg.init_anisotropy_gap),
+        )
+        hyper_init = min(hyper_init, float(self.cfg.max_hyperbolicity))
+        raw_base = self._inverse_softplus(base_init - 1e-4)
+        raw_hyper = self._inverse_softplus(torch.tensor(hyper_init, dtype=torch.float32))
         with torch.no_grad():
             self.geometry_conv.bias[: self.R].copy_(theta_init)
+            self.geometry_conv.bias[self.R : 2 * self.R].fill_(float(raw_base))
+            self.geometry_conv.bias[2 * self.R : 3 * self.R].fill_(float(raw_hyper))
 
     @staticmethod
     def _inverse_softplus(value: torch.Tensor) -> torch.Tensor:
@@ -236,6 +263,7 @@ class AZConv2d(nn.Module):
         if self.cfg.geometry_mode == "learned_hyperbolic":
             base = F.softplus(self.raw_base_scale).view(1, self.R, 1, 1) + 1e-4
             hyper = F.softplus(self.raw_hyperbolicity).view(1, self.R, 1, 1)
+            hyper = hyper.clamp_max(float(self.cfg.max_hyperbolicity))
             sigma_u = base * torch.exp(hyper)
             sigma_s = base * torch.exp(-hyper)
             gap = hyper
@@ -276,7 +304,7 @@ class AZConv2d(nn.Module):
         geom = self.geometry_conv(x)
         theta_map, raw_base_map, raw_hyper_map = torch.chunk(geom, 3, dim=1)
         base_map = F.softplus(raw_base_map) + 1e-4
-        hyper_map = F.softplus(raw_hyper_map)
+        hyper_map = F.softplus(raw_hyper_map).clamp_max(float(self.cfg.max_hyperbolicity))
 
         theta_center = theta_map.reshape(batch, self.R, 1, locations)
         base_center = base_map.reshape(batch, self.R, 1, locations)
@@ -354,6 +382,8 @@ class AZConv2d(nn.Module):
     ) -> None:
         mu_clamped = mu.clamp_min(1e-8)
         entropy = -(mu_clamped * mu_clamped.log()).sum(dim=1).mean()
+        entropy_norm = entropy / math.log(max(int(self.R), 2))
+        entropy_deficit = F.relu(float(self.cfg.min_membership_entropy) - entropy_norm).pow(2)
 
         smoothness = mu.new_zeros(())
         if mu.shape[-1] > 1:
@@ -401,6 +431,7 @@ class AZConv2d(nn.Module):
 
         self._last_reg_terms = {
             "membership_entropy": entropy,
+            "membership_entropy_deficit": entropy_deficit,
             "membership_smoothness": smoothness,
             "geometry_smoothness": geometry_smoothness,
             "hyperbolicity_penalty": hyper_penalty,
@@ -415,6 +446,7 @@ class AZConv2d(nn.Module):
         zero = self.pointwise.weight.new_zeros(())
         return {
             "membership_entropy": zero,
+            "membership_entropy_deficit": zero,
             "membership_smoothness": zero,
             "geometry_smoothness": zero,
             "hyperbolicity_penalty": zero,

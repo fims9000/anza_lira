@@ -1,0 +1,62 @@
+# Stable AZ geometry recipe after the local-hyperbolic implementation fix.
+#
+# Purpose:
+# - keep the anisotropic fuzzy mechanism model-native;
+# - prevent over-selective transverse suppression at initialization;
+# - compare the local AZ mechanism inside a U-Net style pipeline without
+#   replacing every decoder/bottleneck operation by AZ.
+
+variant_overrides:
+  az_thesis:
+    num_rules: 6
+    model_widths: [40, 80, 144, 208]
+
+    # Architecture: AZ is used as an early/mid-level local aggregation module.
+    encoder_az_stages: 2
+    encoder_block_mode: hybrid
+    hybrid_mix_init: 0.25
+    bottleneck_mode: aspp
+    decoder_mode: residual
+    boundary_mode: conv
+
+    # Geometry: mild local anisotropy, bounded hyperbolicity, per-rule mass.
+    az_geometry_mode: local_hyperbolic
+    az_learn_directions: true
+    az_normalize_mode: per_rule
+    az_init_anisotropy_gap: 0.20
+    az_min_hyperbolicity: 0.10
+    az_max_hyperbolicity: 0.60
+    az_compatibility_floor: 0.01
+    az_use_input_residual: true
+    az_residual_init: 0.05
+    az_min_membership_entropy: 0.35
+
+    # Loss/evaluation policy matched to the reviewer comparison pack.
+    lr: 0.0002
+    overlap_mode: dice
+    tversky_alpha: 0.5
+    tversky_beta: 0.5
+    aux_loss_weight: 0.2
+    boundary_loss_weight: 0.1
+    boundary_pos_weight: auto
+    boundary_pos_weight_min: 1.0
+    boundary_pos_weight_max: 25.0
+    boundary_dice_weight: 0.25
+    topology_loss_weight: 0.05
+    topology_num_iters: 10
+    bce_pos_weight: 4.5
+    seg_threshold: 0.6
+    eval_threshold_sweep: true
+    eval_threshold_metric: dice
+    eval_threshold_start: 0.3
+    eval_threshold_end: 0.9
+    eval_threshold_step: 0.05
+
+    # Regularization: discourage collapse and excessive geometry roughness.
+    reg_membership_entropy: 0.0
+    reg_membership_entropy_deficit: 0.001
+    reg_membership_smoothness: 0.0005
+    reg_geometry_smoothness: 0.0005
+    reg_hyperbolicity: 0.001
+    reg_anisotropy_gap: 0.0005
+    reg_direction_collapse: 0.0005

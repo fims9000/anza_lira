@@ -1477,6 +1477,12 @@ def az_config_for_variant(variant: str) -> AZConvConfig:
             use_value_projection=True,
             normalize_kernel=True,
             min_hyperbolicity=0.1,
+            normalize_mode="per_rule",
+            compatibility_floor=0.01,
+            use_input_residual=True,
+            residual_init=0.05,
+            init_anisotropy_gap=0.2,
+            max_hyperbolicity=0.6,
         )
     if variant == "az_full":
         return AZConvConfig(
@@ -1487,6 +1493,12 @@ def az_config_for_variant(variant: str) -> AZConvConfig:
             use_value_projection=True,
             normalize_kernel=True,
             min_hyperbolicity=0.1,
+            normalize_mode="per_rule",
+            compatibility_floor=0.01,
+            use_input_residual=True,
+            residual_init=0.05,
+            init_anisotropy_gap=0.2,
+            max_hyperbolicity=0.6,
         )
     if variant == "az_no_fuzzy":
         return AZConvConfig(
@@ -1497,6 +1509,12 @@ def az_config_for_variant(variant: str) -> AZConvConfig:
             use_value_projection=True,
             normalize_kernel=True,
             min_hyperbolicity=0.1,
+            normalize_mode="per_rule",
+            compatibility_floor=0.01,
+            use_input_residual=True,
+            residual_init=0.05,
+            init_anisotropy_gap=0.2,
+            max_hyperbolicity=0.6,
         )
     if variant == "az_no_aniso":
         return AZConvConfig(
@@ -1507,6 +1525,12 @@ def az_config_for_variant(variant: str) -> AZConvConfig:
             use_value_projection=True,
             normalize_kernel=True,
             min_hyperbolicity=0.1,
+            normalize_mode="per_rule",
+            compatibility_floor=0.01,
+            use_input_residual=True,
+            residual_init=0.05,
+            init_anisotropy_gap=0.2,
+            max_hyperbolicity=0.6,
         )
     if variant == "az_fixed_dirs":
         return AZConvConfig(
@@ -1543,6 +1567,7 @@ def az_regularization_weights(cfg: Dict[str, Any]) -> Dict[str, float]:
             direction_collapse_default = 5e-4
     return {
         "membership_entropy": float(cfg.get("reg_membership_entropy", 0.0)),
+        "membership_entropy_deficit": float(cfg.get("reg_membership_entropy_deficit", 0.0)),
         "membership_smoothness": float(cfg.get("reg_membership_smoothness", 0.0)),
         "geometry_smoothness": float(cfg.get("reg_geometry_smoothness", 0.0)),
         "hyperbolicity_penalty": float(cfg.get("reg_hyperbolicity", 0.0)),
@@ -1606,6 +1631,8 @@ def resolve_azconv_config_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
         "az_residual_init": "residual_init",
         "az_geometry_kernel_size": "geometry_kernel_size",
         "az_init_anisotropy_gap": "init_anisotropy_gap",
+        "az_max_hyperbolicity": "max_hyperbolicity",
+        "az_min_membership_entropy": "min_membership_entropy",
     }
     bool_targets = {
         "use_fuzzy",
@@ -1628,6 +1655,8 @@ def resolve_azconv_config_kwargs(cfg: Dict[str, Any]) -> Dict[str, Any]:
             "compatibility_floor",
             "residual_init",
             "init_anisotropy_gap",
+            "max_hyperbolicity",
+            "min_membership_entropy",
         }:
             out[target_key] = float(value)
         elif target_key == "geometry_kernel_size":
@@ -1682,7 +1711,7 @@ def build_model(
                 **model_kwargs,
                 **seg_kwargs,
             )
-        if variant in {"az_sota_pure", "az_thesis"}:
+        if variant == "az_sota_pure":
             cfg = az_config_from_variant_and_overrides(variant, az_cfg_kwargs)
             return AZSOTAUNet(
                 in_channels=in_channels,
@@ -1691,6 +1720,26 @@ def build_model(
                 cfg=cfg,
                 pure_az=True,
                 **model_kwargs,
+                **seg_kwargs,
+            )
+        if variant == "az_thesis":
+            cfg = az_config_from_variant_and_overrides(variant, az_cfg_kwargs)
+            thesis_defaults = {
+                "encoder_az_stages": 2,
+                "encoder_block_mode": "hybrid",
+                "hybrid_mix_init": 0.25,
+                "bottleneck_mode": "aspp",
+                "decoder_mode": "residual",
+                "boundary_mode": "conv",
+            }
+            thesis_defaults.update(model_kwargs)
+            return AZSOTAUNet(
+                in_channels=in_channels,
+                out_channels=num_outputs,
+                num_rules=num_rules,
+                cfg=cfg,
+                pure_az=True,
+                **thesis_defaults,
                 **seg_kwargs,
             )
         if variant.startswith("az_"):
@@ -1862,6 +1911,20 @@ def masked_bce_with_logits(
     return loss.sum() / denom
 
 
+def masked_auto_pos_weight(
+    target: torch.Tensor,
+    valid_mask: torch.Tensor,
+    min_weight: float = 1.0,
+    max_weight: float = 25.0,
+) -> torch.Tensor:
+    valid = valid_mask > 0.5
+    positives = target[valid].sum()
+    total = valid.float().sum()
+    negatives = (total - positives).clamp_min(0.0)
+    weight = negatives / positives.clamp_min(1.0)
+    return weight.clamp(float(min_weight), float(max_weight)).detach()
+
+
 def soft_dice_loss(logits: torch.Tensor, target: torch.Tensor, valid_mask: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
     probs = torch.sigmoid(logits)
     probs = probs * valid_mask
@@ -2005,6 +2068,10 @@ def segmentation_objective(
     tversky_beta: float = 0.5,
     aux_weight: float = 0.0,
     boundary_weight: float = 0.0,
+    boundary_dice_weight: float = 0.0,
+    boundary_pos_weight: torch.Tensor | float | str | None = None,
+    boundary_pos_weight_min: float = 1.0,
+    boundary_pos_weight_max: float = 25.0,
     topology_weight: float = 0.0,
     topology_num_iters: int = 10,
 ) -> tuple[torch.Tensor, Dict[str, float], torch.Tensor]:
@@ -2045,7 +2112,25 @@ def segmentation_objective(
 
     if boundary_logits is not None and boundary_weight > 0.0:
         boundary_target = boundary_target_from_mask(target, valid_mask)
-        boundary_loss_value = masked_bce_with_logits(boundary_logits, boundary_target, valid_mask)
+        boundary_pw: torch.Tensor | None
+        if isinstance(boundary_pos_weight, str) and boundary_pos_weight.lower().strip() == "auto":
+            boundary_pw = masked_auto_pos_weight(
+                boundary_target,
+                valid_mask,
+                min_weight=float(boundary_pos_weight_min),
+                max_weight=float(boundary_pos_weight_max),
+            ).to(device=boundary_logits.device, dtype=boundary_logits.dtype)
+        elif boundary_pos_weight is None:
+            boundary_pw = None
+        else:
+            boundary_pw = torch.as_tensor(boundary_pos_weight, device=boundary_logits.device, dtype=boundary_logits.dtype)
+        boundary_loss_value = masked_bce_with_logits(boundary_logits, boundary_target, valid_mask, pos_weight=boundary_pw)
+        if float(boundary_dice_weight) > 0.0:
+            boundary_loss_value = boundary_loss_value + float(boundary_dice_weight) * soft_dice_loss(
+                boundary_logits,
+                boundary_target,
+                valid_mask,
+            )
         total = total + boundary_weight * boundary_loss_value
 
     if topology_weight > 0.0:

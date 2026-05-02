@@ -48,6 +48,7 @@ from utils import (
 
 REG_LOG_KEYS = [
     "membership_entropy",
+    "membership_entropy_deficit",
     "membership_smoothness",
     "geometry_smoothness",
     "hyperbolicity_penalty",
@@ -219,6 +220,10 @@ def resolve_loss_cfg(
         "threshold": float(cfg.get("seg_threshold", 0.5)),
         "aux_weight": float(cfg.get("aux_loss_weight", 0.2)),
         "boundary_weight": float(cfg.get("boundary_loss_weight", 0.1)),
+        "boundary_dice_weight": float(cfg.get("boundary_dice_weight", 0.0)),
+        "boundary_pos_weight": cfg.get("boundary_pos_weight"),
+        "boundary_pos_weight_min": float(cfg.get("boundary_pos_weight_min", 1.0)),
+        "boundary_pos_weight_max": float(cfg.get("boundary_pos_weight_max", 25.0)),
         "topology_weight": float(cfg.get("topology_loss_weight", 0.0)),
         "topology_num_iters": int(cfg.get("topology_num_iters", 10)),
         "axis_alignment_weight": float(cfg.get("axis_alignment_weight", 0.0)),
@@ -266,6 +271,41 @@ def initialize_model_from_checkpoint(model: nn.Module, cfg: Dict[str, Any]) -> D
     payload = load_checkpoint_payload(checkpoint_path)
     state_dict = payload.get("model", payload)
     strict = bool(cfg.get("init_checkpoint_strict", True))
+    skipped_shape_keys: List[str] = []
+    skipped_missing_keys: List[str] = []
+    remapped_keys: Dict[str, str] = {}
+    loaded_key_count = len(state_dict)
+    if not strict:
+        current_state = model.state_dict()
+        compatible_state = {}
+        for key, value in state_dict.items():
+            target_key = key
+            if target_key not in current_state:
+                remap_candidates = []
+                if key.startswith("enc1.block."):
+                    remap_candidates.append("enc1.conv_body." + key[len("enc1.block.") :])
+                if key.startswith("enc2.block."):
+                    remap_candidates.append("enc2.conv_body." + key[len("enc2.block.") :])
+                if key.startswith("enc3.block."):
+                    remap_candidates.append("enc3.body." + key[len("enc3.block.") :])
+                for prefix in ("up3", "up2", "up1"):
+                    source_prefix = f"{prefix}.fuse.block."
+                    if key.startswith(source_prefix):
+                        remap_candidates.append(f"{prefix}.fuse.body." + key[len(source_prefix) :])
+                if key.startswith("head."):
+                    remap_candidates.append("main_head." + key[len("head.") :])
+                target_key = next((candidate for candidate in remap_candidates if candidate in current_state), key)
+            if target_key not in current_state:
+                skipped_missing_keys.append(key)
+                continue
+            if tuple(current_state[target_key].shape) != tuple(value.shape):
+                skipped_shape_keys.append(key)
+                continue
+            compatible_state[target_key] = value
+            if target_key != key:
+                remapped_keys[key] = target_key
+        state_dict = compatible_state
+        loaded_key_count = len(compatible_state)
     incompatible = model.load_state_dict(state_dict, strict=strict)
     missing_keys = list(getattr(incompatible, "missing_keys", []))
     unexpected_keys = list(getattr(incompatible, "unexpected_keys", []))
@@ -273,8 +313,12 @@ def initialize_model_from_checkpoint(model: nn.Module, cfg: Dict[str, Any]) -> D
         "path": str(Path(checkpoint_path)),
         "strict": strict,
         "variant": payload.get("variant"),
+        "loaded_key_count": loaded_key_count,
         "missing_keys": missing_keys,
         "unexpected_keys": unexpected_keys,
+        "skipped_missing_keys": skipped_missing_keys,
+        "skipped_shape_keys": skipped_shape_keys,
+        "remapped_keys": remapped_keys,
     }
 
 
@@ -377,6 +421,10 @@ def evaluate_epoch(
             tversky_beta=loss_cfg["tversky_beta"],
             aux_weight=loss_cfg["aux_weight"],
             boundary_weight=loss_cfg["boundary_weight"],
+            boundary_dice_weight=loss_cfg["boundary_dice_weight"],
+            boundary_pos_weight=loss_cfg["boundary_pos_weight"],
+            boundary_pos_weight_min=loss_cfg["boundary_pos_weight_min"],
+            boundary_pos_weight_max=loss_cfg["boundary_pos_weight_max"],
             topology_weight=loss_cfg["topology_weight"],
             topology_num_iters=loss_cfg["topology_num_iters"],
         )
@@ -519,6 +567,10 @@ def train_one_epoch(
                 tversky_beta=loss_cfg["tversky_beta"],
                 aux_weight=loss_cfg["aux_weight"],
                 boundary_weight=loss_cfg["boundary_weight"],
+                boundary_dice_weight=loss_cfg["boundary_dice_weight"],
+                boundary_pos_weight=loss_cfg["boundary_pos_weight"],
+                boundary_pos_weight_min=loss_cfg["boundary_pos_weight_min"],
+                boundary_pos_weight_max=loss_cfg["boundary_pos_weight_max"],
                 topology_weight=loss_cfg["topology_weight"],
                 topology_num_iters=loss_cfg["topology_num_iters"],
             )
@@ -1015,6 +1067,8 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         "az_compatibility_floor": cfg.get("az_compatibility_floor"),
         "az_geometry_kernel_size": cfg.get("az_geometry_kernel_size"),
         "az_init_anisotropy_gap": cfg.get("az_init_anisotropy_gap"),
+        "az_max_hyperbolicity": cfg.get("az_max_hyperbolicity"),
+        "az_min_membership_entropy": cfg.get("az_min_membership_entropy"),
         "az_use_input_residual": cfg.get("az_use_input_residual"),
         "az_residual_init": cfg.get("az_residual_init"),
         "lr_scheduler": str(cfg.get("lr_scheduler", "none")),
@@ -1062,6 +1116,10 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
         metrics["tversky_beta"] = float(cfg.get("tversky_beta", 0.5))
         metrics["aux_loss_weight"] = float(cfg.get("aux_loss_weight", 0.2))
         metrics["boundary_loss_weight"] = float(cfg.get("boundary_loss_weight", 0.1))
+        metrics["boundary_dice_weight"] = float(cfg.get("boundary_dice_weight", 0.0))
+        metrics["boundary_pos_weight"] = cfg.get("boundary_pos_weight")
+        metrics["boundary_pos_weight_min"] = float(cfg.get("boundary_pos_weight_min", 1.0))
+        metrics["boundary_pos_weight_max"] = float(cfg.get("boundary_pos_weight_max", 25.0))
         metrics["bce_pos_weight"] = loss_cfg["pos_weight_value"]
         metrics["best_val_selection_score"] = best_val
         metrics["best_val_selection_metric"] = threshold_selection_metric
