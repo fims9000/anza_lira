@@ -11,9 +11,20 @@ from typing import Any
 
 import numpy as np
 import torch
-import tkinter as tk
-from PIL import Image, ImageDraw, ImageTk
-from tkinter import messagebox, ttk
+from PIL import Image, ImageDraw
+
+try:
+    import tkinter as tk
+    from PIL import ImageTk
+    from tkinter import messagebox, ttk
+except ImportError as exc:  # Headless/test environments may not ship the Tk shared library.
+    tk = None  # type: ignore[assignment]
+    ImageTk = None  # type: ignore[assignment]
+    messagebox = None  # type: ignore[assignment]
+    ttk = None  # type: ignore[assignment]
+    TK_IMPORT_ERROR: ImportError | None = exc
+else:
+    TK_IMPORT_ERROR = None
 
 import utils
 from models.azconv import AZConv2d
@@ -931,6 +942,9 @@ def main() -> None:
     parser.add_argument("--results-dir", type=str, default=str(DEFAULT_RESULTS_DIR))
     parser.add_argument("--config", type=str, default=str(DEFAULT_CONFIG_PATH))
     args = parser.parse_args()
+
+    if tk is None or messagebox is None:
+        raise SystemExit(f"Tk GUI runtime is unavailable: {TK_IMPORT_ERROR}")
 
     root = tk.Tk()
     app = DriveInspectorApp(

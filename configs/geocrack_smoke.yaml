@@ -1,0 +1,51 @@
+# Complete 32/16/16 one-epoch vertical-smoke training configuration.
+dataset: geocrack
+task: segmentation
+data_root: ./data
+geocrack_split_dir: ./data/geocrack/splits
+geocrack_normalization: ./data/geocrack/splits/train_normalization.json
+geocrack_augment: true
+geocrack_train_limit: 32
+geocrack_val_limit: 16
+geocrack_test_limit: 16
+image_size: 224
+
+variant: az_thesis
+num_rules: 2
+model_widths: [8, 16, 24, 32]
+
+epochs: 1
+batch_size: 8
+lr: 0.0003
+weight_decay: 0.0001
+seed: 42
+deterministic: true
+num_workers: 0
+
+bce_weight: 1.0
+dice_weight: 1.0
+overlap_mode: dice
+seg_threshold: 0.5
+eval_threshold_sweep: true
+eval_threshold_metric: dice
+eval_threshold_start: 0.30
+eval_threshold_end: 0.80
+eval_threshold_step: 0.05
+aux_loss_weight: 0.2
+boundary_loss_weight: 0.1
+topology_loss_weight: 0.0
+topology_num_iters: 5
+bce_pos_weight: auto
+bce_pos_weight_min: 1.0
+bce_pos_weight_max: 25.0
+
+reg_membership_entropy: 0.0005
+reg_membership_smoothness: 0.0005
+reg_geometry_smoothness: 0.0005
+reg_hyperbolicity: 0.001
+
+results_dir: ./results/geocrack_study/smoke
+run_name: null
+device: null
+timing_warmup: 1
+timing_iters: 1
