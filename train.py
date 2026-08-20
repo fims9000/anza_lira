@@ -816,6 +816,18 @@ def collect_architecture_state(model: nn.Module) -> Dict[str, Any]:
 
 def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, Any]:
     set_seed(int(cfg["seed"]), deterministic=bool(cfg.get("deterministic", False)))
+    save_json(
+        run_dir / "heartbeat.json",
+        {
+            "run": run_dir.name,
+            "variant": variant,
+            "epoch": 0,
+            "best_epoch": 0,
+            "best_val_dice": None,
+            "last_update": datetime.now().astimezone().isoformat(),
+            "status": "RUNNING",
+        },
+    )
     device_str = cfg.get("device") or ("cuda" if torch.cuda.is_available() else "cpu")
     device = torch.device(device_str)
     reg_weights = az_regularization_weights(cfg)
@@ -859,6 +871,28 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
     best_val = float("-inf")
     best_state = None
     best_epoch = 0
+    start_epoch = 1
+    resume_path_cfg = cfg.get("resume_checkpoint")
+    if resume_path_cfg:
+        resume_path = Path(resume_path_cfg)
+        resume_payload = load_checkpoint_payload(resume_path)
+        model.load_state_dict(resume_payload["model"])
+        if resume_payload.get("optimizer") is not None:
+            optimizer.load_state_dict(resume_payload["optimizer"])
+        if scheduler is not None and resume_payload.get("scheduler") is not None:
+            scheduler.load_state_dict(resume_payload["scheduler"])
+        start_epoch = int(resume_payload.get("epoch", 0)) + 1
+        best_val = float(resume_payload.get("best_val", best_val))
+        best_epoch = int(resume_payload.get("best_epoch", resume_payload.get("epoch", 0)))
+        history_path = run_dir / "history.json"
+        if history_path.exists():
+            history = json.loads(history_path.read_text(encoding="utf-8"))
+            history = [row for row in history if int(row.get("epoch", 0)) < start_epoch]
+        best_checkpoint = run_dir / "checkpoint_best.pt"
+        if best_checkpoint.exists():
+            best_state = load_checkpoint_payload(best_checkpoint)["model"]
+        else:
+            best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
     threshold_selection_metric = str(cfg.get("eval_threshold_metric", "dice"))
     threshold_selection_reference_cfg = cfg.get("eval_threshold_reference")
     threshold_selection_score_tolerance = float(cfg.get("eval_threshold_score_tolerance", 0.0))
@@ -876,7 +910,7 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
             float(cfg.get("eval_threshold_step", 0.05)),
         )
 
-    for epoch in range(1, epochs + 1):
+    for epoch in range(start_epoch, epochs + 1):
         current_foreground_bias = None
         current_thin_vessel_bias = None
         current_hard_mining_bias = None
@@ -980,8 +1014,34 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
                 run_dir / "checkpoint_best.pt",
             )
 
+        torch.save(
+            {
+                "model": model.state_dict(),
+                "variant": variant,
+                "cfg": cfg,
+                "optimizer": optimizer.state_dict(),
+                "scheduler": scheduler.state_dict() if scheduler is not None else None,
+                "epoch": epoch,
+                "best_epoch": best_epoch,
+                "best_val": best_val,
+            },
+            run_dir / "checkpoint_last.pt",
+        )
+
         with open(run_dir / "history.json", "w", encoding="utf-8") as handle:
             json.dump(history, handle, indent=2)
+        save_json(
+            run_dir / "heartbeat.json",
+            {
+                "run": run_dir.name,
+                "variant": variant,
+                "epoch": epoch,
+                "best_epoch": best_epoch,
+                "best_val_dice": best_val if task == "segmentation" else None,
+                "last_update": datetime.now().astimezone().isoformat(),
+                "status": "RUNNING",
+            },
+        )
 
     if best_state is not None:
         model.load_state_dict(best_state)
@@ -1188,11 +1248,23 @@ def run_training(cfg: Dict[str, Any], variant: str, run_dir: Path) -> Dict[str, 
     if task == "segmentation" and str(cfg["dataset"]).lower().replace("-", "_") == "drive":
         update_drive_comparison_summary(run_dir.parent)
     plot_single_run(history, run_dir, variant, task)
+    save_json(
+        run_dir / "heartbeat.json",
+        {
+            "run": run_dir.name,
+            "variant": variant,
+            "epoch": epochs,
+            "best_epoch": best_epoch,
+            "best_val_dice": best_val if task == "segmentation" else None,
+            "last_update": datetime.now().astimezone().isoformat(),
+            "status": "COMPLETE",
+        },
+    )
     return metrics
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Train baseline or AZ variants on classification or DRIVE segmentation.")
+    parser = argparse.ArgumentParser(description="Train baseline or AZ variants on classification or binary segmentation.")
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--variant", type=str, default=None)
     parser.add_argument("--variants", type=str, default=None, help="Comma-separated list of variants to run sequentially.")

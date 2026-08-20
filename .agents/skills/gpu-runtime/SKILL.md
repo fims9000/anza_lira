@@ -13,6 +13,19 @@ Use this skill when:
 
 ## Known Local Environments
 
+Linux workstation (verified 2026-08-17):
+
+```bash
+/home/lebedeffson/Code/venv/bin/python
+```
+
+- torch `2.11.0+cu128` reports CUDA available;
+- GPU: NVIDIA GeForce RTX 4060 Laptop GPU, 8 GB;
+- use this interpreter for `scripts/anza_v2_study.py` after live verification.
+
+The Windows entries below describe a different previously known environment;
+do not apply their paths on the Linux workstation.
+
 CPU/test environment:
 
 ```powershell

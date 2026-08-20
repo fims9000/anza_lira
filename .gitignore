@@ -8,6 +8,9 @@ venv/
 .env
 
 data/*
+data/
+CRACKS/
+data/geocrack/
 external/
 
 article_assets/exports*/
@@ -27,9 +30,25 @@ results/**/history.json
 results/**/dice_curves.png
 results/**/loss_curves.png
 results/**/pid*.txt
+results/
+runs/
+outputs/
+logs/
 results/article3_*/
+results/geocrack_study/runs/
+results/geocrack_study/smoke/
+results/geocrack_study/artifacts/
+results/geocrack_study/smoke_artifacts/
+results/geocrack_study/prepared/
+
+/images.zip
+/Fault segmentations.zip
+/data/cracks/
+/results/cracks_study/
+/results/anza_leads/**/probabilities/*.npz
+_wip_backups/
+tmp/
 
 *.log
 Thumbs.db
 .DS_Store
-

@@ -107,6 +107,7 @@ RETINAL_SEG_DATASETS = {
 ARCADE_SEG_DATASETS = {"arcade", "arcade_syntax", "arcade_stenosis"}
 GLOBAL_ROAD_DATASETS = {"global_roads", "global_scale_roads", "globalscale_roads"}
 GIS_SEG_DATASETS = {"gis_roads", "roads", "road_segmentation", "roads_hf"} | GLOBAL_ROAD_DATASETS
+GEOCRACK_SEG_DATASETS = {"geocrack", "geo_crack"}
 
 
 def segmentation_tta_num_views(mode: str | None) -> int:
@@ -349,7 +350,7 @@ def task_for_dataset(name: str) -> str:
     n = canonical_dataset_name(name)
     if n in ("cifar10", "cifar_10", "fashion_mnist", "fashionmnist"):
         return "classification"
-    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS or n in GIS_SEG_DATASETS:
+    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS or n in GIS_SEG_DATASETS or n in GEOCRACK_SEG_DATASETS:
         return "segmentation"
     raise ValueError(f"Unknown dataset: {name}")
 
@@ -360,7 +361,7 @@ def dataset_channels_and_outputs(name: str) -> Tuple[int, int]:
         return 3, 10
     if n in ("fashion_mnist", "fashionmnist"):
         return 1, 10
-    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS or n in GIS_SEG_DATASETS:
+    if n in RETINAL_SEG_DATASETS or n in ARCADE_SEG_DATASETS or n in GIS_SEG_DATASETS or n in GEOCRACK_SEG_DATASETS:
         return 3, 1
     raise ValueError(f"Unknown dataset: {name}")
 
@@ -1035,6 +1036,65 @@ def _maybe_subset_dataset(dataset: Dataset, limit: int | None, seed: int) -> Dat
     return torch.utils.data.Subset(dataset, indices)
 
 
+class GeoCrackSegmentationAdapter(Dataset):
+    """Adapt the metadata-rich GeoCrack loader to the trainer's valid-mask tuple."""
+
+    def __init__(self, dataset: Dataset) -> None:
+        self.dataset = dataset
+
+    def __len__(self) -> int:
+        return len(self.dataset)
+
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        image, mask, _metadata = self.dataset[index]
+        return image, mask, torch.ones_like(mask)
+
+
+def _build_geocrack_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, DataLoader, int, int]:
+    from datasets.geocrack import GeoCrackDataset
+
+    batch_size = int(cfg["batch_size"])
+    num_workers = int(cfg.get("num_workers", 0))
+    seed = int(cfg.get("seed", 42))
+    root = Path(cfg.get("data_root", "./data")) / str(cfg.get("geocrack_dirname", "geocrack"))
+    split_dir = Path(cfg.get("geocrack_split_dir", root / "splits"))
+    normalization_path = Path(cfg.get("geocrack_normalization", split_dir / "train_normalization.json"))
+
+    def make(split: str, *, augment: bool) -> GeoCrackSegmentationAdapter:
+        split_path = split_dir / f"geocrack_small_v1_{split}.csv"
+        dataset = GeoCrackDataset(
+            root,
+            split_path,
+            normalization_path=normalization_path,
+            augment=augment,
+            brightness_jitter=float(cfg.get("geocrack_brightness_jitter", 0.1)),
+            contrast_jitter=float(cfg.get("geocrack_contrast_jitter", 0.1)),
+        )
+        return GeoCrackSegmentationAdapter(dataset)
+
+    train_full = make("train", augment=bool(cfg.get("geocrack_augment", True)))
+    train_reference = make("train", augment=False)
+    val_full = make("val", augment=False)
+    test_full = make("test", augment=False)
+    train_set = _maybe_subset_dataset(train_full, cfg.get("geocrack_train_limit"), seed)
+    val_set = _maybe_subset_dataset(val_full, cfg.get("geocrack_val_limit"), seed + 1)
+    test_set = _maybe_subset_dataset(test_full, cfg.get("geocrack_test_limit"), seed + 2)
+    if isinstance(train_set, torch.utils.data.Subset):
+        train_set.pos_weight_reference = torch.utils.data.Subset(train_reference, train_set.indices)
+    else:
+        train_set.pos_weight_reference = train_reference
+    cfg["_resolved_test_split"] = "geocrack_small_v1_test_frozen"
+    train_loader = DataLoader(
+        train_set,
+        batch_size=batch_size,
+        shuffle=True,
+        **dataloader_kwargs(num_workers),
+    )
+    val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, **dataloader_kwargs(num_workers))
+    test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, **dataloader_kwargs(num_workers))
+    return train_loader, val_loader, test_loader, 3, 1
+
+
 def _build_classification_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, DataLoader, int, int]:
     import torchvision
     import torchvision.transforms as T
@@ -1435,6 +1495,8 @@ def build_dataloaders(cfg: Dict[str, Any]) -> Tuple[DataLoader, DataLoader, Data
             train_loader, val_loader, test_loader, in_c, num_outputs = _build_arcade_dataloaders(cfg)
         elif dataset_name in GIS_SEG_DATASETS:
             train_loader, val_loader, test_loader, in_c, num_outputs = _build_gis_road_dataloaders(cfg)
+        elif dataset_name in GEOCRACK_SEG_DATASETS:
+            train_loader, val_loader, test_loader, in_c, num_outputs = _build_geocrack_dataloaders(cfg)
         else:
             raise ValueError(f"Unknown segmentation dataset: {cfg['dataset']}")
     return train_loader, val_loader, test_loader, in_c, num_outputs, task
@@ -1896,6 +1958,8 @@ def spatial_shape_for_dataset(name: str) -> tuple[int, int]:
         return (512, 512)
     if n in GIS_SEG_DATASETS:
         return (256, 256)
+    if n in GEOCRACK_SEG_DATASETS:
+        return (224, 224)
     raise ValueError(f"Unknown dataset: {name}")
 
 

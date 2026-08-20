@@ -1,157 +1,78 @@
 # ANZA-LIRA
 
-ANZA-LIRA is a research codebase for segmentation of thin elongated structures
-(retinal vessels, roads, line-like objects) using anisotropic fuzzy local
-aggregation in U-Net style pipelines.
+ANZA-LIRA is a research codebase for segmentation and structural continuation
+of thin seismic fault traces. The final repository release keeps the code,
+tests, configs, research notes, and small final result tables, but excludes
+datasets, checkpoints, raw experiment folders, and archive packages.
 
-This README is project-level and publication-safe: method, implementation,
-reproducibility, and usage workflow.
+## Main Idea
 
-## 1) What this project does
+ANZA explored local anisotropic fuzzy geometry and multiple Anosov-inspired
+constraints for thin-structure segmentation. The final CRACKS V1.1 stability
+study tested a reciprocal determinant-one structural-stability prior against a
+more flexible generic anisotropic control.
 
-The repository provides:
+LIRA separates dense fault evidence from structural reasoning. Its strongest
+validated role is controlled structural continuation: candidate relations are
+verified in context and accepted links can be reconstructed by a bounded
+max-min path rule.
 
-1. baseline segmentation models,
-2. stronger comparison baselines (`attention_unet`, `unet_plus_plus`),
-3. AZ-enhanced models (`az_cat`, `az_thesis`, related variants),
-4. training + validation threshold sweep,
-5. geometry diagnostics and figure export scripts.
+## Main Result
 
-Primary task type is binary segmentation.
+The strongest positive result is the historical controlled continuation result:
 
-## 2) Core method (compact)
+- AUROC: `0.9923`
+- Recovery: `67.2%`
+- False bridges: `0.78%`
 
-For center pixel `p`, neighbor `q`, local rule `r`:
+The final CRACKS Structural Stability V1.1 multiseed run ended with:
 
-`w_r(p, q) = mu_r(p) * mu_r(q) * kappa_r(q - p)`
+`STOP_ANZA_STABILITY_NO_INCREMENTAL_VALUE`
 
-where:
-- `mu_r` is fuzzy rule membership,
-- `kappa_r` is directional anisotropic compatibility.
+The determinant-one ANZA stability prior did not pass the frozen incremental
+development gate over the matched free-anisotropy control. LIRA development,
+confirm evaluation, and expert descriptive evaluation were therefore not
+authorized in that protocol.
 
-Normalized aggregation:
+## Repository Layout
 
-`w_tilde_r(p, q) = w_r(p, q) / (sum_{q in N(p)} sum_{m=1..R} w_m(p, q) + eps)`
+- `models/` - segmentation models and geometry-aware layers
+- `anza_*`, `anza2/`, `structural_stability_v1_1/` - bounded research modules
+- `lira_*`, `anza_tracegraph/`, `path_completion/` - structural reasoning and continuation modules
+- `configs/` - experiment configuration files
+- `scripts/` - runnable experiment, validation, and reporting entrypoints
+- `tests/` - regression and protocol tests
+- `docs/` - final research documentation and claim boundaries
+- `docs/results/` - small final metric tables and frozen manifests
+- `.codex/notes/` - research history, negative results, and stop boundaries
 
-`z(p) = sum_{q in N(p)} sum_{r=1..R} w_tilde_r(p, q) * V(q)`
+`results/`, `data/`, checkpoints, and zip archives are local/generated artifacts
+and are not part of the git release.
 
-In practice this is implemented as an AZ block inserted into encoder/decoder
-stages of segmentation architectures.
+## Reproducibility
 
-## 3) Datasets supported
+Use the existing Python environment when available:
 
-Medical vessel segmentation:
-- `DRIVE`
-- `CHASE_DB1`
-- `FIVES`
-- `HRF_SegPlus`
-
-GIS road segmentation:
-- `Roads_HF`
-- `global_roads` (SpaceNet3 prepared split)
-
-Dataset routing and canonical names are handled in `utils.py`.
-
-## 4) Repo layout
-
-- `models/` — AZ layers and segmentation networks
-- `train.py` — training + evaluation entry point
-- `utils.py` — data loading, losses, metrics, threshold policy, reporting
-- `configs/` — ready experiment configs
-- `scripts/` — utility scripts (figure export, run helpers, diagnostics)
-- `results/` — experiment outputs and prepared assets
-- `tests/` — lightweight checks
-
-## 5) Environment setup
-
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+```bash
+/home/lebedeffson/Code/venv/bin/python -m pytest
 ```
 
-## 6) Run training
+The final V1.1 execution entrypoints are:
 
-Example:
-
-```powershell
-python train.py --config configs/fives_benchmark.yaml --variants baseline,az_thesis
+```bash
+/home/lebedeffson/Code/venv/bin/python scripts/run_anza_lira_ss_v1_1_pretrain.py
+/home/lebedeffson/Code/venv/bin/python scripts/run_anza_lira_ss_v1_1_endgame.py
+/home/lebedeffson/Code/venv/bin/python scripts/validate_anza_lira_ss_v1_1_endgame.py
 ```
 
-Important:
-- `metrics.json` is written per run in `results/<run_name>/`.
-- threshold for test metrics is selected by validation sweep.
+Datasets and checkpoints are not included. Generated artifacts should stay in
+ignored local folders such as `results/` or `_wip_backups/`.
 
-## 7) Geometry visualization (model-native)
+## Final Documents
 
-Main export scripts:
-- `scripts/export_geometry_attention_story.py`
-- `scripts/export_geometry_clean_article_figure.py`
-
-Example:
-
-```powershell
-python scripts/export_geometry_clean_article_figure.py `
-  --results-dir results `
-  --run article3_spacenet_sprint_v3_recover `
-  --baseline-run article3_spacenet_sprint_v3_baseline `
-  --sample-index 30 `
-  --output-dir results/a3_final_package/final_article3/figures `
-  --device cpu
-```
-
-The generated 2x2 figure includes:
-1. input + GT,
-2. error-centric baseline-vs-AZ map,
-3. AZ orientation axis (model-derived),
-4. anisotropy strength map.
-
-## 8) Reviewer-oriented experiment packs
-
-Medical reviewer pack (DRIVE, CHASE_DB1, HRF_SegPlus):
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run_article3_reviewer_medical_pack.ps1 `
-  -Device cuda `
-  -Seeds "41,42,43" `
-  -Epochs 60
-```
-
-This pack compares:
-
-`baseline, attention_unet, unet_plus_plus, az_no_fuzzy, az_no_aniso, az_thesis`
-
-Regime-count sweep:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run_article3_regime_count_sweep.ps1 `
-  -Config configs/drive_benchmark.yaml `
-  -Device cuda `
-  -Seed "42" `
-  -Epochs 40
-```
-
-## 9) Reproducibility notes
-
-- Config-driven runs (`configs/*.yaml`)
-- Fixed seeds in configs when required
-- Per-run saved artifacts:
-  - `metrics.json`
-  - `checkpoint_best.pt`
-  - `history.json` (if enabled)
-- Scripted figure generation from checkpoints/results
-
-## 10) Current status of defaults
-
-AZ experiments support both legacy and newer geometry modes.
-Checkpoint loading includes backward compatibility for older AZ snapshots.
-
-## 11) Public repo policy
-
-This repository is kept in public-safe form:
-- no private manuscript binaries in tracked files,
-- generated heavy artifacts are mostly ignored via `.gitignore`,
-- project-level technical documentation is preferred.
-
-Repository:
-`https://github.com/fims9000/anza_lira`
+- [Final research report](docs/ANZA_LIRA_FINAL_RESEARCH.md)
+- [Final results](docs/ANZA_LIRA_FINAL_RESULTS.md)
+- [Claims and limitations](docs/CLAIMS_AND_LIMITATIONS.md)
+- [Experiment ledger](docs/EXPERIMENT_LEDGER.md)
+- [Final research status](docs/RESEARCH_STATUS_FINAL.md)
+- [Reproducibility](docs/REPRODUCIBILITY.md)

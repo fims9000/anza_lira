@@ -1,0 +1,4 @@
+# Preserve machine-result bytes exactly: provenance receipts hash these files.
+results/**/*.csv binary
+# Matplotlib SVG paths contain significant trailing spaces; diff them as generated artifacts.
+results/**/*.svg binary
