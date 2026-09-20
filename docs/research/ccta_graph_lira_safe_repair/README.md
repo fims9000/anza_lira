@@ -162,23 +162,29 @@ The main novelty is not "a larger 3-D network" and not "a Transformer instead of
 
 ANZA remains a candidate local encoder / feature source, but it is not assumed to be beneficial until an ablation proves incremental value.
 
-## Data status for CT + branch labels
+## Matched CCTA data status — six-case pilot
 
-The ImageCAS-X anatomical packages for scans 921 and 953 are valid for geometry research. Scan 953 centerlines and its multi-label mask are internally aligned.
+The external matched-CT blocker is now resolved for a six-case original ImageCAS / ImageCAS-X pilot.
 
-A previously downloaded third-party BDMAP candidate was tested and **rejected** as the corresponding original CT: mask Dice was only `0.0176` and a free rigid ICP fit remained far outside a defensible alignment.
+Exact original ImageCAS CCTA volumes are available for:
 
-The official ImageCAS-X data description says that each ImageCAS-X patient ID is identical to the original ImageCAS dataset ID, and its benchmark layout expects:
+- train: `953, 964`;
+- validation: `957, 966`;
+- test: `980, 984`.
 
-```text
-volumes/<scan_id>.img.nii.gz
-```
+All six pass exact shape, spacing and affine checks against the corresponding ImageCAS-X multi-label segmentation. After the expected VTK LPS -> NIfTI RAS x/y sign conversion, 100% of centerline points are in bounds, inside a non-zero vessel voxel, and match their VTK anatomical segment label at nearest-voxel sampling. CT SHA256 provenance is frozen in the committed alignment artifact.
 
-Therefore the next matched image target is the original ImageCAS volume belonging to scan ID `953`, not a row-indexed BDMAP mirror guess.
+A first easy candidate-ranking pilot is geometry-saturated and does not support a CT-ranking claim. A harder geometry-matched wrong-branch relation-presence stress is more informative. With the threshold frozen on validation under FPR <= 5%, held-out test behavior was:
 
-See `docs/research/ccta_graph_lira_safe_repair/ALIGNMENT_953.md`.
+- geometry: recall `1/47 = 2.13%`, false `0/47`;
+- CT only: recall `22/47 = 46.81%`, false `0/47`;
+- geometry + CT: recall `29/47 = 61.70%`, false `0/47`.
 
-## Immediate next experiment after matched CT is available
+This is a small controlled six-patient pilot, not population-level risk evidence or natural-gap clinical validation. The two test patients are heterogeneous: geometry+CT recall is `3/16` on scan 980 and `26/31` on scan 984.
+
+Full checkpoint: `MATCHED_CT_6CASE_CHECKPOINT.md`.
+
+## Immediate matched-CT experiment
 
 ```text
 geometry-only pair/junction score
@@ -248,4 +254,4 @@ So the frozen selective policy is stable across the tested 30-degree and 45-degr
 
 Full checkpoint: `docs/research/ccta_graph_lira_safe_repair/MASK_CONTEXT_CHECKPOINT.md`.
 
-Current scientific implication: geometry and binary occupancy are near a diminishing-return ceiling for the central repair-identity question. The next high-value evidence must come from matched CCTA intensity + anatomical branch labels, or from a genuinely independent predicted-segmentation setting.
+Current scientific implication: geometry and binary occupancy are near a diminishing-return ceiling for the central repair-identity question. The six-case matched-CCTA pilot now shows that real intensity can recover additional true relations at a validation-frozen low-false operating point, but the sample is too small and patient-to-patient heterogeneity is too large for a final performance claim.
