@@ -1,0 +1,25 @@
+{
+  "orig_shape": [512,512,221],
+  "x_shape": [512,512,223],
+  "spacing_mm": [0.318359375,0.318359375,0.5],
+  "world_voxel_map": [[1.0,0.0,0.0,-34.5521472392638],[0.0,1.0,0.0,15.705521472392633],[0.0,0.0,-1.0,208.0],[0.0,0.0,0.0,1.0]],
+  "best_integer_R": [[1,0,0],[0,1,0],[0,0,-1]],
+  "best_integer_t": [-32,19,205],
+  "exact_dice_after_integer_search": 0.017561333195222423,
+  "x_mask_within_1mm_of_candidate_mask": 0.036456904013003735,
+  "candidate_mask_within_1mm_of_x_mask": 0.026672810116213586,
+  "left_centerline_xmask_median_mm": 0.12578361288547907,
+  "left_centerline_xmask_within_1mm": 1.0,
+  "right_centerline_xmask_median_mm": 0.12119668602661782,
+  "right_centerline_xmask_within_1mm": 1.0,
+  "left_centerline_candidate_mask_within_1mm": 0.02260327357755261,
+  "right_centerline_candidate_mask_within_1mm": 0.0,
+  "rigid_icp_candidate_mask": {
+    "median_mm": 6.048334817617501,
+    "p90_mm": 34.97671348611589,
+    "within_1mm": 0.09628571428571428,
+    "within_2mm": 0.21628571428571428,
+    "within_3mm": 0.32
+  },
+  "verdict": "candidate original ImageCAS CT/mask must not be combined with ImageCAS-X scan-953 anatomical labels without the missing source transform or matched ImageCAS-X CT"
+}
