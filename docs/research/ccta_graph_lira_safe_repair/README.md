@@ -29,7 +29,47 @@ CCTA segmentation
 
 The historical ANZA-LIRA principle is preserved: local geometric plausibility and structural identity are different decisions. The earlier controlled work already showed that pair selection is the sensitive stage, while max-min path construction is reliable once the correct pair is known.
 
-## Current strongest result: patient-to-patient structural transfer
+## Primary benchmark: 800-case ImageCAS-X
+
+The primary geometry/topology benchmark is now the full 800-case ImageCAS-X bundle with the official 560 / 80 / 160 patient split. The older 921/953 transfer study below is retained as historical controlled evidence, but it is no longer the representative headline benchmark.
+
+The 800-case audit contains 10,615 controlled scenes and explicitly tests PAIR / JUNCTION / NO-REPAIR existence. Candidate recall is effectively saturated under the frozen stress protocol, while relation existence / branch identity remains the dominant bottleneck.
+
+Key test30 facts:
+
+- true pair top-3 ranking: `99.15%`;
+- true junction top-3 ranking: `92.97%`;
+- geometry relation-type system: exact `55.46%`, false `10.92%`;
+- perturbation-consistency gate selected on validation at `0.60`: coverage `74.34%`, false among accepted `0.823%`.
+
+Crucially, accepted repair-needed scenes are often still incomplete, so consistency is a safety layer rather than evidence of high repair recall.
+
+Full report: `docs/research/ccta_graph_lira_safe_repair/LARGE_SCALE_800_CASE_REPORT.md`.
+
+## Latest proxy result: binary-lumen spatial context
+
+With matched CCTA intensities still unavailable, a frozen proxy experiment used the synthetically broken **binary vessel mask** as spatial context for pair-presence and junction-presence decisions. This is not CT evidence.
+
+Geometry + mask improves relation-existence ranking:
+
+- pair test30 AUROC `0.8543 -> 0.9288`;
+- pair test45 AUROC `0.8166 -> 0.9001`;
+- junction test30 AUROC `0.9100 -> 0.9314`;
+- junction test45 AUROC `0.8661 -> 0.8946`.
+
+At a validation-defined <=5% structural false budget, geometry+mask gives:
+
+- test30 exact `56.50%`, false `6.50%`;
+- test45 exact `51.60%`, false `5.98%`.
+
+Against the canonical four-class geometry relation head, patient-cluster bootstrap shows a clear reduction in false structural repair but no clear exact-rate gain:
+
+- test30 false difference `-4.43 pp`, 95% CI `[-5.68,-3.20]`;
+- test45 false difference `-2.07 pp`, 95% CI `[-3.12,-1.03]`.
+
+The safety gain comes with more incomplete decisions, and degree-4 junctions remain a severe failure mode. Full details: `MASK_SHAPE_CONTEXT_PROXY.md`.
+
+## Historical controlled result: patient-to-patient structural transfer
 
 A controlled stress benchmark now trains/calibrates the geometry model on one labelled coronary tree and evaluates on the other.
 
