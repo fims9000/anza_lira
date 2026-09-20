@@ -216,3 +216,36 @@ For future continuation, do not reconstruct dataset identity from chat or legacy
 - local-file hashes and available annotation packages: `DATA_MANIFEST.md`.
 
 The historical four-case scripts used row-derived labels `953/956/957/960`; their canonical source identities are `BDMAP_00015590/15593/15594/15597`. Those row labels must not be joined to ImageCAS-X anatomical IDs.
+
+## Latest checkpoint: broken-mask context is a safety cue, not the missing repair model
+
+The 800-case proxy study has now been pushed one step further.
+
+Using the synthetically broken binary lumen mask as extra context clearly improves PAIR / JUNCTION existence ranking, but the strongest controlled conclusion is **not** that mask context solves repair identity. It behaves primarily as a conservative veto.
+
+A canonical relation-head + mask-presence veto, selected jointly on val30 and val45 at a 5% structural-false budget, reduced test false-scene rate:
+
+- test30: `10.92% -> 5.93%`;
+- test45: `8.05% -> 4.99%`.
+
+This safety gain costs exact repair completion:
+
+- test30 exact: `55.46% -> 53.86%`;
+- test45 exact: `51.37% -> 49.01%`.
+
+The paired patient-cluster bootstrap confirms both directions: false structural decisions decrease clearly, while exact completion also decreases and incomplete decisions increase.
+
+Subgroup analysis explains why. The mask veto is excellent at rejecting NO-REPAIR scenes, but it suppresses true repair-needed PAIR scenes too aggressively. Degree-4 junctions remain unresolved.
+
+A second joint validation search allowed mask-veto thresholds and perturbation consistency to trade off under <=1% false among accepted on **both** validation stress levels. It selected strong mask vetoes (`pair=0.97`, `junction=0.96`) and no consistency gate, but did **not** produce a reliable gain in repair exact yield on test patients. This reinforces the interpretation that broken-mask occupancy is an existence/safety signal rather than the missing branch-identity model.
+
+Separately, robust two-stress re-selection of the original relation confidence + perturbation-consistency policy selected the same canonical operating point again:
+
+- relation confidence `tau=0.85`;
+- consistency `0.60`.
+
+So the frozen selective policy is stable across the tested 30-degree and 45-degree validation stresses and should not be retuned on test.
+
+Full checkpoint: `docs/research/ccta_graph_lira_safe_repair/MASK_CONTEXT_CHECKPOINT.md`.
+
+Current scientific implication: geometry and binary occupancy are near a diminishing-return ceiling for the central repair-identity question. The next high-value evidence must come from matched CCTA intensity + anatomical branch labels, or from a genuinely independent predicted-segmentation setting.
