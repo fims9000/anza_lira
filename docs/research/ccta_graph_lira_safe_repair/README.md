@@ -166,3 +166,13 @@ The current zero-false accepted counts are not yet evidence for a sub-1% populat
 - report risk-coverage / abstention explicitly;
 - never silently promote exploratory chat numbers into final paper results;
 - every final number must map to a committed script, config and machine artifact.
+
+## Dataset provenance and earlier image-context work
+
+For future continuation, do not reconstruct dataset identity from chat or legacy numeric labels.
+
+- exact ImageCAS / ImageCAS-X repositories, official download links, mirror links, hashes and ID cautions: `DATA_SOURCES.md`;
+- four-case CT + binary-mask image-context experiments and corrected BDMAP identities: `FOUR_CASE_IMAGECAS_PILOT.md`;
+- local-file hashes and available annotation packages: `DATA_MANIFEST.md`.
+
+The historical four-case scripts used row-derived labels `953/956/957/960`; their canonical source identities are `BDMAP_00015590/15593/15594/15597`. Those row labels must not be joined to ImageCAS-X anatomical IDs.
