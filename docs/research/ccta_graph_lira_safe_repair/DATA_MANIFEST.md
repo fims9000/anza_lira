@@ -76,3 +76,18 @@ Official source references recorded for provenance:
 
 - https://github.com/kitbransby/ImageCAS-X
 - https://www.kaggle.com/datasets/xiaoweixumedicalai/imagecas
+
+## Verified source IDs for the four image-only pilot cases
+
+The four CT/mask pairs re-uploaded on 2026-09-20 are byte-identical to the files already used in the image-context pilot. Their SHA256 values match the Hugging Face mirror objects exactly.
+
+| Local exploratory pair | Canonical mirror source |
+|---|---|
+| `ct(1).nii.gz` + `coronary_artery(1).nii.gz` | `BDMAP_00015590` |
+| `ct(2).nii.gz` + `coronary_artery(2).nii.gz` | `BDMAP_00015593` |
+| `ct.nii.gz` + `coronary_artery.nii.gz` | `BDMAP_00015594` |
+| `ct(3).nii.gz` + `coronary_artery(3).nii.gz` | `BDMAP_00015597` |
+
+Canonical download/source links are recorded in `DATA_SOURCES.md`.
+
+The legacy row-derived labels `953/956/957/960` used by some exploratory scripts are not ImageCAS-X identities. Use `BDMAP_00015590/15593/15594/15597` when referring to these four image-only cases.
