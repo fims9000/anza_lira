@@ -42,12 +42,12 @@ Primary setting: `30 deg` tangent error + `1 mm` endpoint jitter.
 - sequential junction-then-pair: exact `87.04%`, false `8.80%`;
 - joint Graph-LIRA: exact `94.44%`, false `1.85%`.
 
-With 15 perturbation reruns and consistency `>= 0.90`:
+With 15 perturbation reruns and canonical V2 consistency `>= 0.90`:
 
-- coverage: `60.19%`;
-- accepted: `130`;
-- false among accepted: `0 / 130`;
-- exact among accepted: `99.23%`.
+- coverage: `63.43%`;
+- accepted: `137`;
+- false among accepted: `0 / 137`;
+- exact among accepted: `99.27%`.
 
 ### Train 953 -> test 921
 
@@ -56,17 +56,21 @@ With 15 perturbation reruns and consistency `>= 0.90`:
 - sequential junction-then-pair: exact `80.54%`, false `9.40%`;
 - joint Graph-LIRA: exact `88.59%`, false `2.68%`.
 
-With consistency `>= 0.90`:
+With canonical V2 consistency `>= 0.90`:
 
-- coverage: `53.69%`;
-- accepted: `80`;
-- false among accepted: `0 / 80`;
-- exact among accepted: `100%`.
+- coverage: `44.97%`;
+- accepted: `67`;
+- false among accepted: `0 / 67`;
+- exact among accepted: `98.51%`.
 
 These are finite-sample controlled centerline stress results, **not** natural-gap clinical validation. Full protocol and machine artifacts are in:
 
 - `docs/research/ccta_graph_lira_safe_repair/CROSS_PATIENT_GRAPH.md`;
-- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_*.csv`.
+- `docs/research/ccta_graph_lira_safe_repair/REPRODUCIBILITY_FIX_V2.md`;
+- `docs/research/ccta_graph_lira_safe_repair/SELECTIVE_RISK_UNCERTAINTY.md`;
+- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_v2_*.csv`.
+
+The V2 perturbation seeds are keyed to stable scene identities. Older cross-patient risk/coverage files without the `v2` prefix are retained for provenance but are superseded.
 
 ## Where the remaining geometry failures are
 
@@ -79,7 +83,9 @@ At `30 deg + 1 mm`:
 - held-out 953 LCX degree-3: exact `89.39%`, false `3.03%`;
 - held-out 921 LCX degree-4: exact only `63.33%`, with `30%` incomplete but non-false decisions.
 
-Perturbation consistency removes all observed false structural decisions at threshold `>= 0.80` in this two-patient benchmark, but coverage is lowest for the degree-4 LCX stratum. This is the most concrete target for adding CT image evidence.
+In canonical V2, the held-out degree-4 LCX stratum has mean consistency `0.647`, median `0.60`, and only `10 / 30 = 33.33%` of scenes survive consistency `>= 0.80`. This is the most concrete target for adding CT image evidence.
+
+Across the complete 30-degree V2 run, all observed false structural decisions fall below consistency `0.60`. That is a useful failure-analysis observation, **not** a final threshold choice: 921 and 953 have already been inspected and cannot be used to select the publication operating point.
 
 ## Previous perturbation-consistency artifact
 
@@ -146,7 +152,9 @@ full cross-section CNN/ANZA encoder -> sequence context
 
 All local representations must be evaluated inside the **same** joint Graph-LIRA and perturbation-consistency decision layer.
 
-The primary question is whether image evidence reduces false / incomplete decisions specifically in the hard LAD/LCX and high-degree junction strata, not whether a larger network gives a higher average AUROC.
+The primary question is whether image evidence reduces false / incomplete decisions specifically in the frozen hard anatomical strata, especially LAD/LCX and degree >= 4 junctions, not whether a larger network gives a higher average AUROC.
+
+The current zero-false accepted counts are not yet evidence for a sub-1% population risk. Exact one-sided 95% binomial upper bounds are still about `1.49%` for 0/199 and `2.24%` for 0/132 at consistency 0.60. Roughly 299 independent accepted cases with zero failures would be needed just to push that bound below 1%.
 
 ## Reproducibility rules for this branch
 
