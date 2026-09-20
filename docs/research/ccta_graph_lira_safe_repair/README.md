@@ -255,3 +255,24 @@ So the frozen selective policy is stable across the tested 30-degree and 45-degr
 Full checkpoint: `docs/research/ccta_graph_lira_safe_repair/MASK_CONTEXT_CHECKPOINT.md`.
 
 Current scientific implication: geometry and binary occupancy are near a diminishing-return ceiling for the central repair-identity question. The six-case matched-CCTA pilot now shows that real intensity can recover additional true relations at a validation-frozen low-false operating point, but the sample is too small and patient-to-patient heterogeneity is too large for a final performance claim.
+
+
+## Latest matched-CT representation / graph checkpoint
+
+The six-case matched-CCTA line has now advanced beyond the first relation-presence pilot.
+
+On the frozen geometry-matched wrong-branch stress, the strongest current local representation is **radial 2.5-D CCTA context**. At a validation-only FPR <=5% operating point, held-out test recall was:
+
+- geometry: `1/47 = 2.13%`, false `0/47`;
+- radial 2.5-D: `29/47 = 61.70%`, false `0/47`;
+- geometry + radial 2.5-D: `30/47 = 63.83%`, false `0/47`.
+
+A coarse 3-D tube PCA representation and a small cross-section CNN transferred worse with only two training patients. This does not support escalating model capacity yet.
+
+The canonical full-800 four-class geometry relation head was independently regenerated and re-selected the same frozen `HGB, tau=0.85` operating point, reproducing test30 exact `55.46%` / false `10.92%` and test45 exact `51.37%` / false `8.05%`.
+
+The first attempt to inject the six-case CT presence signal into the frozen PAIR / JUNCTION / BOTH / NONE Graph-LIRA relation layer was **not safe**. CT add-only increased matched-test exact from `53.33%` to `56.67%` but false structural decisions from `10.00%` to `23.33%`. A validation-only hysteresis rule looked safer on the two validation patients but still reached `20.00%` false on held-out test.
+
+Therefore the supported conclusion is now more specific: **CCTA intensity is informative locally, but six-patient scene-level calibration does not generalize well enough to preserve the low-false Graph-LIRA objective.** More matched patients are the next requirement; further threshold tuning on scans 980/984 is prohibited.
+
+Full checkpoint: `MATCHED_CT_REPRESENTATION_AND_GRAPH_CHECKPOINT.md`.
