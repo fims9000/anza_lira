@@ -29,13 +29,61 @@ CCTA segmentation
 
 The historical ANZA-LIRA principle is preserved: local geometric plausibility and structural identity are different decisions. The earlier controlled work already showed that pair selection is the sensitive stage, while max-min path construction is reliable once the correct pair is known.
 
-## What is currently supported by machine artifacts
+## Current strongest result: patient-to-patient structural transfer
 
-### Perturbation-consistency uncertainty, 30 deg + 1 mm stress setting
+A controlled stress benchmark now trains/calibrates the geometry model on one labelled coronary tree and evaluates on the other.
 
-The exact uploaded machine artifacts are stored under `results/ccta_graph_lira_safe_repair/2026-09-20/`.
+Primary setting: `30 deg` tangent error + `1 mm` endpoint jitter.
 
-For `combined_consistency` / `baseline_agreement`:
+### Train 921 -> test 953
+
+- pair AUROC: `0.98269`;
+- independent local decisions: `53.70%` scenes with a false structural link;
+- sequential junction-then-pair: exact `87.04%`, false `8.80%`;
+- joint Graph-LIRA: exact `94.44%`, false `1.85%`.
+
+With 15 perturbation reruns and consistency `>= 0.90`:
+
+- coverage: `60.19%`;
+- accepted: `130`;
+- false among accepted: `0 / 130`;
+- exact among accepted: `99.23%`.
+
+### Train 953 -> test 921
+
+- pair AUROC: `0.98136`;
+- independent local decisions: `54.36%` scenes with a false structural link;
+- sequential junction-then-pair: exact `80.54%`, false `9.40%`;
+- joint Graph-LIRA: exact `88.59%`, false `2.68%`.
+
+With consistency `>= 0.90`:
+
+- coverage: `53.69%`;
+- accepted: `80`;
+- false among accepted: `0 / 80`;
+- exact among accepted: `100%`.
+
+These are finite-sample controlled centerline stress results, **not** natural-gap clinical validation. Full protocol and machine artifacts are in:
+
+- `docs/research/ccta_graph_lira_safe_repair/CROSS_PATIENT_GRAPH.md`;
+- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_*.csv`.
+
+## Where the remaining geometry failures are
+
+The branch-stratified audit shows that the hard residual regime is concentrated around LAD/LCX and higher-degree branching.
+
+At `30 deg + 1 mm`:
+
+- held-out 953 D1 and RCA scenes were exact in all generated scenes;
+- held-out 953 LAD: exact `86.67%`, false `6.67%`;
+- held-out 953 LCX degree-3: exact `89.39%`, false `3.03%`;
+- held-out 921 LCX degree-4: exact only `63.33%`, with `30%` incomplete but non-false decisions.
+
+Perturbation consistency removes all observed false structural decisions at threshold `>= 0.80` in this two-patient benchmark, but coverage is lowest for the degree-4 LCX stratum. This is the most concrete target for adding CT image evidence.
+
+## Previous perturbation-consistency artifact
+
+In the earlier within-case stress artifact at `30 deg + 1 mm`, `combined_consistency` / `baseline_agreement` gave:
 
 | threshold | coverage | accepted | false among accepted | exact among accepted |
 |---:|---:|---:|---:|---:|
@@ -44,9 +92,9 @@ For `combined_consistency` / `baseline_agreement`:
 | 0.90 | 0.5583 | 249 | 0 / 249 | 0.98795 |
 | 0.95 | 0.3991 | 178 | 0 / 178 | 0.99438 |
 
-Important provenance note: the commonly quoted `0 / 249` at threshold `0.90` is supported by `baseline_agreement` / `combined_consistency`. Raw `stability >= 0.90` accepts 250 scenes and contains one false scene (`0.004`). This distinction is frozen here to avoid later misreporting.
+Important provenance note: the commonly quoted `0 / 249` at threshold `0.90` is supported by `baseline_agreement` / `combined_consistency`. Raw `stability >= 0.90` accepts 250 scenes and contains one false scene (`0.004`).
 
-### Sequence-context pilot on four CCTA cases
+## Sequence-context pilot on four CCTA cases
 
 Uploaded cross-patient results compare two compact token-sequence models:
 
@@ -55,16 +103,7 @@ Uploaded cross-patient results compare two compact token-sequence models:
 
 Their mean FPRs are high (`~0.244` for both), so this pilot does **not** support the claim that a Transformer solves the continuation problem by itself. The next sequence model must preserve spatial information in each cross-section rather than compressing each slice to hand-crafted statistics.
 
-## Exploratory results that are retained as research notes, not yet canonical machine artifacts in this branch
-
-The previous exploratory session also found:
-
-- radial 2.5-D and candidate-aligned 3-D tube representations around mean AUROC `~0.959` on the four-case pilot;
-- joint Graph-LIRA substantially reduces inconsistent false repairs compared with independent pair decisions;
-- variable-degree junction modeling is necessary because a fixed degree-3 assumption fails on real four-arm branching configurations;
-- perturbation consistency is substantially more useful for selective repair than a simple top-1 / top-2 score margin.
-
-These claims must be re-run from canonical scripts before they are used as paper numbers. They are preserved so the research path is not lost.
+The previous exploratory session also found radial 2.5-D and candidate-aligned 3-D tube representations around mean AUROC `~0.959`. These numbers remain exploratory until the exact scripts/artifacts are re-run and archived.
 
 ## Chosen direction
 
@@ -77,18 +116,23 @@ The main novelty is not "a larger 3-D network" and not "a Transformer instead of
 
 ANZA remains a candidate local encoder / feature source, but it is not assumed to be beneficial until an ablation proves incremental value.
 
-## Immediate next experiment
+## Data status for CT + branch labels
 
-A matched CCTA + anatomical-branch package for scan `953` is now available locally:
+The ImageCAS-X anatomical packages for scans 921 and 953 are valid for geometry research. Scan 953 centerlines and its multi-label mask are internally aligned.
 
-- multi-label coronary mask;
-- left and right anatomical centerlines;
-- surface mesh;
-- a candidate ImageCAS CT / binary-mask pair corresponding to the external ImageCAS mapping.
+A previously downloaded third-party BDMAP candidate was tested and **rejected** as the corresponding original CT: mask Dice was only `0.0176` and a free rigid ICP fit remained far outside a defensible alignment.
 
-Before using CT intensities, run a coordinate / registration audit. The current files are not voxel-identical: the multi-label mask is `512 x 512 x 223`, whereas the candidate CT volume is `512 x 512 x 221`; their physical transforms also differ. No CT+branch-label experiment is valid until this mapping is resolved and frozen.
+The official ImageCAS-X data description says that each ImageCAS-X patient ID is identical to the original ImageCAS dataset ID, and its benchmark layout expects:
 
-After the alignment audit, the first matched-data comparison is:
+```text
+volumes/<scan_id>.img.nii.gz
+```
+
+Therefore the next matched image target is the original ImageCAS volume belonging to scan ID `953`, not a row-indexed BDMAP mirror guess.
+
+See `docs/research/ccta_graph_lira_safe_repair/ALIGNMENT_953.md`.
+
+## Immediate next experiment after matched CT is available
 
 ```text
 geometry-only pair/junction score
@@ -97,10 +141,12 @@ CT radial 2.5-D
 vs
 candidate-aligned 3-D tube
 vs
-full cross-section encoder -> sequence context
+full cross-section CNN/ANZA encoder -> sequence context
 ```
 
-all evaluated inside the same joint Graph-LIRA and perturbation-consistency decision layer.
+All local representations must be evaluated inside the **same** joint Graph-LIRA and perturbation-consistency decision layer.
+
+The primary question is whether image evidence reduces false / incomplete decisions specifically in the hard LAD/LCX and high-degree junction strata, not whether a larger network gives a higher average AUROC.
 
 ## Reproducibility rules for this branch
 
