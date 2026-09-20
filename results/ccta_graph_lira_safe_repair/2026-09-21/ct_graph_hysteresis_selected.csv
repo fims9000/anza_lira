@@ -1,0 +1,3 @@
+selection,pair_veto_below,pair_add_at,junction_veto_below,junction_add_at,val_exact,val_false,val_incomplete,test_exact,test_false,test_incomplete
+val_false_le_10pct,0.5,1.01,0.5,0.9,0.5714285714285714,0.03571428571428571,0.39285714285714285,0.5,0.2,0.3
+val_false_le_canonical,0.5,1.01,0.5,0.6,0.6071428571428571,0.10714285714285714,0.2857142857142857,0.5666666666666667,0.2,0.23333333333333334
