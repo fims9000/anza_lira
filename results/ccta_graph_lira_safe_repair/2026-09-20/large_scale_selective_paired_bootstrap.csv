@@ -1,0 +1,7 @@
+eval,comparison,metric,estimate,ci_low,ci_high,n_patients,n_scenes
+test30,relation_type_strict_minus_base_strict,coverage,0.166195856873823,0.14428283280752238,0.18744299670016948,160,2124
+test30,relation_type_strict_minus_base_strict,exact_yield,0.0795668549905838,0.0667612982379039,0.09230125095858567,160,2124
+test30,relation_type_strict_minus_base_strict,false_yield,0.0,-0.002343045268466122,0.002330024895947815,160,2124
+test45,relation_type_strict_minus_base_strict,coverage,0.17843691148775898,0.15804527171897922,0.1986569066110765,160,2124
+test45,relation_type_strict_minus_base_strict,exact_yield,0.07768361581920907,0.06617262435318332,0.08911379312214643,160,2124
+test45,relation_type_strict_minus_base_strict,false_yield,0.0009416195856873823,-0.001409128813696995,0.0032817627754336614,160,2124
