@@ -1,0 +1,5 @@
+stratum,members,observed_top_pair_count,n_directed_pairs_observed
+proximal_left_hub,IM;LAD;LCX;LM,422,8
+diagonal,D1;D2;LAD,249,4
+circumflex_marginal,IM;LCX;OM1;OM2,261,6
+distal_right,R-PDA;R-PLA;RCA,301,6
