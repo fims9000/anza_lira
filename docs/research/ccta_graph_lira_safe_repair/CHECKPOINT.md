@@ -170,3 +170,23 @@ Do not substitute a row-indexed BDMAP mirror.
 4. feed all local scores into the same joint Graph-LIRA optimizer;
 5. evaluate perturbation-consistency risk/coverage without threshold retuning on held-out patients;
 6. only then test ANZA as an incremental local encoder and, if justified, Transformer/Mamba sequence aggregation.
+
+## Dataset provenance checkpoint
+
+The four CT + binary-mask image-context cases have now been re-verified by SHA256 against the exact Hugging Face mirror objects:
+
+- `BDMAP_00015590`
+- `BDMAP_00015593`
+- `BDMAP_00015594`
+- `BDMAP_00015597`
+
+The earlier script labels `953/956/957/960` were row-derived convenience labels from the mirror's `ImageCAS_ID.txt`, not ImageCAS-X patient identities. A corrected result copy is stored as:
+
+- `results/ccta_graph_lira_safe_repair/2026-09-20/sequence_cross_patient_bdmap_ids.csv`
+
+Resume documentation:
+
+- `docs/research/ccta_graph_lira_safe_repair/DATA_SOURCES.md`
+- `docs/research/ccta_graph_lira_safe_repair/FOUR_CASE_IMAGECAS_PILOT.md`
+
+This correction does not invalidate the image-only representation experiments; it corrects patient/source naming and prevents an invalid join to ImageCAS-X branch annotations.
