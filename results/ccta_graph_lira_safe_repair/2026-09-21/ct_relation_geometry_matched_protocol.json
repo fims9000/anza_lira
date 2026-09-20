@@ -1,0 +1,24 @@
+{
+  "objective": "Geometry-matched wrong-branch relation-presence stress on six exact-matched ImageCAS/ImageCAS-X cases",
+  "splits": {
+    "train": [953, 964],
+    "val": [957, 966],
+    "test": [980, 984]
+  },
+  "gap_mm": 4.0,
+  "positive_step_mm": 2.0,
+  "point_step_mm": 1.5,
+  "negative_distance_mm": [2.5, 6.5],
+  "hard_negative_rules": {
+    "different_polyline": true,
+    "different_anatomical_segment": true,
+    "anchor_alignment_min": 0.6,
+    "decoy_alignment_min": 0.6,
+    "axis_consistency_min": 0.4
+  },
+  "geometry_matching_scales": [1.0, 0.12, 0.12, 0.18, 0.22, 0.22, 0.22],
+  "features": "No masks/segment identities used as model inputs. ImageCAS-X branch labels are used only for controlled ground truth / hard-negative construction. CT uses radial corridor HU summaries.",
+  "model": "Same StandardScaler+LogisticRegression(C=1,class_weight=balanced) for each ablation",
+  "threshold": "validation-only maximize recall subject to FPR <= 0.05",
+  "test_tuning": false
+}
