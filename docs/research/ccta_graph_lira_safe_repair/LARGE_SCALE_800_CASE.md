@@ -286,3 +286,57 @@ A matched original ImageCAS CCTA volume for an ImageCAS-X anatomical scan is sti
 - patient-cluster bootstrap is used for uncertainty because many scenes come from each patient;
 - `0 observed false` at a selective operating point is not proof of zero population risk;
 - image-conditioned claims remain blocked until matched CT + ImageCAS-X anatomy is available.
+
+## 13. Repair-aware correction: selective coverage is dominated by NO-REPAIR
+
+A later audit separated **accepted-scene correctness** from **actual successful repair**. This changes how the selective results must be interpreted.
+
+At the strict relation-type operating point (confidence/consistency gate `0.70`) on test30:
+
+- `pair_only`: coverage `66.25%`, but exact among accepted `0%`; all accepted cases are incomplete;
+- `junction_only`: coverage `43.58%`, exact among accepted only `2.45%`, incomplete `96.63%`;
+- `mixed`: coverage `45.27%`, exact among accepted `29.85%`;
+- `none_incomplete_junction`: coverage `88.90%`, exact among accepted `100%`;
+- `none_orphan_pair`: coverage `92.50%`, exact among accepted `100%`.
+
+The same pattern persists at test45. Therefore high selective coverage / low false rate is currently driven mostly by **stable correct NO-REPAIR decisions**, not by successful automatic repair.
+
+This is an important scientific correction: perturbation consistency is a strong safety signal, but geometry-only selective Graph-LIRA is **not yet a high-recall repair system**.
+
+Machine artifact:
+
+- `results/ccta_graph_lira_safe_repair/2026-09-20/large_scale_repair_aware_diagnostics.csv`.
+
+## 14. Bottleneck decomposition: relation existence is the main remaining problem
+
+To separate candidate ranking from existence/identity, an oracle was evaluated that knows whether the scene truly contains PAIR / JUNCTION / BOTH / NONE, while the existing local geometry ranker still chooses the candidate.
+
+At test30, among the `1,216` repair-needed scenes:
+
+- actual relation-type system exact: `28.45%`;
+- oracle presence + top-1 geometry candidate: `70.81%`;
+- oracle presence + top-2: `89.47%`;
+- oracle presence + top-3: `94.57%`;
+- oracle presence + top-5: `97.94%`.
+
+At test45:
+
+- actual: `18.50%`;
+- oracle + top-1: `62.75%`;
+- oracle + top-2: `82.40%`;
+- oracle + top-3: `89.97%`;
+- oracle + top-5: `95.81%`.
+
+Thus candidate generation/ranking is comparatively strong. The dominant error source is deciding **whether a valid relation exists and what structural action is present**, especially under ambiguity.
+
+This freezes the next scientific target:
+
+> stop tuning geometry thresholds; add local spatial/image evidence specifically to PAIR / JUNCTION / NO-REPAIR existence and branch identity, while keeping the candidate generator, graph optimizer and patient split fixed.
+
+The next intermediate experiment may use a **broken binary-lumen mask as shape context** (with the deleted relation removed before feature extraction) to test whether spatial context helps existence discrimination without using anatomical segment labels as model input. This is a proxy experiment, not CT evidence. The final image-conditioned experiment still requires the matched original ImageCAS CCTA volumes.
+
+The paired strict selective comparison also remains useful but must not be called repair recall: relation-type gating increases overall exact yield by about `+7.96` points on test30 and `+7.77` on test45 at a similar false-yield level, but that gain includes many correct NO-REPAIR scenes.
+
+Machine artifact:
+
+- `results/ccta_graph_lira_safe_repair/2026-09-20/large_scale_selective_paired_bootstrap.csv`.
