@@ -1,0 +1,10 @@
+{
+  "n_cases": 800,
+  "split_counts": {"train": 560, "test": 160, "val": 80},
+  "junctions": 4686,
+  "junction_degree_counts": {"3": 4641, "4": 45},
+  "cases_degree4plus": 44,
+  "median_lines": 14.0,
+  "median_points": 1230.5,
+  "segment_name_counts": [["LAD",800],["LCX",800],["RCA",800],["LM",789],["D1",788],["R-PDA",744],["R-PLA",736],["OM1",694],["D2",475],["OM2",301],["IM",196],["Other",88],["L-PLA",70],["L-PDA",46],["L14",1]]
+}
