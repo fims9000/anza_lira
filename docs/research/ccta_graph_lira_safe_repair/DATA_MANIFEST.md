@@ -10,12 +10,14 @@ Raw data are intentionally **not** committed to the public repository. This mani
 |---|---:|---|---|
 | `ct.nii.gz` | 92597375 | `193c935a0f9ac21605f61e6f0a284c934d9306b80d56f1d34c68306d1e625c7c` | case used in earlier four-patient pilot |
 | `coronary_artery.nii.gz` | 339388 | `1b5f03de1d66fd71f2684720f67f76e0311b392dced0be40f3642cd3bb91061d` | binary coronary mask |
-| `ct(1).nii.gz` | 79447503 | `043e9679675ad4167d6ada17a0b631e70380aef811e11d444c58e71540dd61c5` | candidate CT corresponding to mapped scan 953 / BDMAP_00015590 |
-| `coronary_artery(1).nii.gz` | 291709 | `76ca99c7d983eac7be89f8049d5adc46a0043ddf6d3f610c6be0e0c79a5a48f3` | corresponding binary mask candidate |
+| `ct(1).nii.gz` | 79447503 | `043e9679675ad4167d6ada17a0b631e70380aef811e11d444c58e71540dd61c5` | third-party BDMAP mirror candidate tested and rejected as a match for ImageCAS-X scan 953 |
+| `coronary_artery(1).nii.gz` | 291709 | `76ca99c7d983eac7be89f8049d5adc46a0043ddf6d3f610c6be0e0c79a5a48f3` | paired binary mask for the rejected BDMAP candidate |
 | `ct(2).nii.gz` | 101790885 | `b3171d03d9615a2cc78c2daa4bced85841602a9903814aed6230dacc7bd5f288` | four-patient pilot |
 | `coronary_artery(2).nii.gz` | 362788 | `26342951d73904e4ba4b142d070a08286e4c53274fe10734b25a89e29128abad` | binary mask |
 | `ct(3).nii.gz` | 104435887 | `d3464af3836359120663fe123326db15e8731bb3588a8214ec9230f57431b1f9` | four-patient pilot |
 | `coronary_artery(3).nii.gz` | 382178 | `e91ab5efd8293407638d1fb5bc6e21336f26e16e3688acfebf344701a114785a` | binary mask |
+
+The four-patient pilot files above were useful for image-representation experiments, but they must not be assumed to correspond to ImageCAS-X anatomical scan IDs unless the identity is independently verified.
 
 ## ImageCAS-X anatomical annotations available locally
 
@@ -49,14 +51,28 @@ The 953 centerlines contain anatomical names including LM, LAD, LCX, D1, OM1, OM
 | `test.txt` | `451e8ba262a0e1b7f301b8855c52bc787b879375d1f3ed973c74c8851ebd6b05` |
 | `exclude.txt` | `2dcff7ee38cad09c19603025cbc2824c63d17839048bd5aba71adfd7c4ac3cc6` |
 
-## Critical alignment issue to resolve before CT + branch-label training
+## Correct source identity for matched CT
 
-The external mapping file associates scan `953` with `BDMAP_00015590`.
+The official ImageCAS-X data description states that every ImageCAS-X patient keeps the unique ID from the original ImageCAS dataset. The benchmark expects CCTA inputs at:
 
-However, the current local files are not directly voxel-identical:
+```text
+volumes/<scan_id>.img.nii.gz
+```
 
-- `953.coronary.nii.gz`: `512 x 512 x 223`, spacing `(0.318359375, 0.318359375, 0.5)`;
-- candidate `ct(1).nii.gz`: `512 x 512 x 221`, same nominal spacing;
-- their Q/S form transforms have different origins/orientations.
+Therefore ImageCAS-X scan `953` must be paired with the original ImageCAS volume belonging to scan ID `953`.
 
-Therefore the branch labels and the CT **must not** be combined by raw voxel index. A registration / coordinate-frame audit is the next required step. The already available binary mask `coronary_artery(1).nii.gz` can be used as an intermediate geometry target to verify the transform.
+A previous provisional shortcut treated row/index 953 of a third-party BDMAP mirror as the matching source. That candidate was audited and rejected:
+
+- exact mask Dice after header-based/local integer alignment: `0.01756`;
+- transformed ImageCAS-X mask within 1 mm of the candidate mask: `3.65%`;
+- left/right ImageCAS-X centerline coverage within 1 mm of the candidate mask: about `2.26%` / `0%`;
+- a free rigid ICP check still left median surface distance about `6.05 mm`.
+
+Do not use the BDMAP candidate for CT-conditioned ImageCAS-X experiments.
+
+See `docs/research/ccta_graph_lira_safe_repair/ALIGNMENT_953.md`.
+
+Official source references recorded for provenance:
+
+- https://github.com/kitbransby/ImageCAS-X
+- https://www.kaggle.com/datasets/xiaoweixumedicalai/imagecas
