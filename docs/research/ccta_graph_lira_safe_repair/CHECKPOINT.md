@@ -33,12 +33,12 @@ Controlled `30 deg + 1 mm` benchmark:
 - sequential junction -> pair: exact `87.04%`, false `8.80%`;
 - joint Graph-LIRA: exact `94.44%`, false `1.85%`.
 
-Perturbation consistency `>= 0.90`:
+Canonical V2 perturbation consistency `>= 0.90`:
 
-- coverage `60.19%`;
-- `130` accepted scenes;
-- `0 / 130` false among accepted;
-- `99.23%` exact among accepted.
+- coverage `63.43%`;
+- `137` accepted scenes;
+- `0 / 137` false among accepted;
+- `99.27%` exact among accepted.
 
 ### Train 953 -> test 921
 
@@ -47,12 +47,12 @@ Perturbation consistency `>= 0.90`:
 - sequential junction -> pair: exact `80.54%`, false `9.40%`;
 - joint Graph-LIRA: exact `88.59%`, false `2.68%`.
 
-Perturbation consistency `>= 0.90`:
+Canonical V2 perturbation consistency `>= 0.90`:
 
-- coverage `53.69%`;
-- `80` accepted scenes;
-- `0 / 80` false among accepted;
-- `100%` exact among accepted.
+- coverage `44.97%`;
+- `67` accepted scenes;
+- `0 / 67` false among accepted;
+- `98.51%` exact among accepted.
 
 These are finite-sample controlled centerline stress results, not clinical natural-gap validation.
 
@@ -61,7 +61,12 @@ At `45 deg + 1 mm`, joint Graph-LIRA still degrades:
 - 921 -> 953: exact `87.96%`, false `6.94%`;
 - 953 -> 921: exact `85.91%`, false `12.08%`.
 
-This defines the residual regime where image evidence should be tested.
+At the deliberately severe `60 deg + 1.5 mm` stress:
+
+- 921 -> 953: exact `75.00%`, false `18.98%`;
+- 953 -> 921: exact `69.80%`, false `28.19%`.
+
+This exposes the geometry ceiling and defines the residual regime where image evidence should be tested.
 
 ## Branch-level failure localization
 
@@ -75,7 +80,7 @@ At `30 deg + 1 mm` the residual errors are not uniform.
 - held-out 921 LCX degree-3: exact `93.33%`, false `3.33%`;
 - held-out 921 LCX degree-4: exact only `63.33%`, false `6.67%`, incomplete-but-nonfalse `30%`.
 
-For the degree-4 LCX stratum, only about `36.7%` of scenes pass consistency `>= 0.80`, although accepted scenes have no false structural links in this run. This is the clearest target for CT-conditioned evidence.
+For the degree-4 LCX stratum, canonical V2 gives consistency mean `0.647`, median `0.60`, and only `10 / 30 = 33.33%` of scenes pass consistency `>= 0.80`. This is the clearest target for CT-conditioned evidence.
 
 ## Exact artifact-backed numbers currently preserved
 
@@ -94,20 +99,27 @@ Geometry / data audits:
 - `results/ccta_graph_lira_safe_repair/2026-09-20/branch_ambiguity_921_by_segment.csv`
 - `results/ccta_graph_lira_safe_repair/2026-09-20/branch_ambiguity_953_by_segment.csv`
 
-Cross-patient Graph-LIRA:
+Canonical cross-patient Graph-LIRA V2:
 
-- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_summary.csv`
-- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_risk_coverage.csv`
-- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_settings.csv`
-- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_protocol.json`
-- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_branch_strata_30deg.csv`
-- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_failure_cases_30deg.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_v2_summary.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_v2_risk_coverage.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_v2_settings.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_v2_protocol.json`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_v2_branch_strata_30deg.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/cross_patient_graph_v2_failure_cases_30deg.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/selective_risk_exact_ci_v2.csv`
+
+The older cross-patient files without `v2` are retained only as provenance. V1 perturbation consistency depended on a global scene index; V2 uses stable scene IDs and is invariant to adding/removing other stress configurations.
 
 Exact exploratory sources are archived under:
 
 - `scripts/research/ccta_graph_lira_safe_repair/*.py.gz.b64`
 
 Do not replace machine-artifact numbers with recollection from chat.
+
+Reproducibility correction: `docs/research/ccta_graph_lira_safe_repair/REPRODUCIBILITY_FIX_V2.md`.
+
+Finite-sample risk interpretation: `docs/research/ccta_graph_lira_safe_repair/SELECTIVE_RISK_UNCERTAINTY.md`.
 
 ## Important perturbation correction frozen in this checkpoint
 
@@ -139,9 +151,10 @@ Full details: `docs/research/ccta_graph_lira_safe_repair/ALIGNMENT_953.md`.
 
 ### Can continue without new image data
 
-- keep the cross-patient structural benchmark frozen;
-- analyse failure strata and candidate ambiguity around LAD/LCX/high-degree junctions;
-- use those strata as the fixed target set for the future image-context experiment.
+- keep canonical V2 frozen;
+- keep the anatomy-based hard strata frozen before CT-model development;
+- use the existing failure table to define diagnostics, not to retune the held-out patient;
+- preserve the distinction between observed zero failures and the much wider finite-sample risk bound.
 
 ### Hard blocker for the image-context question
 
