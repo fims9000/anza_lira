@@ -1,0 +1,16 @@
+{
+  "pair_train_candidates": 44858,
+  "pair_train_pos": 1635,
+  "junction_train_candidates": 59270,
+  "junction_train_pos": 3146,
+  "val_exact": 0.4280155642023346,
+  "val_false": 0.0038910505836575876,
+  "val_incomplete": 0.5680933852140078,
+  "utility": 0.32334630350194554,
+  "pair_threshold": 0.99,
+  "junction_threshold": 0.99,
+  "val_pair_auc": 0.9077868852459016,
+  "val_pair_auprc": 0.19937773384873742,
+  "val_junction_auc": 0.9482860989545158,
+  "val_junction_auprc": 0.5042756757808964
+}
