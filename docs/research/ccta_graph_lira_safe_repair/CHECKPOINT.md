@@ -147,29 +147,60 @@ The official ImageCAS-X source description says patient IDs are the original Ima
 
 Full details: `docs/research/ccta_graph_lira_safe_repair/ALIGNMENT_953.md`.
 
+## Matched-CT blocker resolved — 2026-09-21
+
+Six exact original ImageCAS CCTA volumes are now matched to ImageCAS-X anatomical labels under the official patient split:
+
+- train: `953, 964`;
+- validation: `957, 966`;
+- test: `980, 984`.
+
+All six pass exact CT/mask shape, spacing and affine checks. With the expected VTK LPS -> RAS conversion, centerline in-bounds, vessel occupancy and anatomical label agreement are all `1.0` for every case. Raw medical data remains outside Git; CT SHA256 hashes are committed.
+
+Two real-CT controlled pilots are complete.
+
+### Easy candidate-pair ranking
+
+This setting is geometry-saturated on held-out test:
+
+- geometry: AUROC `1.0000`, true-pair top-1 `1.0000`;
+- CT only: AUROC `0.8892`, top-1 `0.8750`;
+- geometry + CT: AUROC `0.9858`, top-1 `1.0000`.
+
+This is a useful negative control: image context is not needed to solve this easy ranking problem.
+
+### Geometry-matched wrong-branch relation-presence stress
+
+Hard negatives are nearby pairs from different polylines and different anatomical segments, matched one-to-one to positives using geometry only before fitting any CT model. The model input never contains the hidden segment label or mask.
+
+At the validation-selected operating point constrained to FPR <= 5%:
+
+- validation geometry: recall `11.86%`, FPR `3.39%`;
+- validation CT only: recall `50.85%`, FPR `1.69%`;
+- validation geometry + CT: recall `74.58%`, FPR `3.39%`.
+
+Held-out test:
+
+- geometry: recall `1/47 = 2.13%`, false `0/47`;
+- CT only: recall `22/47 = 46.81%`, false `0/47`;
+- geometry + CT: recall `29/47 = 61.70%`, false `0/47`.
+
+The test AUROC ordering does not favor CT (`geometry 0.9873` vs `geometry+CT 0.9746`), so the supported observation is specifically the conservative operating-point recall under a validation-frozen low-false policy, not a universal ranking improvement.
+
+Patient heterogeneity is substantial: geometry+CT recall is `3/16` for scan 980 and `26/31` for scan 984. The observed `0/47` false count must not be interpreted as zero population risk or sub-1% risk.
+
+Artifacts:
+
+- `docs/research/ccta_graph_lira_safe_repair/MATCHED_CT_6CASE_CHECKPOINT.md`;
+- `results/ccta_graph_lira_safe_repair/2026-09-21/matched_ct_alignment_6case.csv`;
+- `results/ccta_graph_lira_safe_repair/2026-09-21/ct_candidate_pair_pilot_summary.csv`;
+- `results/ccta_graph_lira_safe_repair/2026-09-21/ct_relation_geometry_matched_summary.csv`;
+- `results/ccta_graph_lira_safe_repair/2026-09-21/ct_relation_geometry_matched_protocol.json`;
+- archived exact scripts under `scripts/research/ccta_graph_lira_safe_repair/`.
+
 ## Current next executable action
 
-### Can continue without new image data
-
-- keep canonical V2 frozen;
-- keep the anatomy-based hard strata frozen before CT-model development;
-- use the existing failure table to define diagnostics, not to retune the held-out patient;
-- preserve the distinction between observed zero failures and the much wider finite-sample risk bound.
-
-### Hard blocker for the image-context question
-
-To test **real CT + anatomical branch identity**, obtain the original ImageCAS CCTA volume corresponding to scan ID `953` (or any other ImageCAS-X-labelled scan for which the same original ImageCAS CT is available).
-
-Do not substitute a row-indexed BDMAP mirror.
-
-## After the matched CT is available
-
-1. verify CT and ImageCAS-X mask geometry;
-2. freeze patient-level pair/junction examples and hard strata;
-3. compare geometry-only vs radial 2.5-D vs candidate-aligned 3-D tube vs full cross-section encoder -> sequence context;
-4. feed all local scores into the same joint Graph-LIRA optimizer;
-5. evaluate perturbation-consistency risk/coverage without threshold retuning on held-out patients;
-6. only then test ANZA as an incremental local encoder and, if justified, Transformer/Mamba sequence aggregation.
+Keep all test-set thresholds frozen. Add the matched-CT relation evidence to the same PAIR / JUNCTION / NO-REPAIR layer used by the 800-case Graph-LIRA benchmark, then evaluate it inside the frozen joint graph optimizer and the already validation-selected selective policy (`tau=0.85`, consistency `0.60`). Compare radial 2.5-D, candidate-aligned 3-D tube and a full cross-section encoder. ANZA remains a later explicit ablation, not an assumed improvement.
 
 ## Dataset provenance checkpoint
 
@@ -214,12 +245,13 @@ Artifacts:
 
 ## Current executable direction
 
-1. Do not tune geometry thresholds further on the inspected test set.
-2. Keep official patient splits, candidate generator, graph optimizer and uncertainty protocol frozen.
-3. Run an intermediate binary-lumen **shape-context** experiment using synthetically broken masks with the hidden relation removed before feature extraction. The model may use only the observed binary vessel geometry, never anatomical segment labels.
-4. Ask whether that spatial context improves relation existence / repair-needed exactness at the same false-repair budget.
-5. Treat this only as a proxy for image evidence.
-6. Final CT-conditioned work still requires true original ImageCAS `<scan_id>.img.nii.gz` volumes matched to ImageCAS-X IDs.
+1. The matched-CCTA blocker is resolved for the six-case patient-level pilot.
+2. Do not retune geometry, relation-confidence or consistency thresholds on scans 980/984.
+3. Preserve the official train/validation/test patient separation.
+4. Use real CCTA intensity to target relation existence / branch identity, not the already saturated easy candidate-ranking stage.
+5. Integrate image-conditioned relation evidence into the frozen joint Graph-LIRA decision layer.
+6. Quantify patient heterogeneity and uncertainty explicitly; six cases are pilot evidence only.
+7. Expand to more original ImageCAS CTs before making publication-level population-risk or natural-gap claims.
 
 ## Broken-mask context and robust selective-policy checkpoint
 
