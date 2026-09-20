@@ -190,3 +190,33 @@ Resume documentation:
 - `docs/research/ccta_graph_lira_safe_repair/FOUR_CASE_IMAGECAS_PILOT.md`
 
 This correction does not invalidate the image-only representation experiments; it corrects patient/source naming and prevents an invalid join to ImageCAS-X branch annotations.
+
+## 800-case repair-aware correction
+
+The full 800-case ImageCAS-X benchmark changes the interpretation of selective Graph-LIRA.
+
+At strict relation-type consistency gate `0.70`, test30 accepts many scenes safely, but the accepted repair-needed strata remain mostly incomplete:
+
+- pair-only: `66.25%` coverage, `0%` exact among accepted;
+- junction-only: `43.58%` coverage, `2.45%` exact among accepted;
+- mixed: `45.27%` coverage, `29.85%` exact among accepted.
+
+By contrast, accepted NO-REPAIR scenes are almost entirely correct. Therefore selective consistency currently proves **risk control / stable abstention**, not high automatic repair recall.
+
+A relation-presence oracle shows where the opportunity lies. On test30 repair-needed scenes, the current relation-type system is exact on `28.45%`, while oracle relation presence plus the existing geometry ranker reaches `70.81%` at top-1 and `94.57%` at top-3. At test45 the corresponding values are `18.50%`, `62.75%`, and `89.97%`.
+
+This freezes the geometry-only conclusion: candidate generation/ranking is not the dominant bottleneck. **PAIR / JUNCTION / NO-REPAIR existence and branch identity are.**
+
+Artifacts:
+
+- `results/ccta_graph_lira_safe_repair/2026-09-20/large_scale_repair_aware_diagnostics.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/large_scale_selective_paired_bootstrap.csv`
+
+## Current executable direction
+
+1. Do not tune geometry thresholds further on the inspected test set.
+2. Keep official patient splits, candidate generator, graph optimizer and uncertainty protocol frozen.
+3. Run an intermediate binary-lumen **shape-context** experiment using synthetically broken masks with the hidden relation removed before feature extraction. The model may use only the observed binary vessel geometry, never anatomical segment labels.
+4. Ask whether that spatial context improves relation existence / repair-needed exactness at the same false-repair budget.
+5. Treat this only as a proxy for image evidence.
+6. Final CT-conditioned work still requires true original ImageCAS `<scan_id>.img.nii.gz` volumes matched to ImageCAS-X IDs.
