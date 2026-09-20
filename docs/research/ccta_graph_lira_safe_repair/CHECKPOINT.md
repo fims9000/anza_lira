@@ -220,3 +220,50 @@ Artifacts:
 4. Ask whether that spatial context improves relation existence / repair-needed exactness at the same false-repair budget.
 5. Treat this only as a proxy for image evidence.
 6. Final CT-conditioned work still requires true original ImageCAS `<scan_id>.img.nii.gz` volumes matched to ImageCAS-X IDs.
+
+## Broken-mask context and robust selective-policy checkpoint
+
+The full 800-case benchmark was extended with a controlled broken-binary-mask context experiment.
+
+The mask is created by removing the hidden synthetic gap / junction before feature extraction. It is therefore a valid controlled occupancy-context test, but it is **not** CCTA intensity evidence and not an independent predicted segmentation.
+
+Main findings:
+
+1. geometry + broken-mask context improves PAIR / JUNCTION presence ranking substantially;
+2. at a validation-selected 5% structural false budget, presence heads reduce false structural decisions relative to the canonical relation head but do not show a reliable exact-rate gain;
+3. using the mask presence head strictly as a veto gives a strong safety / abstention tradeoff:
+   - test30 false `0.10923 -> 0.05932`, exact `0.55461 -> 0.53861`;
+   - test45 false `0.08051 -> 0.04991`, exact `0.51365 -> 0.49011`;
+4. paired patient-cluster bootstrap confirms the false reduction and the accompanying increase in incompleteness;
+5. the veto mostly improves NO-REPAIR scenes and heavily under-repairs pair-only scenes;
+6. degree-4 junctions remain a hard unresolved stratum.
+
+A further joint safe-policy search allowed pair-mask threshold, junction-mask threshold and perturbation consistency to vary while requiring <=1% false among accepted on both validation stress levels. It selected `pair=0.97`, `junction=0.96`, `consistency=0.0`. On test, this keeps false decision rate near 1% but does not yield a statistically reliable repair-exact improvement versus the canonical selective policy.
+
+Robust multi-tau validation independently re-selected the original canonical policy:
+
+- relation confidence `tau=0.85`;
+- perturbation consistency `0.60`.
+
+Validation false among accepted:
+
+- val30 `0.00892`;
+- val45 `0.00821`.
+
+Thus the 0.85 + 0.60 operating point is now frozen by a two-stress validation criterion, not by test inspection.
+
+Detailed interpretation and artifact map:
+`docs/research/ccta_graph_lira_safe_repair/MASK_CONTEXT_CHECKPOINT.md`.
+
+New artifacts:
+
+- `results/ccta_graph_lira_safe_repair/2026-09-20/mask_veto_summary.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/mask_veto_validation_selected.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/mask_veto_bootstrap.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/mask_veto_key_subgroups.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/relation_multitau_robust_selected.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/selective_mask_veto_summary.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/selective_mask_veto_selected.csv`
+- `results/ccta_graph_lira_safe_repair/2026-09-20/selective_mask_veto_bootstrap.csv`
+
+The central image-conditioned research question remains externally blocked until a true original ImageCAS CT is matched to an ImageCAS-X anatomical ID. Further geometry / binary-mask threshold tuning should not replace that experiment.
