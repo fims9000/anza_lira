@@ -299,3 +299,61 @@ New artifacts:
 - `results/ccta_graph_lira_safe_repair/2026-09-20/selective_mask_veto_bootstrap.csv`
 
 The central image-conditioned research question remains externally blocked until a true original ImageCAS CT is matched to an ImageCAS-X anatomical ID. Further geometry / binary-mask threshold tuning should not replace that experiment.
+
+
+## Representation and frozen-graph integration update — 2026-09-21
+
+The matched six-case CCTA pilot was extended to compare image representations and to test direct insertion into the canonical four-class Graph-LIRA relation layer.
+
+### Representation result
+
+At the validation-defined FPR <=5% operating point on the geometry-matched wrong-branch stress:
+
+- geometry: held-out recall `1/47 = 2.13%`, false `0/47`;
+- radial 2.5-D: `29/47 = 61.70%`, false `0/47`;
+- geometry + radial 2.5-D: `30/47 = 63.83%`, false `0/47`;
+- coarse 3-D tube + PCA: `10/47 = 21.28%`, false `1/47`;
+- geometry + coarse 3-D tube: `13/47 = 27.66%`, false `1/47`;
+- small cross-section CNN: `9/47 = 19.15%`, false `0/47`.
+
+Thus radial 2.5-D is the strongest current local CCTA representation. Larger learned representations are not justified with only two training patients.
+
+### Canonical 800-case baseline reproduction
+
+The complete geometry-only 800-case pipeline was independently regenerated from the archived source and full ImageCAS-X centerline package. The four-class relation head again selected `HGB, tau=0.85` on validation and reproduced:
+
+- val30 exact `54.96%`, false `8.95%`;
+- test30 exact `55.46%`, false `10.92%`;
+- test45 exact `51.37%`, false `8.05%`.
+
+This validates that the CT hybrid experiments use the same canonical geometry baseline.
+
+### CT insertion result
+
+A conservative CT auxiliary presence layer was trained only on scans 953/964 and calibrated only on 957/966. Geometry remained responsible for candidate identity / compatibility.
+
+Direct CT add-only behavior on the matched subset:
+
+- canonical test: exact `53.33%`, false `10.00%`;
+- CT add-only test: exact `56.67%`, false `23.33%`.
+
+A validation-only hysteresis search reduced validation false rate, but did not transfer:
+
+- validation <=10% false setting: exact `57.14%`, false `3.57%`;
+- held-out test: exact `50.00%`, false `20.00%`.
+
+A setting matched to canonical validation risk similarly produced test false `20.00%`.
+
+This is a negative integration result. CT is locally informative, but the relation-presence calibration is not patient-general enough with six matched cases to preserve the project safety objective. Do not retune on test scans 980/984.
+
+Artifacts:
+
+- `MATCHED_CT_REPRESENTATION_AND_GRAPH_CHECKPOINT.md`;
+- `ct_representation_compare_test.csv`;
+- `ct_graph_hybrid_summary.csv`;
+- `ct_graph_hysteresis_selected.csv`;
+- archived exact scripts `ct_representation_compare.py.gz.b64`, `ct_scene_graph_lira_hybrid.py.gz.b64`, and `ct_hybrid_hysteresis_search.py.gz.b64`.
+
+### Exact resume action
+
+Increase the number of exact original ImageCAS CTs matched to existing ImageCAS-X annotations while preserving the official split. Prefer cases already physically present in the downloaded Kaggle `801-1000.z04` multipart volume to avoid another large download. Then refit only the image-conditioned presence/calibration layer; keep the canonical geometry candidate models, four-class relation head, `tau=0.85`, and perturbation consistency `0.60` frozen.
