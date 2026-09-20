@@ -1,0 +1,40 @@
+[
+  {
+    "case": "921",
+    "n_centerline_records": 1256,
+    "n_controlled_positive_gaps": 850,
+    "fraction_with_geometrically_plausible_wrong_branch": 0.13411764705882354,
+    "median_hard_decoys": 0.0,
+    "top_wrong_branch_pairs": [
+      {"source":"LAD","decoy":"D2","count":84},
+      {"source":"LM","decoy":"LAD","count":73},
+      {"source":"LCX","decoy":"OM1","count":63},
+      {"source":"OM1","decoy":"LCX","count":42},
+      {"source":"LM","decoy":"IM","count":36},
+      {"source":"IM","decoy":"LAD","count":30},
+      {"source":"LAD","decoy":"LM","count":27},
+      {"source":"D1","decoy":"LAD","count":26},
+      {"source":"IM","decoy":"D1","count":24},
+      {"source":"D2","decoy":"LAD","count":23}
+    ]
+  },
+  {
+    "case": "953",
+    "n_centerline_records": 1786,
+    "n_controlled_positive_gaps": 1209,
+    "fraction_with_geometrically_plausible_wrong_branch": 0.12572373862696443,
+    "median_hard_decoys": 0.0,
+    "top_wrong_branch_pairs": [
+      {"source":"R-PDA","decoy":"R-PLA","count":105},
+      {"source":"LM","decoy":"IM","count":94},
+      {"source":"R-PLA","decoy":"R-PDA","count":88},
+      {"source":"LAD","decoy":"D1","count":81},
+      {"source":"LM","decoy":"LAD","count":55},
+      {"source":"OM1","decoy":"IM","count":47},
+      {"source":"IM","decoy":"OM1","count":47},
+      {"source":"LM","decoy":"LCX","count":37},
+      {"source":"RCA","decoy":"R-PLA","count":31},
+      {"source":"R-PDA","decoy":"RCA","count":30}
+    ]
+  }
+]
