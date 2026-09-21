@@ -149,14 +149,17 @@ Exact source:
 
 Source SHA256:
 
-`631591ebb7f152c3fdcf56d8b03ca22ef2561ca9821b3e137bebe9003b8f6c00`
+`c04f1263ee9611d32e68bb666ad6fd69386e10ba254cbc5c6f219fe28e7ad6eb`
 
-The script compares a real `GraphLIRA_CT_expanded_radial_results.zip` against the frozen geometry-HGB predictions and generates:
+The script compares a real `GraphLIRA_CT_expanded_radial_results.zip` against the frozen geometry-HGB predictions. In addition to the primary pooled-FPR gate it computes the already pre-registered secondary patient-robust operating point (pooled validation FPR <=5% and maximum validation-patient FPR <=5%).
+
+It generates:
 
 - `promotion_gate.json`;
 - `PROMOTION_GATE.md`;
 - `ct_vs_geometry_metrics.csv`;
 - `ct_vs_geometry_anatomy_subgroups.csv`;
+- `patient_robust_operating_points.csv`;
 - paired patient-cluster bootstrap results.
 
 A synthetic contract test was run in both failure and pass modes. The zero-CT synthetic fixture is correctly rejected as `BLOCKED_OR_INVALID`; a deliberately non-constant synthetic fixture exercises the positive control. Neither fixture is scientific evidence.
