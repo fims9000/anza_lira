@@ -1,0 +1,31 @@
+GraphLIRA expanded radial CT preflight
+Date: 2026-09-21
+Branch: research/ccta-graph-lira-safe-repair
+
+Runner bundle SHA256:
+3e215e4e1bded4dbb824142869701a509cb806b882013fc80eccb1649b622d21
+
+Static / plan verification:
+python -m py_compile: PASS
+rows: 1360
+patients: 28
+patient_split_max: 1
+
+class counts:
+test y=0: 167
+test y=1: 167
+train y=0: 379
+train y=1: 379
+val y=0: 134
+val y=1: 134
+
+Actual runner launch:
+graphlira-z04-radial-expansion-v1
+archive: /mnt/data
+patients: 28 [953, 954, 955, 956, 957, 958, 959, 960, 961, 963, 964, 965, 966, 967, 969, 970, 971, 972, 973, 974, 975, 976, 977, 979, 980, 982, 983, 984]
+
+External blocker:
+FileNotFoundError: /mnt/data/801-1000.z04
+
+Interpretation:
+The runner reached the intended raw-data gate. No post-gate metric exists in this environment. Do not infer or fabricate expanded-cohort performance until the original ImageCAS z04/final split archive is available.
