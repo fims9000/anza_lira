@@ -402,3 +402,40 @@ Detailed executable roadmap:
 
 Execution receipt:
 `docs/research/ccta_graph_lira_safe_repair/EXPANDED_CT_28CASE_EXECUTION_STATUS.md`.
+
+
+## Pre-CT 28-case geometry and promotion checkpoint
+
+All analysis that can be completed without the original Kaggle z04 CCTA bytes has now been advanced.
+
+Frozen 28-case relation baseline:
+
+- 28 patients;
+- 1,360 balanced relation examples;
+- official 17 train / 5 validation / 6 test patient split;
+- no patient leakage.
+
+Strong held-out geometry references:
+
+- nearest endpoint: recall 16.17%, FPR 4.19%;
+- OGMC-style: recall 39.52%, FPR 3.59%;
+- geometry HGB: recall 37.72%, FPR 1.20%, precision 96.92%.
+
+For geometry HGB, patient-cluster bootstrap gives recall interval ~24.82–47.80% and FPR interval 0–2.74%.
+
+The residual geometry problem is pre-registered anatomically. Hard positive groups are `OM1, IM, D2, LAD, OM2, R-PLA`; observed false-link sentinels are `LCX|OM2` and `R-PDA|RCA`.
+
+A second safety operating point is frozen: pooled validation FPR <=5% plus maximum validation-patient FPR <=5%. It reduces geometry-HGB held-out FPR to 0.60% at recall 32.93%.
+
+The expanded CT promotion gate is implemented and contract-tested. It:
+
+1. rejects missing/constant/fake CT evidence;
+2. verifies the exact 28-patient/1,360-row contract and all CT alignment gates;
+3. selects the image representation from validation only;
+4. compares against frozen geometry HGB, not the weak distance baseline;
+5. runs paired patient-cluster bootstrap;
+6. checks the pre-registered hard anatomy;
+7. reports both pooled and patient-robust operating points;
+8. authorizes Graph-LIRA integration only after the validation gate passes.
+
+No real expanded-CCTA performance has been inferred. The only remaining external blocker for the real 28-case image stage is access to original `801-1000.z04` plus final `801-1000.zip`.
