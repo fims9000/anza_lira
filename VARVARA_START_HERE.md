@@ -4,7 +4,7 @@
 
 Ветка:
 
-`research/varvara-ccta-graph-lira`
+`research/coronary-connectivity-repair`
 
 Главная тема работы:
 
