@@ -439,3 +439,32 @@ The expanded CT promotion gate is implemented and contract-tested. It:
 8. authorizes Graph-LIRA integration only after the validation gate passes.
 
 No real expanded-CCTA performance has been inferred. The only remaining external blocker for the real 28-case image stage is access to original `801-1000.z04` plus final `801-1000.zip`.
+
+
+## Real 28-patient matched-CCTA result — promotion PASS
+
+The raw `801-1000.z04` archive was reconstructed from ten Google Drive parts and the 28-patient matched-CCTA run is complete.
+
+All 28 patients passed CT/ImageCAS-X shape, spacing and affine gates.
+
+At the validation-selected FPR <= 5% operating point on six held-out test patients:
+
+- geometry HGB: recall 37.72%, FPR 1.20%, precision 96.92%, AUROC 0.9685;
+- radial 2.5-D CT: recall 68.86%, FPR 4.19%, precision 94.26%, AUROC 0.9440;
+- geometry + radial CT: recall 82.63%, FPR 1.80%, precision 97.87%, AUROC 0.9847.
+
+Paired patient-cluster bootstrap for geometry+CT minus geometry HGB:
+
+- recall delta median +44.71 pp, 95% interval [+32.62,+60.00] pp;
+- FPR delta median +0.61 pp, 95% interval [-1.29,+2.56] pp;
+- AUROC delta median +0.0162, 95% interval [-0.0058,+0.0400].
+
+The pre-registered promotion gate therefore PASSES. The CT relation signal may now be evaluated inside the frozen Graph-LIRA layer.
+
+Do not retune test thresholds. Keep relation confidence `tau=0.85` and perturbation consistency `0.60` frozen.
+
+Detailed result:
+`REAL_CT28_RESULTS_AND_PROMOTION.md`
+
+Immediate next executable action:
+insert the calibrated CT relation evidence into the existing PAIR/JUNCTION/BOTH/NONE Graph-LIRA pipeline and evaluate repair-needed exact, false structural repair, incomplete/abstain, coverage and hard-anatomy strata under the frozen selective policy.
