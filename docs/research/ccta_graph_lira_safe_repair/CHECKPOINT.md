@@ -357,3 +357,48 @@ Artifacts:
 ### Exact resume action
 
 Increase the number of exact original ImageCAS CTs matched to existing ImageCAS-X annotations while preserving the official split. Prefer cases already physically present in the downloaded Kaggle `801-1000.z04` multipart volume to avoid another large download. Then refit only the image-conditioned presence/calibration layer; keep the canonical geometry candidate models, four-class relation head, `tau=0.85`, and perturbation consistency `0.60` frozen.
+
+
+## Expanded matched-CCTA execution checkpoint — 28 patients
+
+The six-case calibration blocker has now been converted into a frozen 28-patient expansion protocol.
+
+Official split preserved:
+
+- train: 17 patients;
+- validation: 5 patients;
+- test: 6 patients.
+
+Frozen relation set:
+
+- 758 train rows;
+- 268 validation rows;
+- 334 test rows;
+- 1,360 total balanced geometry-matched examples.
+
+The exact radial 2.5-D extractor and frozen geometry metadata are committed on this branch. The runner has been compiled and launched successfully through initialization. The only current hard blocker is external raw ImageCAS data: `801-1000.z04` and the final split member `801-1000.change2zip` / `801-1000.zip` are not mounted in the current execution environment.
+
+Do not change the experiment to work around this blocker. In particular:
+
+- do not replace the exact original ImageCAS CT with BDMAP image-only cases;
+- do not retune on scans 980 / 984;
+- do not substitute the broken binary mask for CCTA intensity;
+- do not escalate to a larger CNN / Transformer / ANZA before the 28-patient calibration check.
+
+Canonical continuation after the raw archive becomes available:
+
+1. run the frozen 28-patient radial extractor;
+2. verify CT shape / spacing / affine / SHA256 for every patient;
+3. freeze geometry vs radial CT vs geometry+radial CT;
+4. compute per-patient and patient-cluster uncertainty;
+5. refit only the image-conditioned relation-presence/calibration component;
+6. insert it into frozen Graph-LIRA;
+7. apply `tau=0.85` and consistency `0.60`;
+8. audit repair-needed exact, false repair, incomplete decisions, risk-coverage, LAD/LCX and high-degree junctions;
+9. only if calibration is stable, run the compact ANZA encoder ablation against radial CT and a matched conventional CNN.
+
+Detailed executable roadmap:
+`docs/research/ccta_graph_lira_safe_repair/EXPANDED_CT_28CASE_EXECUTION_AND_ROADMAP.md`.
+
+Execution receipt:
+`docs/research/ccta_graph_lira_safe_repair/EXPANDED_CT_28CASE_EXECUTION_STATUS.md`.
