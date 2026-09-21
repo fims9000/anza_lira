@@ -4,7 +4,7 @@
 
 ## Главная ветка для работы
 
-`research/varvara-ccta-graph-lira`
+`research/coronary-connectivity-repair`
 
 Она основана на полной технической ветке `research/ccta-graph-lira-safe-repair`, поэтому код, результаты и reproducibility внутри сохранены.
 
