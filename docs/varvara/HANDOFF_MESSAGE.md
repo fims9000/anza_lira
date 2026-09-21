@@ -2,7 +2,7 @@
 
 Привет! Я собрал отдельную ветку по направлению восстановления связности коронарных сосудов на CCTA:
 
-`research/varvara-ccta-graph-lira`
+`research/coronary-connectivity-repair`
 
 Начать лучше с файла:
 
