@@ -326,3 +326,43 @@ The required raw ImageCAS archive pieces are intentionally not committed to Git.
 - `801-1000.change2zip`, renamed locally to `801-1000.zip`.
 
 No post-blocker result has been invented. As soon as those raw archive pieces are available to the execution environment, the next action is to rerun the already-frozen extractor unchanged and continue directly into patient-cluster uncertainty and frozen Graph-LIRA integration.
+
+
+## Pre-CT expanded geometry baseline frozen
+
+Before reading the 28-patient CCTA intensities, the same frozen 1,360 relation rows were used to establish stronger geometry-only references.
+
+Held-out six-patient test at thresholds selected on validation only:
+
+| model | recall | FPR | precision | AUROC |
+|---|---:|---:|---:|---:|
+| nearest endpoint | 16.17% | 4.19% | 79.41% | 0.9189 |
+| OGMC-style geometry | 39.52% | 3.59% | 91.67% | 0.8148 |
+| geometry HGB | 37.72% | **1.20%** | **96.92%** | **0.9685** |
+
+The important result is not only ranking. Pair top-1 is already about 92–96% for several geometry methods, while safe acceptance recall remains much lower. This independently reinforces that candidate identity and selective relation acceptance are different problems.
+
+Patient-cluster bootstrap for geometry HGB gives test recall 37.72% with a 95% cluster-bootstrap interval of about 24.82–47.80% and FPR 1.19% with interval 0–2.74%.
+
+The CT expansion must therefore beat `geometry_hgb`, not merely nearest distance.
+
+Pre-registered hard positive anatomy groups:
+
+`OM1, IM, D2, LAD, OM2, R-PLA`.
+
+Observed geometry-HGB false-link sentinels:
+
+`LCX|OM2` and `R-PDA|RCA`.
+
+A secondary patient-robust threshold rule is also frozen before CT:
+
+`pooled validation FPR <=5% AND max validation-patient FPR <=5%`.
+
+On geometry HGB this lowers held-out FPR from 1.20% to 0.60% while recall moves from 37.72% to 32.93%. The same secondary operating point will be reported for CT.
+
+Detailed artifacts:
+
+- `EXPANDED_GEOMETRY_BASELINES.md`;
+- `PREREGISTERED_HARD_ANATOMY_TARGETS.md`;
+- `PATIENT_ROBUST_THRESHOLD_CHECKPOINT.md`;
+- `EXPANDED_CT_PROMOTION_POLICY.md`.
