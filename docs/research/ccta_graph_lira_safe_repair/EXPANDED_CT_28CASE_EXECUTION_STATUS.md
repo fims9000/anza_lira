@@ -38,3 +38,31 @@ This environment currently contains the runner, plans, ImageCAS-X research bundl
 No scientific metric was generated or inferred beyond the available data.
 
 The next executable action is therefore exact and singular: make those two raw split-archive files available, then rerun the already-frozen runner without changing thresholds, patient IDs or model settings.
+
+
+## Post-processing stage prepared
+
+The downstream analysis stage has also been implemented before raw CT extraction so the experiment will not stop at a pooled summary table.
+
+Exact postprocessor:
+
+`scripts/research/ccta_graph_lira_safe_repair/analyze_expanded_ct_results.py.gz.b64`
+
+Source SHA256:
+
+`3b69668e0b625fc66d12fd2eb9dcf1953e37fa5764e4fcb2757b8b4622562161`
+
+It performs, without refitting or test-threshold selection:
+
+- output-contract validation;
+- raw-medical-image exclusion check;
+- 28-patient / 1360-row / split-isolation verification;
+- CT shape / spacing / affine gate verification;
+- per-test-patient metrics;
+- patient-cluster bootstrap for AUROC, AUPRC, recall, FPR, precision and accuracy;
+- paired patient-cluster bootstrap for radial CT vs geometry and geometry+radial vs geometry;
+- patient heterogeneity summaries.
+
+A deterministic synthetic contract test was executed successfully with 200 patient-cluster bootstrap replicates. Those synthetic numbers are test fixtures only and are not scientific results.
+
+The real postprocessor is invoked only after `GraphLIRA_CT_expanded_radial_results.zip` exists.
