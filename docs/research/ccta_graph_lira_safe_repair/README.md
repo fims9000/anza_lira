@@ -276,3 +276,53 @@ The first attempt to inject the six-case CT presence signal into the frozen PAIR
 Therefore the supported conclusion is now more specific: **CCTA intensity is informative locally, but six-patient scene-level calibration does not generalize well enough to preserve the low-false Graph-LIRA objective.** More matched patients are the next requirement; further threshold tuning on scans 980/984 is prohibited.
 
 Full checkpoint: `MATCHED_CT_REPRESENTATION_AND_GRAPH_CHECKPOINT.md`.
+
+
+## Expanded matched-CCTA execution — 28-patient cohort
+
+The next calibration experiment is now frozen and fully documented. It expands the exact original ImageCAS / ImageCAS-X matched cohort from 6 to **28 patients** while preserving the official patient split:
+
+- train: 17 patients;
+- validation: 5 patients;
+- test: 6 patients.
+
+The frozen geometry-matched relation plan contains **1,360 examples**:
+
+- train: 379 positive + 379 hard negative;
+- validation: 134 + 134;
+- test: 167 + 167.
+
+The first representation remains the current strongest simple image baseline: candidate-aligned **radial 2.5-D CCTA**. The comparison is geometry vs radial CT vs geometry+radial CT under the same lightweight logistic model and a threshold selected only on validation at FPR <= 5%.
+
+The canonical Graph-LIRA policy is not reopened:
+
+- four-class geometry relation head remains frozen;
+- relation confidence remains `tau=0.85`;
+- perturbation consistency remains `0.60`;
+- test patients are not used for threshold tuning.
+
+Exact protocol, download requirements, execution commands, output contract, post-run analysis, ANZA decision point and the long-term publication direction are documented in:
+
+- `EXPANDED_CT_28CASE_EXECUTION_AND_ROADMAP.md`;
+- `EXPANDED_CT_28CASE_EXECUTION_STATUS.md`;
+- `EXPANDED_CT_28CASE_PLAN.md`.
+
+Exact executable source is archived at:
+
+- `scripts/research/ccta_graph_lira_safe_repair/extract_radial_features_z04.py.gz.b64`;
+- `scripts/research/ccta_graph_lira_safe_repair/build_expand_pair_plan.py.gz.b64`.
+
+Frozen experiment metadata is under:
+
+- `experiments/ccta_graph_lira_safe_repair/expanded_ct_28case/`.
+
+### Actual execution status
+
+The runner has been compiled, its frozen plan has been checked, and it has been launched in the current research environment. It initializes the expected 28 patient IDs correctly and then stops at the raw-data boundary because this environment does not contain `801-1000.z04`.
+
+The required raw ImageCAS archive pieces are intentionally not committed to Git. The exact external requirement is:
+
+- `801-1000.z04`;
+- `801-1000.change2zip`, renamed locally to `801-1000.zip`.
+
+No post-blocker result has been invented. As soon as those raw archive pieces are available to the execution environment, the next action is to rerun the already-frozen extractor unchanged and continue directly into patient-cluster uncertainty and frozen Graph-LIRA integration.
