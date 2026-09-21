@@ -1,0 +1,13 @@
+{
+  "baseline": "geometry logistic (same runner/frozen split)",
+  "combined": "geometry_plus_radial_v1",
+  "recall_delta": 0.7425149700598802,
+  "fpr_delta": 0.0,
+  "precision": 0.9787234042553192,
+  "criteria": {
+    "recall_delta_min": 0.2,
+    "fpr_delta_max": 0.01,
+    "precision_min": 0.95
+  },
+  "pass": true
+}
