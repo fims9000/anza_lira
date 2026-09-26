@@ -116,3 +116,8 @@ Do not search for the old local `models.joblib`, `relation_type_model.joblib` or
 - `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`
 
 Полные generated `expanded_relation_features.csv` и `expanded_relation_predictions.csv` в Git пока отсутствуют и должны быть честно регенерированы из frozen runner + raw ImageCAS CT, а не восстановлены из aggregate metrics.
+
+
+## Быстрый ответ на вопросы по артефактам
+
+- `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md` — прямые ответы на вопросы про модели, `.joblib/.pkl`, старый hybrid и текущую архитектуру;
