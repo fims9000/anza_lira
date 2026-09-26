@@ -126,3 +126,20 @@ For the current task, read these files before touching the old exploratory scrip
 - `scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py` — retrains and saves the three lightweight PAIR models once the generated feature table is available.
 
 Do not search for the old local `models.joblib`, `relation_type_model.joblib` or `scenes_full.pkl` as if they were hidden somewhere in the branch. They are not committed canonical artifacts.
+
+## Актуальное уточнение задачи
+
+После проверки артефактов текущая задача уточнена.
+
+Прочитать обязательно:
+
+- `docs/varvara/ARTIFACT_MAP_AND_CURRENT_TASK_2026-09-26.md`
+- `docs/varvara/CURRENT_TASK.md`
+- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`
+- `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`
+
+Компактные derived artifacts для старта:
+
+`artifacts/varvara/`
+
+Главный недостающий научный блок сейчас: **28-patient JUNCTION+CT evidence**, затем CT-conditioned `NONE / PAIR / JUNCTION / BOTH` head и только после этого frozen Graph-LIRA evaluation.
