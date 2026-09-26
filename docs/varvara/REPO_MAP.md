@@ -101,3 +101,18 @@ For the current task, read these files before touching the old exploratory scrip
 - `scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py` — retrains and saves the three lightweight PAIR models once the generated feature table is available.
 
 Do not search for the old local `models.joblib`, `relation_type_model.joblib` or `scenes_full.pkl` as if they were hidden somewhere in the branch. They are not committed canonical artifacts.
+
+## Актуальный collaborator pack
+
+`artifacts/varvara/`
+
+Там лежат компактные CT28-derived artifacts: alignment, frozen cohort metadata, headline metrics, bootstrap и risk/coverage.
+
+Для текущей задачи читать:
+
+- `docs/varvara/ARTIFACT_MAP_AND_CURRENT_TASK_2026-09-26.md`
+- `docs/varvara/CURRENT_TASK.md`
+- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`
+- `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`
+
+Полные generated `expanded_relation_features.csv` и `expanded_relation_predictions.csv` в Git пока отсутствуют и должны быть честно регенерированы из frozen runner + raw ImageCAS CT, а не восстановлены из aggregate metrics.
