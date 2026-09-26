@@ -1,3 +1,5 @@
+> **STATUS UPDATE — 2026-09-26:** This document preserves the pre-execution protocol. The raw-data blocker described below has been resolved. The real 28-patient run is complete and all 28 CTs passed alignment. Current results and continuation are in `docs/research/ccta_graph_lira_safe_repair/REAL_CT28_RESULTS_AND_PROMOTION.md` and `docs/varvara/CURRENT_TASK.md`. Do not interpret the historical "blocked" text below as current repository status.
+
 # Expanded matched-CCTA Graph-LIRA study: exact execution and research roadmap
 
 Date: 2026-09-21  
