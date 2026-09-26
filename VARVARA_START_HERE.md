@@ -112,3 +112,17 @@ ANZA encoder
 Остальной репозиторий — технический архив и воспроизводимость. Его не нужно читать подряд.
 
 Сырые медицинские данные в Git не хранятся.
+
+
+## 2026-09-26 — current execution pack
+
+For the current task, read these files before touching the old exploratory scripts:
+
+- `docs/varvara/CURRENT_TASK.md` — exact next task: 28-patient JUNCTION+CT, then CT-conditioned relation head, then frozen Graph-LIRA;
+- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md` — only the negative results that materially constrain the architecture;
+- `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md` — exact interpretation and reproduction of the 28-patient PAIR baseline;
+- `docs/varvara/ARTIFACT_MAP_AND_CURRENT_TASK_2026-09-26.md` — which models/files really exist and which old local artifacts are missing;
+- `artifacts/varvara/ct28_pair/` — compact collaboration metadata/provenance;
+- `scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py` — retrains and saves the three lightweight PAIR models once the generated feature table is available.
+
+Do not search for the old local `models.joblib`, `relation_type_model.joblib` or `scenes_full.pkl` as if they were hidden somewhere in the branch. They are not committed canonical artifacts.
