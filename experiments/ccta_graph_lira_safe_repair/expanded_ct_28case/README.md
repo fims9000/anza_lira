@@ -57,4 +57,16 @@ Official source: https://www.kaggle.com/datasets/xiaoweixumedicalai/imagecas
 
 ## Current status
 
-Preflight has been executed. Source compiles, 1,360 rows / 28 patients / split isolation / class balance are verified. Full extraction is blocked only because the two raw Kaggle split-archive pieces are not mounted in the current execution environment.
+The real 28-patient extraction and local PAIR experiment are complete.
+
+- 28 / 28 CTs passed shape / spacing / affine validation;
+- the frozen 1,360-row relation plan was evaluated;
+- geometry + radial CT reached held-out AUROC 0.9847, recall 82.63%, FPR 1.80%, precision 97.87%;
+- patient-cluster uncertainty and hard-anatomy analyses are committed.
+
+Current continuation is **not another PAIR retune**. The missing scientific block is 28-patient JUNCTION+CT evidence, followed by a CT-conditioned NONE / PAIR / JUNCTION / BOTH relation head and frozen Graph-LIRA evaluation.
+
+See:
+- `docs/research/ccta_graph_lira_safe_repair/REAL_CT28_RESULTS_AND_PROMOTION.md`
+- `docs/varvara/CURRENT_TASK.md`
+- `artifacts/varvara/ct28_pair/`
