@@ -127,6 +127,10 @@ For the current task, read these files before touching the old exploratory scrip
 
 Do not search for the old local `models.joblib`, `relation_type_model.joblib` or `scenes_full.pkl` as if they were hidden somewhere in the branch. They are not committed canonical artifacts.
 
+## Быстрый ответ на вопросы по артефактам
+
+- `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md` — прямые ответы на вопросы про модели, `.joblib/.pkl`, старый hybrid и текущую архитектуру;
+
 ## Актуальное уточнение задачи
 
 После проверки артефактов текущая задача уточнена.
