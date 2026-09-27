@@ -136,9 +136,23 @@ NONE / PAIR / JUNCTION / BOTH
 
 `artifacts/varvara/ct28_pair/`
 
-Скрипт для сохранения трёх PAIR-моделей после regeneration feature table:
+Полный CT28 PAIR collaboration pack теперь закрыт в Git:
+
+- `artifacts/varvara/ct28_pair/relation_pair_plan.csv`;
+- `artifacts/varvara/ct28_pair/expanded_relation_predictions.csv`;
+- `artifacts/varvara/ct28_pair/expanded_relation_summary.csv`;
+- `artifacts/varvara/ct28_pair/protocol.json`;
+- полный feature table хранится losslessly в `artifacts/varvara/ct28_pair/payload/expanded_relation_features.csv.xz.b64`.
+
+Восстановить `expanded_relation_features.csv`:
+
+`python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py`
+
+После этого три PAIR-модели сохраняются скриптом:
 
 `scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py`
+
+Повторный train уже проверен: scores совпадают с сохранёнными row-level predictions до floating-point precision, thresholded predictions совпадают полностью.
 
 ## 9. Что не нужно сейчас делать
 
@@ -147,3 +161,15 @@ NONE / PAIR / JUNCTION / BOTH
 - не повторять six-case add-only CT integration;
 - не уходить сразу в большой CNN / Transformer / Mamba;
 - не считать CT28 PAIR result полноценным JUNCTION/Graph-LIRA result.
+
+
+## 10. Обновление 2026-09-27 — данных для PAIR baseline больше ждать не нужно
+
+Пробел с `expanded_relation_features.csv` и row-level predictions закрыт. Артефакты честно перегенерированы из frozen protocol и сохранены в collaboration pack.
+
+Поэтому текущий старт теперь такой:
+
+1. `git pull` канонической ветки;
+2. при желании воспроизвести PAIR baseline из committed feature payload;
+3. не тратить время на старые отсутствующие pickle-файлы;
+4. переходить к `JUNCTION+CT` из `docs/varvara/CURRENT_TASK.md`.
