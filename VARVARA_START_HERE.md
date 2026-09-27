@@ -1,5 +1,8 @@
 # Варвара — начать отсюда
 
+> **Актуальный execution handoff (2026-09-27):** сначала открыть `docs/varvara/FINAL_HANDOFF_2026-09-27.md`.  
+> CT28 PAIR feature/prediction gap закрыт; ждать raw CT или старые pickle-файлы для старта больше не нужно.
+
 Эта ветка собрана как рабочая версия проекта, которую можно читать без истории всех проб, неудачных запусков и промежуточных гипотез.
 
 Ветка:
@@ -123,7 +126,7 @@ For the current task, read these files before touching the old exploratory scrip
 - `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md` — exact interpretation and reproduction of the 28-patient PAIR baseline;
 - `docs/varvara/ARTIFACT_MAP_AND_CURRENT_TASK_2026-09-26.md` — which models/files really exist and which old local artifacts are missing;
 - `artifacts/varvara/ct28_pair/` — compact collaboration metadata/provenance;
-- `scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py` — retrains and saves the three lightweight PAIR models once the generated feature table is available.
+- `scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py` — восстанавливает committed CT28 feature table; `train_ct28_pair_from_features.py` сразу воспроизводит/сохраняет три lightweight PAIR модели.
 
 Do not search for the old local `models.joblib`, `relation_type_model.joblib` or `scenes_full.pkl` as if they were hidden somewhere in the branch. They are not committed canonical artifacts.
 
