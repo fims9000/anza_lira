@@ -49,6 +49,14 @@ python scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_feature
 
 Повторное обучение на восстановленном feature table уже проверено: row-level scores совпадают с сохранёнными predictions до floating-point precision, thresholded predictions совпадают полностью.
 
+Если нужны именно сохранённые PAIR `.joblib`, а не retrain, в Git теперь есть их compact payloads. Восстановить:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_models.py
+```
+
+Это convenience snapshots; для научной воспроизводимости предпочтителен retrain из committed feature table.
+
 Сильный geometry HGB воспроизводится отдельно:
 
 ```bash
