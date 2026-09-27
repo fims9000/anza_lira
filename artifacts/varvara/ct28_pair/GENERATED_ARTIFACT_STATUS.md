@@ -1,37 +1,45 @@
 # Generated artifact status
 
-Date: 2026-09-26
+Date: 2026-09-27
 
-## Already committed in the collaboration pack
+## Status: CLOSED
 
-- `ct_alignment.csv`
-- `expected_ct_geometry.csv`
-- `pair_plan_counts.csv`
-- reproduction documentation
-- standalone PAIR model trainer
+The previous generated-artifact gap is closed.
 
-## Still generated, not yet committed
+The frozen CT28 PAIR artifacts were regenerated from the original matched CCTA / frozen pair plan and verified against the expected result.
 
-- `expanded_relation_features.csv`
-- `expanded_relation_predictions.csv`
-- `expanded_relation_summary.csv`
-- `protocol.json`
+Persisted in Git:
 
-These files must be generated from the frozen CT28 extractor; they must not be reconstructed from aggregate metrics.
+- `relation_pair_plan.csv`;
+- `expanded_relation_predictions.csv`;
+- `expanded_relation_summary.csv`;
+- `protocol.json`;
+- `ct_alignment.csv`;
+- `expected_ct_geometry.csv`;
+- compact metrics / bootstrap files;
+- lossless compressed feature payload:
+  `payload/expanded_relation_features.csv.xz.b64`.
 
-The user's Google Drive still contains the ten uploaded parts of `801-1000.z04`, so no new data upload is required.
+Restore the full `expanded_relation_features.csv` with:
 
-At the time of this checkpoint the ChatGPT execution container became unavailable after the Drive parts were materialized, preventing safe concatenation/re-execution in this turn. This is an execution-environment blocker, not a missing-data or research-protocol blocker.
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py
+```
 
-Exact resume action:
+Expected restored SHA256:
 
-1. materialize the ten existing `GraphLIRA_801-1000_z04.part_000..009` files;
-2. concatenate them in numeric order to `801-1000.z04`;
-3. verify SHA256 against the previously reconstructed archive:
-   `e113e44e4984e383da13637ef6ce18511b8509c8c19f9b30cfe0c216ad10d3f2`;
-4. run the frozen radial extractor;
-5. verify the held-out combined result reproduces approximately:
-   AUROC 0.9847, recall 82.63%, FPR 1.80%, precision 97.87%;
-6. commit the four generated non-image artifacts listed above into this directory.
+`819181674acb9a358dd822e55acf3f5721cf8d46b82c0e2655e7af842b0df864`
 
-No user action should be required unless the existing Drive parts become unavailable.
+The retraining check reproduced all three CT28 local model score arrays to floating-point precision and identical thresholded predictions.
+
+Expected combined held-out result:
+
+- AUROC 0.9846893040;
+- recall 82.6347%;
+- FPR 1.7964%;
+- precision 97.8723%;
+- TP/FP/FN/TN = 138/3/29/164.
+
+Raw CCTA remains intentionally outside Git.
+
+No collaborator action is required to reconstruct the old PAIR feature table before starting the next scientific task.
