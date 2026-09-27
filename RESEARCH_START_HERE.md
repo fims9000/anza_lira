@@ -4,33 +4,26 @@ Canonical active research branch:
 
 `research/coronary-connectivity-repair`
 
-This branch is the continuation point for the coronary CCTA connectivity-repair work. It contains the full technical history inherited from the previous research branches, the 28-patient matched-CCTA experiment, all compact reproducible results, the current article direction, and the handoff/roadmap material prepared for collaborators.
-
-## Branch policy
-
 Use:
-
 - `main` — stable/default repository branch;
-- `research/coronary-connectivity-repair` — **all active and future research work for this line**.
+- `research/coronary-connectivity-repair` — all active and future research work for this line.
 
-Do not continue new research work on:
+Historical checkpoints:
+- `research/ccta-graph-lira-safe-repair`;
+- `research/varvara-ccta-graph-lira`.
 
-- `research/ccta-graph-lira-safe-repair` — historical predecessor/checkpoint;
-- `research/varvara-ccta-graph-lira` — temporary handoff snapshot created before the canonical branch was renamed neutrally.
+Do not continue new work on those historical branches.
 
-Those branches are intentionally kept for safety/history so nothing is lost.
+## Current verified result
 
-## Current research state
+Matched ImageCAS / ImageCAS-X CT28 PAIR experiment:
 
-The strongest verified matched-CCTA result is the 28-patient relation experiment:
+- 28 patients;
+- 17 train / 5 validation / 6 held-out test;
+- 1,360 controlled pair relations;
+- 28/28 CT geometry checks passed.
 
-- 17 train patients;
-- 5 validation patients;
-- 6 held-out test patients;
-- 1,360 controlled relation examples;
-- 28/28 CT-to-ImageCAS-X geometry checks passed.
-
-At the validation-selected FPR <= 5% operating point on held-out test:
+Held-out operating point selected from validation:
 
 | method | Recall | FPR | Precision | AUROC |
 |---|---:|---:|---:|---:|
@@ -38,37 +31,74 @@ At the validation-selected FPR <= 5% operating point on held-out test:
 | radial 2.5-D CCTA | 68.86% | 4.19% | 94.26% | 0.9440 |
 | **geometry + radial CCTA** | **82.63%** | **1.80%** | **97.87%** | **0.9847** |
 
-The next core experiment is CT-conditioned Graph-LIRA under the already frozen selective policy:
+This is a local binary PAIR-relation result, not an end-to-end Graph-LIRA result.
 
-- relation confidence `tau=0.85`;
-- perturbation consistency `0.60`;
-- no test retuning.
+## CT28 PAIR reproducibility status
 
-## What to read
+The previous collaborator gap is closed.
 
-For the concise scientific direction:
+Committed under `artifacts/varvara/ct28_pair/`:
 
-1. `docs/varvara/ARTICLE_DIRECTION.md`
-2. `docs/varvara/RESULTS_TO_USE.md`
-3. `docs/varvara/ROADMAP.md`
+- exact pair plan;
+- full row-level predictions;
+- summary/protocol;
+- alignment/provenance;
+- lossless compressed full feature table;
+- optional regenerated model snapshots.
 
-Those files were written as a collaborator-friendly handoff, but they are also the cleanest compact description of the current direction.
+Restore/retrain instructions:
+`docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`.
 
-For technical provenance and reproducibility:
+## Exact next scientific task
 
-- `docs/research/ccta_graph_lira_safe_repair/REAL_CT28_RESULTS_AND_PROMOTION.md`
-- `docs/research/ccta_graph_lira_safe_repair/CHECKPOINT.md`
-- `results/ccta_graph_lira_safe_repair/2026-09-21/`
-- `scripts/research/ccta_graph_lira_safe_repair/`
+The next missing block is **28-patient JUNCTION+CT evidence** on the same frozen cohort/split.
 
-## What not to do
+Required comparison:
+
+1. JUNCTION geometry;
+2. JUNCTION CT;
+3. JUNCTION geometry + CT.
+
+Only after patient-general JUNCTION_CT exists:
+
+```text
+PAIR geometry + PAIR CT
++
+JUNCTION geometry + JUNCTION CT
+        ↓
+CT-conditioned scene-level relation head
+        ↓
+NONE / PAIR / JUNCTION / BOTH
+        ↓
+frozen Graph-LIRA
+        ↓
+tau = 0.85
+consistency = 0.60
+        ↓
+repair / abstain
+```
+
+No held-out test retuning.
+
+## Collaborator entry point
+
+For the current execution state read:
+
+`docs/varvara/FINAL_HANDOFF_2026-09-27.md`
+
+Then:
+- `docs/varvara/CURRENT_TASK.md`;
+- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`;
+- `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md`.
+
+## Scientific boundaries
 
 Do not:
-
-- retune thresholds on held-out test patients;
+- retune on held-out test patients;
 - replace the official patient split;
-- use anatomical labels as model inference features;
-- claim end-to-end CT-conditioned Graph-LIRA improvement before that experiment is run;
-- claim ANZA is superior before a clean architecture ablation.
+- use anatomical branch labels as inference features;
+- copy the old six-patient CT add-only/hysteresis integration as the final method;
+- claim full CT-conditioned Graph-LIRA improvement before that experiment exists;
+- claim ANZA superiority before a clean encoder ablation.
 
 Raw medical CT is intentionally not stored in Git.
