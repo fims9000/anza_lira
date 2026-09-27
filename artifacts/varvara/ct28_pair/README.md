@@ -12,7 +12,7 @@ Committed directly in this directory:
 - `expected_ct_geometry.csv` — frozen expected ImageCAS-X geometry;
 - `pair_plan_counts.csv` — frozen patient/split/class counts;
 - `headline_test.csv` — compact held-out test result;
-- `paired_bootstrap_ci.csv` — paired patient-cluster uncertainty against the strong geometry reference;
+- `paired_bootstrap_ci.csv` — paired patient-cluster uncertainty against the strong geometry reference;\n- `risk_coverage.csv` — validation-budget / held-out risk-coverage table;
 - `relation_pair_plan.csv` — exact 1,360-row frozen pair plan;
 - `expanded_relation_predictions.csv` — row-level scores/predictions;
 - `expanded_relation_summary.csv` — train/val/test and patient-level model summary;
