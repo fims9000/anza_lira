@@ -1,3 +1,5 @@
+> **HISTORICAL CHECKPOINT NOTICE — 2026-09-27:** This document preserves the state of the geometry-only / pre-CT28 research at the date written. Statements below that matched CCTA is still unavailable or that CT-conditioned work is blocked are historical and are no longer current. The verified 28-patient matched-CCTA PAIR experiment is complete. Current collaborator status is in `docs/varvara/FINAL_HANDOFF_2026-09-27.md`; current raw-CT access for new JUNCTION+CT work is in `docs/varvara/CT28_DATA_ACCESS.md`.
+
 # Local data manifest for CCTA Graph-LIRA research
 
 Snapshot date: 2026-09-20.
