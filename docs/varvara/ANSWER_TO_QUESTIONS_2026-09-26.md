@@ -148,7 +148,11 @@ NONE / PAIR / JUNCTION / BOTH
 
 `python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py`
 
-После этого три PAIR-модели сохраняются скриптом:
+Если нужны именно сохранённые PAIR model snapshots, они тоже добавлены в Git в `artifacts/varvara/ct28_pair/models_payload/` и восстанавливаются командой:
+
+`python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_models.py`
+
+Для переносимой воспроизводимости предпочтительнее retrain:
 
 `scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py`
 
