@@ -1,144 +1,117 @@
-# Roadmap для Варвары
+# Roadmap для Варвары — актуальная последовательность
 
-Ниже не список всех возможных идей, а конкретная последовательность, по которой сейчас стоит двигать работу.
+Актуализировано: 2026-09-27.
 
-## Этап 0. Разобраться в текущей постановке
+Для текущего исполнения сначала читать:
 
-Сначала прочитать:
+`docs/varvara/FINAL_HANDOFF_2026-09-27.md`
 
-1. `VARVARA_START_HERE.md`
-2. `docs/varvara/ARTICLE_DIRECTION.md`
-3. `docs/varvara/RESULTS_TO_USE.md`
+Этот roadmap описывает последовательность исследования, но не заменяет FINAL_HANDOFF.
 
-После этого должно быть понятно:
+## Этап 0. Проверить collaborator pack
 
-- почему простой nearest-neighbor repair недостаточен;
-- чем candidate ranking отличается от relation acceptance;
-- зачем нужен CT;
-- зачем нужен Graph-LIRA;
-- зачем нужен abstention.
+Из корня репозитория:
 
-Не нужно начинать с просмотра всех scripts.
-
-## Этап 1. Зафиксировать текущий CT baseline
-
-Текущая сильная локальная модель:
-
-`geometry + radial 2.5-D CT`
-
-Она уже прошла 28-patient promotion check.
-
-Ничего в этом baseline сейчас не улучшать.
-
-Не менять:
-
-- train/val/test split;
-- controlled pair definitions;
-- threshold selection rule;
-- test thresholds.
-
-Цель этапа — считать этот результат отправной точкой.
-
-## Этап 2. Перенести CT evidence внутрь Graph-LIRA
-
-Это главный следующий технический этап.
-
-Нужно взять уже рассчитанный image-conditioned relation signal и добавить его в существующий relation layer.
-
-Логика:
-
-```text
-candidate
-    ↓
-geometry evidence
-    +
-CT evidence
-    ↓
-PAIR / JUNCTION / BOTH / NONE
-    ↓
-global Graph-LIRA
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/verify_varvara_collab_pack.py
 ```
 
-Важно: не переписывать candidate generator и не менять весь pipeline одновременно.
+PAIR baseline уже frozen и не является новой задачей.
 
-### Что оставить frozen
+## Этап 1. При необходимости воспроизвести CT28 PAIR
 
-- geometry candidate generation;
-- compatibility logic;
-- global Graph-LIRA constraints;
-- relation confidence tau = 0.85;
-- perturbation consistency = 0.60.
+Восстановить features и retrain:
 
-### Что можно менять
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py
+python scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py \
+  artifacts/varvara/ct28_pair/expanded_relation_features.csv \
+  --out-dir ct28_pair_models
+```
 
-Только способ, которым CT evidence входит в relation existence / relation type calibration.
+Главный frozen result `geometry_plus_radial_v1`:
 
-### Что должно получиться на выходе
+- AUROC 0.9847;
+- recall 82.63%;
+- FPR 1.80%;
+- precision 97.87%.
 
-Таблица:
+Не тюнить его заново.
 
-| model | repair-needed exact | false structural | incomplete | coverage | false among accepted | exact among accepted |
-|---|---:|---:|---:|---:|---:|---:|
+## Этап 2. Новый обязательный блок — JUNCTION+CT
+
+На тех же 28 пациентах и том же split построить junction-specific dataset/representation.
+
+Сравнить:
+
+1. JUNCTION geometry;
+2. JUNCTION CT;
+3. JUNCTION geometry + CT.
+
+Raw CT source/alignment:
+
+`docs/varvara/CT28_DATA_ACCESS.md`
+
+Не использовать anatomical branch names как inference features.
+
+## Этап 3. CT-conditioned relation-type head
+
+Только когда есть patient-general PAIR_CT и JUNCTION_CT:
+
+```text
+PAIR geometry + PAIR CT
++
+JUNCTION geometry + JUNCTION CT
+        ↓
+NONE / PAIR / JUNCTION / BOTH
+```
+
+Сравнить с canonical geometry-only relation head.
+
+Model/threshold selection — train/validation only.
+
+## Этап 4. Frozen Graph-LIRA
+
+Первый end-to-end graph comparison сделать без test retuning.
+
+Сначала оставить:
+
+- graph compatibility/optimizer — frozen;
+- relation confidence `tau=0.85`;
+- perturbation consistency `0.60`.
 
 Сравнить:
 
 - geometry-only Graph-LIRA;
 - CT-conditioned Graph-LIRA.
 
-## Этап 3. Проверить переносимость по пациентам
+Основные structural metrics:
 
-Нельзя ограничиваться одной общей accuracy.
+- repair-needed exact;
+- false structural repair;
+- incomplete / abstain;
+- coverage;
+- false among accepted;
+- exact among accepted.
 
-Нужно:
+## Этап 5. Patient/anatomy robustness
+
+Обязательно:
 
 - per-patient metrics;
 - patient-cluster bootstrap;
-- paired bootstrap CT vs geometry;
-- отдельный разбор test patients;
-- confidence intervals.
+- paired bootstrap;
+- LAD / LCX / OM / IM / D1 / D2 / R-PDA / R-PLA;
+- high-degree junctions;
+- все false structural repair cases.
 
-Если выигрыш есть только у одного пациента, модель не считается устойчивой.
+## Этап 6. Только после этого — encoder ablation
 
-## Этап 4. Проверить сложные сосудистые группы
+Не начинать с большой нейросети.
 
-Заранее важные группы:
-
-- LAD;
-- LCX;
-- OM1;
-- OM2;
-- IM;
-- D2;
-- R-PLA;
-- high-degree junctions.
-
-Отдельно смотреть неправильные возможные соединения:
-
-- D1 ↔ LAD;
-- D2 ↔ LAD;
-- LCX ↔ OM1;
-- LCX ↔ OM2;
-- LCX ↔ LM;
-- R-PDA ↔ RCA;
-- R-PLA ↔ RCA.
-
-Цель — понять не только «стало ли лучше», а где именно CT помогает и где остаются опасные ошибки.
-
-## Этап 5. Только после Graph-LIRA — ANZA
-
-ANZA сейчас не надо сразу делать центральной частью.
-
-Сначала должен быть доказан сам image-conditioned graph approach.
-
-После этого проводится чистый architecture ablation:
+Честная абляция при одинаковом graph/split/policy:
 
 ```text
-same patients
-same candidate relations
-same train/val/test
-same Graph-LIRA
-same selective policy
-
 radial hand-crafted CT
 vs
 compact conventional CNN
@@ -146,82 +119,25 @@ vs
 compact ANZA encoder
 ```
 
-Если ANZA выигрывает в этих условиях, можно говорить про отдельный архитектурный вклад.
+Если ANZA не выигрывает, основная работа всё равно остаётся про image-conditioned selective graph repair.
 
-Если нет — основная статья всё равно остаётся полноценной за счёт risk-controlled graph repair.
+## Этап 7. Richer 3-D / sequence context
 
-## Этап 6. Если radial CT перестанет хватать
+Только если после предыдущего этапа остаётся конкретный failure mode:
 
-Следующая ступень representation:
+- candidate-aligned 3-D tube;
+- full cross-sections;
+- CNN/ANZA tokens;
+- затем Transformer/Mamba при необходимости.
 
-1. candidate-aligned 3-D tube;
-2. full cross-section local encoder;
-3. CNN/ANZA tokens вдоль сосудистого сегмента;
-4. только затем Transformer/Mamba для sequence context.
+Старый sequence experiment на сильно сжатых statistics не является основанием сразу брать Transformer.
 
-Не начинать с Transformer над mean/std признаками — этот путь уже не показал преимущества.
+## Неподвижные правила
 
-## Этап 7. Подготовить статью
-
-Параллельно после Graph-LIRA результата можно собирать:
-
-### Introduction
-
-- проблема разрывов в coronary segmentation;
-- риск неправильного post-hoc connection;
-- недостаточность только геометрии;
-- selective structural repair.
-
-### Related Work
-
-- topology-preserving segmentation: clDice, Skeleton Recall;
-- explicit reconnection: OGMC;
-- coronary reconnection/reconstruction: CorSegRec;
-- image-to-graph approaches;
-- отличие: risk-controlled repair with abstention.
-
-Готовая база:
-
-`docs/research/ccta_graph_lira_safe_repair/RELATED_WORK_AND_DIFFERENTIATION_2026.md`
-
-### Methods
-
-- data;
-- candidate graph;
-- geometry evidence;
-- radial CCTA evidence;
-- relation head;
-- Graph-LIRA;
-- selective policy;
-- metrics.
-
-### Experiments
-
-- geometry baselines;
-- CT local relation experiment;
-- Graph-LIRA integration;
-- anatomy subgroups;
-- risk/coverage;
-- architecture ablation.
-
-## Правила, которые нельзя нарушать
-
-1. Не подбирать threshold по test.
-2. Не переносить anatomical labels в model inputs.
-3. Не менять split ради красивого результата.
-4. Не смешивать сразу новый encoder, новый graph algorithm и новый threshold.
-5. Не выдавать 6 test patients за клиническую population validation.
-6. Не писать, что ANZA лучше, пока нет clean ablation.
-7. Не скрывать false structural repairs: это одна из главных метрик работы.
-
-## Когда текущий этап можно считать завершённым
-
-До перехода к полноценной ANZA-части должны быть готовы:
-
-- CT-conditioned Graph-LIRA;
-- frozen selective evaluation;
-- patient-level bootstrap;
-- hard-anatomy breakdown;
-- clean geometry vs CT-Graph comparison.
-
-После этого появляется нормальная точка для отдельной архитектурной задачи Варвары: сделать compact ANZA encoder и проверить его против обычного CNN и radial baseline.
+1. Не тюнить held-out test.
+2. Не менять frozen split ради результата.
+3. Не использовать branch labels как inference input.
+4. Не смешивать одновременно новый encoder, graph algorithm и threshold policy.
+5. Не называть CT28 PAIR result полным Graph-LIRA result.
+6. Не скрывать false structural repair за общей accuracy.
+7. Не повторять old six-case CT add/veto pilot как финальную архитектуру.
