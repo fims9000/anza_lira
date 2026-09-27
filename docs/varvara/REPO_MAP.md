@@ -1,123 +1,115 @@
 # Карта репозитория для Варвары
 
-Не нужно читать репозиторий сверху вниз.
-
-## Главная ветка для работы
+Каноническая ветка:
 
 `research/coronary-connectivity-repair`
 
-Она основана на полной технической ветке `research/ccta-graph-lira-safe-repair`, поэтому код, результаты и reproducibility внутри сохранены.
+Не нужно читать репозиторий сверху вниз.
 
-## С чего начинать
+## 1. Единственная точка входа сейчас
 
-`VARVARA_START_HERE.md`
+Сначала:
 
-## Текущая статья / направление
+`docs/varvara/FINAL_HANDOFF_2026-09-27.md`
 
-`docs/varvara/ARTICLE_DIRECTION.md`
+После него — только если нужен конкретный уровень деталей:
 
-## Самые важные результаты
+- `docs/varvara/CURRENT_TASK.md` — текущая задача JUNCTION+CT;
+- `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md` — ответы по HGB, pair models, старым .pkl/.joblib, PAIR_IMG/JUNC_IMG;
+- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md` — отрицательные результаты, которые реально ограничивают архитектуру;
+- `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md` — воспроизведение CT28 PAIR baseline.
 
-`docs/varvara/RESULTS_TO_USE.md`
+Широкий научный контекст:
+- `VARVARA_START_HERE.md`;
+- `docs/varvara/ARTICLE_DIRECTION.md`;
+- `docs/varvara/RESULTS_TO_USE.md`;
+- `docs/varvara/ROADMAP.md`.
 
-## Что делать дальше
+## 2. CT28 PAIR collaborator pack — уже complete
 
-`docs/varvara/ROADMAP.md`
+Каталог:
 
-## Подробный технический checkpoint CT28
+`artifacts/varvara/ct28_pair/`
 
-`docs/research/ccta_graph_lira_safe_repair/REAL_CT28_RESULTS_AND_PROMOTION.md`
+В нём есть:
 
-## Общий research checkpoint
+- `relation_pair_plan.csv` — exact frozen 1,360-row plan;
+- `expanded_relation_predictions.csv` — row-level predictions;
+- `expanded_relation_summary.csv`;
+- `protocol.json`;
+- `ct_alignment.csv`;
+- `expected_ct_geometry.csv`;
+- `pair_plan_counts.csv`;
+- `headline_test.csv`;
+- `paired_bootstrap_ci.csv`;
+- `payload/expanded_relation_features.csv.xz.b64` — lossless compressed full feature table;
+- `models_payload/` — compact regenerated PAIR model snapshots.
 
-`docs/research/ccta_graph_lira_safe_repair/CHECKPOINT.md`
+Восстановить feature table:
 
-## Related work
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py
+```
 
-`docs/research/ccta_graph_lira_safe_repair/RELATED_WORK_AND_DIFFERENTIATION_2026.md`
+Retrain/save PAIR models:
 
-## Frozen baseline matrix
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py \
+  artifacts/varvara/ct28_pair/expanded_relation_features.csv \
+  --out-dir ct28_pair_models
+```
 
-`experiments/ccta_graph_lira_safe_repair/BASELINE_MATRIX.md`
+Восстановить convenience model snapshots:
 
-## 28-patient experiment
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_models.py
+```
 
-`experiments/ccta_graph_lira_safe_repair/expanded_ct_28case/`
+Сильный HGB geometry baseline:
 
-Там лежат frozen cohort metadata и expected geometry.
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/train_geometry_hgb_from_pair_plan.py
+```
 
-## Основные компактные результаты
+Raw multi-GB CCTA для уже frozen PAIR baseline не нужен. Он понадобится только при изменении image representation / повторном feature extraction.
 
-`results/ccta_graph_lira_safe_repair/2026-09-21/real_ct28_headline_test.csv`
+## 3. Что было старым Graph-LIRA и не надо искать
 
-`results/ccta_graph_lira_safe_repair/2026-09-21/real_ct28_patient_cluster_bootstrap_ci.csv`
+Canonical old copies отсутствуют:
 
-`results/ccta_graph_lira_safe_repair/2026-09-21/real_ct28_paired_patient_cluster_bootstrap_ci.csv`
+- `run_graph_lira_large_scale.py`;
+- `graph_lira_large_scale/scenes_full.pkl`;
+- `graph_lira_selective/models.joblib`;
+- `graph_lira_relation_type/relation_type_model.joblib`.
 
-`results/ccta_graph_lira_safe_repair/2026-09-21/real_ct28_multibudget_risk_coverage.csv`
+Это исторический reproducibility gap, а не ошибка клонирования.
 
-`results/ccta_graph_lira_safe_repair/2026-09-21/real_ct28_anatomy_subgroups.csv`
+Сохранённые результаты старого geometry Graph-LIRA:
 
-`results/ccta_graph_lira_safe_repair/2026-09-21/real_ct28_per_patient.csv`
+- `docs/research/ccta_graph_lira_safe_repair/LARGE_SCALE_800_CASE.md`;
+- `docs/research/ccta_graph_lira_safe_repair/LARGE_SCALE_800_CASE_REPORT.md`;
+- `results/ccta_graph_lira_safe_repair/2026-09-20/`.
 
-`results/ccta_graph_lira_safe_repair/2026-09-21/real_ct28_alignment.csv`
+## 4. Текущий научный блок
 
-## Воспроизводимость CT feature extraction
+Уже есть patient-general CT28 PAIR evidence.
 
-`scripts/research/ccta_graph_lira_safe_repair/extract_radial_features_z04.py.gz.b64`
+Сейчас не хватает:
 
-## Анализ expanded CT
+**28-patient JUNCTION+CT evidence.**
 
-`scripts/research/ccta_graph_lira_safe_repair/analyze_expanded_ct_results.py.gz.b64`
+После него:
 
-## Geometry baselines
+`PAIR_CT + JUNCTION_CT -> CT-conditioned NONE/PAIR/JUNCTION/BOTH -> frozen Graph-LIRA`.
 
-`scripts/research/ccta_graph_lira_safe_repair/run_expanded_geometry_baselines.py.gz.b64`
+До завершения этого шага не надо уходить в большой CNN / Transformer / Mamba и не надо объявлять ANZA частью финального метода.
 
-`scripts/research/ccta_graph_lira_safe_repair/bootstrap_geometry_baselines.py.gz.b64`
+## 5. Полезные technical paths
 
-## Старые exploratory результаты
+- `scripts/research/ccta_graph_lira_safe_repair/` — reproducibility/training helpers;
+- `experiments/ccta_graph_lira_safe_repair/expanded_ct_28case/` — frozen cohort/protocol;
+- `results/ccta_graph_lira_safe_repair/2026-09-21/` — CT28 result tables;
+- `docs/research/ccta_graph_lira_safe_repair/REAL_CT28_RESULTS_AND_PROMOTION.md` — подробный CT28 checkpoint;
+- `docs/research/ccta_graph_lira_safe_repair/RELATED_WORK_AND_DIFFERENTIATION_2026.md` — related work.
 
-Они оставлены в технических каталогах для истории и проверки решений.
-
-Для основной работы их не надо читать, пока не возникнет конкретный вопрос:
-
-- почему отказались от конкретного feature;
-- какой baseline уже пробовали;
-- почему не используем конкретный threshold/representation.
-
-В статье в первую очередь использовать curated results из `docs/varvara/RESULTS_TO_USE.md`.
-
-
-## 2026-09-26 — current execution pack
-
-For the current task, read these files before touching the old exploratory scripts:
-
-- `docs/varvara/CURRENT_TASK.md` — exact next task: 28-patient JUNCTION+CT, then CT-conditioned relation head, then frozen Graph-LIRA;
-- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md` — only the negative results that materially constrain the architecture;
-- `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md` — exact interpretation and reproduction of the 28-patient PAIR baseline;
-- `docs/varvara/ARTIFACT_MAP_AND_CURRENT_TASK_2026-09-26.md` — which models/files really exist and which old local artifacts are missing;
-- `artifacts/varvara/ct28_pair/` — compact collaboration metadata/provenance;
-- `scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py` — retrains and saves the three lightweight PAIR models once the generated feature table is available.
-
-Do not search for the old local `models.joblib`, `relation_type_model.joblib` or `scenes_full.pkl` as if they were hidden somewhere in the branch. They are not committed canonical artifacts.
-
-## Актуальный collaborator pack
-
-`artifacts/varvara/`
-
-Там лежат компактные CT28-derived artifacts: alignment, frozen cohort metadata, headline metrics, bootstrap и risk/coverage.
-
-Для текущей задачи читать:
-
-- `docs/varvara/ARTIFACT_MAP_AND_CURRENT_TASK_2026-09-26.md`
-- `docs/varvara/CURRENT_TASK.md`
-- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`
-- `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`
-
-Полные generated `expanded_relation_features.csv` и `expanded_relation_predictions.csv` в Git пока отсутствуют и должны быть честно регенерированы из frozen runner + raw ImageCAS CT, а не восстановлены из aggregate metrics.
-
-
-## Быстрый ответ на вопросы по артефактам
-
-- `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md` — прямые ответы на вопросы про модели, `.joblib/.pkl`, старый hybrid и текущую архитектуру;
+Главное правило: если старый документ противоречит `FINAL_HANDOFF_2026-09-27.md`, текущим считается FINAL_HANDOFF.
