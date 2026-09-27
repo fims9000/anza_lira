@@ -32,6 +32,22 @@ The restore helper verifies SHA256:
 
 `819181674acb9a358dd822e55acf3f5721cf8d46b82c0e2655e7af842b0df864`
 
+## Optional: restore the exact regenerated PAIR model snapshots
+
+Three small regenerated joblib snapshots are also committed as gzip+base64 text payloads:
+
+- `models_payload/geometry.joblib.gz.b64`;
+- `models_payload/radial_hu_summary_v1.joblib.gz.b64`;
+- `models_payload/geometry_plus_radial_v1.joblib.gz.b64`.
+
+Restore them with:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_models.py
+```
+
+These are convenience snapshots. Retraining from the feature table remains the preferred environment-portable reproduction path because joblib compatibility can depend on Python/scikit-learn versions.
+
 ## Retrain the PAIR models without raw CT
 
 After restoring the feature table:
