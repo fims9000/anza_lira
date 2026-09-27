@@ -1,152 +1,90 @@
 # Варвара — начать отсюда
 
-> **Актуальный execution handoff (2026-09-27):** сначала открыть `docs/varvara/FINAL_HANDOFF_2026-09-27.md`.  
-> CT28 PAIR feature/prediction gap закрыт; ждать raw CT или старые pickle-файлы для старта больше не нужно.
-
-Эта ветка собрана как рабочая версия проекта, которую можно читать без истории всех проб, неудачных запусков и промежуточных гипотез.
-
-Ветка:
+Каноническая ветка:
 
 `research/coronary-connectivity-repair`
 
-Главная тема работы:
+## Сейчас читать только это
 
-**контролируемое восстановление связности коронарных сосудов по CCTA с использованием локальной геометрии, информации исходного КТ-изображения и глобальных графовых ограничений.**
+После `git pull` первым открыть:
 
-Проще: после сегментации коронарного дерева иногда появляются разрывы. Соединять ближайшие куски напрямую опасно — около бифуркаций можно соединить не те ветви. Поэтому задача формулируется не как «дорисовать сосуд любой ценой», а как:
+`docs/varvara/FINAL_HANDOFF_2026-09-27.md`
 
-1. найти возможные продолжения;
-2. оценить, есть ли между ними подтверждение в исходном CCTA;
-3. проверить, совместимо ли это соединение со всей структурой дерева;
-4. выполнить repair только если уверенность достаточна;
-5. иначе оставить случай на проверку.
+Это актуальная точка входа после всех вопросов по HGB, PAIR models, старым .pkl/.joblib, PAIR_IMG/JUNC_IMG и CT28 данным.
 
-Это и есть основная логика Graph-LIRA в текущем направлении.
+Если старые roadmap/notes где-то формулируют задачу шире или иначе, приоритет у FINAL_HANDOFF.
 
-## Что уже сделано
+## Коротко: что уже доказано
 
-Есть проверенная связка оригинальных ImageCAS CCTA и разметки ImageCAS-X.
+На 28 matched ImageCAS / ImageCAS-X пациентах проверена локальная binary PAIR relation задача.
 
-Для расширенного эксперимента использовано 28 пациентов:
+Split:
 
-- train: 17;
-- validation: 5;
-- test: 6.
+- 17 train;
+- 5 validation;
+- 6 held-out test.
 
-Все 28 CT прошли проверку соответствия ImageCAS-X по shape, spacing и affine.
+Лучший текущий PAIR result:
 
-На локальной задаче определения правильного продолжения сосудистой ветви получен сильный результат.
+**geometry + radial 2.5-D CCTA**
 
-Held-out test, порог выбирается только на validation при FPR <= 5%:
+- AUROC 0.9847;
+- recall 82.63%;
+- FPR 1.80%;
+- precision 97.87%.
 
-| метод | Recall | FPR | Precision | AUROC |
-|---|---:|---:|---:|---:|
-| geometry HGB | 37.72% | 1.20% | 96.92% | 0.9685 |
-| radial 2.5-D CT | 68.86% | 4.19% | 94.26% | 0.9440 |
-| **geometry + radial CT** | **82.63%** | **1.80%** | **97.87%** | **0.9847** |
+Это значит: CCTA context даёт полезный patient-general signal для PAIR identity.
 
-То есть CCTA-контекст действительно добавляет информацию, которой одной геометрии не хватает.
+Это **не** означает, что полный CT-conditioned Graph-LIRA уже проверен.
 
-Это подтверждено patient-cluster bootstrap: для geometry+CT против geometry HGB медианный прирост recall около +44.7 п.п., а 95% интервал остаётся полностью выше нуля.
+## Что с данными для старта
 
-## Что это уже позволяет говорить
+CT28 PAIR collaborator pack уже complete.
 
-Можно обоснованно говорить, что:
+`artifacts/varvara/ct28_pair/` содержит exact pair plan, predictions, protocol, provenance и compact lossless full feature table.
 
-- геометрия хорошо ранжирует кандидатов, но плохо отвечает на вопрос «можно ли безопасно принимать это соединение»;
-- локальный CCTA-контекст существенно повышает долю правильно принимаемых связей;
-- эффект наблюдается не только в pooled-метриках, но и при bootstrap по пациентам;
-- особенно заметный выигрыш есть на заранее зафиксированных сложных ветвях: LAD, OM, IM, D2, R-PLA;
-- поэтому image-conditioned relation evidence стоит переносить в Graph-LIRA.
+Для воспроизведения PAIR baseline raw multi-GB CT больше не нужен.
 
-## Чего пока говорить нельзя
+## Текущая задача
 
-Пока не надо писать, что:
+Незакрытый блок:
 
-- задача полностью решена end-to-end;
-- Graph-LIRA с CT уже доказал улучшение всего сосудистого дерева;
-- ANZA уже лучше CNN;
-- false repair risk доказан на клинической популяции;
-- модель готова к клиническому использованию.
+**JUNCTION + CT на тех же 28 пациентах и том же frozen split.**
 
-Эти шаги ещё впереди.
+Сравнить:
 
-## Куда идти дальше
+1. JUNCTION geometry;
+2. JUNCTION CT;
+3. JUNCTION geometry + CT.
 
-Следующий главный эксперимент:
+После этого:
 
 ```text
-geometry candidates
-        +
-CCTA relation evidence
+PAIR geometry + PAIR CT
++
+JUNCTION geometry + JUNCTION CT
         ↓
-PAIR / JUNCTION / BOTH / NONE
+NONE / PAIR / JUNCTION / BOTH
         ↓
-Graph-LIRA
+frozen Graph-LIRA
         ↓
 tau = 0.85
-        ↓
 consistency = 0.60
         ↓
 repair / abstain
 ```
 
-При этом `tau=0.85` и `consistency=0.60` не подбираются заново на test.
+## Что читать дальше при необходимости
 
-После этого, если CT-сигнал сохраняет преимущество и не ломает false-repair control, делается чистая архитектурная абляция:
+1. `docs/varvara/CURRENT_TASK.md`
+2. `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`
+3. `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md`
+4. `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`
+5. `docs/varvara/REPO_MAP.md`
 
-```text
-radial CT
-vs
-compact CNN
-vs
-ANZA encoder
-```
+Для широкого научного контекста:
+- `docs/varvara/ARTICLE_DIRECTION.md`
+- `docs/varvara/RESULTS_TO_USE.md`
+- `docs/varvara/ROADMAP.md`
 
-## Что читать
-
-В первую очередь:
-
-1. `docs/varvara/ARTICLE_DIRECTION.md`
-2. `docs/varvara/RESULTS_TO_USE.md`
-3. `docs/varvara/ROADMAP.md`
-4. `docs/varvara/REPO_MAP.md`
-
-Остальной репозиторий — технический архив и воспроизводимость. Его не нужно читать подряд.
-
-Сырые медицинские данные в Git не хранятся.
-
-
-## 2026-09-26 — current execution pack
-
-For the current task, read these files before touching the old exploratory scripts:
-
-- `docs/varvara/CURRENT_TASK.md` — exact next task: 28-patient JUNCTION+CT, then CT-conditioned relation head, then frozen Graph-LIRA;
-- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md` — only the negative results that materially constrain the architecture;
-- `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md` — exact interpretation and reproduction of the 28-patient PAIR baseline;
-- `docs/varvara/ARTIFACT_MAP_AND_CURRENT_TASK_2026-09-26.md` — which models/files really exist and which old local artifacts are missing;
-- `artifacts/varvara/ct28_pair/` — compact collaboration metadata/provenance;
-- `scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py` — восстанавливает committed CT28 feature table; `train_ct28_pair_from_features.py` сразу воспроизводит/сохраняет три lightweight PAIR модели.
-
-Do not search for the old local `models.joblib`, `relation_type_model.joblib` or `scenes_full.pkl` as if they were hidden somewhere in the branch. They are not committed canonical artifacts.
-
-## Быстрый ответ на вопросы по артефактам
-
-- `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md` — прямые ответы на вопросы про модели, `.joblib/.pkl`, старый hybrid и текущую архитектуру;
-
-## Актуальное уточнение задачи
-
-После проверки артефактов текущая задача уточнена.
-
-Прочитать обязательно:
-
-- `docs/varvara/ARTIFACT_MAP_AND_CURRENT_TASK_2026-09-26.md`
-- `docs/varvara/CURRENT_TASK.md`
-- `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`
-- `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`
-
-Компактные derived artifacts для старта:
-
-`artifacts/varvara/`
-
-Главный недостающий научный блок сейчас: **28-patient JUNCTION+CT evidence**, затем CT-conditioned `NONE / PAIR / JUNCTION / BOTH` head и только после этого frozen Graph-LIRA evaluation.
+Не надо начинать с просмотра всей истории exploratory scripts.
