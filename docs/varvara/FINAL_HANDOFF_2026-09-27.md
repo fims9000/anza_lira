@@ -3,35 +3,47 @@
 Дата: 2026-09-27  
 Каноническая ветка: `research/coronary-connectivity-repair`
 
-Этот файл — единственная точка входа после вопросов от 26 сентября. Старые заметки нужны только при конкретной необходимости.
+Это единственная текущая точка входа после вопросов по моделям, старым Graph-LIRA artifacts и CT28 данным.
 
-## 1. Что теперь закрыто
-
-Пробел с CT28 PAIR collaboration artifacts закрыт.
-
-В Git есть:
-
-- exact frozen `relation_pair_plan.csv` — 1,360 rows;
-- row-level `expanded_relation_predictions.csv`;
-- `expanded_relation_summary.csv`;
-- `protocol.json`;
-- CT alignment / expected geometry / pair counts / bootstrap summaries;
-- lossless compressed payload полного `expanded_relation_features.csv`;
-- скрипт восстановления feature table;
-- скрипт обучения/сохранения трёх CT28 PAIR моделей;
-- отдельный скрипт воспроизведения сильного `geometry_hgb`.
-
-Поэтому ждать raw CT или старые `.joblib/.pkl` перед началом задачи больше не нужно.
-
-## 2. Быстрая проверка PAIR baseline
+## 1. Сначала проверить, что pack целый
 
 После `git pull` из корня репозитория:
 
 ```bash
-python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py
+python scripts/research/ccta_graph_lira_safe_repair/verify_varvara_collab_pack.py
 ```
 
-Затем:
+Ожидаемое начало вывода:
+
+`PASS: Varvara CT28 collaborator pack is internally consistent.`
+
+Этот check проверяет текущие handoff files, hashes compact payloads, frozen 1,360-row pair plan и headline metrics.
+
+## 2. Что теперь закрыто
+
+CT28 PAIR collaboration pack complete.
+
+В Git есть:
+
+- exact frozen `relation_pair_plan.csv`;
+- row-level `expanded_relation_predictions.csv`;
+- `expanded_relation_summary.csv`;
+- `protocol.json`;
+- CT alignment / expected geometry / bootstrap;
+- lossless compressed full `expanded_relation_features.csv`;
+- restore/retrain scripts;
+- regenerated snapshots трёх lightweight PAIR моделей;
+- отдельный reproducible `geometry_hgb` training script.
+
+Canonical pack:
+
+`artifacts/varvara/ct28_pair/`
+
+## 3. Быстрая проверка PAIR baseline
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py
+```
 
 ```bash
 python scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_features.py \
@@ -39,7 +51,7 @@ python scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_feature
   --out-dir ct28_pair_models
 ```
 
-Ожидаемый held-out результат `geometry_plus_radial_v1`:
+Expected held-out `geometry_plus_radial_v1`:
 
 - AUROC 0.9846893040;
 - recall 82.6347%;
@@ -47,57 +59,79 @@ python scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_from_feature
 - precision 97.8723%;
 - TP / FP / FN / TN = 138 / 3 / 29 / 164.
 
-Повторное обучение на восстановленном feature table уже проверено: row-level scores совпадают с сохранёнными predictions до floating-point precision, thresholded predictions совпадают полностью.
-
-Если нужны именно сохранённые PAIR `.joblib`, а не retrain, в Git теперь есть их compact payloads. Восстановить:
+Convenience snapshots:
 
 ```bash
 python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_models.py
 ```
 
-Это convenience snapshots; для научной воспроизводимости предпочтителен retrain из committed feature table.
-
-Сильный geometry HGB воспроизводится отдельно:
+Strong binary PAIR geometry HGB:
 
 ```bash
 python scripts/research/ccta_graph_lira_safe_repair/train_geometry_hgb_from_pair_plan.py
 ```
 
-Ожидаемый held-out geometry HGB:
+## 4. Не путать четыре объекта
 
-- AUROC 0.968482;
-- recall 37.7246%;
-- FPR 1.1976%;
-- precision 96.9231%.
+- `geometry_hgb` — strong binary PAIR geometry HGB baseline;
+- `geometry` in CT28 runner — lightweight logistic geometry-only baseline;
+- `geometry_plus_radial_v1` — binary PAIR geometry+CCTA model;
+- old scene-level HGB — historical four-class `NONE/PAIR/JUNCTION/BOTH` head.
 
-## 3. Что означает CT28 результат
+CT28 result above относится **только к local binary PAIR relation**.
 
-Это **локальный бинарный PAIR relation experiment**.
+Это ещё не full CT-conditioned Graph-LIRA.
 
-Он доказывает, что для geometry-matched PAIR candidates CCTA context даёт дополнительный patient-general signal.
+## 5. Ответ по старым Graph-LIRA files
 
-Он **не** доказывает улучшение полного Graph-LIRA и не покрывает JUNCTION.
+Canonical Git copies отсутствуют:
 
-Не смешивать:
+- `run_graph_lira_large_scale.py`;
+- `graph_lira_large_scale/scenes_full.pkl`;
+- `graph_lira_selective/models.joblib`;
+- `graph_lira_relation_type/relation_type_model.joblib`.
 
-- `geometry_hgb` — сильный binary PAIR geometry baseline;
-- `geometry` в CT28 runner — logistic geometry-only baseline;
-- `geometry_plus_radial_v1` — local PAIR geometry+CT model;
-- canonical scene-level HGB — четырёхклассовый relation head NONE / PAIR / JUNCTION / BOTH.
+Это historical reproducibility gap старого geometry-only execution, не ошибка clone.
 
-## 4. Текущая новая задача
+Не надо их искать.
 
-Главный незакрытый блок:
+Что известно про старую architecture/results сохранено в large-scale checkpoint docs/results. Exact old local binaries не восстанавливаем из агрегированных цифр.
 
-**28-patient JUNCTION + CT evidence.**
+Полные ответы на исходные вопросы:
 
-На тех же 28 пациентах и том же patient split нужно построить сравнение:
+`docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md`
+
+## 6. Старый CT hybrid
+
+`ct_scene_graph_lira_hybrid.py.gz.b64` — six-patient pilot.
+
+Он использовал CT как auxiliary add/veto/presence evidence поверх geometry logic.
+
+Direct insertion на held-out patients увеличивал false structural repair.
+
+Поэтому не использовать его как новую финальную 28-patient architecture.
+
+Old `PAIR_IMG/JUNC_IMG` weights тоже exploratory и не canonical.
+
+## 7. Текущий незакрытый научный блок
+
+**28-patient JUNCTION+CT evidence.**
+
+На тех же 28 пациентах и том же frozen split:
 
 1. JUNCTION geometry;
 2. JUNCTION CT;
 3. JUNCTION geometry + CT.
 
-После этого:
+Raw CT для **этой новой feature extraction** нужен.
+
+Exact source/cohort/archive/alignment:
+
+`docs/varvara/CT28_DATA_ACCESS.md`
+
+Для старого PAIR reproduction raw CT не нужен.
+
+## 8. После JUNCTION+CT
 
 ```text
 PAIR geometry + PAIR CT
@@ -116,50 +150,39 @@ consistency = 0.60
 repair / abstain
 ```
 
-Первый Graph-LIRA test делаем без retuning на held-out patients.
+Первый full-graph comparison — без held-out test retuning.
 
-## 5. Что не надо делать
+## 9. Что не делать
 
 Не надо:
 
-- искать старые `scenes_full.pkl`, `models.joblib`, `relation_type_model.joblib` — их canonical copies не существовало;
-- брать старый six-patient `ct_scene_graph_lira_hybrid.py` как финальную архитектуру;
-- просто добавлять CT-positive relations поверх geometry head — этот pilot увеличивал false structural repair;
-- заново оптимизировать PAIR baseline;
-- начинать с большого CNN / Transformer / Mamba;
+- искать старые отсутствующие pkl/joblib;
+- заново тюнить frozen PAIR baseline;
+- менять 17/5/6 patient split;
 - использовать anatomical branch names как inference features;
-- менять patient split;
-- подбирать thresholds по test.
+- повторять old CT add-only/hysteresis rule как final;
+- начинать с большого CNN / Transformer / Mamba;
+- заявлять ANZA superiority до clean ablation.
 
-## 6. Что читать, если нужен контекст
+## 10. Минимум, который принести после первого JUNCTION+CT прохода
 
-В таком порядке:
-
-1. этот файл;
-2. `docs/varvara/CURRENT_TASK.md`;
-3. `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`;
-4. `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md`;
-5. `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`.
-
-Широкий research context и будущая статья остаются в `ARTICLE_DIRECTION.md` / полном roadmap, но для текущего кода они не нужны.
-
-## 7. Что принести после первого JUNCTION+CT прохода
-
-Минимальный результат:
-
-- frozen junction dataset/plan с patient split;
-- описание CT junction representation;
-- geometry / CT / geometry+CT metrics на val и held-out test;
+- frozen junction dataset/plan;
+- representation description;
+- geometry / CT / geometry+CT metrics on val and held-out test;
 - row-level predictions;
 - per-patient metrics;
 - patient-cluster uncertainty;
-- список failure cases;
-- точные команды воспроизведения.
+- failure-case list;
+- exact reproduction commands.
 
-После этого вместе решаем, готов ли JUNCTION_CT к объединению с PAIR_CT в четырёхклассовый relation head.
+## 11. Если нужен контекст
 
-## 8. Главный критерий
+В таком порядке:
 
-Цель не «максимальный AUROC любой ценой».
+1. `docs/varvara/CURRENT_TASK.md`
+2. `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md`
+3. `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`
+4. `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`
+5. `docs/varvara/CT28_DATA_ACCESS.md`
 
-Итоговая задача — увеличить число правильных автоматических repairs при сохранении низкого false structural repair risk и возможности abstain на неоднозначных сценах.
+Главная цель остаётся не «максимальный AUROC», а больше правильных automatic repairs при контролируемом false structural repair risk и возможности abstain.
