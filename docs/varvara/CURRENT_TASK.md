@@ -120,3 +120,28 @@ same patients + same candidates + same graph + same safety policy:
 3. compact ANZA encoder.
 
 Only then decide whether ANZA becomes part of the main contribution.
+
+## Code status for the later Graph-LIRA integration
+
+The immediate JUNCTION+CT experiment is **not blocked** by the missing old `run_graph_lira_large_scale.py`.
+
+However, before Task C becomes publication-grade, do not pretend that the missing historical runner is a clean reusable module.
+
+Current repository reality:
+
+- old large-scale results/protocol are preserved;
+- archived scripts contain earlier graph logic/pilots;
+- exact old `run_graph_lira_large_scale.py` + `scenes_full.pkl` + model pickles are not canonical artifacts;
+- the collaborator-facing PAIR code is now clean/reproducible;
+- the new JUNCTION+CT code should be written cleanly;
+- when PAIR_CT + JUNCTION_CT are ready, the full integration should be promoted into a **new canonical Graph-LIRA runner/module** with explicit inputs, saved protocol, and reproducible outputs rather than reviving hidden/local pickle state.
+
+So the execution order remains:
+
+1. build/validate JUNCTION+CT;
+2. freeze its artifacts;
+3. build the new CT-conditioned relation head;
+4. promote the graph integration into canonical code;
+5. run the frozen structural evaluation.
+
+Do not spend the first JUNCTION iteration reconstructing the old missing runner.
