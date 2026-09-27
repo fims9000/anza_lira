@@ -1,0 +1,19 @@
+{
+  "script_version": "graphlira-z04-radial-expansion-v1",
+  "patient_ids": [953,954,955,956,957,958,959,960,961,963,964,965,966,967,969,970,971,972,973,974,975,976,977,979,980,982,983,984],
+  "split_counts": {"train": 17, "val": 5, "test": 6},
+  "relation_rows": {"train": 758, "val": 268, "test": 334},
+  "radial": {
+    "profile_n": 17,
+    "ring_n": 8,
+    "radii_mm": [1.0,2.0,3.0],
+    "hu_clip": [-300,1200]
+  },
+  "coordinate_conversion": "ImageCAS-X VTK LPS -> ImageCAS NIfTI RAS by negating x,y before inverse affine",
+  "raw_ct_in_output": false,
+  "threshold_selection": "validation only; maximize recall subject to FPR <= 0.05",
+  "test_threshold_tuning": false,
+  "expanded_relation_features_sha256": "819181674acb9a358dd822e55acf3f5721cf8d46b82c0e2655e7af842b0df864",
+  "expanded_relation_predictions_sha256": "b80e6e3f5e19a1ff762304430613374fce63126509004362ba0385a76977b7c6",
+  "relation_pair_plan_sha256": "4629bd082457bdb14a3c7653e6fc8b1592d648d91f087e14b522c38f0ccca523"
+}
