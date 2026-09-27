@@ -41,6 +41,7 @@ REQUIRED = [
     "pair_plan_counts.csv",
     "headline_test.csv",
     "paired_bootstrap_ci.csv",
+    "risk_coverage.csv",
     "relation_pair_plan.csv",
     "expanded_relation_predictions.csv",
     "expanded_relation_summary.csv",
