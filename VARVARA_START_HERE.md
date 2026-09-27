@@ -4,27 +4,23 @@
 
 `research/coronary-connectivity-repair`
 
-## Сейчас читать только это
-
-После `git pull` первым открыть:
+После `git pull` открыть:
 
 `docs/varvara/FINAL_HANDOFF_2026-09-27.md`
 
-Это актуальная точка входа после всех вопросов по HGB, PAIR models, старым .pkl/.joblib, PAIR_IMG/JUNC_IMG и CT28 данным.
+И больше ничего не искать до его прочтения.
 
-Если старые roadmap/notes где-то формулируют задачу шире или иначе, приоритет у FINAL_HANDOFF.
+Быстрая integrity-проверка:
 
-## Коротко: что уже доказано
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/verify_varvara_collab_pack.py
+```
 
-На 28 matched ImageCAS / ImageCAS-X пациентах проверена локальная binary PAIR relation задача.
+Если она проходит, frozen CT28 PAIR pack на месте.
 
-Split:
+## Что уже есть
 
-- 17 train;
-- 5 validation;
-- 6 held-out test.
-
-Лучший текущий PAIR result:
+28-patient binary PAIR result:
 
 **geometry + radial 2.5-D CCTA**
 
@@ -33,58 +29,26 @@ Split:
 - FPR 1.80%;
 - precision 97.87%.
 
-Это значит: CCTA context даёт полезный patient-general signal для PAIR identity.
+PAIR features/predictions/models are reproducible from `artifacts/varvara/ct28_pair/`.
 
-Это **не** означает, что полный CT-conditioned Graph-LIRA уже проверен.
+## Что делать сейчас
 
-## Что с данными для старта
+Не Graph-LIRA integration сразу.
 
-CT28 PAIR collaborator pack уже complete.
+Сначала закрыть:
 
-`artifacts/varvara/ct28_pair/` содержит exact pair plan, predictions, protocol, provenance и compact lossless full feature table.
+**28-patient JUNCTION+CT**
 
-Для воспроизведения PAIR baseline raw multi-GB CT больше не нужен.
+на том же frozen split.
 
-## Текущая задача
+Raw CT access для этой новой feature extraction:
 
-Незакрытый блок:
-
-**JUNCTION + CT на тех же 28 пациентах и том же frozen split.**
-
-Сравнить:
-
-1. JUNCTION geometry;
-2. JUNCTION CT;
-3. JUNCTION geometry + CT.
+`docs/varvara/CT28_DATA_ACCESS.md`
 
 После этого:
 
-```text
-PAIR geometry + PAIR CT
-+
-JUNCTION geometry + JUNCTION CT
-        ↓
-NONE / PAIR / JUNCTION / BOTH
-        ↓
-frozen Graph-LIRA
-        ↓
-tau = 0.85
-consistency = 0.60
-        ↓
-repair / abstain
-```
+`PAIR_CT + JUNCTION_CT -> NONE/PAIR/JUNCTION/BOTH -> frozen Graph-LIRA -> repair/abstain`.
 
-## Что читать дальше при необходимости
+Все прямые ответы на вопросы про HGB, old pkl/joblib, `ct_scene_graph_lira_hybrid.py`, `PAIR_IMG/JUNC_IMG`:
 
-1. `docs/varvara/CURRENT_TASK.md`
-2. `docs/varvara/NEGATIVE_RESULTS_THAT_MATTER.md`
-3. `docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md`
-4. `docs/varvara/REPRODUCE_CT28_PAIR_BASELINE.md`
-5. `docs/varvara/REPO_MAP.md`
-
-Для широкого научного контекста:
-- `docs/varvara/ARTICLE_DIRECTION.md`
-- `docs/varvara/RESULTS_TO_USE.md`
-- `docs/varvara/ROADMAP.md`
-
-Не надо начинать с просмотра всей истории exploratory scripts.
+`docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md`
