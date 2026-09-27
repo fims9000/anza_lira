@@ -177,11 +177,23 @@ Raw source: ImageCAS Kaggle, archive block `801-1000.z04`.
 
 `expanded_relation_features.csv` создаётся runner'ом `extract_radial_features_z04.py`.
 
-Сам CSV в текущей канонической ветке **не сохранён**. В Git сохранены compact metrics/provenance/alignment, но не full feature table.
+**Обновление 2026-09-27:** этот gap закрыт. Full 1,360-row feature table честно перегенерирован из frozen protocol и хранится losslessly в Git как:
 
-Для полного collaborator reproduction его нужно либо:
-1. заново получить из frozen runner + raw CT, либо
-2. положить generated feature table в Git/релизный bundle, поскольку raw CT внутри него нет.
+`artifacts/varvara/ct28_pair/payload/expanded_relation_features.csv.xz.b64`
+
+Восстановление:
+
+`python scripts/research/ccta_graph_lira_safe_repair/restore_ct28_pair_features.py`
+
+Также committed:
+- `relation_pair_plan.csv`;
+- `expanded_relation_predictions.csv`;
+- `expanded_relation_summary.csv`;
+- `protocol.json`.
+
+Для трёх logistic PAIR моделей есть как retraining script, так и compact regenerated joblib snapshots в `models_payload/`.
+
+Raw CT для воспроизведения уже замороженного PAIR baseline больше не нужен; он нужен только если меняется само image representation / feature extraction.
 
 ## 8. Текущая исследовательская задача
 
