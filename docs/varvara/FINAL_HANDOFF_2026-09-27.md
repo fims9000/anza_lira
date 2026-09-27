@@ -113,6 +113,14 @@ Direct insertion на held-out patients увеличивал false structural re
 
 Old `PAIR_IMG/JUNC_IMG` weights тоже exploratory и не canonical.
 
+## 6.1. Важный статус кода Graph-LIRA
+
+Для текущего JUNCTION+CT этапа отсутствие старого `run_graph_lira_large_scale.py` не блокирует работу.
+
+Но позже мы **не будем** делать вид, что старый Graph-LIRA runner аккуратно лежит где-то готовый к импорту. Перед full integration будет создан новый canonical runner/module с явными входами и сохранением protocol/results. Старые archived scripts используются как историческая реализация/референс, а не как скрытая зависимость.
+
+То есть сейчас задача — JUNCTION+CT. Восстанавливать старые pickle/scenes перед этим не требуется.
+
 ## 7. Текущий незакрытый научный блок
 
 **28-patient JUNCTION+CT evidence.**
