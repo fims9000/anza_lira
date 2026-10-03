@@ -1,8 +1,8 @@
-# CT28 JUNCTION generator review and frozen-next decisions — 2026-10-03
+# CT28 JUNCTION generator review and next decisions — 2026-10-03
 
 This note reviews Varvara's current `build_junction_plan.py` using only train/validation data. Held-out test junction candidates have not been generated or inspected.
 
-## Reproduced current draft
+## 1. Current draft reproduces its stated counts
 
 With:
 
@@ -10,11 +10,11 @@ With:
 - max arm fraction = 0.9
 - max span = 16 mm
 - decoy step = 1.5 mm
-- decoy endpoint margin = 2.0 mm
+- endpoint margin = 2.0 mm
 - max one-arm negatives = 12 / positive
 - max two-arm negatives = 6 / positive
 
-the draft reproduces:
+the uploaded generator reproduces:
 
 - 144 train/val true junctions;
 - 143 degree-3 + 1 degree-4;
@@ -23,192 +23,170 @@ the draft reproduces:
 - 1,094 one-arm negatives;
 - 572 two-arm negatives;
 - 7.9% positives;
-- 20 selected negatives with same segment label fallback;
-- raw generated negative pool = 143,116 candidates.
+- 20 selected negatives using the same-label fallback;
+- raw generated negative pool = 143,116.
 
-The code correctly keeps held-out test out of the development generator.
+The code keeps test out of the development plan.
 
-## Important diagnostic: current negatives are too easy for geometry
+## 2. The current negative family is too easy for geometry
 
-A train-only geometry sanity check was run on the nine existing `jg_*` features and evaluated on validation.
+I ran a train-only geometry sanity check on the nine existing `jg_*` features and evaluated on validation.
 
-This is only a generator diagnostic, not a paper result.
+This is a generator diagnostic, not a paper result.
 
-- LogisticRegression: validation AUROC ~0.9951; top-1 positive rank 96.4% on non-trivial validation junctions.
-- HistGradientBoosting: validation AUROC ~0.9993; top-1 positive rank 100% on non-trivial validation junctions.
+Current selection:
 
-Therefore the current negative selection should NOT be frozen yet for JUNCTION+CT. If geometry alone almost perfectly separates the selected negatives, the later CT comparison has little room to test the intended hypothesis.
+- LogisticRegression: validation AUROC 0.9951; top-1 positive rank 96.4% on competitive validation junctions.
+- HistGradientBoosting: validation AUROC 0.9993; top-1 positive rank 100%.
 
-The main reason is visible in the current selection key:
+This means the current one-/two-arm replacement pool, after selection, is almost perfectly separable by geometry alone. That is a problem for the intended JUNCTION+CT experiment: CT would have almost no meaningful ambiguity left to resolve.
 
-```python
-(-all_decoy_labels_different, geometry_match_distance, candidate_id)
-```
-
-Different-label candidates are always preferred before the closest geometry-matched candidates. This makes the set anatomically false but often geometrically easier.
+Important correction: simply removing the different-label preference does **not** solve this. I repeated the train/val audit using geometry-distance-first selection; HGB remained essentially perfect (AUROC ~0.99994, top-1 100%). Therefore the issue is the negative family itself, not only the tie-breaking key.
 
 ### Decision
 
-For the first clean JUNCTION+CT baseline:
+Do not freeze the negative protocol yet.
 
-1. do not use `segment_label` to rank/select hard negatives;
-2. select hard negatives primarily by `geometry_match_distance`;
-3. keep decoy/replaced labels only as audit metadata;
-4. after selection, report same-label vs different-label composition.
+Keep the present generator as a useful baseline/audit generator, but add a new **geometry-adversarial hard-negative mining stage** on train/val:
 
-Recommended first selection key:
+1. generate the full span-valid negative pool;
+2. train a geometry-only ranker on train only;
+3. for train hard-negative mining use out-of-fold geometry scores;
+4. for validation use the frozen train geometry ranker;
+5. retain the highest-scoring false junction candidates per true junction;
+6. keep labels only as truth/audit metadata, not as inference features;
+7. report how many junctions actually have a competitive false candidate.
 
-```python
-(geometry_match_distance, candidate_id)
-```
+This directly asks the intended question: can CT distinguish true junctions from candidates that geometry itself finds plausible?
 
-If later a stratified same-label/different-label study is needed, make it a separate ablation rather than silently changing the canonical generator.
+The old historical 16 mm span remains unchanged.
 
-## Adaptive cut
+## 3. Adaptive cut
 
 Current rule:
 
 ```text
-cut = min(2 mm, 0.9 * shortest arm)
+cut = min(2.0 mm, 0.9 * shortest incident arm)
 ```
 
-Twelve train/val junctions get cut <2 mm. Inspection shows these are six close junction pairs connected by very short inter-junction arms. With factor 0.9, the exposed endpoint can be placed very close to the neighboring junction.
+Twelve train/val junctions receive a cut <2 mm. These are associated with short inter-junction arms, so the exposed endpoint can approach a neighbouring branch point.
 
-This is undesirable for the controlled hidden-junction scene because the local target repair can become contaminated by the next branch point.
+The 0.9 factor is a new choice, not a recovered historical rule.
 
-A train/val-only audit of max-arm fractions 0.4, 0.45, 0.5, 0.6, 0.75 and 0.9 kept all 144 positives span-valid under the historical 16 mm limit.
+### Recommendation
 
-### Decision
+Do not freeze 0.9 yet.
 
-Do not freeze 0.9.
-
-Use:
+Use the more conservative development rule:
 
 ```text
-cut = min(2.0 mm, 0.45 * shortest incident arm length)
+cut = min(2.0 mm, 0.45 * shortest incident arm)
 ```
 
-for the first protocol, and add an explicit `close_junction` / `adaptive_cut` audit flag whenever cut < 2 mm.
+and add an `adaptive_cut` / `close_junction` audit flag.
 
-Reason for 0.45: two neighboring junction neighborhoods on the same short arm cannot overlap/cross the midpoint. This is a safety convention for the new protocol, not a recovered historical rule.
+The 0.45 rule is deliberately below the midpoint of a short shared arm, so two neighbouring hidden-junction regions cannot cross each other. It is a new safety convention and must be documented as such.
 
-Before held-out test generation, inspect the 24 train/val adaptive-cut cases visually/numerically.
+On train/val this gives 24 adaptive-cut junctions. Inspect those 24 before freezing.
 
-## Decoy step and endpoint margin
+## 4. Decoy step and endpoint margin
 
-Current:
+Keep for the first protocol:
 
-- decoy step = 1.5 mm
-- endpoint margin = 2.0 mm
+- decoy step = 1.5 mm;
+- endpoint margin = 2.0 mm.
 
-These are acceptable as the first frozen generator discretization.
+There is currently no evidence that changing these improves the scientific validity of the candidate pool. Treat them as generator discretization parameters, not model hyperparameters.
 
-Do not tune them further against model performance. Their role is candidate-pool sampling, not a learned hyperparameter.
+## 5. One-arm / two-arm negatives and caps
 
-Keep them fixed for the first baseline unless a structural audit shows they systematically miss plausible competitors.
-
-## Negative types and caps
-
-For the first local JUNCTION candidate model keep:
-
-- one-arm replacement;
-- two-arm replacement.
+Keep one-arm and two-arm replacements as the basic local JUNCTION negative families.
 
 Keep the current caps provisionally:
 
-- <=12 one-arm negatives / positive;
-- <=6 two-arm negatives / positive.
+- <=12 one-arm / positive;
+- <=6 two-arm / positive.
 
-The resulting 7.9% positive rate is reasonably close to the historical naturally imbalanced pool (~5.3%) and is preferable to forcing 1:1.
+The 7.9% positive rate is close enough to the historical naturally imbalanced pool (~5.3%) that forcing 1:1 is not justified.
 
-However, candidate availability is uneven:
+However, the current candidate availability is uneven:
 
-- 47/143 degree-3 junctions currently have zero selected negatives at all;
-- 90/143 have the full 18 negatives;
-- the remainder have partial pools.
+- 47/143 degree-3 positives have zero selected negatives;
+- 90/143 have the full 18;
+- the rest have partial pools.
 
-Therefore every ranking/evaluation report must separate:
+Therefore all ranking metrics must distinguish:
 
-- competitive junctions: at least one negative candidate;
-- isolated junctions: no valid competing negative under the frozen generator.
+- **competitive junctions** — at least one valid false candidate exists;
+- **isolated junctions** — no false candidate exists under the frozen generator.
 
-Do not count isolated scenes as evidence that the ranker solved a hard case.
+Do not count isolated scenes as evidence that a ranker solved an ambiguous case.
 
-## Additional negative types
+## 6. Additional negative types
 
 ### none_incomplete_junction
 
-Yes, but NOT inside the first local binary JUNCTION candidate ranker.
+Yes, but later.
 
-It belongs to the later scene-level relation task:
+It belongs naturally to the scene-level relation problem:
 
 `NONE / PAIR / JUNCTION / BOTH`
 
-and should be generated as a separate scene type after the local JUNCTION geometry/CT baseline is frozen.
+rather than the first local exact-junction candidate ranker.
 
 ### all-arm replacement
 
-Do not add to the first baseline. It is likely to create easier negatives and is not required to test whether CT distinguishes a true junction from a close geometry-matched competitor.
+Do not add to the first baseline. It is likely to create mostly easy negatives and does not target the remaining ambiguity.
 
-Can be added later as a robustness ablation.
+Use only as a later robustness ablation if needed.
 
 ### extra-arm negatives
 
-Do not add to the first degree-3 candidate ranker.
+Also later, in the scene/relation-type stage. They model an invalid extra branch and are closer to relation-existence/type ambiguity than to the first local degree-3 candidate ranker.
 
-They are more naturally a scene/relation-type error mode (invalid extra branch / BOTH-like ambiguity) and should be tested later with the four-class relation head.
+## 7. Perturbations
 
-## Perturbations
+Do not mix 30 deg / 45 deg + 1 mm stress into the clean baseline generator now.
 
-Do NOT mix 30 deg / 45 deg + 1 mm perturbations into the clean candidate generator or training baseline now.
+Order:
 
-First freeze and train on the clean controlled plan.
+1. freeze clean train/val generator;
+2. train/freeze geometry, CT and geometry+CT models;
+3. then evaluate position jitter, tangent noise, 30 deg + 1 mm and 45 deg + 1 mm as robustness/stress tests.
 
-Then apply:
+Training augmentation with perturbations can be a separate later experiment, selected only on train/validation.
 
-- position jitter;
-- tangent noise;
-- 30 deg + 1 mm;
-- 45 deg + 1 mm
+## 8. Degree-4
 
-as robustness/stress-test copies after the generator and model are frozen.
-
-If perturbation augmentation is later tested for training, treat it as a separate experiment selected only on train/validation.
-
-## Degree-4
-
-Keep all degree-4 junctions in source metadata and audit outputs, but do not include them in the primary learned/evaluated baseline.
+Keep degree-4 in metadata and audit outputs, but exclude it from the primary learned quantitative experiment.
 
 CT28 contains only:
 
-- 1 degree-4 junction in train;
+- 1 degree-4 in train;
 - 0 in validation;
 - 2 in held-out test.
 
-This is insufficient to tune or validate a degree-4 model fairly.
+That is not enough to tune or validate a degree-4 model without using test as development data.
 
-Primary quantitative experiment: degree-3 only.
+Primary model: degree-3 only.
 
-After the degree-3 protocol/model is frozen, degree-4 may be shown as a descriptive zero-shot audit. Do not include the two test degree-4 cases in the headline metric.
+After the degree-3 protocol is frozen, degree-4 can be shown as a descriptive zero-shot audit, not mixed into the headline metric.
 
-A larger cohort is needed for a real degree-4 study.
+## 9. Immediate implementation checklist
 
-## Immediate implementation checklist
+1. Keep held-out test untouched.
+2. Change adaptive cut to the conservative 0.45 rule and add audit flags.
+3. Keep max span 16 mm, decoy step 1.5 mm, endpoint margin 2 mm.
+4. Keep one-arm + two-arm generation and 12 + 6 caps as the basic pool.
+5. Add geometry-adversarial hard-negative mining using train-only/OOF geometry scores.
+6. Regenerate train/val.
+7. Re-run geometry diagnostic.
+8. Freeze the generator only when the retained negatives are genuinely competitive and the protocol is documented.
+9. Then compute JUNCTION CT features on train/val.
+10. Compare JUNCTION geometry vs CT vs geometry+CT.
+11. Only after all choices are frozen, generate held-out test once.
 
-1. Change adaptive cap from 0.9 to 0.45 and record `adaptive_cut` flag.
-2. Change hard-negative selection to geometry-first; labels audit-only.
-3. Keep 1.5 mm decoy step, 2 mm endpoint margin, max span 16 mm.
-4. Keep one-arm + two-arm only; caps 12 + 6.
-5. Regenerate train/val only.
-6. Re-run geometry sanity check.
-7. Inspect competitive-junction count and negative hardness.
-8. Freeze protocol only after this review.
-9. Then generate JUNCTION CT features on train/val.
-10. Only after model/threshold choices are frozen, generate held-out test plan once.
-
-## Next model comparison
-
-On the frozen degree-3 plan:
+## 10. Next scientific step
 
 ```text
 JUNCTION geometry
@@ -218,7 +196,7 @@ vs
 JUNCTION geometry + CT
 ```
 
-Then, only after patient-general JUNCTION_CT exists:
+Then:
 
 ```text
 PAIR geometry + PAIR CT
