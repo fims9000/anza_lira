@@ -1,54 +1,67 @@
 # Варвара — начать отсюда
 
-Каноническая ветка:
+Каноническая рабочая ветка:
 
 `research/coronary-connectivity-repair`
 
-После `git pull` открыть:
+С 2026-10-06 именно она снова является текущей точкой сборки всей coronary /
+CCTA линии. JUNCTION-работа из `experiment/ct28-junction` уже перенесена
+сюда.
 
-`docs/varvara/FINAL_HANDOFF_2026-09-27.md`
+После обновления репозитория сначала открыть:
 
-И больше ничего не искать до его прочтения.
+`docs/varvara/CURRENT_TASK.md`
 
-Быстрая integrity-проверка:
+Это единственный текущий task/handoff документ.
+
+## Что уже находится в canonical branch
+
+### PAIR
+
+Frozen CT28 PAIR pack:
+
+- 28 patients;
+- 17 train / 5 validation / 6 held-out test;
+- reproducible features / predictions / models;
+- `geometry_plus_radial_v1` held-out:
+  - AUROC 0.9847;
+  - recall 82.63%;
+  - FPR 1.80%;
+  - precision 97.87%.
+
+Integrity check:
 
 ```bash
 python scripts/research/ccta_graph_lira_safe_repair/verify_varvara_collab_pack.py
 ```
 
-Если она проходит, frozen CT28 PAIR pack на месте.
+### JUNCTION
 
-## Что уже есть
+В canonical branch уже находятся:
 
-28-patient binary PAIR result:
+- `build_junction_plan.py`;
+- `extract_junction_ct_features.py`;
+- `train_junction_baselines.py`;
+- `train_junction_lira_fusion.py`;
+- текущие baseline metrics.
 
-**geometry + radial 2.5-D CCTA**
+JUNCTION held-out test пока не открываем при выборе архитектуры/thresholds.
 
-- AUROC 0.9847;
-- recall 82.63%;
-- FPR 1.80%;
-- precision 97.87%.
+## Что больше не является текущей инструкцией
 
-PAIR features/predictions/models are reproducible from `artifacts/varvara/ct28_pair/`.
+Не использовать как current task:
 
-## Что делать сейчас
+- `docs/varvara/FINAL_HANDOFF_2026-09-27.md`;
+- `docs/varvara/JUNCTION_GENERATOR_REVIEW_2026-10-03.md`;
+- `docs/varvara/JUNCTION_WORK_BRANCH.md`.
 
-Не Graph-LIRA integration сразу.
+Они оставлены только как история решений.
 
-Сначала закрыть:
+Не продолжать работу в:
 
-**28-patient JUNCTION+CT**
+- `experiment/ct28-junction`;
+- `experiment/junction-ct28`;
+- `research/varvara-ccta-graph-lira`.
 
-на том же frozen split.
-
-Raw CT access для этой новой feature extraction:
-
-`docs/varvara/CT28_DATA_ACCESS.md`
-
-После этого:
-
-`PAIR_CT + JUNCTION_CT -> NONE/PAIR/JUNCTION/BOTH -> frozen Graph-LIRA -> repair/abstain`.
-
-Все прямые ответы на вопросы про HGB, old pkl/joblib, `ct_scene_graph_lira_hybrid.py`, `PAIR_IMG/JUNC_IMG`:
-
-`docs/varvara/ANSWER_TO_QUESTIONS_2026-09-26.md`
+Текущие решения и ближайшие действия — только в
+`docs/varvara/CURRENT_TASK.md`.
