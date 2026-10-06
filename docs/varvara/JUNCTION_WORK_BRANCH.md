@@ -1,56 +1,32 @@
-# CT28 JUNCTION work branch
+# CT28 JUNCTION experiment checkpoint
 
-Branch:
+Status: **MERGED / HISTORICAL**
+
+The short-lived development branch:
 
 `experiment/ct28-junction`
 
-Canonical parent research branch:
+was promoted back into the canonical research branch on 2026-10-06:
 
 `research/coronary-connectivity-repair`
 
-## Status — 2026-10-06
+Do not continue new work on the experiment branch.
 
-The generator review from 2026-10-03 is historical development context. The current generator has since been simplified/frozen for the controlled benchmark:
+The promoted state includes:
 
-- `segment_label` is audit-only;
-- negative selection is geometry-distance based;
-- `competitive / isolated` is explicit;
-- degree-3 train/val candidate recall is 100%;
-- held-out test remains closed.
+- frozen train/val controlled JUNCTION generator;
+- candidate-aligned CT extraction;
+- geometry / CT / raw geometry+CT baselines;
+- baseline metrics;
+- development-only patient-OOF score-fusion prototype.
 
-Current code in this branch:
-
-- `build_junction_plan.py` — frozen train/val controlled generator;
-- `extract_junction_ct_features.py` — candidate-aligned CT extraction and alignment checks;
-- `train_junction_baselines.py` — geometry / CT / raw geometry+CT baselines;
-- `train_junction_lira_fusion.py` — patient-OOF score-level JUNCTION-LIRA v0.
-
-Current baseline metrics are under:
-
-`artifacts/varvara/ct28_junction/`
-
-Read first:
+For the current task and scientific sequencing read:
 
 `docs/varvara/CURRENT_TASK.md`
 
-## Current scientific direction
+For branch policy read:
 
-Do not return to generator tuning unless a concrete candidate-recall failure appears.
+`docs/research/BRANCH_STRATEGY.md`
 
-The active line is now:
-
-```text
-JUNCTION geometry + CT evidence
-        ->
-JUNCTION-LIRA fusion
-        ->
-radial vs compact CNN vs compact ANZA
-        ->
-PAIR + JUNCTION relation type
-        ->
-Graph-LIRA
-        ->
-repair / abstain
-```
-
-Do not use held-out test to choose architecture or thresholds.
+The held-out JUNCTION test remains closed while development choices are being
+selected.
