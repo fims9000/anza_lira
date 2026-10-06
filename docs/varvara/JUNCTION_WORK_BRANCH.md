@@ -1,27 +1,56 @@
 # CT28 JUNCTION work branch
 
-This branch is the working branch for the current JUNCTION+CT experiment.
+Branch:
 
-Start with:
+`experiment/ct28-junction`
 
-1. `docs/varvara/JUNCTION_GENERATOR_REVIEW_2026-10-03.md`
-2. `scripts/research/ccta_graph_lira_safe_repair/build_junction_plan.py`
-
-The uploaded draft generator is committed unchanged as the starting point.
-
-Do not generate/freeze held-out test candidates yet.
-
-Immediate development target:
-
-- revise train/val generator using the review;
-- add geometry-adversarial hard-negative mining;
-- audit adaptive-cut cases;
-- re-run geometry-only sanity checks;
-- freeze the train/val protocol;
-- only then implement JUNCTION CT features.
-
-Canonical parent research branch remains:
+Canonical parent research branch:
 
 `research/coronary-connectivity-repair`
 
-When the JUNCTION protocol is frozen and verified, merge the resulting implementation/results back into the canonical research branch.
+## Status — 2026-10-06
+
+The generator review from 2026-10-03 is historical development context. The current generator has since been simplified/frozen for the controlled benchmark:
+
+- `segment_label` is audit-only;
+- negative selection is geometry-distance based;
+- `competitive / isolated` is explicit;
+- degree-3 train/val candidate recall is 100%;
+- held-out test remains closed.
+
+Current code in this branch:
+
+- `build_junction_plan.py` — frozen train/val controlled generator;
+- `extract_junction_ct_features.py` — candidate-aligned CT extraction and alignment checks;
+- `train_junction_baselines.py` — geometry / CT / raw geometry+CT baselines;
+- `train_junction_lira_fusion.py` — patient-OOF score-level JUNCTION-LIRA v0.
+
+Current baseline metrics are under:
+
+`artifacts/varvara/ct28_junction/`
+
+Read first:
+
+`docs/varvara/CURRENT_TASK.md`
+
+## Current scientific direction
+
+Do not return to generator tuning unless a concrete candidate-recall failure appears.
+
+The active line is now:
+
+```text
+JUNCTION geometry + CT evidence
+        ->
+JUNCTION-LIRA fusion
+        ->
+radial vs compact CNN vs compact ANZA
+        ->
+PAIR + JUNCTION relation type
+        ->
+Graph-LIRA
+        ->
+repair / abstain
+```
+
+Do not use held-out test to choose architecture or thresholds.
