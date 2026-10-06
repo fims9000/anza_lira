@@ -188,6 +188,10 @@ def junction_geometry(
     }
 
 
+def negative_selection_key(row: dict[str, object]) -> tuple[float, str]:
+    return float(row["geometry_match_distance"]), str(row["candidate_id"])
+
+
 def polyline_length(points: Sequence[Sequence[float]]) -> float:
     return sum(distance(first, second) for first, second in zip(points[:-1], points[1:]))
 
@@ -513,11 +517,12 @@ def generate_candidate_plan(
             "decoy_arc_mm": "",
             "decoy_orientations": "",
             "span_mm": candidate_span(true_positions),
-            "replaced_segment_labels": "",
-            "decoy_segment_labels": "",
-            "all_decoy_labels_different": "",
+            "audit_replaced_segment_labels": "",
+            "audit_decoy_segment_labels": "",
+            "audit_all_decoy_labels_different": "",
             "geometry_match_positive_id": positive_id,
             "geometry_match_distance": 0.0,
+            "benchmark_group": "",
         }
         positive_row.update(junction_geometry(true_positions, true_tangents))
         positive_endpoints = []
@@ -562,8 +567,6 @@ def generate_candidate_plan(
             ):
                 decoy_position, forward = point_and_forward_tangent_at_arc(points, arc_mm)
                 decoy_label = categorical_value_at_arc(points, point_labels, arc_mm)
-                if decoy_label <= 0:
-                    continue
                 if min(distance(decoy_position, point) for point in true_positions) > max_span_mm:
                     continue
                 for orientation in (-1, 1):
@@ -621,13 +624,13 @@ def generate_candidate_plan(
                     str(d["orientation"]) for d in assigned_decoys
                 ),
                 "span_mm": candidate_span(positions),
-                "replaced_segment_labels": "|".join(
+                "audit_replaced_segment_labels": "|".join(
                     str(replaced_labels[index]) for index in replaced_indices
                 ),
-                "decoy_segment_labels": "|".join(
+                "audit_decoy_segment_labels": "|".join(
                     str(d["segment_label"]) for d in assigned_decoys
                 ),
-                "all_decoy_labels_different": int(
+                "audit_all_decoy_labels_different": int(
                     all(
                         replaced_labels[index] != decoy["segment_label"]
                         for index, decoy in zip(replaced_indices, assigned_decoys)
@@ -635,6 +638,7 @@ def generate_candidate_plan(
                 ),
                 "geometry_match_positive_id": positive_id,
                 "geometry_match_distance": "",
+                "benchmark_group": "",
             }
             row.update(junction_geometry(positions, tangents))
             endpoints = []
@@ -682,17 +686,9 @@ def generate_candidate_plan(
             for first, second in itertools.combinations(decoys, 2):
                 if first["physical_id"] == second["physical_id"]:
                     continue
-                assignments = ((first, second), (second, first))
-                assigned = max(
-                    assignments,
-                    key=lambda values: sum(
-                        replaced_labels[index] != decoy["segment_label"]
-                        for index, decoy in zip(replaced_indices, values)
-                    ),
-                )
                 add_negative(
                     replaced_indices,
-                    assigned,
+                    (first, second),
                     "negative_two_arm_replacement",
                 )
 
@@ -733,13 +729,6 @@ def generate_candidate_plan(
             str(obj["row"]["source_junction_id"]), []
         ).append(obj)
 
-    def selection_key(obj):
-        return (
-            -obj["row"]["all_decoy_labels_different"],
-            obj["row"]["geometry_match_distance"],
-            obj["row"]["candidate_id"],
-        )
-
     primary_positives = [obj for obj in positive_objects if obj["row"]["degree"] == 3]
     selected_objects = list(primary_positives)
     selection_audit = []
@@ -747,21 +736,26 @@ def generate_candidate_plan(
         row = positive["row"]
         junction_id = str(row["source_junction_id"])
         pool = negatives_by_junction.get(junction_id, [])
+        benchmark_group = "competitive" if pool else "isolated"
+        row["benchmark_group"] = benchmark_group
         one = sorted(
             [obj for obj in pool if obj["row"]["n_replaced_arms"] == 1],
-            key=selection_key,
+            key=lambda obj: negative_selection_key(obj["row"]),
         )
         two = sorted(
             [obj for obj in pool if obj["row"]["n_replaced_arms"] == 2],
-            key=selection_key,
+            key=lambda obj: negative_selection_key(obj["row"]),
         )
         chosen = one[:one_arm_per_positive] + two[:two_arm_per_positive]
+        for candidate in chosen:
+            candidate["row"]["benchmark_group"] = benchmark_group
         selected_objects.extend(chosen)
         selection_audit.append(
             {
                 "junction_id": junction_id,
                 "scan_id": row["scan_id"],
                 "split": row["split"],
+                "benchmark_group": benchmark_group,
                 "raw_one_arm": len(one),
                 "raw_two_arm": len(two),
                 "selected_one_arm": min(len(one), one_arm_per_positive),
