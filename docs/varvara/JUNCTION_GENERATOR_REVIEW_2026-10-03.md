@@ -1,3 +1,7 @@
+# HISTORICAL REVIEW — superseded
+
+This review records the 2026-10-03 generator-development decision point. Later train/validation work changed the decision: the controlled generator is now frozen and generator tuning is no longer the active task. For current instructions use `docs/varvara/CURRENT_TASK.md`.
+
 # CT28 JUNCTION generator review and next decisions — 2026-10-03
 
 This note reviews Varvara's current `build_junction_plan.py` using only train/validation data. Held-out test junction candidates have not been generated or inspected.
