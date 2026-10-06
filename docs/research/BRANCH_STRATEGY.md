@@ -1,95 +1,103 @@
 # Repository branch strategy
 
-Date: 2026-09-21
+Updated: 2026-10-06
 
-## Current branches
+## One active research line
 
-### `main`
-
-Default repository branch.
-
-Purpose: stable shared codebase.
-
-Do not use it as a scratchpad for exploratory research.
-
-### `release/anza-lira-final-main`
-
-Old release snapshot.
-
-At the time of branch audit it is 7 commits behind `main` and has no unique commits ahead of it.
-
-Treat as historical/release provenance, not an active development line.
-
-### `research/anza-lira-q1-journal`
-
-Small journal-writing/research branch, one commit ahead of `main` at audit time.
-
-Keep separate unless its content is explicitly incorporated into the coronary connectivity-repair paper.
-
-### `research/ccta-graph-lira-safe-repair`
-
-Historical predecessor of the current CCTA/Graph-LIRA research line.
-
-It contains the large technical research history and was 179 commits ahead of `main` at audit time.
-
-No new work should be added here.
-
-### `research/varvara-ccta-graph-lira`
-
-Temporary collaborator-handoff branch created from the full CCTA research state and then extended with six human-readable handoff files.
-
-It was 186 commits ahead of `main` before the canonical neutral branch was created.
-
-Keep it as a snapshot so no handoff material is lost, but do not continue development there.
-
-### `research/coronary-connectivity-repair`
-
-**Canonical active research branch.**
-
-Created from `research/varvara-ccta-graph-lira`, so it starts with all of:
-
-- the full `research/ccta-graph-lira-safe-repair` history;
-- all 28-patient matched-CCTA results;
-- geometry baselines;
-- patient-cluster bootstrap results;
-- risk/coverage outputs;
-- anatomy subgroup results;
-- raw-data provenance/checksums;
-- executable/reproducibility scripts;
-- related-work notes;
-- article direction;
-- collaborator roadmap and repository map.
-
-All future work for this project should go here.
-
-## Rule going forward
-
-Unless there is a deliberate release or publication-specific reason:
+The repository now has one stable branch and one canonical active research
+branch:
 
 ```text
 main
-  └── research/coronary-connectivity-repair   <-- active scientific work
+└── research/coronary-connectivity-repair
 ```
 
-Publication-specific branches can later branch from the canonical research branch, e.g.:
+### `main`
 
-```text
-research/coronary-connectivity-repair
-  ├── paper/<venue-name>
-  └── experiment/<specific-ablation>
-```
+Stable/default ANZA-LIRA repository state.
 
-Do not create person-named branches for the research line. People can receive handoff files inside the canonical branch without becoming part of the branch identity.
+Do not use `main` as an exploratory research scratchpad.
+
+Do not merge the current coronary/CCTA research line into `main` until the
+end-to-end method/protocol is deliberately promoted as a stable repository
+state.
+
+### `research/coronary-connectivity-repair`
+
+**Single canonical active branch** for the coronary connectivity-repair /
+CCTA Graph-LIRA line.
+
+On 2026-10-06 the completed train/validation CT28 JUNCTION work from
+`experiment/ct28-junction` was fast-forwarded back into this branch.
+
+All current research state now lives here.
+
+## Historical/checkpoint branches
+
+The following branches are preserved only to avoid losing provenance or
+breaking existing local checkouts. No new commits should be added to them.
+
+### `release/anza-lira-final-main`
+
+Old release snapshot. Historical only.
+
+### `research/anza-lira-q1-journal`
+
+Old one-commit journal checkpoint. Its commit is already an ancestor of the
+current coronary research history.
+
+### `research/ccta-graph-lira-safe-repair`
+
+Historical predecessor containing the large CCTA/Graph-LIRA development
+history.
+
+### `research/varvara-ccta-graph-lira`
+
+Historical collaborator handoff snapshot.
+
+### `experiment/junction-ct28`
+
+Redundant old pointer that matched the pre-JUNCTION canonical branch.
+Do not use.
+
+### `experiment/ct28-junction`
+
+Short-lived JUNCTION development branch. Its work was promoted into
+`research/coronary-connectivity-repair` on 2026-10-06.
+Do not continue new work there.
+
+## Rule for future experiment branches
+
+Prefer working directly on the canonical research branch for small,
+well-understood steps.
+
+Create `experiment/<specific-purpose>` only when isolation is genuinely
+useful. Such a branch must:
+
+1. branch from `research/coronary-connectivity-repair`;
+2. have one narrow purpose;
+3. contain no independent roadmap/handoff hierarchy;
+4. be merged/promoted back promptly after the experiment is accepted;
+5. never become a second long-lived source of truth.
+
+Do not create person-named active branches.
+
+## Documentation authority
+
+Current instructions:
+
+1. `docs/varvara/CURRENT_TASK.md`
+2. `RESEARCH_START_HERE.md`
+3. this file
+
+Dated handoffs and dated reviews are historical provenance unless explicitly
+marked current.
 
 ## Loss-prevention policy
 
-The predecessor branches are intentionally not deleted during this cleanup.
+Historical branches are intentionally not deleted during this normalization.
+This prevents accidental loss and avoids breaking collaborators with local
+checkouts.
 
-This avoids losing:
-
-- old commit history;
-- exploratory negative results;
-- handoff material;
-- exact intermediate checkpoints.
-
-Once the canonical branch has been used successfully for some time, predecessor branches may be archived/deleted only after an explicit review.
+Deletion can be done later only after confirming that no collaborator still
+depends on those remote branch names.
