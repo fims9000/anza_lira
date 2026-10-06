@@ -4,64 +4,72 @@
 
 `research/coronary-connectivity-repair`
 
-С 2026-10-06 именно она снова является текущей точкой сборки всей coronary /
-CCTA линии. JUNCTION-работа из `experiment/ct28-junction` уже перенесена
-сюда.
+С 2026-10-06 вся актуальная coronary / CCTA работа снова собрана в этой
+ветке. Старые experiment/research branches — только checkpoints.
 
-После обновления репозитория сначала открыть:
+После обновления репозитория читать в таком порядке:
 
-`docs/varvara/CURRENT_TASK.md`
+1. `docs/varvara/CURRENT_TASK.md`
+2. `docs/varvara/TASK_CT28_CT_CONDITIONED_GRAPH_LIRA_2026-10-06.md`
 
-Это единственный текущий task/handoff документ.
+Второй файл — полное текущее ТЗ: зачем нужен следующий этап, какие inputs уже
+есть, что именно строить, какие части historical Graph-LIRA использовать как
+reference, какие outputs сохранить и когда можно открывать held-out test.
 
-## Что уже находится в canonical branch
+## Коротко о текущем состоянии
 
-### PAIR
+PAIR local CCTA evidence уже frozen/reproducible.
 
-Frozen CT28 PAIR pack:
+JUNCTION train/validation local evidence тоже готов к следующему уровню:
 
-- 28 patients;
-- 17 train / 5 validation / 6 held-out test;
-- reproducible features / predictions / models;
-- `geometry_plus_radial_v1` held-out:
-  - AUROC 0.9847;
-  - recall 82.63%;
-  - FPR 1.80%;
-  - precision 97.87%.
+- frozen controlled generator;
+- 143 positives + 1,666 negatives;
+- 17 train / 5 validation patients;
+- candidate recall 100%;
+- CT tensor `3 x 17 x 25`;
+- geometry / CT / geometry+CT baselines;
+- held-out JUNCTION test пока закрыт.
 
-Integrity check:
+Следующая задача — **не CNN/ANZA и не новый generator**.
 
-```bash
-python scripts/research/ccta_graph_lira_safe_repair/verify_varvara_collab_pack.py
+Следующая задача:
+
+```text
+PAIR + JUNCTION local evidence
+        ->
+NONE / PAIR / JUNCTION / BOTH
+        ->
+frozen Graph-LIRA
+        ->
+repair / abstain
 ```
 
-### JUNCTION
+После первого clean end-to-end результата и failure analysis уже будет
+делаться radial vs compact CNN vs compact ANZA.
 
-В canonical branch уже находятся:
+## JUNCTION feature table
 
-- `build_junction_plan.py`;
-- `extract_junction_ct_features.py`;
-- `train_junction_baselines.py`;
-- `train_junction_lira_fusion.py`;
-- текущие baseline metrics.
+Восстановить committed train/val feature table:
 
-JUNCTION held-out test пока не открываем при выборе архитектуры/thresholds.
+```bash
+python artifacts/varvara/ct28_junction/restore_junction_features.py
+```
 
-## Что больше не является текущей инструкцией
+## Historical Graph-LIRA reference code
 
-Не использовать как current task:
+Для чтения старых archived scripts:
 
-- `docs/varvara/FINAL_HANDOFF_2026-09-27.md`;
-- `docs/varvara/JUNCTION_GENERATOR_REVIEW_2026-10-03.md`;
-- `docs/varvara/JUNCTION_WORK_BRANCH.md`.
+```bash
+bash scripts/research/ccta_graph_lira_safe_repair/restore_historical_graph_lira_sources.sh
+```
 
-Они оставлены только как история решений.
+Они только reference. Новый canonical runner не должен зависеть от hidden
+historical pickle/joblib state.
 
-Не продолжать работу в:
+## Test firewall
 
-- `experiment/ct28-junction`;
-- `experiment/junction-ct28`;
-- `research/varvara-ccta-graph-lira`.
+Не открывать JUNCTION test patients:
 
-Текущие решения и ближайшие действия — только в
-`docs/varvara/CURRENT_TASK.md`.
+`954, 958, 972, 973, 980, 984`
+
+до фиксации scene/relation/graph protocol на train/validation.
