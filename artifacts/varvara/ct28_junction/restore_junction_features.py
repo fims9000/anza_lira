@@ -14,8 +14,11 @@ if not parts:
     raise SystemExit("No CT28 JUNCTION feature payload parts found.")
 
 with OUT.open("wb") as dst:
-    for path in parts:
+    for index, path in enumerate(parts):
+        if index:
+            dst.write(b"\n")
         dst.write(path.read_bytes())
+    dst.write(b"\n")
 
 digest = hashlib.sha256(OUT.read_bytes()).hexdigest()
 if digest != EXPECTED_SHA256:
