@@ -1,147 +1,193 @@
-# CURRENT TASK — CT-conditioned Graph-LIRA
+# CURRENT TASK — JUNCTION-LIRA -> CT-conditioned Graph-LIRA -> ANZA-LIRA
 
-Date: 2026-09-26
+Date: 2026-10-06
 
-This is the current execution target for the coronary connectivity-repair line.
+This file supersedes the older JUNCTION generator instructions in this branch.
 
-## What is already solved well enough to freeze
+## Current status
 
-The 28-patient matched-CCTA pair-relation experiment is complete.
+The controlled degree-3 JUNCTION train/validation benchmark is now frozen for development.
 
-Official patient split:
+Generator facts:
 
-- train: 17 patients;
-- validation: 5 patients;
-- held-out test: 6 patients.
+- train/val only;
+- 143 degree-3 positive junctions;
+- 1,666 retained negatives;
+- candidate recall remains 100%;
+- `segment_label` is audit metadata only and is not used to select negatives;
+- junctions are separated into `competitive` and `isolated`;
+- held-out test has not been generated/evaluated in the current JUNCTION pipeline.
 
-The best local PAIR evidence is currently:
+The JUNCTION CT baseline is also implemented.
 
-**geometry + radial 2.5-D CCTA**
+Candidate representation:
 
-Held-out test:
+- raw CT tensor: `3 x 17 x 25`;
+- 38 CT summary features per arm;
+- symmetric arm aggregation by mean/min/max/std;
+- total CT features: 152;
+- geometry features: 9;
+- geometry+CT features: 161;
+- CT alignment checks pass for all 22 train/val patients.
 
-- AUROC: 0.9847
-- recall: 82.63%
-- FPR: 1.80%
-- precision: 97.87%
+Validation baseline headline:
 
-This result is a local binary **PAIR relation** result. It is not yet a full Graph-LIRA structural-repair result.
+| model | AUROC | top-1 all | top-1 competitive |
+|---|---:|---:|---:|
+| geometry | 0.9949 | 35/36 | 27/28 |
+| CT | 0.9405 | 28/36 | 20/28 |
+| geometry+CT | 0.9936 | 36/36 | 28/28 |
 
-## Important architectural gap
+The important qualitative case is `966:left:58`: geometry ranks a false candidate above the true candidate, while CT supplies complementary evidence and the combined baseline restores the true candidate to rank 1.
 
-The current strong CT28 evidence exists for PAIR relations.
+Do not over-interpret this yet: it is one validation failure corrected by CT, not a final claim of general JUNCTION superiority.
 
-The corresponding 28-patient **JUNCTION + CT** evidence has not yet been built and validated.
+## Why raw geometry+CT is not the final LIRA module
 
-Therefore the next work is not "put the pair score into the graph and tune until it works".
+The 161-feature concatenation is a useful baseline, but its thresholded validation operating point is less safe than geometry-only:
 
-The next work is:
+- geometry: recall 0.9722, FPR 0.016, precision 0.814;
+- raw geometry+CT: recall 0.9722, FPR 0.040, precision 0.636.
 
-### Task A — JUNCTION + CT
+So ranking improves, but calibration/acceptance gets worse.
 
-On the same 28 matched CCTA patients and the same official split, construct candidate-aligned CCTA evidence for junction candidates.
+For this project that distinction matters: a false structural repair is more costly than abstention.
 
-Compare:
+## Task A — JUNCTION-LIRA v0
 
-1. geometry junction evidence;
-2. CT-only junction evidence;
-3. geometry + CT junction evidence.
+Keep geometry and CT as separate evidence streams:
 
-Keep patient separation fixed.
+```text
+geometry features -> geometry model -> score_g
+CT summaries       -> CT model       -> score_ct
 
-Do not use anatomical branch labels as model inputs.
+[score_g, score_ct]
+        |
+small fusion / relation head
+        |
+P(real JUNCTION candidate)
+```
 
-Thresholds / model selection are validation-only.
+Requirements:
 
-Report per-patient results and patient-cluster uncertainty.
+- train base scores for the fusion head must be patient-level OOF;
+- validation must not be used to fit the fusion head;
+- threshold selection is validation-only;
+- test remains closed;
+- keep the current raw geometry+CT model as a baseline, not as the canonical LIRA definition.
 
-### Task B — CT-conditioned relation-type head
+A reproducible development implementation is now in:
 
-After both local evidence streams exist:
+`scripts/research/ccta_graph_lira_safe_repair/train_junction_lira_fusion.py`
 
-- PAIR geometry + CT;
-- JUNCTION geometry + CT;
+Diagnostic train/val result from the current feature table:
 
-construct a scene-level relation representation and predict:
+- validation AUROC about 0.99394;
+- top-1 36/36;
+- competitive top-1 28/28;
+- at the selected low-FPR operating point: 35 TP / 4 FP;
+- recall 0.9722;
+- FPR 0.008;
+- precision 0.8974.
 
-- NONE;
-- PAIR;
-- JUNCTION;
-- BOTH.
+This is development evidence only. It was designed after looking at validation and must not be presented as held-out evidence.
 
-The clean comparison is:
+## Ambiguity groups
 
-**canonical geometry relation head vs CT-conditioned relation head**
+Keep the existing generator-distance subgroup, but rename it conceptually to:
 
-The canonical geometry relation head is an HGB scene-level classifier trained from out-of-fold geometry score distributions. It is not the same model as the CT28 binary geometry HGB baseline.
+`geometry_near`
 
-### Task C — frozen Graph-LIRA integration
+because it is defined by `geometry_match_distance`, not by model uncertainty.
 
-Feed the relation decision into the existing global structural compatibility layer.
+Add a second subgroup:
 
-Initially keep the already validated selective policy frozen:
+`geometry_model_ambiguous`
 
-- relation confidence tau = 0.85;
-- perturbation consistency = 0.60.
+defined from patient-OOF geometry ranking margin:
 
-Do not tune these values on the held-out test set.
+```text
+margin_g = score_g(true) - max(score_g(false))
+```
 
-Primary structural outputs:
+The cutoff is derived from train OOF margins only.
 
-- repair-needed exact;
-- false structural repair;
-- incomplete / abstain;
-- coverage;
-- false among accepted;
-- exact among accepted;
-- patient-level results;
-- patient-cluster bootstrap;
-- LAD / LCX / high-degree-junction analysis.
+This subgroup is the main place to inspect whether image evidence helps where the geometry model itself is uncertain.
 
-## What not to do yet
+## Task B — ANZA-LIRA image evidence ablation
 
-Do not:
+After JUNCTION-LIRA v0 is reproducible, move directly into the clean local image-evidence experiment.
 
-- start a large CNN / Transformer / Mamba first;
-- tune geometry thresholds again;
-- copy the old six-patient CT add-only rule as the final method;
-- use the old PAIR_IMG / JUNC_IMG weights as canonical models;
-- tune on test patients 954, 958, 972, 973, 980, 984;
-- claim end-to-end CT-conditioned Graph-LIRA improvement before the structural experiment exists.
+Use the same candidate tensor and do not change the surrounding protocol:
 
-## After this task
+```text
+hand-crafted radial CT
+vs
+compact CNN encoder
+vs
+compact ANZA encoder
+```
 
-If CT-conditioned Graph-LIRA improves repair-needed exact while preserving the low-false objective, run a clean local image-encoder ablation:
+Freeze across the comparison:
 
-same patients + same candidates + same graph + same safety policy:
+- patients/split;
+- frozen JUNCTION generator;
+- candidate IDs;
+- geometry branch;
+- fusion head interface;
+- evaluation;
+- threshold policy.
 
-1. radial hand-crafted CT;
-2. compact conventional CNN;
-3. compact ANZA encoder.
+Only the image encoder changes.
 
-Only then decide whether ANZA becomes part of the main contribution.
+The purpose is not to replace geometry. The question is whether a learned local image encoder, and specifically ANZA's directed/fuzzy local aggregation, produces better complementary evidence than radial summaries or a conventional compact CNN.
 
-## Code status for the later Graph-LIRA integration
+ANZA is therefore part of the intended research line, but it must enter as a controlled encoder ablation, not by changing the whole graph pipeline at once.
 
-The immediate JUNCTION+CT experiment is **not blocked** by the missing old `run_graph_lira_large_scale.py`.
+## Task C — scene relation type and Graph-LIRA
 
-However, before Task C becomes publication-grade, do not pretend that the missing historical runner is a clean reusable module.
+Once PAIR and JUNCTION image evidence are stable:
 
-Current repository reality:
+```text
+PAIR_GEOMETRY + PAIR_CT/encoder
+JUNCTION_GEOMETRY + JUNCTION_CT/encoder
+                  |
+       NONE / PAIR / JUNCTION / BOTH
+                  |
+            canonical Graph-LIRA
+                  |
+          tau = 0.85
+     consistency = 0.60
+                  |
+           repair / abstain
+                  |
+            max-min path
+```
 
-- old large-scale results/protocol are preserved;
-- archived scripts contain earlier graph logic/pilots;
-- exact old `run_graph_lira_large_scale.py` + `scenes_full.pkl` + model pickles are not canonical artifacts;
-- the collaborator-facing PAIR code is now clean/reproducible;
-- the new JUNCTION+CT code should be written cleanly;
-- when PAIR_CT + JUNCTION_CT are ready, the full integration should be promoted into a **new canonical Graph-LIRA runner/module** with explicit inputs, saved protocol, and reproducible outputs rather than reviving hidden/local pickle state.
+Initially keep graph compatibility, tau and perturbation consistency frozen.
 
-So the execution order remains:
+The repository still does not contain a clean canonical replacement for the lost historical `run_graph_lira_large_scale.py`. Do not rebuild hidden pickle state. The final integration should become a new explicit canonical runner/module with saved inputs, protocol and outputs.
 
-1. build/validate JUNCTION+CT;
-2. freeze its artifacts;
-3. build the new CT-conditioned relation head;
-4. promote the graph integration into canonical code;
-5. run the frozen structural evaluation.
+## Test discipline
 
-Do not spend the first JUNCTION iteration reconstructing the old missing runner.
+Do not open the six held-out patients while choosing:
+
+- fusion architecture;
+- CNN vs ANZA architecture;
+- ambiguity definition;
+- thresholds;
+- calibration.
+
+When train/validation choices are frozen, run the held-out test once.
+
+## Immediate next deliverable
+
+1. Reproduce `train_junction_lira_fusion.py` on the current feature table.
+2. Save OOF train scores and validation source rankings.
+3. Audit the geometry failure `966:left:58` plus the new `geometry_model_ambiguous` group.
+4. Implement the compact CNN and compact ANZA encoders against the existing `3 x 17 x 25` tensors.
+5. Compare radial / CNN / ANZA using the same LIRA fusion interface.
+6. Freeze the selected image-evidence branch before any held-out test.
+7. Then build the PAIR+JUNCTION relation-type head and canonical CT-conditioned Graph-LIRA.
+
+Generator tuning is no longer the research target.
