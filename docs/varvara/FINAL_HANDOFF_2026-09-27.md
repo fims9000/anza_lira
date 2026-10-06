@@ -1,3 +1,7 @@
+# HISTORICAL HANDOFF — superseded
+
+This document is preserved for provenance of the 2026-09-27 state. It is **not** the current task. For current work use `docs/varvara/CURRENT_TASK.md` on `research/coronary-connectivity-repair`.
+
 # Варвара — финальный handoff текущего этапа
 
 Дата: 2026-09-27  
