@@ -1,0 +1,26 @@
+{
+  "feature_version": "junction-radial-three-arm-v1",
+  "generator_config": "configs/research/ccta_graph_lira_safe_repair/junction_plan.json",
+  "archive_dir": "varvara/anza_lira_local_data/imagecas_801_1000",
+  "plan": "varvara/anza_lira_local_results/junction_plan_dev_v1/junction_relation_plan_train_val.csv",
+  "endpoints": "varvara/anza_lira_local_results/junction_plan_dev_v1/junction_candidate_endpoints_train_val.csv",
+  "expected_geometry": "artifacts/varvara/ct28_pair/expected_ct_geometry.csv",
+  "expected_alignment": "artifacts/varvara/ct28_pair/ct_alignment.csv",
+  "out_dir": "varvara/anza_lira_local_results/junction_ct_features_v1",
+  "splits": ["train", "val"],
+  "expected_patient_counts": {
+    "train": 17,
+    "val": 5
+  },
+  "expected_patient_ids": {
+    "train": [953, 955, 956, 959, 960, 963, 964, 967, 969, 970, 971, 975, 976, 977, 979, 982, 983],
+    "val": [957, 961, 965, 966, 974]
+  },
+  "expected_candidate_rows": 1809,
+  "profile_n": 17,
+  "ring_n": 8,
+  "radii_mm": [1.0, 2.0, 3.0],
+  "longitudinal_range": [0.05, 0.95],
+  "hu_clip": [-300.0, 1200.0],
+  "arm_aggregations": ["mean", "min", "max", "std"]
+}

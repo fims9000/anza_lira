@@ -1,0 +1,48 @@
+{
+  "generator_status": "frozen_train_val_v1",
+  "source_root": "varvara/anza_lira_local_data/Varvara_CT28_junction_source_pack",
+  "out_dir": "varvara/anza_lira_local_results/junction_plan_dev_v1",
+  "splits": ["train", "val"],
+  "expected_patient_ids": {
+    "train": [953, 955, 956, 959, 960, 963, 964, 967, 969, 970, 971, 975, 976, 977, 979, 982, 983],
+    "val": [957, 961, 965, 966, 974]
+  },
+  "cut": {
+    "mode": "adaptive",
+    "target_distance_mm": 2.0,
+    "max_arm_fraction": 0.9
+  },
+  "perturbations": {
+    "enabled": false,
+    "position_jitter_mm": 0.0,
+    "tangent_noise_deg": 0.0
+  },
+  "candidate_filter": {
+    "supported_degrees": [3, 4],
+    "max_endpoint_span_mm": 16.0
+  },
+  "negative_sampling": {
+    "enabled": true,
+    "strategy": "one_and_two_arm_replacement",
+    "same_scan_only": true,
+    "same_side_only": true,
+    "exclude_incident_polylines": true,
+    "segment_label_role": "audit_only",
+    "decoy_sample_step_mm": 1.5,
+    "decoy_endpoint_margin_mm": 2.0,
+    "tangent_orientations": "both"
+  },
+  "geometry_matching": {
+    "enabled": true,
+    "reference": "source_positive",
+    "feature_scaling": "train_positive_standard_deviation",
+    "selection": "nearest_per_source_positive"
+  },
+  "primary_selection": {
+    "degree": 3,
+    "one_arm_negatives_per_positive": 12,
+    "two_arm_negatives_per_positive": 6,
+    "quota_scope": "per_positive_cap",
+    "fill_local_shortage_from_other_junctions": false
+  }
+}
