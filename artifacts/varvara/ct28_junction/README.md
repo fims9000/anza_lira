@@ -43,23 +43,26 @@ Other current file hashes from the supplied run:
 - degree-3 only in the baseline;
 - held-out JUNCTION test was not accessed.
 
-## Reproducibility gap still to close
+## Frozen exact inputs
 
-The exact candidate-plan / endpoint / selection-audit CSVs and the exact local
-config used for this run were not supplied in the handoff files available to
-the repository maintainer.
+The provenance gap is closed. Exact files from the run that produced the
+feature and baseline hashes above are preserved directly in this canonical
+pack:
 
-Varvara should copy the exact files from the run that produced the feature
-SHA above before regenerating anything:
+- `junction_relation_plan_train_val.csv`;
+- `junction_candidate_endpoints_train_val.csv`;
+- `junction_selection_audit_train_val.csv`;
+- `junction_ct_alignment_train_val.csv`;
+- `junction_plan.json`;
+- `junction_ct_features.json`;
+- `junction_baselines.json`.
 
-- `junction_relation_plan_train_val.csv`
-- `junction_candidate_endpoints_train_val.csv`
-- `junction_selection_audit_train_val.csv`
-- `junction_ct_alignment_train_val.csv`
-- exact generator / CT / baseline configs
+`protocol.json` records the freeze status and SHA256 for the exact inputs and
+generated baseline artifacts. Experiment parameters remain in the three exact
+config files above. The CSVs and configs are byte-for-byte copies; they were not
+regenerated for the artifact pack. The candidate-plan SHA256 is:
 
-Do not replace these with a newly regenerated version merely because row
-counts match. Preserve provenance first.
+`2266609c3b14b3510b9707c7fb0282cbc93682cbde577c2951578d4466a002d4`
 
 
 ## Regeneration audit
@@ -93,6 +96,6 @@ while the baseline metrics record the exact training-run candidate-plan hash as:
 `2266609c3b14b3510b9707c7fb0282cbc93682cbde577c2951578d4466a002d4`
 
 Therefore the regenerated plan is **not promoted as the exact canonical input
-file**. The original plan/config from Varvara's successful run should be copied
-into this artifact pack first. This avoids silently replacing provenance with a
-numerically equivalent regeneration.
+file**. The exact original plan/config from the successful run are the files in
+this canonical pack; the regeneration remains only an independent numerical
+audit.

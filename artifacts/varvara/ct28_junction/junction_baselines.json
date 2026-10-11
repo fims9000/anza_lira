@@ -1,0 +1,33 @@
+{
+  "features": "varvara/anza_lira_local_results/junction_ct_features_v1/junction_relation_features_train_val.csv",
+  "candidate_plan": "varvara/anza_lira_local_results/junction_plan_dev_v1/junction_relation_plan_train_val.csv",
+  "out_dir": "varvara/anza_lira_local_results/junction_baselines_v1",
+  "expected_patient_counts": {
+    "train": 17,
+    "val": 5
+  },
+  "expected_patient_ids": {
+    "train": [953, 955, 956, 959, 960, 963, 964, 967, 969, 970, 971, 975, 976, 977, 979, 982, 983],
+    "val": [957, 961, 965, 966, 974]
+  },
+  "expected_split_rows": {
+    "train": 1273,
+    "val": 536
+  },
+  "expected_source_junction_counts": {
+    "train": 107,
+    "val": 36
+  },
+  "expected_candidate_rows": 1809,
+  "expected_geometry_features": 9,
+  "expected_ct_features": 152,
+  "classifier": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "max_iter": 5000,
+    "solver": "lbfgs",
+    "random_state": 0
+  },
+  "max_validation_fpr": 0.05,
+  "geometry_ambiguous_train_distance_quantile": 0.25
+}

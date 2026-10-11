@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "status": "frozen_train_val_v1",
+  "description": "SHA256 manifest for the exact CT28 JUNCTION train/validation inputs and baseline outputs.",
+  "held_out_test_accessed": false,
+  "file_sha256": {
+    "junction_relation_plan_train_val.csv": "2266609c3b14b3510b9707c7fb0282cbc93682cbde577c2951578d4466a002d4",
+    "junction_candidate_endpoints_train_val.csv": "4c3c9227aabfb93d6d4a3ffc88c8e419800cced32f85100e86d956f747028754",
+    "junction_selection_audit_train_val.csv": "2e570f9a8b6acb7cbe0b3f39b704e133847304cbd587c1c9c92025d105e957ea",
+    "junction_ct_alignment_train_val.csv": "2c2afdaab0f9ccb522ee3ac27adf2b22a5930785832a0dc40930a79ebdcbe1ee",
+    "junction_plan.json": "02cb8730205afff1415570590aa57d3e9a4a6efb64c8f3419fd4378654bce5a1",
+    "junction_ct_features.json": "724b85dddb942430a6d97ff306786b49eb2886aed30e4ca8899d0136e8ce2dd6",
+    "junction_baselines.json": "eaabd0f494411aa22fea0b837886f93f7618ae5523bf29c9e0ce38e6e0f7559e",
+    "baseline_metrics.json": "8f97e61bb40643acc3d68163c15dec6462b77bcd5a00dfca49b1024d94a74186",
+    "junction_baseline_predictions.csv": "3ad4cb9ee946476247c1c839a84eae0fa277bbc7d94b96aa4dd9bce59ee0c3c7",
+    "junction_relation_features_train_val.csv": "c58f0aef645ea0cf4552b846cf4140c052908f6457efeb4bc6cdc3efa7532483"
+  }
+}
