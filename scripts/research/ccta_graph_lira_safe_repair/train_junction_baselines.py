@@ -102,6 +102,19 @@ def validate_input(frame: pd.DataFrame, config: dict) -> None:
     )
     if not bool((source_summary["sum"] == 1).all()):
         raise RuntimeError("each source junction must have exactly one positive")
+    source_groups = frame.groupby(["split", "source_junction_id"])[
+        "benchmark_group"
+    ].agg(["first", "nunique"])
+    if not bool((source_groups["nunique"] == 1).all()):
+        raise RuntimeError("benchmark_group must be constant within each source")
+    if set(source_groups["first"]) - {"competitive", "isolated"}:
+        raise RuntimeError("unexpected benchmark_group")
+    competitive = source_groups["first"] == "competitive"
+    if not bool((source_summary.loc[competitive, "count"] > 1).all()):
+        raise RuntimeError("each competitive source must contain a false candidate")
+    isolated = source_groups["first"] == "isolated"
+    if not bool((source_summary.loc[isolated, "count"] == 1).all()):
+        raise RuntimeError("isolated sources must contain only their positive candidate")
 
 
 def make_model(classifier: dict) -> Pipeline:
@@ -219,6 +232,22 @@ def ranking_metrics(rankings: pd.DataFrame) -> dict[str, float | int]:
         ),
         "margin_min": (
             float(finite_margins.min()) if len(finite_margins) else np.nan
+        ),
+    }
+
+
+def evaluation_groups(
+    candidates: pd.DataFrame, rankings: pd.DataFrame
+) -> dict[str, tuple[pd.DataFrame, pd.DataFrame]]:
+    return {
+        "all_junctions": (candidates, rankings),
+        "competitive": (
+            candidates[candidates["benchmark_group"] == "competitive"],
+            rankings[rankings["benchmark_group"] == "competitive"],
+        ),
+        "geometry_ambiguous": (
+            candidates[candidates["geometry_ambiguous"]],
+            rankings[rankings["geometry_ambiguous"]],
         ),
     }
 
@@ -368,13 +397,7 @@ def main() -> None:
         for split in ("train", "val"):
             split_candidates = predictions[predictions["split"] == split]
             split_rankings = rankings[rankings["split"] == split]
-            groups = {
-                "all_junctions": (split_candidates, split_rankings),
-                "geometry_ambiguous": (
-                    split_candidates[split_candidates["geometry_ambiguous"]],
-                    split_rankings[split_rankings["geometry_ambiguous"]],
-                ),
-            }
+            groups = evaluation_groups(split_candidates, split_rankings)
             for group_name, (candidate_group, ranking_group) in groups.items():
                 if candidate_group["y"].nunique() != 2:
                     raise RuntimeError(
@@ -452,6 +475,14 @@ def main() -> None:
                 split: len(sources) for split, sources in ambiguity_sources.items()
             },
             "role": "evaluation subgroup only",
+        },
+        "evaluation_groups": {
+            "all_junctions": "all degree-3 source junctions, including isolated",
+            "competitive": "source junctions with at least one retained false candidate",
+            "geometry_ambiguous": (
+                "competitive source junctions below the frozen train-only geometry "
+                "distance cutoff"
+            ),
         },
         "candidate_metrics": candidate_rows,
         "ranking_metrics": ranking_rows,
