@@ -25,7 +25,7 @@ for name in "${files[@]}"; do
     exit 1
   fi
   out_name="${name%.gz.b64}"
-  base64 -d "$src" | gzip -d > "$OUT/$out_name"
+  base64 -d < "$src" | gzip -d > "$OUT/$out_name"
   echo "RESTORED: $OUT/$out_name"
 done
 

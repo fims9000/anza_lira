@@ -1,0 +1,61 @@
+{
+  "protocol_version": "ct28_graph_lira_structural_v1",
+  "status": "development_train_val_only",
+  "held_out_test_accessed": false,
+  "path_stage_implemented": false,
+  "models": [
+    "geometry_only",
+    "ct_conditioned"
+  ],
+  "identity_score": "geometry_score for both systems",
+  "compatibility": "historical endpoint-disjoint PAIR/JUNCTION selection; maximize log(pair_score)+log(junction_score) on conflicts",
+  "tau": 0.85,
+  "consistency_gate": 0.6,
+  "consistency_protocol": "ct28_perturbation_consistency_v1",
+  "consistency_historical_reproduction": false,
+  "consistency_formula": "baseline identity agreement fraction if the baseline identity is also the perturbation mode, otherwise zero",
+  "perturbations": 15,
+  "position_noise_mm": 0.8,
+  "tangent_noise_deg": 20.0,
+  "candidate_policy_under_perturbation": "fixed frozen candidate identities; recompute geometry and CT evidence",
+  "seed": 20260920,
+  "bootstrap": {
+    "cluster": "patient",
+    "patients": [
+      957,
+      961,
+      965,
+      966,
+      974
+    ],
+    "repetitions": 2000,
+    "seed": 20260997
+  },
+  "geometry_ambiguous": {
+    "definition": "validation competitive junction minimum retained-negative geometry_match_distance <= train-only lower quartile",
+    "train_only_cutoff": 22.182531321691005
+  },
+  "degree4_included": false,
+  "anatomical_names_role": "failure audit only; never model input",
+  "exact_run_command": "python scripts/research/ccta_graph_lira_safe_repair/run_ct28_graph_lira.py",
+  "source_sha256": {
+    "scene_plan": "746e2d8e48c33ea281d6858a667189ae0ffb8106c60a7ef35935a6320e360871",
+    "scene_endpoints": "a14d66229df01f367f562036fdd5eaaad13656dc1aef0dd36c622d08dc5b3dd4",
+    "scene_candidates": "7c9137d333448c789af471fed50d06410845eb8c051e21bbbf4e0605de6165c4",
+    "local_scores": "7b5fcb24d030cb5ea6360be75c3d89c66ca4328ea246f2696ac9cd98ffcaf80a",
+    "relation_predictions": "7ea0df665c75819c17ed3ba7fddd836fdac76b371673c9ceab7f0fc3ade01444",
+    "relation_models": "4928b2b55c676f9dc3e692c274ffcffff83bd24068e8c015c05c145a3ddd9d67",
+    "junction_plan": "2266609c3b14b3510b9707c7fb0282cbc93682cbde577c2951578d4466a002d4",
+    "junction_audit": "2e570f9a8b6acb7cbe0b3f39b704e133847304cbd587c1c9c92025d105e957ea",
+    "pair_plan": "4629bd082457bdb14a3c7653e6fc8b1592d648d91f087e14b522c38f0ccca523"
+  },
+  "output_sha256": {
+    "predictions": "271ce6f8e24abc5e66191c8af5e6d90eab8c654ca4b9a45dec0c2002789e673f",
+    "metrics": "0a48c8a7fe0ab0556b092b0586199e6941144609657671476666eeb56753801f",
+    "per_patient": "0e93f84e66bf17af290cf2aeb05787145157039700a790d9531e0a3d846f8ada",
+    "by_scene_type": "3644291b353d10e622eedc28f29dbb2d4768a85490ac82c3c68ef2a6e1217c9e",
+    "by_junction_group": "0607e64a729d09e34c4c396a0926c43c0d6bd583363276e4e914c53ac980fe31",
+    "bootstrap": "c81ee84a9dcb029361960b9b368eb411e92604f2fb3ce8ec49030a93aa435c31",
+    "consistency": "536257b38df978c82b58952f9a907df984bb9bce9e698b6fcae8fbfa45856c84"
+  }
+}

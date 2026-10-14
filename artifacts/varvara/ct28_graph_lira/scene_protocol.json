@@ -1,0 +1,149 @@
+{
+  "protocol_version": "ct28_scene_protocol_v1",
+  "status": "train_val_draft_pending_protocol_review",
+  "historical_reproduction": false,
+  "held_out_junction_test_accessed": false,
+  "splits": [
+    "train",
+    "val"
+  ],
+  "patient_ids": {
+    "train": [
+      953,
+      955,
+      956,
+      959,
+      960,
+      963,
+      964,
+      967,
+      969,
+      970,
+      971,
+      975,
+      976,
+      977,
+      979,
+      982,
+      983
+    ],
+    "val": [
+      957,
+      961,
+      965,
+      966,
+      974
+    ]
+  },
+  "source_files": {
+    "pair_plan": "artifacts/varvara/ct28_pair/relation_pair_plan.csv",
+    "junction_plan": "artifacts/varvara/ct28_junction/junction_relation_plan_train_val.csv",
+    "junction_endpoints": "artifacts/varvara/ct28_junction/junction_candidate_endpoints_train_val.csv"
+  },
+  "source_sha256": {
+    "pair_plan": "4629bd082457bdb14a3c7653e6fc8b1592d648d91f087e14b522c38f0ccca523",
+    "junction_plan": "2266609c3b14b3510b9707c7fb0282cbc93682cbde577c2951578d4466a002d4",
+    "junction_endpoints": "4c3c9227aabfb93d6d4a3ffc88c8e419800cced32f85100e86d956f747028754"
+  },
+  "scene_families": {
+    "pair_only": "positive PAIR endpoints plus its frozen matched hard-negative endpoints",
+    "junction_only": "positive degree-3 JUNCTION endpoints plus up to two retained decoy endpoints",
+    "mixed": "same-patient pair_only and junction_only components with disjoint true endpoints",
+    "none_orphan_pair": "one true PAIR endpoint withheld; matched hard-negative endpoints retained",
+    "none_incomplete_junction": "one true arm withheld and replaced by the nearest retained one-arm negative decoy"
+  },
+  "candidate_generation": {
+    "pair": "all endpoint pairs with distance <= 12.0 mm",
+    "junction": "all degree-3 endpoint subsets with maximum span <= 16.0 mm",
+    "anatomical_labels_used": false,
+    "junction_axis_orientation": "orient each undirected tangent toward the fitted candidate center"
+  },
+  "composition": {
+    "scene_endpoint_count": 5,
+    "junction_decoy_limit": 2,
+    "mixed_pairing": "nearest unused PAIR component from the same patient",
+    "minimum_component_separation_mm": null,
+    "duplicate_coordinate_policy": "exclude exact coordinate matches; no distance tolerance",
+    "source_reuse_across_scene_families": true
+  },
+  "relation_input_policy": {
+    "candidate_pool": "all span-valid candidates remain available to Graph-LIRA",
+    "representation": "historical_42_score_landscape",
+    "status": "canonical",
+    "features_per_local_score_stream": 42,
+    "geometry_only_feature_count": 42,
+    "cardinality_handling": "PAIR and JUNCTION candidate counts are included as historical model features",
+    "score_landscape": "18 PAIR features plus 18 JUNCTION features plus six cross-stream features",
+    "missing_rank_policy": "top-1 through top-7 are zero-padded when fewer candidates exist",
+    "direct_pair_candidate_count": "included",
+    "direct_junction_candidate_count": "included",
+    "score_sum_and_top_over_sum": "top-over-sum included per candidate type"
+  },
+  "counts": {
+    "scenes": 1404,
+    "endpoints": 7020,
+    "candidates": 15092,
+    "by_split_family": {
+      "train:junction_only": 107,
+      "train:mixed": 107,
+      "train:none_incomplete_junction": 64,
+      "train:none_orphan_pair": 379,
+      "train:pair_only": 379,
+      "val:junction_only": 36,
+      "val:mixed": 36,
+      "val:none_incomplete_junction": 28,
+      "val:none_orphan_pair": 134,
+      "val:pair_only": 134
+    },
+    "by_split_class": {
+      "train:BOTH": 107,
+      "train:JUNCTION": 107,
+      "train:NONE": 443,
+      "train:PAIR": 379,
+      "val:BOTH": 36,
+      "val:JUNCTION": 36,
+      "val:NONE": 162,
+      "val:PAIR": 134
+    }
+  },
+  "candidate_recall": {
+    "repair_scenes": 1.0,
+    "all_scenes_protocol_validity": 1.0
+  },
+  "candidate_count_only_diagnostic": {
+    "method": "train exact lookup by (pair_candidate_count, junction_candidate_count)",
+    "validation_coverage": 0.9972826086956522,
+    "validation_accuracy_on_covered": 0.7356948228882834,
+    "role": "protocol diagnostic; candidate counts are intentionally included in the historical 42-feature relation input"
+  },
+  "mixed_compatibility_diagnostic": {
+    "mixed_scenes": 143,
+    "true_pair_junction_disjoint": 143,
+    "scenes_with_conflicting_false_pair_junction_candidates": 110
+  },
+  "none_incomplete_source_coverage": {
+    "train:competitive:included": 64,
+    "train:competitive:omitted": 4,
+    "train:isolated:omitted": 39,
+    "val:competitive:included": 28,
+    "val:isolated:omitted": 8
+  },
+  "outputs": {
+    "scene_plan": "scene_plan_train_val.csv",
+    "scene_endpoints": "scene_endpoints_train_val.csv",
+    "scene_candidates": "scene_candidates_train_val.csv"
+  },
+  "output_sha256": {
+    "scene_plan": "746e2d8e48c33ea281d6858a667189ae0ffb8106c60a7ef35935a6320e360871",
+    "scene_endpoints": "a14d66229df01f367f562036fdd5eaaad13656dc1aef0dd36c622d08dc5b3dd4",
+    "scene_candidates": "7c9137d333448c789af471fed50d06410845eb8c051e21bbbf4e0605de6165c4"
+  },
+  "pending_review_choices": [
+    "whether mixed scenes should use nearest, farthest, or anatomically constrained component pairing",
+    "whether two decoy endpoints per JUNCTION component is the intended candidate burden",
+    "whether none_incomplete_junction should require a retained one-arm negative and omit sources without one",
+    "whether source components may be reused across different scene families",
+    "whether degree-4 remains audit-only for the first relation experiment",
+    "whether perturbations belong in the frozen scene pack or only in the later consistency evaluation"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "protocol_version": "ct28_graph_lira_structural_v1",
+  "status": "development_train_val_only",
+  "held_out_test_accessed": false,
+  "path_stage_implemented": false,
+  "models": [
+    "geometry_only",
+    "ct_conditioned"
+  ],
+  "local_model_family": "hgb",
+  "evidence_dir": "/Users/varvara/Documents/диплом/anza_lira/artifacts/varvara/ct28_graph_lira/ablations/local_hgb",
+  "identity_score": "geometry_score for both systems",
+  "compatibility": "historical endpoint-disjoint PAIR/JUNCTION selection; maximize log(pair_score)+log(junction_score) on conflicts",
+  "tau": 0.85,
+  "consistency_gate": 0.6,
+  "consistency_protocol": "ct28_perturbation_consistency_v1",
+  "consistency_historical_reproduction": false,
+  "consistency_formula": "baseline identity agreement fraction if the baseline identity is also the perturbation mode, otherwise zero",
+  "perturbations": 15,
+  "position_noise_mm": 0.8,
+  "tangent_noise_deg": 20.0,
+  "candidate_policy_under_perturbation": "fixed frozen candidate identities; recompute geometry and CT evidence",
+  "seed": 20260920,
+  "bootstrap": {
+    "cluster": "patient",
+    "patients": [
+      957,
+      961,
+      965,
+      966,
+      974
+    ],
+    "repetitions": 2000,
+    "seed": 20260997
+  },
+  "geometry_ambiguous": {
+    "definition": "validation competitive junction minimum retained-negative geometry_match_distance <= train-only lower quartile",
+    "train_only_cutoff": 22.182531321691005
+  },
+  "degree4_included": false,
+  "anatomical_names_role": "failure audit only; never model input",
+  "exact_run_command": "python scripts/research/ccta_graph_lira_safe_repair/run_ct28_graph_lira.py --evidence-dir artifacts/varvara/ct28_graph_lira/ablations/local_hgb --out-dir artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira",
+  "source_sha256": {
+    "scene_plan": "746e2d8e48c33ea281d6858a667189ae0ffb8106c60a7ef35935a6320e360871",
+    "scene_endpoints": "a14d66229df01f367f562036fdd5eaaad13656dc1aef0dd36c622d08dc5b3dd4",
+    "scene_candidates": "7c9137d333448c789af471fed50d06410845eb8c051e21bbbf4e0605de6165c4",
+    "local_scores": "71cf7e7436acc49dbf166254dbe6855c4d8c5b96f56df2a46b55a4d8ba94f0a8",
+    "relation_predictions": "e52ef7ddc96b851a0236dc6c5848a50915ddad9fcac6e8751b1b008c2c5fc387",
+    "relation_models": "3985e5c3b81a1c1be60887adbefd2622f992c541f3ac3e472364b65ecc0ad204",
+    "junction_plan": "2266609c3b14b3510b9707c7fb0282cbc93682cbde577c2951578d4466a002d4",
+    "junction_audit": "2e570f9a8b6acb7cbe0b3f39b704e133847304cbd587c1c9c92025d105e957ea",
+    "pair_plan": "4629bd082457bdb14a3c7653e6fc8b1592d648d91f087e14b522c38f0ccca523"
+  },
+  "output_sha256": {
+    "predictions": "b8f5ebc8a0e2ba25429b871144a5dc38647b991783dd6f4a28ace50cea384851",
+    "metrics": "5899af3eb44a4f0fba8bbe59df62ac2b966ccd2165d7d6312a545222877857b7",
+    "per_patient": "25a996d58e6192ae7e6c381c2332fb0ffb1306f0b372939e7aab4684faed0a46",
+    "by_scene_type": "2e21ee21b561d6792f740e276e95f4a8e86b969897dfa7e0e59c1f38d7885207",
+    "by_junction_group": "9d362e9fde36c75c04f78cda181866970698d691f477b8f81fa9c37d9307eb37",
+    "bootstrap": "eb7f8cb99ec251446dffb02ae3c4ab7e0ec617df28edc58f029769e665aefdfd",
+    "consistency": "0740a31c47c8e20306303773207bd1e7a8d43a144853cfb7457c82d9952b6fa0"
+  }
+}

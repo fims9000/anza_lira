@@ -1,0 +1,73 @@
+{
+  "protocol_version": "ct28_graph_lira_structural_v1",
+  "status": "development_train_val_only",
+  "held_out_test_accessed": false,
+  "path_stage_implemented": false,
+  "models": [
+    "geometry_only",
+    "ct_conditioned"
+  ],
+  "local_model_family": "hgb",
+  "base_scene": {
+    "enabled": true,
+    "position_noise_mm_sigma": 1.0,
+    "tangent_noise_deg_sigma": 30.0,
+    "seed": 20260920,
+    "seed_repetition": -1,
+    "role": "single deterministic stressed realization used for both local-model training and validation; not consistency augmentation"
+  },
+  "base_scene_protocol_sha256": "765f861d253581ea3a3d6545a379cc4c576be9ef023cb5de19d7abab91efc88e",
+  "base_scene_description": "single deterministic 30 degree tangent / 1 mm position stressed realization",
+  "evidence_dir": "/Users/varvara/Documents/диплом/anza_lira/artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb",
+  "identity_score": "geometry_score for both systems",
+  "compatibility": "historical endpoint-disjoint PAIR/JUNCTION selection; maximize log(pair_score)+log(junction_score) on conflicts",
+  "tau": 0.85,
+  "consistency_gate": 0.6,
+  "consistency_protocol": "ct28_perturbation_consistency_v1",
+  "consistency_historical_reproduction": false,
+  "consistency_formula": "baseline identity agreement fraction if the baseline identity is also the perturbation mode, otherwise zero",
+  "perturbations": 15,
+  "position_noise_mm": 0.8,
+  "tangent_noise_deg": 20.0,
+  "candidate_policy_under_perturbation": "fixed frozen candidate identities; recompute geometry and CT evidence",
+  "seed": 20260920,
+  "bootstrap": {
+    "cluster": "patient",
+    "patients": [
+      957,
+      961,
+      965,
+      966,
+      974
+    ],
+    "repetitions": 2000,
+    "seed": 20260997
+  },
+  "geometry_ambiguous": {
+    "definition": "validation competitive junction minimum retained-negative geometry_match_distance <= train-only lower quartile",
+    "train_only_cutoff": 22.182531321691005
+  },
+  "degree4_included": false,
+  "anatomical_names_role": "failure audit only; never model input",
+  "exact_run_command": "python scripts/research/ccta_graph_lira_safe_repair/run_ct28_graph_lira.py --evidence-dir artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb --out-dir artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira",
+  "source_sha256": {
+    "scene_plan": "746e2d8e48c33ea281d6858a667189ae0ffb8106c60a7ef35935a6320e360871",
+    "scene_endpoints": "10bc8fcbf93316e5ef26b643d9058bf6d5aa82467211cec7180a452e4a18650d",
+    "scene_candidates": "d14a184c818620c6b559f0d40f1257b5f49a6a35849af854aa197431e900f99f",
+    "local_scores": "87b62ec4865290b1c77a130f30c6d2c26ef7d01a083f5d96d3aabeadbf9215ed",
+    "relation_predictions": "ab732008c38c3b9424e26e1d5b38df7c36e4b2faf56a28f4546a5d7d25e9e2f3",
+    "relation_models": "101e88ee848f80d8c9647ac8f7b456063688fb74d4264cd7a5d1334342db041c",
+    "junction_plan": "2266609c3b14b3510b9707c7fb0282cbc93682cbde577c2951578d4466a002d4",
+    "junction_audit": "2e570f9a8b6acb7cbe0b3f39b704e133847304cbd587c1c9c92025d105e957ea",
+    "pair_plan": "4629bd082457bdb14a3c7653e6fc8b1592d648d91f087e14b522c38f0ccca523"
+  },
+  "output_sha256": {
+    "predictions": "168fb5937091286d04ba3b5e752d230ff8f9d8243ab4ceb99c19ffd147a92488",
+    "metrics": "011cbde56fc6f8e79c52a57cec141bedd6172899d55de4a1eea03b412af59107",
+    "per_patient": "2e99aa2777257ecdaa0011e60a0f464eeffb616ab5a217fc3ac71b7a4ed1cf81",
+    "by_scene_type": "bd6e5dc82dbd763aefd44c8e5848282469bbce52da36f6953ffd9931c20695cb",
+    "by_junction_group": "3fd1054ab0e0a1dde9ecc1e6618988fcff31431f7ff269f5a971ad5a240af3de",
+    "bootstrap": "4338ffd84dc2ee62c80ccd20cea3f61ac01c1e6d997da8307f967f15e68fe1de",
+    "consistency": "804da9fae73c55f08c933b3a6337557677241f1db4c08ac653c64bd42283949e"
+  }
+}

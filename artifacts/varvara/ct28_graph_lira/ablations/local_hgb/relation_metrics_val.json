@@ -1,0 +1,265 @@
+{
+  "status": "development_train_val_only",
+  "held_out_test_accessed": false,
+  "validation_scenes": 368,
+  "validation_majority_accuracy": 0.44021739130434784,
+  "tau": 0.85,
+  "models": {
+    "geometry_only": {
+      "representation": "historical_42_score_landscape",
+      "feature_count": 42,
+      "raw": {
+        "accuracy": 0.9211956521739131,
+        "balanced_accuracy": 0.9189699649898654,
+        "macro_f1": 0.903258535267881,
+        "per_class_recall": {
+          "NONE": 0.9320987654320988,
+          "PAIR": 0.9104477611940298,
+          "JUNCTION": 0.9444444444444444,
+          "BOTH": 0.8888888888888888
+        },
+        "confusion_matrix": [
+          [
+            151,
+            7,
+            3,
+            1
+          ],
+          [
+            7,
+            122,
+            0,
+            5
+          ],
+          [
+            1,
+            1,
+            34,
+            0
+          ],
+          [
+            0,
+            0,
+            4,
+            32
+          ]
+        ],
+        "relation_class_accuracy_when_present": 0.912621359223301,
+        "non_none_prediction_on_true_none": 0.06790123456790123
+      },
+      "tau_0_85": {
+        "accuracy": 0.9021739130434783,
+        "balanced_accuracy": 0.8687465450525151,
+        "macro_f1": 0.8843700710461808,
+        "per_class_recall": {
+          "NONE": 0.9629629629629629,
+          "PAIR": 0.8731343283582089,
+          "JUNCTION": 0.8611111111111112,
+          "BOTH": 0.7777777777777778
+        },
+        "confusion_matrix": [
+          [
+            156,
+            3,
+            2,
+            1
+          ],
+          [
+            14,
+            117,
+            0,
+            3
+          ],
+          [
+            5,
+            0,
+            31,
+            0
+          ],
+          [
+            7,
+            0,
+            1,
+            28
+          ]
+        ],
+        "relation_class_accuracy_when_present": 0.8543689320388349,
+        "non_none_prediction_on_true_none": 0.037037037037037035,
+        "confidence_coverage": 0.9157608695652174,
+        "confident_scenes": 337
+      },
+      "multiclass_log_loss": 0.23410616564313505
+    },
+    "geometry_plus_ct": {
+      "representation": "historical_42_early_fusion_score_landscape",
+      "feature_count": 42,
+      "raw": {
+        "accuracy": 0.9293478260869565,
+        "balanced_accuracy": 0.9150543578404274,
+        "macro_f1": 0.8991687552213867,
+        "per_class_recall": {
+          "NONE": 0.9197530864197531,
+          "PAIR": 0.9626865671641791,
+          "JUNCTION": 0.8611111111111112,
+          "BOTH": 0.9166666666666666
+        },
+        "confusion_matrix": [
+          [
+            149,
+            7,
+            5,
+            1
+          ],
+          [
+            2,
+            129,
+            0,
+            3
+          ],
+          [
+            2,
+            0,
+            31,
+            3
+          ],
+          [
+            0,
+            0,
+            3,
+            33
+          ]
+        ],
+        "relation_class_accuracy_when_present": 0.9368932038834952,
+        "non_none_prediction_on_true_none": 0.08024691358024691
+      },
+      "tau_0_85": {
+        "accuracy": 0.9239130434782609,
+        "balanced_accuracy": 0.8674682144831398,
+        "macro_f1": 0.8904386666731301,
+        "per_class_recall": {
+          "NONE": 0.9814814814814815,
+          "PAIR": 0.9328358208955224,
+          "JUNCTION": 0.75,
+          "BOTH": 0.8055555555555556
+        },
+        "confusion_matrix": [
+          [
+            159,
+            2,
+            1,
+            0
+          ],
+          [
+            7,
+            125,
+            0,
+            2
+          ],
+          [
+            7,
+            0,
+            27,
+            2
+          ],
+          [
+            6,
+            0,
+            1,
+            29
+          ]
+        ],
+        "relation_class_accuracy_when_present": 0.8786407766990292,
+        "non_none_prediction_on_true_none": 0.018518518518518517,
+        "confidence_coverage": 0.9211956521739131,
+        "confident_scenes": 339
+      },
+      "multiclass_log_loss": 0.20243284356503427
+    },
+    "ct_conditioned": {
+      "representation": "parallel_geometry_and_ct_historical42_landscapes",
+      "feature_count": 84,
+      "raw": {
+        "accuracy": 0.9266304347826086,
+        "balanced_accuracy": 0.9122213009028929,
+        "macro_f1": 0.9055343014398742,
+        "per_class_recall": {
+          "NONE": 0.9382716049382716,
+          "PAIR": 0.9328358208955224,
+          "JUNCTION": 0.8611111111111112,
+          "BOTH": 0.9166666666666666
+        },
+        "confusion_matrix": [
+          [
+            152,
+            7,
+            2,
+            1
+          ],
+          [
+            6,
+            125,
+            0,
+            3
+          ],
+          [
+            3,
+            0,
+            31,
+            2
+          ],
+          [
+            0,
+            0,
+            3,
+            33
+          ]
+        ],
+        "relation_class_accuracy_when_present": 0.9174757281553398,
+        "non_none_prediction_on_true_none": 0.06172839506172839
+      },
+      "tau_0_85": {
+        "accuracy": 0.9157608695652174,
+        "balanced_accuracy": 0.8831536760641238,
+        "macro_f1": 0.9005291507486415,
+        "per_class_recall": {
+          "NONE": 0.9629629629629629,
+          "PAIR": 0.9029850746268657,
+          "JUNCTION": 0.7777777777777778,
+          "BOTH": 0.8888888888888888
+        },
+        "confusion_matrix": [
+          [
+            156,
+            4,
+            2,
+            0
+          ],
+          [
+            11,
+            121,
+            0,
+            2
+          ],
+          [
+            8,
+            0,
+            28,
+            0
+          ],
+          [
+            3,
+            0,
+            1,
+            32
+          ]
+        ],
+        "relation_class_accuracy_when_present": 0.8786407766990292,
+        "non_none_prediction_on_true_none": 0.037037037037037035,
+        "confidence_coverage": 0.9184782608695652,
+        "confident_scenes": 338
+      },
+      "multiclass_log_loss": 0.22403215965681825
+    }
+  },
+  "metric_scope_warning": "Scene relation-class metrics before Graph-LIRA identity selection, perturbation consistency, and structural repair evaluation."
+}
