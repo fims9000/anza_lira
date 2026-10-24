@@ -1,0 +1,357 @@
+#!/usr/bin/env python3
+"""S7: exact-source AZConv2d vs ordinary Conv2d on generated track pixels.
+
+Only SOURCE track geometry is human-measured for --measurements. Pixel images,
+widths, noise, occlusions and target masks are SIMULATED. A success here is
+never real bubble chamber performance. Does not modify original models/.
+"""
+from __future__ import annotations
+
+import argparse
+from collections import defaultdict
+from dataclasses import asdict, dataclass
+import hashlib
+import json
+import os
+from pathlib import Path
+import random
+import sys
+import time
+
+import cv2
+import numpy as np
+import torch
+from torch import nn
+from torch.utils.data import DataLoader, Dataset
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+# Exact git blob IDs recorded against user branch cca89a3. These are source
+# fingerprints, NOT trained-weight hashes or accuracy certificates.
+SOURCE_BLOBS = {
+    'models/azconv.py': 'f4217ada00024927506fa8ebe520aa1f68ae5854',
+    'models/segmentation.py': '0b971c117f3d56cc588ebade6991c65faceb8a2a',
+}
+
+
+def blob_sha(data: bytes) -> str:
+    return hashlib.sha1(b'blob ' + str(len(data)).encode('ascii') + b'\0' + data).hexdigest()
+
+
+def verify_sources(root: Path = REPO_ROOT) -> dict[str, str]:
+    actual = {}
+    for relative, expected in SOURCE_BLOBS.items():
+        path = root / relative
+        if not path.is_file():
+            raise FileNotFoundError(f'Original source missing: {path}')
+        actual[relative] = blob_sha(path.read_bytes())
+        if actual[relative] != expected:
+            raise ValueError(f'Original model source mismatch: {relative}; expected={expected}, got={actual[relative]}')
+    return actual
+
+
+@dataclass(frozen=True)
+class RunConfig:
+    source: str = 'procedural'  # or visualmetro
+    seed: int = 20261024
+    size: int = 64
+    epochs: int = 2
+    batch_size: int = 4
+    widths: tuple[int, int, int, int] = (8, 16, 24, 32)
+    num_rules: int = 2
+    cpu_threads: int = 2
+    train_limit: int = 48
+    val_limit: int = 16
+    test_limit: int = 24
+    steps_per_epoch: int = 0  # 0 means all
+    learning_rate: float = 0.0003
+    stress_contrast: float = .25
+    stress_noise_std: float = .08
+
+
+class TrackDataset(Dataset):
+    def __init__(self, examples: list[tuple[np.ndarray, np.ndarray, str]]):
+        if not examples:
+            raise ValueError('Empty dataset')
+        self.samples = examples
+    def __len__(self):
+        return len(self.samples)
+    def __getitem__(self, index):
+        x, y, _ = self.samples[index]
+        return torch.from_numpy(x.astype(np.float32)[None]), torch.from_numpy(y.astype(np.float32)[None]), index
+    def groups(self):
+        return [g for _, _, g in self.samples]
+
+
+def procedural_examples(n: int, size: int, *, seed: int, split: str):
+    """Procedural *software smoke* control. NOT based on physical photographs."""
+    if n < 1 or size < 32 or size % 16:
+        raise ValueError('invalid synthetic dataset parameters')
+    result=[]
+    for j in range(n):
+        rng=np.random.default_rng(int.from_bytes(hashlib.sha256(f'{seed}:{split}:{j}'.encode()).digest()[:8], 'little'))
+        image=np.full((size,size),rng.uniform(185,235),dtype=np.float32)
+        image+=rng.normal(0,rng.uniform(2,8),(size,size))
+        yy,xx=np.ogrid[:size,:size]
+        image+=rng.uniform(-18,18)*xx/size+rng.uniform(-18,18)*yy/size
+        mask=np.zeros((size,size),np.uint8)
+        line_count=int(rng.integers(1,4))
+        for line in range(line_count):
+            xs=np.linspace(3,size-4,20)
+            offset=float(rng.uniform(size*.20,size*.78))
+            slope=float(rng.uniform(-.6,.6))
+            curve=float(rng.uniform(-.006,.006))
+            ys=offset+slope*(xs-size/2)+curve*(xs-size/2)**2
+            coordinates=np.round(np.stack([xs,ys],axis=1)).astype(np.int32)
+            cv2.polylines(mask,[coordinates],False,1,int(rng.integers(1,3)))
+        contrast=float(rng.uniform(40,95));image-=mask*contrast
+        for _ in range(int(rng.integers(0,4))):
+            a=(int(rng.integers(size)),int(rng.integers(size)))
+            b=(int(np.clip(a[0]+rng.integers(-10,11),0,size-1)),int(np.clip(a[1]+rng.integers(-10,11),0,size-1)))
+            cv2.line(image,a,b,color=float(rng.uniform(50,100)),thickness=1)  # distractor
+        image=cv2.GaussianBlur(image.astype(np.float32),(3,3),float(rng.uniform(.4,1)))
+        # Inverted grayscale: higher number means darker film features.
+        result.append(((255-np.clip(image,0,255))/255,mask.astype(np.float32),f'{split}:{j}'))
+    return result
+
+
+def measured_examples(root: Path, cfg: RunConfig):
+    # Deferred imports permit procedural smoke without a measured archive.
+    sys.path.insert(0, str(REPO_ROOT))
+    from bubble_chamber.large_archive import audited_large_manifest
+    from bubble_chamber.large_relation_study import frame_partition
+    from bubble_chamber.synthetic_from_clicks import SyntheticFilmConfig, frame_render_dataset
+    manifest=audited_large_manifest(root)
+    frames=[f['frame_id'] for f in manifest['frames']]
+    splits=frame_partition(frames,cfg.seed)
+    limits={'train':cfg.train_limit,'val':cfg.val_limit,'test':cfg.test_limit}
+    data={}
+    for name, frame_ids in splits.items():
+        rows=[]
+        # stop after cap; deterministic source frame order maintained
+        for im,mask,meta in frame_render_dataset(manifest,frame_ids,
+                                                 cfg=SyntheticFilmConfig(size=cfg.size,sample_seed=cfg.seed),repeats=3):
+            rows.append(((255-im).astype(np.float32)/255., mask.astype(np.float32), str(meta['source_frame'])))
+            if limits[name] and len(rows)>=limits[name]:break
+        data[name]=rows
+    for a in ('train','val','test'):
+        for b in ('train','val','test'):
+            if a<b and set(g for _,_,g in data[a]) & set(g for _,_,g in data[b]):
+                raise ValueError(f'Leaked frame between {a} and {b}')
+    return data,{'source_kind':'measured_track_shapes_synthetic_pixel_images',
+                 'audit_sha256':manifest['provenance_sha256'],'frame_split_counts':{k:len(v) for k,v in splits.items()},
+                 'film_ids':manifest['summary']['distinct_film_ids'],
+                 'real_pixel_labels':False}
+
+
+def make_datasets(cfg: RunConfig, measurements: Path | None):
+    if cfg.source=='visualmetro':
+        if measurements is None:raise ValueError('--measurements required')
+        return measured_examples(measurements,cfg)
+    if cfg.source!='procedural':raise ValueError('Unknown source')
+    d={name:procedural_examples(getattr(cfg,f'{name}_limit'),cfg.size,seed=cfg.seed,split=name)
+       for name in ('train','val','test')}
+    return d,{'source_kind':'fully_procedural_synthetic_software_smoke',
+              'film_ids':[],'real_pixel_labels':False,'frame_split_counts':{k:len(v) for k,v in d.items()}}
+
+
+def masked_loss(logits, target):
+    if logits.shape!=target.shape:raise ValueError('target shape mismatch')
+    pos=target.sum().clamp_min(1)
+    neg=(1-target).sum().clamp_min(1)
+    weight=(neg/pos).clamp(1,15)
+    bce=nn.functional.binary_cross_entropy_with_logits(logits,target,pos_weight=weight)
+    prob=logits.sigmoid()
+    dice=1-(2*(prob*target).sum()+1)/((prob+target).sum()+1)
+    return bce+dice
+
+
+def metrics_counts(pred: np.ndarray, labels: np.ndarray):
+    p=pred.astype(bool);y=labels.astype(bool)
+    return (int(np.logical_and(p,y).sum()),int(np.logical_and(p,~y).sum()),int(np.logical_and(~p,y).sum()))
+
+
+def metric_from_counts(counts):
+    tp,fp,fn=map(int,counts)
+    return {'tp':tp,'fp':fp,'fn':fn,'dice':2*tp/max(2*tp+fp+fn,1),
+            'precision':tp/max(tp+fp,1),'recall':tp/max(tp+fn,1)}
+
+
+def select_threshold(probs: np.ndarray, labels: np.ndarray):
+    valid=np.arange(.1,.901,.05)
+    scores=[metric_from_counts(metrics_counts(probs>=t,labels>=.5))['dice'] for t in valid]
+    index=int(np.argmax(scores))
+    return float(round(float(valid[index]),4))
+
+
+def apply_stress(x: torch.Tensor, indices: torch.Tensor, cfg: RunConfig):
+    result=x*cfg.stress_contrast
+    for n,idx in enumerate(indices.tolist()):
+        generator=torch.Generator(device='cpu').manual_seed(cfg.seed*37+int(idx))
+        noise=torch.randn(x[n].shape,generator=generator,dtype=x.dtype)*cfg.stress_noise_std
+        result[n]=(result[n]+noise).clamp(0,1)
+    return result
+
+
+@torch.no_grad()
+def predict_probabilities(model, data: TrackDataset, cfg: RunConfig, *, stress: bool=False, device='cpu'):
+    model.eval()
+    loader=DataLoader(data,batch_size=cfg.batch_size,shuffle=False)
+    probs=[];labels=[]
+    for x,y,idx in loader:
+        if stress:x=apply_stress(x,idx,cfg)
+        z=model(x.to(device))
+        if isinstance(z,dict):z=z['main']
+        probs.extend(z.sigmoid().cpu().numpy()[:,0])
+        labels.extend(y.numpy()[:,0])
+    return np.stack(probs),np.stack(labels)
+
+
+def paired_bootstrap(results_a,results_b,groups,*,seed:int,repeats=1000):
+    """Paired bootstrap by original frame, never by pixel/patch."""
+    pa, pb, ya = results_a[0],results_b[0],results_a[1]
+    if not np.array_equal(ya,results_b[1]):raise ValueError('Different label sets')
+    if len(groups)!=len(ya):raise ValueError('Missing group provenance')
+    unique=sorted(set(groups));rng=np.random.default_rng(seed)
+    idx_per_group={g:np.asarray([i for i,x in enumerate(groups) if x==g],int) for g in unique}
+    def score(probs,indices):
+        return metric_from_counts(metrics_counts(probs[indices],ya[indices]))['dice']
+    ds=[]
+    for _ in range(repeats):
+        chosen=rng.choice(unique,size=len(unique),replace=True)
+        inds=np.concatenate([idx_per_group[g] for g in chosen]);ds.append(score(pa,inds)-score(pb,inds))
+    return {'mean_delta_dice':float(np.mean(ds)),'ci95':[float(v) for v in np.quantile(ds,[.025,.975])],
+            'bootstrap_unit':'source_frame','unique_groups':len(unique),'bootstrap_repeats':repeats}
+
+
+def build_models(cfg:RunConfig):
+    # Imports strictly AFTER original source integrity gate.
+    from models.segmentation import AZUNet, BaselineUNet
+    from models.azconv import AZConvConfig
+    az=AZUNet(in_channels=1,out_channels=1, num_rules=cfg.num_rules, widths=cfg.widths,
+              cfg=AZConvConfig(geometry_mode='local_hyperbolic',use_fuzzy=True,use_anisotropy=True,learn_directions=True))
+    base=BaselineUNet(in_channels=1,out_channels=1,widths=cfg.widths)
+    return {'plain_unet':base,'original_azunet':az}
+
+
+def save_atomic(path:Path,payload):
+    tmp=path.with_suffix('.tmp')
+    torch.save(payload,tmp)
+    tmp.replace(path)
+
+
+def train_one(name,model,sets,cfg:RunConfig,outdir:Path,*,device='cpu'):
+    name_dir=outdir/name;name_dir.mkdir(parents=True,exist_ok=True)
+    model=model.to(device)
+    optimizer=torch.optim.AdamW(model.parameters(),lr=cfg.learning_rate,weight_decay=.0001)
+    best=float('inf');best_epoch=None;history=[]
+    train=TrackDataset(sets['train']);valid=TrackDataset(sets['val']);test=TrackDataset(sets['test'])
+    started=time.monotonic()
+    for ep in range(cfg.epochs):
+        model.train();losses=[]
+        loader=DataLoader(train,batch_size=cfg.batch_size,shuffle=True,generator=torch.Generator().manual_seed(cfg.seed+ep))
+        for step,(x,y,_) in enumerate(loader):
+            if cfg.steps_per_epoch and step>=cfg.steps_per_epoch:break
+            optimizer.zero_grad(set_to_none=True)
+            loss=masked_loss(model(x.to(device)),y.to(device))
+            if not torch.isfinite(loss):raise RuntimeError(f'{name}: non-finite loss at epoch {ep} step {step}')
+            loss.backward()
+            nn.utils.clip_grad_norm_(model.parameters(),1.0)
+            optimizer.step();losses.append(float(loss.detach().cpu()))
+        model.eval();val_losses=[]
+        with torch.no_grad():
+            for x,y,_ in DataLoader(valid,batch_size=cfg.batch_size):
+                loss=masked_loss(model(x.to(device)),y.to(device));val_losses.append(float(loss.detach().cpu()))
+        val_loss=float(np.mean(val_losses))
+        history.append({'epoch':ep,'train_loss':float(np.mean(losses)),'val_loss':val_loss})
+        state={k:v.detach().cpu().clone() for k,v in model.state_dict().items()}
+        payload={'model':name,'epoch':ep,'state_dict':state,'optimizer':optimizer.state_dict(),
+                 'history':history,'config':asdict(cfg),'source_blobs':SOURCE_BLOBS,
+                 'synthetic_labels_only':True}
+        save_atomic(name_dir/'last.pt',payload)
+        if val_loss<best:
+            best=val_loss;best_epoch=ep
+            save_atomic(name_dir/'best.pt',payload)
+        print(f'S7 {name} epoch {ep+1}/{cfg.epochs} train={np.mean(losses):.4f} val={val_loss:.4f}',flush=True)
+    best_payload=torch.load(name_dir/'best.pt',map_location='cpu',weights_only=False)
+    model.load_state_dict(best_payload['state_dict']);model=model.to(device)
+    pv,yv=predict_probabilities(model,valid,cfg,device=device)
+    threshold=select_threshold(pv,yv)
+    pt,yt=predict_probabilities(model,test,cfg,device=device)
+    ps,ys=predict_probabilities(model,test,cfg,stress=True,device=device)
+    assert np.array_equal(yt,ys)
+    clean=metric_from_counts(metrics_counts(pt>=threshold,yt>=.5))
+    stress=metric_from_counts(metrics_counts(ps>=threshold,ys>=.5))
+    save_atomic(name_dir/'best_final.pt',{**best_payload,'validation_selected_threshold':threshold,
+                                          'clean_test':clean,'stress_test':stress})
+    result={'trained_epochs':cfg.epochs,'best_epoch':best_epoch,'parameters':sum(p.numel() for p in model.parameters()),
+            'test_clean':clean,'test_stress':stress,'selected_validation_threshold':threshold,
+            'elapsed_seconds':round(time.monotonic()-started,3),
+            'checkpoint':'best_final.pt','history':history}
+    (name_dir/'metrics.json').write_text(json.dumps(result,indent=2)+'\n')
+    return result,(pt>=threshold,yt),(ps>=threshold,ys)
+
+
+def run(cfg:RunConfig,*,measurements:Path|None,out_dir:Path):
+    verify_sources(REPO_ROOT)
+    if cfg.size<32 or cfg.size%16 or cfg.batch_size<1 or cfg.epochs<1:
+        raise ValueError('Invalid run size/epochs/batch')
+    out_dir.mkdir(parents=True,exist_ok=True)
+    torch.set_num_threads(cfg.cpu_threads)
+    random.seed(cfg.seed);np.random.seed(cfg.seed);torch.manual_seed(cfg.seed)
+    sets,source=make_datasets(cfg,measurements)
+    source['synthetic_masks_only']=True
+    # Preserve generated dataset hashes before model training, exclude pixel arrays from reports.
+    for split,rows in sets.items():
+        src=hashlib.sha256()
+        for x,y,g in rows:
+            src.update(x.tobytes());src.update(y.tobytes());src.update(g.encode())
+        source[f'{split}_examples']={'n':len(rows),'sha256':src.hexdigest(),'frames':len(set(g for _,_,g in rows))}
+    (out_dir/'dataset_manifest.json').write_text(json.dumps(source,indent=2)+'\n')
+    models=build_models(cfg)
+    results={};predictions={}
+    for name,m in models.items():
+        torch.manual_seed(cfg.seed)
+        result,clean,stress=train_one(name,m,sets,cfg,out_dir)
+        results[name]=result;predictions[name]={'clean':clean,'stress':stress}
+    paired={}
+    groups=TrackDataset(sets['test']).groups()
+    for condition in ('clean','stress'):
+        a=predictions['original_azunet'][condition]
+        b=predictions['plain_unet'][condition]
+        paired[condition]=paired_bootstrap(a,b,groups,seed=cfg.seed+233)
+    report={'experiment':'S7_ORIGINAL_LOCKED_AZUNET_VS_UNET','original_source_git_blobs':SOURCE_BLOBS,
+            'source_data':source,'config':asdict(cfg),'results':results,'paired':paired,
+            'scientific_claim':'synthetic pixels generated from measured geometry only; not real film superiority',
+            'source_port_parity':'UNVERIFIED: no retained S6 local port/checkpoint to compare',
+            'film_holdout':False if cfg.source=='visualmetro' else None}
+    (out_dir/'metrics.json').write_text(json.dumps(report,indent=2)+'\n')
+    return report
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--source',choices=['procedural','visualmetro'],default='procedural')
+    parser.add_argument('--measurements',type=Path)
+    parser.add_argument('--out-dir',type=Path,required=True)
+    parser.add_argument('--epochs',type=int,default=2)
+    parser.add_argument('--batch-size',type=int,default=4)
+    parser.add_argument('--size',type=int,default=64)
+    parser.add_argument('--seed',type=int,default=20261024)
+    parser.add_argument('--widths',type=int,nargs=4,default=[8,16,24,32])
+    parser.add_argument('--rules',type=int,default=2)
+    parser.add_argument('--train-limit',type=int,default=48)
+    parser.add_argument('--val-limit',type=int,default=16)
+    parser.add_argument('--test-limit',type=int,default=24)
+    parser.add_argument('--steps-per-epoch',type=int,default=0)
+    parser.add_argument('--cpu-threads',type=int,default=2)
+    args=parser.parse_args()
+    cfg=RunConfig(source=args.source,seed=args.seed,size=args.size,epochs=args.epochs,batch_size=args.batch_size,
+                  widths=tuple(args.widths),num_rules=args.rules,train_limit=args.train_limit,val_limit=args.val_limit,
+                  test_limit=args.test_limit,steps_per_epoch=args.steps_per_epoch,cpu_threads=args.cpu_threads)
+    report=run(cfg,measurements=args.measurements,out_dir=args.out_dir)
+    print(json.dumps({'status':'S7_COMPLETE_SYNTHETIC_ONLY','clean_delta':report['paired']['clean'],
+                      'stress_delta':report['paired']['stress']},indent=2),flush=True)
+
+if __name__=='__main__':main()

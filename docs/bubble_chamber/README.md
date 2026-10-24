@@ -79,3 +79,7 @@ The new `synthetic_from_clicks.py` builds explicitly artificial film-like masks 
 ## S6 preliminary neural segmentation
 
 See [S6 synthetic model comparison](S6_SYNTHETIC_NEURAL_RESULT.md). A local port of AZ local_hyperbolic lost to U-Net on normal generated images but was more robust under one **artificial** low-contrast/noise stress. These results are not real-film superiority evidence and must be reproduced using untouched original model modules.
+
+## S7 original-model reproducibility
+
+[Source-locked original AZUNet versus U-Net](S7_SOURCE_LOCKED_REPRODUCTION.md): exact Git blob checks, validation-only thresholding and checkpoints; automated GitHub Actions CPU smoke for procedural images. No real-film superiority established.

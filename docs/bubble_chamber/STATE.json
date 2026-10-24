@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S6_SYNTHETIC_NEURAL_CROSSOVER_EXPLORATORY_NOT_REAL_VALIDATION",
+  "status": "S7_ORIGINAL_AZCONV_SOURCE_LOCKED_RUNNER_AND_CI_ADDED_AWAITING_ORIGINAL_TRAINING_EVIDENCE",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Re-run S6 training with untouched original models/azconv.py in full repo, verify source/forward equivalence; collect human-confirmed real H50Z pixel masks for an independent test; do not promote synthetic stress advantage to physical-camera claim.",
+  "next_executable_action": "Observe and inspect Github Actions source-locked smoke if enabled; run full S7 `--source visualmetro` with user 1mH2Data/S1 on an environment with original model source, save full weights, metric JSON and multi-seed comparisons; require independent real pixel masks for physical-camera performance claims.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -181,5 +181,19 @@
     "models_trained_on_synthetic": true,
     "whole_frame_holdout": true,
     "reproduce": "scripts/research/bubble_chamber/reproduce_s6.sh"
+  },
+  "S7": {
+    "date": "2026-10-24",
+    "branch": "research/bubble-chamber-graph-lira",
+    "checkpoint_strategy": "last.pt every epoch; best.pt from validation; best_final.pt with val threshold",
+    "source_git_blobs": {
+      "models/azconv.py": "f4217ada00024927506fa8ebe520aa1f68ae5854",
+      "models/segmentation.py": "0b971c117f3d56cc588ebade6991c65faceb8a2a"
+    },
+    "locally_verified_tests": 6,
+    "ci_workflow": ".github/workflows/s7_bubble_original_smoke.yml",
+    "local_full_original_training": false,
+    "synthetic_pretraining_only": true,
+    "exact_s6_port_parity": "not testable; S6 port/checkpoint not retained"
   }
 }
