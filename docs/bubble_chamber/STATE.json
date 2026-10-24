@@ -3,10 +3,10 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S1_SYNTHETIC_GRAPH_PAIR_NONE_SAFE_ABSTENTION_PROBED_NO_REAL_AUTO_LINKS",
+  "status": "REAL_DATA_KEYPOINT_ONLY_H50Z_AND_SPARSE_FILM070_NO_DENSE_TRACK_MASKS",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
-    "python_tests_passed": 48,
+    "python_tests_passed": 65,
     "local_real_image_candidates": 17,
     "automatic_merges": 0,
     "html_export_created": true,
@@ -45,15 +45,25 @@
     "S1_test_local_fp": 1,
     "S1_test_global_tp": 38,
     "S1_test_global_fp": 0,
-    "S1_real_auto_merges": 0
+    "S1_real_auto_merges": 0,
+    "h50z_source_bmp_count": 2,
+    "h50z_labels_json_frame_count": 105,
+    "h50z_keypoints_all_frames": 1407,
+    "h50z_visible_start_points": 9,
+    "h50z_full_resolution_keypoint_tiles": 11,
+    "film_070_track_count": 42,
+    "film_070_stereo_measurement_count": 1860,
+    "film_070_independent_film_count": 1
   },
   "data": {
     "archive_image": "unlabeled single real image action.jpg; locally present; not committed",
     "public_qualitative": "two source URLs verified; download blocked by sandbox DNS",
     "stereo_triplets": "not available",
-    "expert_pair_labels": "not available"
+    "expert_pair_labels": "not available",
+    "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
+    "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "No real-image expert labels or 3-view calibration provided. Get run-grouped H2/C3H8 photo triplets and exact visualMetro measurements; then test image-conditioned relation and physics-veto without reusing synthetic thresholds.",
+  "next_executable_action": "Acquire matched view 1/2/3 lossless BMP crops for 070_008 with original pixel offsets, then collect expert continuous track masks and train compared ANZA vs U-Net vs Frangi under run-disjoint splits.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -63,6 +73,10 @@
     "P3 triplet runner has no actual measured three-view acquisition and no stereo matching",
     "P3 curation only connects explicit reviewed fragment identities; no human labels are available for real archive photo",
     "S1 uses perfect synthetic input fragments and is not a real photographic pipeline result",
-    "Observed 0/120 synthetic test false links is not evidence of real detector risk under 2%"
+    "Observed 0/120 synthetic test false links is not evidence of real detector risk under 2%",
+    "H50Z labels.json annotates f1..f8 and start keypoints, not a dense track mask or all visible particle traces",
+    "Film 070 manual track coordinates cannot be paired to H50Z BMPs by filename/position alone",
+    "H50Z contains two of 105 annotated named images; the other 103 are not available",
+    "No independent film/run-disjoint supervised segmentation evaluation yet"
   ]
 }
