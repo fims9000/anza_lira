@@ -111,3 +111,7 @@ See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay v
 ## S11–S12 topology and direct tangent supervision
 
 [Original ANZA experiments and ablations](S11_S12_EVALUATION_2026_10_24.md): real visualMetro geometries with synthetic pixel renderings, 3 independent model initializations, unchanged original AZConv and U-Net source. Heavy clDice harms quality; direct tangent orientation yields a **small clean synthetic Dice gain**, not stable under stress. A safety-gated 2D polynomial fit reports image-pixel coefficients/endpoints and abstains on fragmented tracks; no physical 3D reconstruction or real-film accuracy established.
+
+## S13 gated AZConv guidance (negative result)
+
+[Controlled S13 report](S13_GUIDED_AZ_EVALUATION.md): three-seed original-AZConv-guided U-Net vs regular-conv-guided U-Net, plain U-Net and pure AZUNet on fixed expert-measured track geometries with generated image pixels. No statistically supported AZ-specific gain and no real-camera pixel masks. Do not promote this branch to automated physical reconstruction.

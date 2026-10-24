@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S12_ORIGINAL_AZCONV_DIRECT_TANGENT_SMALL_SYNTHETIC_GAIN_NOT_NOISE_ROBUST",
+  "status": "S13_GUIDED_AZ_NO_INCREMENTAL_GAIN_SYNTHETIC_ONLY",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Evaluate S13 gated AZConv-derived image prior against matched standard Conv guidance and unchanged U-Net on fixed expert-click-generated images. Require real expert dense track masks and independent films before claims of actual bubble-film benefit.",
+  "next_executable_action": "Prioritize LIRA topology/instance-level gap reconstruction with non-automatic safety-gated merges, evaluated on expert-verified real-photo track masks and multiple source films when available; benchmark against ordinary U-Net and Frangi. Do not claim real-photo gain from generated-pixel geometry experiments.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -321,5 +321,36 @@
     },
     "conditional_on_one_film": true,
     "physical_three_view_reconstruction": false
+  },
+  "S13": {
+    "date": "2026-10-24",
+    "data_seed": 20261031,
+    "model_seeds": [
+      20261024,
+      20261025,
+      20261026
+    ],
+    "training_examples": 120,
+    "validation_examples": 26,
+    "test_frames": 25,
+    "study": "Original AZConv small gated prior to matched U-Net vs same-width ordinary Conv guided branch",
+    "clean_dice_mean": {
+      "unet_base": 0.7509,
+      "conv_guided": 0.7125,
+      "az_guided": 0.7083,
+      "az_pure": 0.7535
+    },
+    "stress_dice_mean": {
+      "unet_base": 0.5352,
+      "conv_guided": 0.5269,
+      "az_guided": 0.534,
+      "az_pure": 0.4992
+    },
+    "az_guided_minus_conv_clean_paired": -0.00451,
+    "az_guided_minus_conv_stress_paired": -0.00072,
+    "original_models_modified": false,
+    "independent_film_test": false,
+    "real_dense_pixel_masks": false,
+    "decision": "No stable AZ-specific improvement; do not adopt shallow guided branch"
   }
 }
