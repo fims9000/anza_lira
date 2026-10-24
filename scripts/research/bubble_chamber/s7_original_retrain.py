@@ -68,6 +68,12 @@ class RunConfig:
     learning_rate: float = 0.0003
     stress_contrast: float = .25
     stress_noise_std: float = .08
+    az_residual: bool = False
+    robust_train: bool = False
+    robust_probability: float = 0.8
+    robust_scale_min: float = 0.15
+    robust_scale_max: float = 1.0
+    robust_noise_max: float = 0.08
 
 
 class TrackDataset(Dataset):
@@ -129,11 +135,20 @@ def measured_examples(root: Path, cfg: RunConfig):
     data={}
     for name, frame_ids in splits.items():
         rows=[]
-        # stop after cap; deterministic source frame order maintained
+        cap=limits[name]
+        # The renderer yields many contiguous examples per frame. Limit frame
+        # contributions BEFORE the global cap to prevent first-frame test bias.
+        per_frame_cap=max(1, int(np.ceil(cap / len(frame_ids)))) if cap else 0
+        seen_per_frame={}
         for im,mask,meta in frame_render_dataset(manifest,frame_ids,
                                                  cfg=SyntheticFilmConfig(size=cfg.size,sample_seed=cfg.seed),repeats=3):
-            rows.append(((255-im).astype(np.float32)/255., mask.astype(np.float32), str(meta['source_frame'])))
-            if limits[name] and len(rows)>=limits[name]:break
+            source_frame=str(meta['source_frame'])
+            used=seen_per_frame.get(source_frame,0)
+            if cap and used >= per_frame_cap:continue
+            seen_per_frame[source_frame]=used+1
+            rows.append(((255-im).astype(np.float32)/255., mask.astype(np.float32), source_frame))
+            if cap and len(rows)>=cap:break
+        if not rows:raise ValueError(f'No eligible examples in {name} split')
         data[name]=rows
     for a in ('train','val','test'):
         for b in ('train','val','test'):
@@ -194,6 +209,36 @@ def apply_stress(x: torch.Tensor, indices: torch.Tensor, cfg: RunConfig):
     return result
 
 
+def robust_augment(x: torch.Tensor, indices: torch.Tensor, cfg: RunConfig, epoch: int) -> torch.Tensor:
+    """Deterministic train-only contrast/noise; same image, epoch, seed for both models."""
+    if not 0.0 <= cfg.robust_probability <= 1.0 or not (0 < cfg.robust_scale_min <= cfg.robust_scale_max <= 1) or cfg.robust_noise_max < 0:
+        raise ValueError('Invalid robust augmentation parameters')
+    if x.shape[0] != len(indices):raise ValueError('batch/index mismatch')
+    result=x.clone()
+    for n,index in enumerate(indices.tolist()):
+        g=torch.Generator(device='cpu').manual_seed(int(cfg.seed)*100007+int(epoch)*4099+int(index)*13)
+        if float(torch.rand((),generator=g)) >= cfg.robust_probability:continue
+        scale=cfg.robust_scale_min+(cfg.robust_scale_max-cfg.robust_scale_min)*float(torch.rand((),generator=g))
+        sigma=cfg.robust_noise_max*float(torch.rand((),generator=g))
+        noise=torch.randn(result[n].shape,generator=g,dtype=result.dtype)*sigma
+        result[n]=(result[n]*scale+noise).clamp(0,1)
+    return result
+
+
+def robust_validation_threshold(clean_prob: np.ndarray, stressed_prob: np.ndarray, labels: np.ndarray) -> float:
+    """Use validation ONLY for the common clean/stress threshold."""
+    if clean_prob.shape!=stressed_prob.shape or clean_prob.shape!=labels.shape:
+        raise ValueError('Validation arrays must agree')
+    candidates=np.arange(0.05,0.951,0.05)
+    best=None
+    for t in candidates:
+        normal=metric_from_counts(metrics_counts(clean_prob>=t,labels>=.5))['dice']
+        stress=metric_from_counts(metrics_counts(stressed_prob>=t,labels>=.5))['dice']
+        key=(min(normal,stress),0.5*(normal+stress),-abs(float(t)-0.5))
+        if best is None or key>best[0]:best=(key,float(t))
+    return float(round(best[1],4))
+
+
 @torch.no_grad()
 def predict_probabilities(model, data: TrackDataset, cfg: RunConfig, *, stress: bool=False, device='cpu'):
     model.eval()
@@ -231,7 +276,8 @@ def build_models(cfg:RunConfig):
     from models.azconv import AZConvConfig
     torch.manual_seed(cfg.seed)  # independent, reproducible model initialization
     az=AZUNet(in_channels=1,out_channels=1, num_rules=cfg.num_rules, widths=cfg.widths,
-              cfg=AZConvConfig(geometry_mode='local_hyperbolic',use_fuzzy=True,use_anisotropy=True,learn_directions=True))
+              cfg=AZConvConfig(geometry_mode='local_hyperbolic',use_fuzzy=True,use_anisotropy=True,learn_directions=True,
+                               use_input_residual=cfg.az_residual,residual_init=0.5 if cfg.az_residual else 0.0))
     torch.manual_seed(cfg.seed)
     base=BaselineUNet(in_channels=1,out_channels=1,widths=cfg.widths)
     return {'plain_unet':base,'original_azunet':az}
@@ -302,8 +348,9 @@ def train_one(name, model, sets, cfg:RunConfig, outdir:Path, *, device='cpu',
         model.train();losses=[]
         loader=DataLoader(train,batch_size=cfg.batch_size,shuffle=True,
                           generator=torch.Generator().manual_seed(cfg.seed+ep))
-        for step,(x,y,_) in enumerate(loader):
+        for step,(x,y,idx) in enumerate(loader):
             if cfg.steps_per_epoch and step>=cfg.steps_per_epoch:break
+            if cfg.robust_train:x=robust_augment(x,idx,cfg,ep)
             optimizer.zero_grad(set_to_none=True)
             loss=masked_loss(model(x.to(device)),y.to(device))
             if not torch.isfinite(loss):raise RuntimeError(f'{name}: non-finite loss at epoch {ep} step {step}')
@@ -332,7 +379,11 @@ def train_one(name, model, sets, cfg:RunConfig, outdir:Path, *, device='cpu',
     best_payload=torch.load(name_dir/'best.pt',map_location='cpu',weights_only=False)
     model.load_state_dict(best_payload['state_dict']);model=model.to(device)
     pv,yv=predict_probabilities(model,valid,cfg,device=device)
-    threshold=select_threshold(pv,yv)
+    if cfg.robust_train:
+        pv_stress,yv_stress=predict_probabilities(model,valid,cfg,stress=True,device=device)
+        if not np.array_equal(yv,yv_stress):raise ValueError('Validation target mismatch')
+        threshold=robust_validation_threshold(pv,pv_stress,yv)
+    else:threshold=select_threshold(pv,yv)
     pt,yt=predict_probabilities(model,test,cfg,device=device)
     ps,ys=predict_probabilities(model,test,cfg,stress=True,device=device)
     assert np.array_equal(yt,ys)
@@ -413,10 +464,19 @@ def main():
     parser.add_argument('--steps-per-epoch',type=int,default=0)
     parser.add_argument('--cpu-threads',type=int,default=2)
     parser.add_argument('--resume',action='store_true',help='Continue with matching last.pt and best.pt checkpoints')
+    parser.add_argument('--az-residual',action='store_true',help='Use original AZConvConfig residual branch')
+    parser.add_argument('--robust-train',action='store_true',help='Deterministic train-only contrast/noise and robust validation threshold')
+    parser.add_argument('--robust-probability',type=float,default=0.8)
+    parser.add_argument('--robust-scale-min',type=float,default=0.15)
+    parser.add_argument('--robust-scale-max',type=float,default=1.0)
+    parser.add_argument('--robust-noise-max',type=float,default=0.08)
     args=parser.parse_args()
     cfg=RunConfig(source=args.source,seed=args.seed,size=args.size,epochs=args.epochs,batch_size=args.batch_size,
                   widths=tuple(args.widths),num_rules=args.rules,train_limit=args.train_limit,val_limit=args.val_limit,
-                  test_limit=args.test_limit,steps_per_epoch=args.steps_per_epoch,cpu_threads=args.cpu_threads)
+                  test_limit=args.test_limit,steps_per_epoch=args.steps_per_epoch,cpu_threads=args.cpu_threads,
+                  az_residual=args.az_residual,robust_train=args.robust_train,
+                  robust_probability=args.robust_probability,robust_scale_min=args.robust_scale_min,
+                  robust_scale_max=args.robust_scale_max,robust_noise_max=args.robust_noise_max)
     report=run(cfg,measurements=args.measurements,out_dir=args.out_dir,resume=args.resume)
     print(json.dumps({'status':'S7_COMPLETE_SYNTHETIC_ONLY','clean_delta':report['paired']['clean'],
                       'stress_delta':report['paired']['stress']},indent=2),flush=True)

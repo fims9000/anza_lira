@@ -24,7 +24,7 @@ jobs:
       - name: Install minimal dependencies
         run: python -m pip install torch numpy opencv-python-headless scipy scikit-image pytest
       - name: Unit contracts
-        run: python -m pytest -q tests/test_s7_original_retrain.py tests/test_bubble_neural_metrics.py
+        run: python -m pytest -q tests/test_s7_original_retrain.py tests/test_bubble_neural_metrics.py tests/test_s9_robust_training.py
       - name: Train exact-source models on controlled procedural smoke
         run: |
           python scripts/research/bubble_chamber/s7_original_retrain.py \
@@ -48,5 +48,6 @@ jobs:
             results/bubble_chamber/s7_ci/
             models/azconv.py
             models/segmentation.py
+            scripts/research/bubble_chamber/s7_original_retrain.py
           if-no-files-found: warn
           retention-days: 14

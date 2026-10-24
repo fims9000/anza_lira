@@ -87,3 +87,7 @@ See [S6 synthetic model comparison](S6_SYNTHETIC_NEURAL_RESULT.md). A local port
 ## S8 resumed checkpoints and topology
 
 [S8 reproducible training and topology](S8_RESUME_AND_TOPOLOGY.md): train/resume with frozen data fingerprints, validation-only threshold and track-continuity assessment; no real-film pixel performance claim.
+
+## S9 original-model study on real-click-derived synthetic images
+
+[Report](S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md) and [three-seed results](s9_multiseed_metrics.json). The original AZConv kernel remains unchanged; residual AZ and robust contrast/noise training show mixed outcomes. **No stable ANZA advantage over standard U-Net or reliable real-film pixel accuracy is established.**

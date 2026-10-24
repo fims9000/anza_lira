@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S8_RESUME_CHECKSUM_TOPOLOGY_TOOLS_COMMITTED_ORIGINAL_TRAINING_AWAITING",
+  "status": "S9_REAL_MEASURED_GEOMETRY_SYNTHETIC_NEURAL_ABLATIONS_COMPLETE_NO_STABLE_SUPERIORITY",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Run source-locked original AZConv and BaselineUNet with measured geometry, retain ckpts; inspect GitHub Actions run; compare results on held-out groups and obtain expert film pixel masks.",
+  "next_executable_action": "Obtain expert-traced H50Z full pixel masks and paired original 070 BMPs for independent-film testing. Existing S9 results cannot ground a real-film advantage.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -205,5 +205,26 @@
       "clDice and topology evaluation"
     ],
     "original_model_full_training_completed": false
+  },
+  "S9": {
+    "date": "2026-10-24",
+    "branch": "research/bubble-chamber-graph-lira",
+    "experiment": "Three seed (20261024/25/26) 8 epoch original source AZUNet versus conventional U-Net and Frangi",
+    "train_examples_per_seed": 120,
+    "val_examples_per_seed": 26,
+    "test_examples_per_seed": 25,
+    "source_test_groups": 25,
+    "frame_disjoint": true,
+    "film_run_holdout": false,
+    "real_pixel_ground_truth": false,
+    "robust_training": true,
+    "az_residual_mode": true,
+    "exact_source_blobs": {
+      "azconv": "f4217ada00024927506fa8ebe520aa1f68ae5854",
+      "segmentation": "0b971c117f3d56cc588ebade6991c65faceb8a2a"
+    },
+    "focused_tests_locally_passed": 19,
+    "conclusion": "ANZA did not show stable superiority across seeds; 1 positive and 2 negative stress deltas",
+    "real_h50z": "qualitative only"
   }
 }

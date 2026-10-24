@@ -1,0 +1,64 @@
+{
+  "experiment": "S9_ORIGINAL_AZCONV_THREE_SEEDS",
+  "data_origin": "visualMetro film070 measured 2D clicks, simulated pixels",
+  "no_real_pixel_ground_truth": true,
+  "train_examples": 120,
+  "val_examples": 26,
+  "test_examples": 25,
+  "train_frames": 60,
+  "val_frames": 26,
+  "test_frames": 25,
+  "epochs": 8,
+  "seeds": [
+    20261024,
+    20261025,
+    20261026
+  ],
+  "models": [
+    "BaselineUNet",
+    "AZUNet original with built-in input residual",
+    "Frangi"
+  ],
+  "per_seed": [
+    {
+      "seed": 20261024,
+      "clean": {
+        "unet": 0.6644748226,
+        "az": 0.6267,
+        "frangi": 0.8266881461
+      },
+      "stress": {
+        "unet": 0.4272283708,
+        "az": 0.4218,
+        "frangi": 0.1180758017
+      }
+    },
+    {
+      "seed": 20261025,
+      "clean": {
+        "unet": 0.404664784,
+        "az": 0.6810359231,
+        "frangi": 0.8839160839
+      },
+      "stress": {
+        "unet": 0.3306833817,
+        "az": 0.5289765721,
+        "frangi": 0.1377274288
+      }
+    },
+    {
+      "seed": 20261026,
+      "clean": {
+        "unet": 0.7953,
+        "az": 0.5893,
+        "frangi": 0.7875632683
+      },
+      "stress": {
+        "unet": 0.5151,
+        "az": 0.4346,
+        "frangi": 0.128100471
+      }
+    }
+  ],
+  "result": "No stable AZ superiority, real-film accuracy unvalidated"
+}
