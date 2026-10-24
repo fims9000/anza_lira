@@ -83,3 +83,7 @@ See [S6 synthetic model comparison](S6_SYNTHETIC_NEURAL_RESULT.md). A local port
 ## S7 original-model reproducibility
 
 [Source-locked original AZUNet versus U-Net](S7_SOURCE_LOCKED_REPRODUCTION.md): exact Git blob checks, validation-only thresholding and checkpoints; automated GitHub Actions CPU smoke for procedural images. No real-film superiority established.
+
+## S8 resumed checkpoints and topology
+
+[S8 reproducible training and topology](S8_RESUME_AND_TOPOLOGY.md): train/resume with frozen data fingerprints, validation-only threshold and track-continuity assessment; no real-film pixel performance claim.

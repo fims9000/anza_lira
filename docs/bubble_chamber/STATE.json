@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S7_ORIGINAL_AZCONV_SOURCE_LOCKED_RUNNER_AND_CI_ADDED_AWAITING_ORIGINAL_TRAINING_EVIDENCE",
+  "status": "S8_RESUME_CHECKSUM_TOPOLOGY_TOOLS_COMMITTED_ORIGINAL_TRAINING_AWAITING",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Observe and inspect Github Actions source-locked smoke if enabled; run full S7 `--source visualmetro` with user 1mH2Data/S1 on an environment with original model source, save full weights, metric JSON and multi-seed comparisons; require independent real pixel masks for physical-camera performance claims.",
+  "next_executable_action": "Run source-locked original AZConv and BaselineUNet with measured geometry, retain ckpts; inspect GitHub Actions run; compare results on held-out groups and obtain expert film pixel masks.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -195,5 +195,15 @@
     "local_full_original_training": false,
     "synthetic_pretraining_only": true,
     "exact_s6_port_parity": "not testable; S6 port/checkpoint not retained"
+  },
+  "S8": {
+    "local_focused_tests": 14,
+    "result": "passed 2026-10-24",
+    "features": [
+      "resume weights + optimizer + rng",
+      "split-data fingerprint validation",
+      "clDice and topology evaluation"
+    ],
+    "original_model_full_training_completed": false
   }
 }

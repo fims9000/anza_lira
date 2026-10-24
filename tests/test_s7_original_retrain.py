@@ -91,3 +91,82 @@ def test_no_original_source_refuses_training(tmp_path, monkeypatch):
     monkeypatch.setattr(s7,'REPO_ROOT',tmp_path)
     with pytest.raises(FileNotFoundError):
         s7.run(s7.RunConfig(size=32,epochs=1),measurements=None,out_dir=tmp_path/'out')
+
+
+def test_split_fingerprints_detect_label_changes():
+    cfg = s7.RunConfig(size=32, train_limit=4, val_limit=3, test_limit=3)
+    sets = {split:s7.procedural_examples(getattr(cfg,f'{split}_limit'),32,seed=cfg.seed,split=split)
+            for split in ('train','val','test')}
+    d1=s7.split_fingerprints(sets)
+    d2=s7.split_fingerprints(sets)
+    assert d1==d2
+    changed={k:list(v) for k,v in sets.items()}
+    x,y,group=changed['train'][0]
+    y2=y.copy(); y2[0,0]=1-y2[0,0]
+    changed['train'][0]=(x,y2,group)
+    assert s7.split_fingerprints(changed)['train']['sha256']!=d1['train']['sha256']
+    assert s7.split_fingerprints(changed)['val']['sha256']==d1['val']['sha256']
+
+
+def test_resume_bitwise_matches_fresh_two_epoch_run(tmp_path):
+    import dataclasses
+    cfg=s7.RunConfig(size=32,epochs=2,batch_size=2,train_limit=8,val_limit=3,
+                     test_limit=4,steps_per_epoch=3,cpu_threads=2)
+    sets={k:s7.procedural_examples(getattr(cfg,f'{k}_limit'),32,seed=cfg.seed,split=k)
+          for k in ('train','val','test')}
+    def model():
+        torch.manual_seed(11)
+        return torch.nn.Conv2d(1,1,3,padding=1)
+    fresh,_,_=s7.train_one('toy',model(),sets,cfg,tmp_path/'fresh')
+    one=dataclasses.replace(cfg,epochs=1)
+    s7.train_one('toy',model(),sets,one,tmp_path/'resumed')
+    resumed,_,_=s7.train_one('toy',model(),sets,cfg,tmp_path/'resumed',resume=True)
+    assert resumed['resumed_from_epoch']==1
+    assert fresh['history']==resumed['history']
+    for f in ('last.pt','best.pt'):
+        a=torch.load(tmp_path/'fresh'/'toy'/f,weights_only=False)
+        b=torch.load(tmp_path/'resumed'/'toy'/f,weights_only=False)
+        assert a['epoch']==b['epoch']
+        assert a['data_fingerprints']==b['data_fingerprints']
+        for k in a['state_dict']:
+            assert torch.equal(a['state_dict'][k],b['state_dict'][k])
+
+
+def test_resume_refuses_changed_dataset_and_learning_rate(tmp_path):
+    import dataclasses
+    cfg=s7.RunConfig(size=32,epochs=1,batch_size=2,train_limit=4,val_limit=2,test_limit=3)
+    sets={k:s7.procedural_examples(getattr(cfg,f'{k}_limit'),32,seed=cfg.seed,split=k)
+          for k in ('train','val','test')}
+    model=lambda:torch.nn.Conv2d(1,1,3,padding=1)
+    s7.train_one('toy',model(),sets,cfg,tmp_path)
+    cfg_extended=dataclasses.replace(cfg,epochs=2)
+    corrupted={k:list(v) for k,v in sets.items()}
+    x,y,g=corrupted['test'][0];corrupted['test'][0]=(x,y,g+'_unexpected_source')
+    with pytest.raises(ValueError,match='data changed'):
+        s7.train_one('toy',model(),corrupted,cfg_extended,tmp_path,resume=True)
+    with pytest.raises(ValueError,match='configuration changed'):
+        s7.train_one('toy',model(),sets,dataclasses.replace(cfg_extended,learning_rate=.002),tmp_path,resume=True)
+    with pytest.raises(FileNotFoundError,match='cannot resume'):
+        s7.train_one('not_created',model(),sets,cfg_extended,tmp_path,resume=True)
+
+
+def test_full_runner_with_injected_toy_exercises_all_outputs(tmp_path,monkeypatch):
+    """Execution-contract smoke only, NOT a test of original AZConv network."""
+    def toy_models(cfg):
+        torch.manual_seed(cfg.seed)
+        a=torch.nn.Conv2d(1,1,3,padding=1)
+        torch.manual_seed(cfg.seed)
+        b=torch.nn.Conv2d(1,1,3,padding=1)
+        return {'plain_unet':a,'original_azunet':b}
+    monkeypatch.setattr(s7,'verify_sources',lambda *args: {})
+    monkeypatch.setattr(s7,'build_models',toy_models)
+    cfg=s7.RunConfig(size=32,epochs=1,train_limit=4,val_limit=3,test_limit=4,batch_size=2)
+    report=s7.run(cfg,measurements=None,out_dir=tmp_path/'smoke')
+    assert report['frame_holdout'] is True
+    assert report['source_image_pixels_are_real'] is False
+    assert report['film_holdout'] is None
+    assert report['resume_requested'] is False
+    assert (tmp_path/'smoke'/'original_azunet'/'best_final.pt').is_file()
+    assert (tmp_path/'smoke'/'plain_unet'/'best_final.pt').is_file()
+    assert report['paired']['stress']['unique_groups']==4
+    assert report['results']['plain_unet']['data_fingerprints']==report['results']['original_azunet']['data_fingerprints']

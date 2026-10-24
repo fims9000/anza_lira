@@ -229,8 +229,10 @@ def build_models(cfg:RunConfig):
     # Imports strictly AFTER original source integrity gate.
     from models.segmentation import AZUNet, BaselineUNet
     from models.azconv import AZConvConfig
+    torch.manual_seed(cfg.seed)  # independent, reproducible model initialization
     az=AZUNet(in_channels=1,out_channels=1, num_rules=cfg.num_rules, widths=cfg.widths,
               cfg=AZConvConfig(geometry_mode='local_hyperbolic',use_fuzzy=True,use_anisotropy=True,learn_directions=True))
+    torch.manual_seed(cfg.seed)
     base=BaselineUNet(in_channels=1,out_channels=1,widths=cfg.widths)
     return {'plain_unet':base,'original_azunet':az}
 
@@ -241,16 +243,65 @@ def save_atomic(path:Path,payload):
     tmp.replace(path)
 
 
-def train_one(name,model,sets,cfg:RunConfig,outdir:Path,*,device='cpu'):
+def split_fingerprints(sets):
+    """Detect input changes before resuming a source-locked experiment."""
+    result = {}
+    for split, rows in sets.items():
+        digest = hashlib.sha256()
+        for x, y, group in rows:
+            digest.update(np.ascontiguousarray(x).tobytes())
+            digest.update(np.ascontiguousarray(y).tobytes())
+            digest.update(str(group).encode('utf-8'))
+        result[split] = {'sha256': digest.hexdigest(), 'examples': len(rows),
+                         'source_groups': len({g for _, _, g in rows})}
+    return result
+
+
+def train_one(name, model, sets, cfg:RunConfig, outdir:Path, *, device='cpu',
+              resume: bool=False, data_fingerprints=None):
+    """Train or resume an identical run without touching held-out-test labels.
+
+    Only best validation loss picks weights. Only validation data chooses a
+    probability threshold. The saved RNG and optimizer permit exact resumes
+    for deterministic models, while data checksums prevent dataset drift.
+    """
     name_dir=outdir/name;name_dir.mkdir(parents=True,exist_ok=True)
     model=model.to(device)
     optimizer=torch.optim.AdamW(model.parameters(),lr=cfg.learning_rate,weight_decay=.0001)
-    best=float('inf');best_epoch=None;history=[]
+    best=float('inf');best_epoch=None;history=[];start_epoch=0
     train=TrackDataset(sets['train']);valid=TrackDataset(sets['val']);test=TrackDataset(sets['test'])
+    hashes = data_fingerprints if data_fingerprints is not None else split_fingerprints(sets)
+    if resume:
+        latest = name_dir/'last.pt'
+        best_file = name_dir/'best.pt'
+        if not latest.is_file() or not best_file.is_file():
+            raise FileNotFoundError(f'{name}: cannot resume without last.pt and best.pt')
+        previous = torch.load(latest, map_location='cpu', weights_only=False)
+        if previous['model'] != name or previous['source_blobs'] != SOURCE_BLOBS:
+            raise ValueError(f'{name}: model/source changed since checkpoint')
+        previous_cfg = dict(previous['config']); new_cfg = asdict(cfg)
+        # Extending epochs is permitted. All learning and data parameters are fixed.
+        previous_cfg.pop('epochs', None); new_cfg.pop('epochs', None)
+        if previous_cfg != new_cfg:
+            raise ValueError(f'{name}: training configuration changed on resume')
+        if previous.get('data_fingerprints') != hashes:
+            raise ValueError(f'{name}: training/validation/test data changed on resume')
+        model.load_state_dict(previous['state_dict'])
+        optimizer.load_state_dict(previous['optimizer'])
+        history = list(previous['history'])
+        start_epoch = int(previous['epoch']) + 1
+        if start_epoch > cfg.epochs or len(history) != start_epoch:
+            raise ValueError(f'{name}: invalid checkpoint epoch/history')
+        best_payload = torch.load(best_file, map_location='cpu', weights_only=False)
+        best_epoch = int(best_payload['epoch'])
+        best = float(best_payload['history'][-1]['val_loss'])
+        if 'torch_rng_state' in previous:
+            torch.set_rng_state(previous['torch_rng_state'])
     started=time.monotonic()
-    for ep in range(cfg.epochs):
+    for ep in range(start_epoch, cfg.epochs):
         model.train();losses=[]
-        loader=DataLoader(train,batch_size=cfg.batch_size,shuffle=True,generator=torch.Generator().manual_seed(cfg.seed+ep))
+        loader=DataLoader(train,batch_size=cfg.batch_size,shuffle=True,
+                          generator=torch.Generator().manual_seed(cfg.seed+ep))
         for step,(x,y,_) in enumerate(loader):
             if cfg.steps_per_epoch and step>=cfg.steps_per_epoch:break
             optimizer.zero_grad(set_to_none=True)
@@ -259,16 +310,20 @@ def train_one(name,model,sets,cfg:RunConfig,outdir:Path,*,device='cpu'):
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(),1.0)
             optimizer.step();losses.append(float(loss.detach().cpu()))
+        if not losses:raise RuntimeError(f'{name}: no training batches')
         model.eval();val_losses=[]
         with torch.no_grad():
             for x,y,_ in DataLoader(valid,batch_size=cfg.batch_size):
-                loss=masked_loss(model(x.to(device)),y.to(device));val_losses.append(float(loss.detach().cpu()))
+                loss=masked_loss(model(x.to(device)),y.to(device))
+                val_losses.append(float(loss.detach().cpu()))
         val_loss=float(np.mean(val_losses))
-        history.append({'epoch':ep,'train_loss':float(np.mean(losses)),'val_loss':val_loss})
+        history.append({'epoch':ep,'train_loss':float(np.mean(losses)),
+                        'val_loss':val_loss,'train_steps':len(losses)})
         state={k:v.detach().cpu().clone() for k,v in model.state_dict().items()}
-        payload={'model':name,'epoch':ep,'state_dict':state,'optimizer':optimizer.state_dict(),
+        payload={'model':name,'epoch':ep,'state_dict':state,
+                 'optimizer':optimizer.state_dict(), 'torch_rng_state':torch.get_rng_state(),
                  'history':history,'config':asdict(cfg),'source_blobs':SOURCE_BLOBS,
-                 'synthetic_labels_only':True}
+                 'data_fingerprints':hashes,'synthetic_labels_only':True}
         save_atomic(name_dir/'last.pt',payload)
         if val_loss<best:
             best=val_loss;best_epoch=ep
@@ -283,17 +338,28 @@ def train_one(name,model,sets,cfg:RunConfig,outdir:Path,*,device='cpu'):
     assert np.array_equal(yt,ys)
     clean=metric_from_counts(metrics_counts(pt>=threshold,yt>=.5))
     stress=metric_from_counts(metrics_counts(ps>=threshold,ys>=.5))
+    from bubble_chamber.neural_metrics import aggregate_topology
+    clean_topology=aggregate_topology(pt>=threshold,yt>=.5)
+    stress_topology=aggregate_topology(ps>=threshold,ys>=.5)
     save_atomic(name_dir/'best_final.pt',{**best_payload,'validation_selected_threshold':threshold,
-                                          'clean_test':clean,'stress_test':stress})
-    result={'trained_epochs':cfg.epochs,'best_epoch':best_epoch,'parameters':sum(p.numel() for p in model.parameters()),
-            'test_clean':clean,'test_stress':stress,'selected_validation_threshold':threshold,
-            'elapsed_seconds':round(time.monotonic()-started,3),
-            'checkpoint':'best_final.pt','history':history}
+                                          'clean_test':clean,'stress_test':stress,
+                                          'clean_topology':clean_topology,'stress_topology':stress_topology,
+                                          'last_trained_epoch':cfg.epochs-1})
+    result={'trained_epochs':cfg.epochs,'best_epoch':best_epoch,
+            'parameters':sum(p.numel() for p in model.parameters()),
+            'test_clean':clean,'test_stress':stress,
+            'test_clean_topology':clean_topology,
+            'test_stress_topology':stress_topology,
+            'selected_validation_threshold':threshold,
+            'elapsed_seconds_this_invocation':round(time.monotonic()-started,3),
+            'checkpoint':'best_final.pt','history':history,
+            'resumed_from_epoch':start_epoch if resume else None,
+            'data_fingerprints':hashes}
     (name_dir/'metrics.json').write_text(json.dumps(result,indent=2)+'\n')
     return result,(pt>=threshold,yt),(ps>=threshold,ys)
 
 
-def run(cfg:RunConfig,*,measurements:Path|None,out_dir:Path):
+def run(cfg:RunConfig,*,measurements:Path|None,out_dir:Path, resume:bool=False):
     verify_sources(REPO_ROOT)
     if cfg.size<32 or cfg.size%16 or cfg.batch_size<1 or cfg.epochs<1:
         raise ValueError('Invalid run size/epochs/batch')
@@ -303,17 +369,15 @@ def run(cfg:RunConfig,*,measurements:Path|None,out_dir:Path):
     sets,source=make_datasets(cfg,measurements)
     source['synthetic_masks_only']=True
     # Preserve generated dataset hashes before model training, exclude pixel arrays from reports.
-    for split,rows in sets.items():
-        src=hashlib.sha256()
-        for x,y,g in rows:
-            src.update(x.tobytes());src.update(y.tobytes());src.update(g.encode())
-        source[f'{split}_examples']={'n':len(rows),'sha256':src.hexdigest(),'frames':len(set(g for _,_,g in rows))}
+    fingerprints=split_fingerprints(sets)
+    for split,meta in fingerprints.items():
+        source[f'{split}_examples']={'n':meta['examples'],'sha256':meta['sha256'],'frames':meta['source_groups']}
     (out_dir/'dataset_manifest.json').write_text(json.dumps(source,indent=2)+'\n')
     models=build_models(cfg)
     results={};predictions={}
     for name,m in models.items():
         torch.manual_seed(cfg.seed)
-        result,clean,stress=train_one(name,m,sets,cfg,out_dir)
+        result,clean,stress=train_one(name,m,sets,cfg,out_dir,resume=resume,data_fingerprints=fingerprints)
         results[name]=result;predictions[name]={'clean':clean,'stress':stress}
     paired={}
     groups=TrackDataset(sets['test']).groups()
@@ -325,7 +389,9 @@ def run(cfg:RunConfig,*,measurements:Path|None,out_dir:Path):
             'source_data':source,'config':asdict(cfg),'results':results,'paired':paired,
             'scientific_claim':'synthetic pixels generated from measured geometry only; not real film superiority',
             'source_port_parity':'UNVERIFIED: no retained S6 local port/checkpoint to compare',
-            'film_holdout':False if cfg.source=='visualmetro' else None}
+            'frame_holdout': True,
+            'film_holdout':False if cfg.source=='visualmetro' else None,
+            'source_image_pixels_are_real': False, 'resume_requested':resume}
     (out_dir/'metrics.json').write_text(json.dumps(report,indent=2)+'\n')
     return report
 
@@ -346,11 +412,12 @@ def main():
     parser.add_argument('--test-limit',type=int,default=24)
     parser.add_argument('--steps-per-epoch',type=int,default=0)
     parser.add_argument('--cpu-threads',type=int,default=2)
+    parser.add_argument('--resume',action='store_true',help='Continue with matching last.pt and best.pt checkpoints')
     args=parser.parse_args()
     cfg=RunConfig(source=args.source,seed=args.seed,size=args.size,epochs=args.epochs,batch_size=args.batch_size,
                   widths=tuple(args.widths),num_rules=args.rules,train_limit=args.train_limit,val_limit=args.val_limit,
                   test_limit=args.test_limit,steps_per_epoch=args.steps_per_epoch,cpu_threads=args.cpu_threads)
-    report=run(cfg,measurements=args.measurements,out_dir=args.out_dir)
+    report=run(cfg,measurements=args.measurements,out_dir=args.out_dir,resume=args.resume)
     print(json.dumps({'status':'S7_COMPLETE_SYNTHETIC_ONLY','clean_delta':report['paired']['clean'],
                       'stress_delta':report['paired']['stress']},indent=2),flush=True)
 
