@@ -127,3 +127,7 @@ See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay v
 ## S18 book-prior ablation (30 trained models; synthetic-only)
 
 [Controlled S18 report](S18_BELYAEV_ABLATION_2026_10_25.md) compares original AZUNet/U-Net across equal-size measured-shape training, 20% Belyaev stopping-track replacement, real-unlabeled H50Z photometric styles, synthetic histogram styles and generic robust noise (post-hoc exploratory). Three training seeds; one measured film; 13 held-out original frames; **no expert real-BMP pixel masks**. Belyaev geometry alone did not help. Strong photometric augmentation improved AZ average stress Dice but bootstrap intervals include zero and U-Net baselines remain competitive. Source and unit tests committed; private generated checkpoints distributed only as a user archive, not pushed.
+
+## S19 real H50Z low-label expert review (human annotations required)
+
+[Offline expert workbench and safe fine-tuning](S19_REAL_H50Z_EXPERT_ANNOTATION_2026_10_25.md): 7 real grayscale crops from 2 H50Z BMPs, 37 Frangi suggestions **not** ground truth, browser brush to add omitted lines/artifacts, same/different expert link review, source-locked 0/1/255 masks, review-centered patches, original AZUNet vs U-Net sparse training, provisional Graph-LIRA. No actual expert marks have been provided; automatic real-photo accuracy and physical link release are **not** established. Source crops and review answers remain outside Git.

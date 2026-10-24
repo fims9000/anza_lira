@@ -1,0 +1,31 @@
+name: S19 real photo sparse expert annotation contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s19_*.py'
+      - 'scripts/research/bubble_chamber/s19_*.py'
+      - 'scripts/research/bubble_chamber/s14_train_sparse_anza.py'
+      - 'tests/test_s19_*.py'
+      - '.github/workflows/s19_real_sparse_review_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  expert-review-to-anza-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU test dependencies
+        run: python -m pip install torch numpy scipy scikit-image scikit-learn opencv-python-headless pytest
+      - name: Verify provenance, UNKNOWN pixels, pair reviews, no-label abstention and ORIGINAL AZUNet smoke
+        run: python -m pytest -q tests/test_s19_*.py tests/test_s14_sparse_teacher.py tests/test_s14_train_sparse_reviews.py
+      - name: No real expert labels or user photos permitted in repository
+        run: |
+          test ! -e h50z_real
+          test ! -e S19_H50Z_Expert_Annotation

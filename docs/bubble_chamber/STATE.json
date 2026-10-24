@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S18_CONTROLLED_BOOK_ABLATION_COMPLETED_SYNTHETIC_ONLY_NO_PROVEN_REAL_FILM_GAIN",
+  "status": "S19_REAL_H50Z_EXPERT_ANNOTATION_READY_NO_HUMAN_LABELS_NO_REAL_ACCURACY",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Design S19 *real-image* sparse expert-annotation protocol: calibrate at least a few real H50Z confirmed 0/1/255 scribbles plus same/different fragment links; match exact click counts; compare ANZA with/without generic robust augmentation at same budget, and Graph-LIRA gap linking on independent real image frames/medium. Do not infer physical particle identity or 3D properties without corresponding 3-view calibration and B-field.",
+  "next_executable_action": "Process the ACTUAL expert JSON from S19_review_workbench.html with s19_run_small_label_pipeline.py; train original AZUNet and BaselineUNet on photo-disjoint confirmed sparse masks; fit provisional Graph-LIRA only with ≥10 positive/negative human pair labels; obtain another physical run for independent real pixel/instance validation, then calibrate false joins. Do not invent masks or auto merge on current same-run H50Z.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -511,5 +511,34 @@
     "original_model_source_changed": false,
     "checkpoints": "Provided separately to user, not committed to GitHub",
     "conclusion": "Book physics prior alone does not help. Strong generic photometric variation is competitive with unlabeled H50Z style in synthetic stress, and no robust superiority over baseline U-Net is established."
+  },
+  "S19": {
+    "date": "2026-10-25",
+    "source": "2 original H50Z_030_01 BMPs from same physical run",
+    "actual_real_bmp_parents": 2,
+    "crops_512px": 7,
+    "frangi_suggestions_not_truth": 37,
+    "confirmed_real_track_pixels": 0,
+    "certified_artifact_pixels": 0,
+    "human_reviewed_pairs": 0,
+    "tools": [
+      "offline SVG brush + fragment review + same/different relations",
+      "provenance-bound review JSON compiler",
+      "0/1/255 sparse mask compiler",
+      "review-centered patch sampler",
+      "original AZUNet and U-Net comparison using reviewed source masks",
+      "provisional Graph-LIRA with mandatory human pair labels"
+    ],
+    "original_model_source_changed": false,
+    "standalone_html_with_embedded_real_crops": true,
+    "real_source_images_in_git": false,
+    "reviewed_masks_in_git": false,
+    "local_regression_tests_passed": 92,
+    "browser_verified": "Chromium: real review page render, brush, candidate decisions, undo, pair decisions, JSON export/import",
+    "training_fixture_only": "Synthetic test fixture produced checkpoint for authentic AZUNet and U-Net",
+    "real_model_training_performed": false,
+    "independent_real_run_validated": false,
+    "physical_auto_join_allowed": false,
+    "next_human_dependency": "Expert needs to return S19_H50Z_expert_reviews.json with confirmed line/artifact scribbles from both photos; 10+ same/different pair reviews needed to train graph classifier."
   }
 }

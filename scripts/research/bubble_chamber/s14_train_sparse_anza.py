@@ -81,8 +81,8 @@ def read_reviewed_manifest(path:Path, *, image_root:Path|None=None):
             mask=cv2.imread(str(mp),cv2.IMREAD_UNCHANGED)
             if mask is None or mask.dtype!=np.uint8 or mask.ndim!=2 or mask.shape!=image.shape or not set(np.unique(mask)).issubset({0,1,255}):
                 raise ValueError('invalid/misaligned sparse review mask')
-            if split=='train' and (not np.any(mask==1) or not np.any(mask==0)):
-                raise ValueError('each train crop needs an expert-confirmed track AND a certified artifact; unknown is not background')
+            if split=='train' and not np.any((mask==1)|(mask==0)):
+                raise ValueError('reviewed train crop has no expert marks; put it in unlabeled split')
         groups[split].append((image,mask,item))
     if any(len(s)>1 for s in group_splits.values()):raise ValueError('frame leakage across splits')
     if not groups['train'] or not groups['val']:raise ValueError('train and independent-frame validation required')
@@ -147,6 +147,18 @@ def fit_sparse_reviews(groups:dict,manifest_summary:dict,*,out_dir:Path,architec
         for step,index in enumerate(order):
             im,mask,_=train[int(index)]
             images=[im];human_masks=[mask]
+            # Some genuine sparse-review crops may have ONLY foreground or
+            # ONLY certified artifacts. Never invent the absent class from
+            # unmarked pixels. Find a same-shape *reviewed training* companion
+            # supplying the missing class so sparse_teacher_loss sees both.
+            if not ((mask==1).any() and (mask==0).any()):
+                missing=0 if not (mask==0).any() else 1
+                companions=[(j,other,m) for j,(other,m,_) in enumerate(train)
+                            if j!=int(index) and other.shape==im.shape and (m==missing).any()]
+                if not companions:
+                    raise ValueError('cannot form both-class batch from reviewed training crops of matching shapes')
+                _,friend,fmask=companions[(epoch+step)%len(companions)]
+                images.append(friend);human_masks.append(fmask)
             if unlabeled:
                 other,_,_=unlabeled[(int(index)+epoch)%len(unlabeled)]
                 if other.shape!=im.shape:raise ValueError('mixed shapes in batch: crop tiles to same size')
