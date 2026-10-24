@@ -1,0 +1,25 @@
+name: Bubble S11 source reproducibility bundle
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - '.github/workflows/s11_source_bundle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pack-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package exact original model and project helpers
+        run: |
+          mkdir -p /tmp/s11_source
+          cp -r models bubble_chamber scripts/research/bubble_chamber /tmp/s11_source/
+          cp docs/bubble_chamber/S10_FIXED_SPLIT_EVALUATION.md /tmp/s11_source/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s11-source-complete-no-private-data
+          path: /tmp/s11_source/
+          retention-days: 14
