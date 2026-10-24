@@ -1,0 +1,150 @@
+{
+  "allow_real_auto_linking": false,
+  "boundary": "Oracle synthetic source fragments only; no real film masks, no H2/propane domain shift, no stereo 3D, no measured physical identities.",
+  "frozen_margin": 0.1,
+  "margin_validation_grid": [
+    {
+      "margin": 0.0,
+      "metrics": {
+        "accepted_edges": 29,
+        "candidate_fpr": 0.016393,
+        "false_bridges_per_scene": 0.028571,
+        "fn": 148,
+        "fp": 2,
+        "fraction_scenes_with_false_bridge": 0.028571,
+        "real_automatic_merges": 0,
+        "recall_candidates": 0.154286,
+        "scenario_is_oracle_tracelets": true,
+        "scenes_with_false_bridge": 2,
+        "tn": 120,
+        "tp": 27
+      }
+    },
+    {
+      "margin": 0.05,
+      "metrics": {
+        "accepted_edges": 29,
+        "candidate_fpr": 0.016393,
+        "false_bridges_per_scene": 0.028571,
+        "fn": 148,
+        "fp": 2,
+        "fraction_scenes_with_false_bridge": 0.028571,
+        "real_automatic_merges": 0,
+        "recall_candidates": 0.154286,
+        "scenario_is_oracle_tracelets": true,
+        "scenes_with_false_bridge": 2,
+        "tn": 120,
+        "tp": 27
+      }
+    },
+    {
+      "margin": 0.1,
+      "metrics": {
+        "accepted_edges": 28,
+        "candidate_fpr": 0.008197,
+        "false_bridges_per_scene": 0.014286,
+        "fn": 148,
+        "fp": 1,
+        "fraction_scenes_with_false_bridge": 0.014286,
+        "real_automatic_merges": 0,
+        "recall_candidates": 0.154286,
+        "scenario_is_oracle_tracelets": true,
+        "scenes_with_false_bridge": 1,
+        "tn": 121,
+        "tp": 27
+      }
+    },
+    {
+      "margin": 0.15,
+      "metrics": {
+        "accepted_edges": 27,
+        "candidate_fpr": 0.008197,
+        "false_bridges_per_scene": 0.014286,
+        "fn": 149,
+        "fp": 1,
+        "fraction_scenes_with_false_bridge": 0.014286,
+        "real_automatic_merges": 0,
+        "recall_candidates": 0.148571,
+        "scenario_is_oracle_tracelets": true,
+        "scenes_with_false_bridge": 1,
+        "tn": 121,
+        "tp": 26
+      }
+    },
+    {
+      "margin": 0.25,
+      "metrics": {
+        "accepted_edges": 25,
+        "candidate_fpr": 0.0,
+        "false_bridges_per_scene": 0.0,
+        "fn": 150,
+        "fp": 0,
+        "fraction_scenes_with_false_bridge": 0.0,
+        "real_automatic_merges": 0,
+        "recall_candidates": 0.142857,
+        "scenario_is_oracle_tracelets": true,
+        "scenes_with_false_bridge": 0,
+        "tn": 122,
+        "tp": 25
+      }
+    }
+  ],
+  "protocol": {
+    "margin_grid": [
+      0.0,
+      0.05,
+      0.1,
+      0.15,
+      0.25
+    ],
+    "max_val_candidate_fpr": 0.02,
+    "seed": 20266024,
+    "test_scenes": 70,
+    "train_scenes": 160,
+    "val_scenes": 70
+  },
+  "selection_status": "VAL_GATE_REACHED_TEST_NOT_YET_EVALUATED",
+  "split_candidate_counts": {
+    "test": 293,
+    "train": 676,
+    "validation": 297
+  },
+  "status": "SYNTHETIC_PAIR_NONE_GRAPH_SAFETY_ONLY",
+  "test": {
+    "graph_constrained": {
+      "accepted_edges": 38,
+      "candidate_fpr": 0.0,
+      "false_bridges_per_scene": 0.0,
+      "fn": 135,
+      "fp": 0,
+      "fraction_scenes_with_false_bridge": 0.0,
+      "real_automatic_merges": 0,
+      "recall_candidates": 0.219653,
+      "scenario_is_oracle_tracelets": true,
+      "scenes_with_false_bridge": 0,
+      "tn": 120,
+      "tp": 38
+    },
+    "graph_rejection_reasons": {
+      "accepted_synthetic_only": 38,
+      "ambiguous_margin": 2,
+      "not_mutual_best": 1,
+      "threshold": 252
+    },
+    "local_probability_only": {
+      "accepted_edges": 41,
+      "candidate_fpr": 0.008333,
+      "false_bridges_per_scene": 0.014286,
+      "fn": 133,
+      "fp": 1,
+      "fraction_scenes_with_false_bridge": 0.014286,
+      "real_automatic_merges": 0,
+      "recall_candidates": 0.231214,
+      "scenario_is_oracle_tracelets": true,
+      "scenes_with_false_bridge": 1,
+      "tn": 119,
+      "tp": 40
+    }
+  },
+  "validation_selected_candidate_threshold": 0.8604792656963954
+}

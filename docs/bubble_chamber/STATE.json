@@ -3,10 +3,10 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "P3_DATA_INTEGRITY_AND_HUMAN_CURATED_2D_TRACKS_COMPLETE",
+  "status": "S1_SYNTHETIC_GRAPH_PAIR_NONE_SAFE_ABSTENTION_PROBED_NO_REAL_AUTO_LINKS",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
-    "python_tests_passed": 43,
+    "python_tests_passed": 48,
     "local_real_image_candidates": 17,
     "automatic_merges": 0,
     "html_export_created": true,
@@ -36,7 +36,16 @@
     "P3_human_curation_tests": 6,
     "P3_synthetic_triplet_runner": true,
     "P3_real_unlabeled_curation_groups": 37,
-    "P3_real_unlabeled_accepted_bridges": 0
+    "P3_real_unlabeled_accepted_bridges": 0,
+    "S1_train_scenes": 160,
+    "S1_validation_scenes": 70,
+    "S1_test_scenes": 70,
+    "S1_selected_margin": 0.1,
+    "S1_test_local_tp": 40,
+    "S1_test_local_fp": 1,
+    "S1_test_global_tp": 38,
+    "S1_test_global_fp": 0,
+    "S1_real_auto_merges": 0
   },
   "data": {
     "archive_image": "unlabeled single real image action.jpg; locally present; not committed",
@@ -44,7 +53,7 @@
     "stereo_triplets": "not available",
     "expert_pair_labels": "not available"
   },
-  "next_executable_action": "Get actual 3-view calibrated BMP acquisitions, compatible visualMetro per-track text examples and expert same/different link labels. First do real run-disjoint pilot, then implement optical ray/epipolar adapter without pinhole shortcuts.",
+  "next_executable_action": "No real-image expert labels or 3-view calibration provided. Get run-grouped H2/C3H8 photo triplets and exact visualMetro measurements; then test image-conditioned relation and physics-veto without reusing synthetic thresholds.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -52,6 +61,8 @@
     "P2 Frangi gain is limited to synthetic optical stress test; no independently labeled real photos",
     "Image transverse FWHM and darkness are not calibrated ionization or particle identification",
     "P3 triplet runner has no actual measured three-view acquisition and no stereo matching",
-    "P3 curation only connects explicit reviewed fragment identities; no human labels are available for real archive photo"
+    "P3 curation only connects explicit reviewed fragment identities; no human labels are available for real archive photo",
+    "S1 uses perfect synthetic input fragments and is not a real photographic pipeline result",
+    "Observed 0/120 synthetic test false links is not evidence of real detector risk under 2%"
   ]
 }
