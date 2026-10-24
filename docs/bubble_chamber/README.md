@@ -75,3 +75,7 @@ A new user-provided archive `1mH2Data.7z` contains 152 frame folders of film 070
 The S5 coordinate-only relation study tests artificially withheld clicks (1/3/5) on frame-disjoint train/val/test. Ordinary geometry is very strong; adding ANZA-inspired axial features has **no established incremental benefit**. This study does NOT train AZConv and does NOT evaluate real-image pixel segmentation.
 
 The new `synthetic_from_clicks.py` builds explicitly artificial film-like masks from real measured curve geometry. `scripts/research/bubble_chamber/run_synthetic_anza_pretrain.py` is a reproducible training entrypoint for the *authentic* repo `AZUNet` vs `BaselineUNet`, but no real BMP segmentation performance may be claimed from those synthetic examples.
+
+## S6 preliminary neural segmentation
+
+See [S6 synthetic model comparison](S6_SYNTHETIC_NEURAL_RESULT.md). A local port of AZ local_hyperbolic lost to U-Net on normal generated images but was more robust under one **artificial** low-contrast/noise stress. These results are not real-film superiority evidence and must be reproduced using untouched original model modules.

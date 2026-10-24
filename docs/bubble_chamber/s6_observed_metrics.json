@@ -1,0 +1,24 @@
+{
+  "schema": "s6_observed_metric_receipt_v1",
+  "study": "synthetic film patches rendered from real visualMetro sparse track geometry",
+  "source_image_ground_truth": false,
+  "original_source_model_executed_verbatim": false,
+  "offline_port_of_upstream_local_hyperbolic": true,
+  "note": "Metrics transcribed from completed tool-produced run output; temporary raw checkpoints and logs lost during isolated container reset, not fabricated or re-computed.",
+  "split": {"train_frames": 94, "validation_frames": 26, "test_frames": 25, "train_images": 2172, "validation_images": 362, "test_images": 336},
+  "models": {
+    "plain_unet": {"parameters": 57041, "epochs": 4, "training_seconds_offline": 53.05, "threshold_validation": 0.85, "clean": {"dice": 0.9608169769, "precision": 0.9489852229, "recall": 0.9729474875, "centerline_f1_radius2": 0.98549}, "stress": {"dice": 0.598924, "centerline_f1_radius2": 0.717499}},
+    "az_local": {"parameters": 55270, "epochs": 4, "training_seconds_offline": 291.3, "threshold_validation": 0.70, "clean": {"dice": 0.8667577222, "precision": 0.869168528, "recall": 0.8643602531, "centerline_f1_radius2": 0.915651}, "stress": {"dice": 0.677208, "centerline_f1_radius2": 0.75097}},
+    "frangi": {"clean": {"dice": 0.841306, "centerline_f1_radius2": 0.933897}, "stress": {"dice": 0.246434, "centerline_f1_radius2": 0.271283}}
+  },
+  "bootstrap_25_frames_95pct": {"clean_az_minus_unet": [-0.103578, -0.085971], "clean_delta": -0.094059, "stress_az_minus_unet": [0.055634, 0.105639], "stress_delta": 0.078285},
+  "secondary_all_three_views": {"test_images": 504, "plain_clean_dice": 0.959124, "az_clean_dice": 0.865805, "plain_stress_dice": 0.577762, "az_stress_dice": 0.66913},
+  "exploratory_noise_grid": {
+    "one": {"contrast": 1.0, "plain": 0.889398, "az": 0.840710},
+    "two": {"contrast": 0.75, "plain": 0.842937, "az": 0.819114},
+    "three": {"contrast": 0.6, "plain": 0.775809, "az": 0.779187},
+    "four": {"contrast": 0.43, "plain": 0.600792, "az": 0.677732},
+    "five": {"contrast": 0.3, "plain": 0.316483, "az": 0.502972}
+  },
+  "limits": ["one training seed", "one source film", "no real paired pixel labels", "offline local-port not exact upstream execution", "post-hoc noise sweep", "no checkpoint artifacts preserved"]
+}

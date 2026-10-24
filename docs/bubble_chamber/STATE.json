@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S5_REAL_1MH2DATA_MEASURED_COORDINATE_STUDY_COMPLETE_NO_REAL_AZCONV_COMPARISON",
+  "status": "S6_SYNTHETIC_NEURAL_CROSSOVER_EXPLORATORY_NOT_REAL_VALIDATION",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Run authentic repo AZUNet vs BaselineUNet synthetic-geometry comparison using run_synthetic_anza_pretrain.py; inspect failures and tune ONLY on development; preserve real-photo non-superiority boundary.",
+  "next_executable_action": "Re-run S6 training with untouched original models/azconv.py in full repo, verify source/forward equivalence; collect human-confirmed real H50Z pixel masks for an independent test; do not promote synthetic stress advantage to physical-camera claim.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -90,7 +90,7 @@
     "xyz_points": 620,
     "stereo_measured_clicks": 1860,
     "total_candidates": 1626,
-    "true_candidate_recall": 1.0,
+    "true_candidate_recall": 1,
     "basic_tp_fp": [
       276,
       0
@@ -151,5 +151,35 @@
       "docs/bubble_chamber/S5_LARGE_1MH2DATA_RESEARCH_2026_10_24.md",
       "docs/bubble_chamber/s5_metric_summary.json"
     ]
+  },
+  "S6": {
+    "source": "1mH2Data.7z, 145 audited film 070 frames",
+    "images_kind": "synthetic from manually measured sparse geometry",
+    "train_frames": 94,
+    "val_frames": 26,
+    "test_frames": 25,
+    "train_images": 2172,
+    "val_images": 362,
+    "test_images": 336,
+    "model_source": "offline local_hyperbolic forward-path port, exact upstream parity not verified",
+    "clean_dice": {
+      "ordinary_unet": 0.960817,
+      "az_local": 0.866758,
+      "frangi": 0.841306
+    },
+    "synthetic_stress_dice": {
+      "ordinary_unet": 0.598924,
+      "az_local": 0.677208,
+      "frangi": 0.246434
+    },
+    "paired_stress_delta_ci95": [
+      0.055634,
+      0.105639
+    ],
+    "original_checkpoint_files_preserved": false,
+    "real_film_pixel_segmentation_test": false,
+    "models_trained_on_synthetic": true,
+    "whole_frame_holdout": true,
+    "reproduce": "scripts/research/bubble_chamber/reproduce_s6.sh"
   }
 }
