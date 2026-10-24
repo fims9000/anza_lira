@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S17_BOOK_PHYSICS_PRIOR_AND_MIXED_SYNTHETIC_TRAINING_READY_NO_REAL_PHOTO_ACCURACY",
+  "status": "S18_CONTROLLED_BOOK_ABLATION_COMPLETED_SYNTHETIC_ONLY_NO_PROVEN_REAL_FILM_GAIN",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Run controlled equal-budget multi-seed ANZA and U-Net experiments on measured-shape synthetic set with/without 20% book hadroida and optional unlabeled photo style. Keep originals untouched. Prioritize expert-confirmed real crop segments and matched 3-view BMPs plus optical/B-field calibrations before physical reconstruction or deployment.",
+  "next_executable_action": "Design S19 *real-image* sparse expert-annotation protocol: calibrate at least a few real H50Z confirmed 0/1/255 scribbles plus same/different fragment links; match exact click counts; compare ANZA with/without generic robust augmentation at same budget, and Graph-LIRA gap linking on independent real image frames/medium. Do not infer physical particle identity or 3D properties without corresponding 3-view calibration and B-field.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -437,5 +437,79 @@
     "local_regression_tests_passed": 24,
     "physical_particle_identification_certified": false,
     "real_photo_accuracy_known": false
+  },
+  "S18": {
+    "date": "2026-10-25",
+    "source": "VisualMetro film 070 expert measured click shapes; all images and sparse pixel masks simulated",
+    "training_runs": 30,
+    "model_seeds": [
+      20261024,
+      20261025,
+      20261026
+    ],
+    "architectures": [
+      "original AZUNet",
+      "original BaselineUNet"
+    ],
+    "training_images_each": 120,
+    "validation_images": 24,
+    "heldout_synthetic_test_images": 24,
+    "heldout_test_source_frames": 13,
+    "training_epochs": 12,
+    "source_film_count": 1,
+    "ablations": "A120 measured; B96 measured+24 Belyaev; C B with unlabeled H50Z style; D B with synthetic histogram style; E B with generic random noise and contrast (post hoc)",
+    "azunet_clean_mean_dice": {
+      "A": 0.81411,
+      "B": 0.808784,
+      "C": 0.817963,
+      "D": 0.833201,
+      "E": 0.826284
+    },
+    "azunet_stress_mean_dice": {
+      "A": 0.325041,
+      "B": 0.266389,
+      "C": 0.471514,
+      "D": 0.311314,
+      "E": 0.459658
+    },
+    "unet_stress_mean_dice": {
+      "A": 0.476589,
+      "B": 0.37409,
+      "C": 0.342656,
+      "D": 0.485602,
+      "E": 0.463123
+    },
+    "hierarchical_bootstrap_az_stress_C_vs_A": {
+      "delta": 0.14647,
+      "ci95": [
+        -0.00643,
+        0.2552
+      ]
+    },
+    "hierarchical_bootstrap_az_stress_E_vs_A": {
+      "delta": 0.13462,
+      "ci95": [
+        -0.00253,
+        0.31625
+      ]
+    },
+    "hierarchical_bootstrap_az_stress_C_vs_E": {
+      "delta": 0.01186,
+      "ci95": [
+        -0.1385,
+        0.19722
+      ]
+    },
+    "statistics": "All intervals cross zero. Three model seeds and 13 tested source frames from a single film.",
+    "synthetic_threshold_calibration_uses_dense_validation_oracle": true,
+    "sparse_click_budgets_not_exactly_equal_between_A_and_BtoE": true,
+    "real_H50Z_image_pixel_accuracy_known": false,
+    "real_instance_false_join_metric_known": false,
+    "independent_film_transfer_validated": false,
+    "local_focused_plus_regression_tests_passed": 55,
+    "report": "docs/bubble_chamber/S18_BELYAEV_ABLATION_2026_10_25.md",
+    "original_model_source_changed": false,
+    "checkpoints": "Provided separately to user, not committed to GitHub",
+    "conclusion": "Book physics prior alone does not help. Strong generic photometric variation is competitive with unlabeled H50Z style in synthetic stress, and no robust superiority over baseline U-Net is established."
   }
 }

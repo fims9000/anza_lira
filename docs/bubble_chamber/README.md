@@ -123,3 +123,7 @@ See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay v
 ## S17 book-grounded physics priors and synthetic augmentation
 
 [Book-source limited physics and data generators](S17_BELYAEV_BOOK_PRIOR_2026_10_25.md): implements Belyaev's *near-stop-only* hadroida angular law and generates artificial curve/mask data for training original AZUNet, with optional grayscale appearance adaptation from **unlabeled** H50Z. Mixed dataset is 96 expert-click geometries + 24 book curves for training (all raster pixels simulated). Real-photo 3-view calibration and expert masks are absent; no physical PID/real-film accuracy proven.
+
+## S18 book-prior ablation (30 trained models; synthetic-only)
+
+[Controlled S18 report](S18_BELYAEV_ABLATION_2026_10_25.md) compares original AZUNet/U-Net across equal-size measured-shape training, 20% Belyaev stopping-track replacement, real-unlabeled H50Z photometric styles, synthetic histogram styles and generic robust noise (post-hoc exploratory). Three training seeds; one measured film; 13 held-out original frames; **no expert real-BMP pixel masks**. Belyaev geometry alone did not help. Strong photometric augmentation improved AZ average stress Dice but bootstrap intervals include zero and U-Net baselines remain competitive. Source and unit tests committed; private generated checkpoints distributed only as a user archive, not pushed.

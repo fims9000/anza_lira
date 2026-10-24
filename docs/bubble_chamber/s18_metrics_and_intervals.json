@@ -1,0 +1,1500 @@
+{
+  "schema": "s18_paired_seed_frame_comparison_v1",
+  "source": "real visualMetro measured track shapes + simulated pixels",
+  "index_sha256": "1797e5a7a740708a74230b10a4ef71f2d0b1e79ef245876716d4e80ce8ffd77b",
+  "original_models_unchanged": true,
+  "total_trained_model_runs": 30,
+  "test_samples": 24,
+  "test_unique_frames": 13,
+  "train_seed_count": 3,
+  "mean_by_model_and_arm": {
+    "azunet": {
+      "A_measured_only": {
+        "clean_dice": 0.81411,
+        "stress_dice": 0.325041,
+        "book_test_dice": 0.696232,
+        "centerline_f1": 0.873689,
+        "cldice": 0.822885,
+        "stress_centerline_f1": 0.329161,
+        "n_model_seeds": 3,
+        "model_parameters": 7342,
+        "sparse_positive_clicks": 3840,
+        "sparse_negative_clicks": 5760,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8163111668757842,
+            "stress_dice": 0.39779005524861877,
+            "best_epoch": 12,
+            "validation_threshold": 0.9
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.8249937138546644,
+            "stress_dice": 0.4283791578542588,
+            "best_epoch": 12,
+            "validation_threshold": 0.9
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.8010252259544044,
+            "stress_dice": 0.14895485684173546,
+            "best_epoch": 11,
+            "validation_threshold": 0.9
+          }
+        ]
+      },
+      "B_measured_plus_book": {
+        "clean_dice": 0.808784,
+        "stress_dice": 0.266389,
+        "book_test_dice": 0.723324,
+        "centerline_f1": 0.888634,
+        "cldice": 0.816207,
+        "stress_centerline_f1": 0.279928,
+        "n_model_seeds": 3,
+        "model_parameters": 7342,
+        "sparse_positive_clicks": 3672,
+        "sparse_negative_clicks": 5664,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8280288146692861,
+            "stress_dice": 0.2771270718232044,
+            "best_epoch": 11,
+            "validation_threshold": 0.85
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.8071575383871358,
+            "stress_dice": 0.5076775431861804,
+            "best_epoch": 12,
+            "validation_threshold": 0.9
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.7911646586345381,
+            "stress_dice": 0.01436265709156194,
+            "best_epoch": 12,
+            "validation_threshold": 0.9
+          }
+        ]
+      },
+      "C_measured_book_photo_style": {
+        "clean_dice": 0.817963,
+        "stress_dice": 0.471514,
+        "book_test_dice": 0.796887,
+        "centerline_f1": 0.865492,
+        "cldice": 0.80593,
+        "stress_centerline_f1": 0.493974,
+        "n_model_seeds": 3,
+        "model_parameters": 7342,
+        "sparse_positive_clicks": 3672,
+        "sparse_negative_clicks": 5664,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8372876960974978,
+            "stress_dice": 0.6379616190936945,
+            "best_epoch": 12,
+            "validation_threshold": 0.85
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.812530237058539,
+            "stress_dice": 0.4291213389121339,
+            "best_epoch": 12,
+            "validation_threshold": 0.8
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.804070591266263,
+            "stress_dice": 0.3474576271186441,
+            "best_epoch": 12,
+            "validation_threshold": 0.9
+          }
+        ]
+      },
+      "D_measured_book_synthetic_style": {
+        "clean_dice": 0.833201,
+        "stress_dice": 0.311314,
+        "book_test_dice": 0.783844,
+        "centerline_f1": 0.870497,
+        "cldice": 0.81733,
+        "stress_centerline_f1": 0.386796,
+        "n_model_seeds": 3,
+        "model_parameters": 7342,
+        "sparse_positive_clicks": 3672,
+        "sparse_negative_clicks": 5664,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8335054207537429,
+            "stress_dice": 0.2586392259253571,
+            "best_epoch": 11,
+            "validation_threshold": 0.9
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.8357980622131566,
+            "stress_dice": 0.39608284258585325,
+            "best_epoch": 12,
+            "validation_threshold": 0.9
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.8303000491883915,
+            "stress_dice": 0.2792207792207792,
+            "best_epoch": 12,
+            "validation_threshold": 0.85
+          }
+        ]
+      },
+      "E_book_generic_robust_augmentation": {
+        "clean_dice": 0.826284,
+        "stress_dice": 0.459658,
+        "book_test_dice": 0.791971,
+        "centerline_f1": 0.831246,
+        "cldice": 0.796039,
+        "stress_centerline_f1": 0.509948,
+        "n_model_seeds": 3,
+        "model_parameters": 7342,
+        "sparse_positive_clicks": 3672,
+        "sparse_negative_clicks": 5664,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8286024882232154,
+            "stress_dice": 0.4243562824621505,
+            "best_epoch": 11,
+            "validation_threshold": 0.85
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.813865659562989,
+            "stress_dice": 0.47265244232643777,
+            "best_epoch": 12,
+            "validation_threshold": 0.9
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.8363832077502691,
+            "stress_dice": 0.4819657996838626,
+            "best_epoch": 12,
+            "validation_threshold": 0.9
+          }
+        ]
+      }
+    },
+    "unet": {
+      "A_measured_only": {
+        "clean_dice": 0.822089,
+        "stress_dice": 0.476589,
+        "book_test_dice": 0.775494,
+        "centerline_f1": 0.909597,
+        "cldice": 0.84464,
+        "stress_centerline_f1": 0.568118,
+        "n_model_seeds": 3,
+        "model_parameters": 7685,
+        "sparse_positive_clicks": 3840,
+        "sparse_negative_clicks": 5760,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8333115097551395,
+            "stress_dice": 0.5829268292682926,
+            "best_epoch": 11,
+            "validation_threshold": 0.9
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.7812386377408799,
+            "stress_dice": 0.5666975213411498,
+            "best_epoch": 12,
+            "validation_threshold": 0.8
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.8517179023508138,
+            "stress_dice": 0.2801418439716312,
+            "best_epoch": 12,
+            "validation_threshold": 0.75
+          }
+        ]
+      },
+      "B_measured_plus_book": {
+        "clean_dice": 0.806026,
+        "stress_dice": 0.37409,
+        "book_test_dice": 0.740597,
+        "centerline_f1": 0.891309,
+        "cldice": 0.830763,
+        "stress_centerline_f1": 0.491735,
+        "n_model_seeds": 3,
+        "model_parameters": 7685,
+        "sparse_positive_clicks": 3672,
+        "sparse_negative_clicks": 5664,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8173404773502192,
+            "stress_dice": 0.45898475197838257,
+            "best_epoch": 11,
+            "validation_threshold": 0.8
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.776286899243718,
+            "stress_dice": 0.3802912292583813,
+            "best_epoch": 12,
+            "validation_threshold": 0.7
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.8244501416812846,
+            "stress_dice": 0.28299379982285205,
+            "best_epoch": 11,
+            "validation_threshold": 0.75
+          }
+        ]
+      },
+      "C_measured_book_photo_style": {
+        "clean_dice": 0.819067,
+        "stress_dice": 0.342656,
+        "book_test_dice": 0.801423,
+        "centerline_f1": 0.905006,
+        "cldice": 0.842272,
+        "stress_centerline_f1": 0.478299,
+        "n_model_seeds": 3,
+        "model_parameters": 7685,
+        "sparse_positive_clicks": 3672,
+        "sparse_negative_clicks": 5664,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8312579415501906,
+            "stress_dice": 0.3329070758738278,
+            "best_epoch": 11,
+            "validation_threshold": 0.85
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.7896924355777224,
+            "stress_dice": 0.2589863808885912,
+            "best_epoch": 12,
+            "validation_threshold": 0.8
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.8362504861921431,
+            "stress_dice": 0.4360753221010902,
+            "best_epoch": 12,
+            "validation_threshold": 0.7
+          }
+        ]
+      },
+      "D_measured_book_synthetic_style": {
+        "clean_dice": 0.825445,
+        "stress_dice": 0.485602,
+        "book_test_dice": 0.819275,
+        "centerline_f1": 0.89252,
+        "cldice": 0.835915,
+        "stress_centerline_f1": 0.568618,
+        "n_model_seeds": 3,
+        "model_parameters": 7685,
+        "sparse_positive_clicks": 3672,
+        "sparse_negative_clicks": 5664,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.8318976768467763,
+            "stress_dice": 0.576656599751288,
+            "best_epoch": 10,
+            "validation_threshold": 0.9
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.7876660817247431,
+            "stress_dice": 0.4439505486873177,
+            "best_epoch": 12,
+            "validation_threshold": 0.7
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.856772184743124,
+            "stress_dice": 0.43619765826552886,
+            "best_epoch": 12,
+            "validation_threshold": 0.75
+          }
+        ]
+      },
+      "E_book_generic_robust_augmentation": {
+        "clean_dice": 0.814896,
+        "stress_dice": 0.463123,
+        "book_test_dice": 0.814156,
+        "centerline_f1": 0.890062,
+        "cldice": 0.837854,
+        "stress_centerline_f1": 0.539541,
+        "n_model_seeds": 3,
+        "model_parameters": 7685,
+        "sparse_positive_clicks": 3672,
+        "sparse_negative_clicks": 5664,
+        "per_seed": [
+          {
+            "seed": 20261024,
+            "clean_dice": 0.7868399861957898,
+            "stress_dice": 0.6745793269230769,
+            "best_epoch": 12,
+            "validation_threshold": 0.85
+          },
+          {
+            "seed": 20261025,
+            "clean_dice": 0.8098175613597585,
+            "stress_dice": 0.3924589499290493,
+            "best_epoch": 12,
+            "validation_threshold": 0.85
+          },
+          {
+            "seed": 20261026,
+            "clean_dice": 0.848030987734022,
+            "stress_dice": 0.32233176168024,
+            "best_epoch": 12,
+            "validation_threshold": 0.75
+          }
+        ]
+      }
+    }
+  },
+  "paired_comparisons": [
+    {
+      "model": "azunet",
+      "comparison": "B_measured_plus_book - A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": -0.0055510857387415236,
+      "mean_seed_delta_dice": -0.005326364997964313,
+      "paired_ci95_seed_and_frame": [
+        -0.0328483805502654,
+        0.030957951551132314
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.011717647793501929
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.01783617546752858
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.009860567319866287
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "B_measured_plus_book - A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": -0.047935260398773216,
+      "mean_seed_delta_dice": -0.05865226594788875,
+      "paired_ci95_seed_and_frame": [
+        -0.20192716718556813,
+        0.07604628120372234
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.12066298342541437
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.07929838533192163
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.1345921997501735
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "C_measured_book_photo_style - A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": 0.0033917261115032904,
+      "mean_seed_delta_dice": 0.003852805912482271,
+      "paired_ci95_seed_and_frame": [
+        -0.02966121144969409,
+        0.03201687961536375
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.020976529221713558
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.012463476796125361
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.0030453653118586166
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "C_measured_book_photo_style - A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": 0.12948644231933182,
+      "mean_seed_delta_dice": 0.14647217172661983,
+      "paired_ci95_seed_and_frame": [
+        -0.006427122414063858,
+        0.25520375272886786
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.24017156384507576
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.000742181057875102
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.19850277027690863
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "D_measured_book_synthetic_style - A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": 0.018749850039823546,
+      "mean_seed_delta_dice": 0.019091141823479336,
+      "paired_ci95_seed_and_frame": [
+        -0.0048360366463647,
+        0.05118013329833113
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.0171942538779587
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.0108043483584922
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.029274823233987113
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "D_measured_book_synthetic_style - A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": -0.04773232403060734,
+      "mean_seed_delta_dice": -0.013727074070874487,
+      "paired_ci95_seed_and_frame": [
+        -0.14705545208142143,
+        0.12615638023868916
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.13915082932326167
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.03229631526840554
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.13026592237904375
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "E_book_generic_robust_augmentation - A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": 0.011963500716296704,
+      "mean_seed_delta_dice": 0.012173749617206816,
+      "paired_ci95_seed_and_frame": [
+        -0.029671623766114368,
+        0.04842936115235054
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.012291321347431161
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.011128054291675404
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.03535798179586469
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "E_book_generic_robust_augmentation - A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": 0.10443768506652162,
+      "mean_seed_delta_dice": 0.13461681817594598,
+      "paired_ci95_seed_and_frame": [
+        -0.0025322858584617036,
+        0.31624772140440877
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.026566227213531746
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.044273284472178986
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.3330109428421272
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "B_measured_plus_book - A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": -0.015735757218596547,
+      "mean_seed_delta_dice": -0.01606351052387045,
+      "paired_ci95_seed_and_frame": [
+        -0.043515570396169115,
+        0.004769396166628401
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.01597103240492026
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.004951738497161906
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.027267760669529184
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "B_measured_plus_book - A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": -0.1283727007025141,
+      "mean_seed_delta_dice": -0.10249880450715258,
+      "paired_ci95_seed_and_frame": [
+        -0.21055440592473898,
+        -0.004111480132518373
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.12394207728991008
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.1864062920827685
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.002851955851220833
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "C_measured_book_photo_style - A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": -0.002879256334975322,
+      "mean_seed_delta_dice": -0.0030223955089256536,
+      "paired_ci95_seed_and_frame": [
+        -0.022596820688119558,
+        0.018077571004417245
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.0020535682049488413
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.008453797836842525
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.015467416158670644
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "C_measured_book_photo_style - A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": -0.16040369116432124,
+      "mean_seed_delta_dice": -0.13393247190585483,
+      "paired_ci95_seed_and_frame": [
+        -0.34890301170543814,
+        0.14670868257320238
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.25001975339446486
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.3077111404525586
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.15593347812945896
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "D_measured_book_synthetic_style - A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": 0.003836174024027472,
+      "mean_seed_delta_dice": 0.0033559644892700766,
+      "paired_ci95_seed_and_frame": [
+        -0.01308407243152416,
+        0.0210670811119098
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.0014138329083631662
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.00642744398386319
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.005054282392310205
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "D_measured_book_synthetic_style - A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": -0.023060223947870162,
+      "mean_seed_delta_dice": 0.00901287070768697,
+      "paired_ci95_seed_and_frame": [
+        -0.13414872528958616,
+        0.14778638353603155
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.006270229517004622
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.12274697265383211
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.15605581429389764
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "E_book_generic_robust_augmentation - A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": -0.007342358766317614,
+      "mean_seed_delta_dice": -0.007193171519087642,
+      "paired_ci95_seed_and_frame": [
+        -0.060162979364669536,
+        0.032226073237830215
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.04647152355934969
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.028578923618878593
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.0036869146167918254
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "E_book_generic_robust_augmentation - A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": -0.018783399273699986,
+      "mean_seed_delta_dice": -0.013465385349569167,
+      "paired_ci95_seed_and_frame": [
+        -0.19342500445286795,
+        0.1095704146562721
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.09165249765478423
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.17423857141210053
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.042189917708608804
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "A_measured_only",
+      "condition": "clean",
+      "pooled_delta_dice": -0.006744665291790519,
+      "mean_seed_delta_dice": -0.007979314387326722,
+      "paired_ci95_seed_and_frame": [
+        -0.0629176729829607,
+        0.04751554930078876
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.017000342879355257
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.043755076113784486
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.0506926763964094
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "A_measured_only",
+      "condition": "stress",
+      "pooled_delta_dice": -0.15316518847930455,
+      "mean_seed_delta_dice": -0.15154737487882022,
+      "paired_ci95_seed_and_frame": [
+        -0.2156476610436278,
+        -0.09278735501635386
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.18513677401967388
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.13831836348689103
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.13118698712989577
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "B_measured_plus_book",
+      "condition": "clean",
+      "pooled_delta_dice": 0.003440006188064504,
+      "mean_seed_delta_dice": 0.002757831138579414,
+      "paired_ci95_seed_and_frame": [
+        -0.036523176818663544,
+        0.040564633633611354
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.010688337319066932
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.03087063914341781
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.0332854830467465
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "B_measured_plus_book",
+      "condition": "stress",
+      "pooled_delta_dice": -0.07272774817556366,
+      "mean_seed_delta_dice": -0.1077008363195564,
+      "paired_ci95_seed_and_frame": [
+        -0.2883415473710871,
+        0.12622023194010346
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.18185768015517817
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.1273863139277991
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.26863114273129013
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "C_measured_book_photo_style",
+      "condition": "clean",
+      "pooled_delta_dice": -0.00047368284531190685,
+      "mean_seed_delta_dice": -0.0011041129659187983,
+      "paired_ci95_seed_and_frame": [
+        -0.03845514796590436,
+        0.031114127795908157
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.006029754547307142
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.0228378014808166
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.03217989492588014
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "C_measured_book_photo_style",
+      "condition": "stress",
+      "pooled_delta_dice": 0.1367249450043485,
+      "mean_seed_delta_dice": 0.12885726875365444,
+      "paired_ci95_seed_and_frame": [
+        -0.0849454207455533,
+        0.31270459147123125
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.30505454321986675
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.17013495802354267
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.0886176949824461
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "D_measured_book_synthetic_style",
+      "condition": "clean",
+      "pooled_delta_dice": 0.008169010724005554,
+      "mean_seed_delta_dice": 0.007755862946882537,
+      "paired_ci95_seed_and_frame": [
+        -0.035009606455361435,
+        0.052001313107210186
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.0016077439069666077
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.048131980488413495
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.02647213555473249
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "D_measured_book_synthetic_style",
+      "condition": "stress",
+      "pooled_delta_dice": -0.17783728856204173,
+      "mean_seed_delta_dice": -0.17428731965738167,
+      "paired_ci95_seed_and_frame": [
+        -0.32335678330300804,
+        -0.005217327122421982
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.3180173738259309
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.04786770610146446
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.15697687904474966
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "E_book_generic_robust_augmentation",
+      "condition": "clean",
+      "pooled_delta_dice": 0.012561194190823799,
+      "mean_seed_delta_dice": 0.011387606748967735,
+      "paired_ci95_seed_and_frame": [
+        -0.023553630541101638,
+        0.06973964272690326
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.041762502027425596
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.004048098203230488
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.011647779983752882
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet minus unet",
+      "comparison": "E_book_generic_robust_augmentation",
+      "condition": "stress",
+      "pooled_delta_dice": -0.02994410413908294,
+      "mean_seed_delta_dice": -0.0034651713533050965,
+      "paired_ci95_seed_and_frame": [
+        -0.2379016856884547,
+        0.19724634580381337
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.25022304446092636
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.08019349239738849
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.15963403800362258
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "H50Z style vs generic robust augmentation",
+      "condition": "clean",
+      "pooled_delta_dice": -0.008571774604793414,
+      "mean_seed_delta_dice": -0.008320943704724545,
+      "paired_ci95_seed_and_frame": [
+        -0.04243823548820243,
+        0.020927344191229064
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.008685207874282397
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.0013354225044499568
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.032312616484006074
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "H50Z style vs generic robust augmentation",
+      "condition": "stress",
+      "pooled_delta_dice": 0.025048757252810194,
+      "mean_seed_delta_dice": 0.011855353550673872,
+      "paired_ci95_seed_and_frame": [
+        -0.13849543321506294,
+        0.19722229530607066
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.21360533663154402
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.043531103414303884
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.13450817256521852
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "H50Z style vs generic robust augmentation",
+      "condition": "clean",
+      "pooled_delta_dice": 0.004463102431342292,
+      "mean_seed_delta_dice": 0.004170776010161988,
+      "paired_ci95_seed_and_frame": [
+        -0.02846378960610623,
+        0.053566436425461265
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.04441795535440085
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.02012512578203607
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.011780501541878818
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "H50Z style vs generic robust augmentation",
+      "condition": "stress",
+      "pooled_delta_dice": -0.14162029189062125,
+      "mean_seed_delta_dice": -0.12046708655628567,
+      "paired_ci95_seed_and_frame": [
+        -0.3252794761853054,
+        0.09738402427060755
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.3416722510492491
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.13347256904045807
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.11374356042085015
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "H50Z style vs generic histogram match",
+      "condition": "clean",
+      "pooled_delta_dice": -0.015358123928320255,
+      "mean_seed_delta_dice": -0.015238335910997066,
+      "paired_ci95_seed_and_frame": [
+        -0.053027538146932784,
+        0.01042704506366841
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.0037822753437548595
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.02326782515461756
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.026229457922128496
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "azunet",
+      "comparison": "H50Z style vs generic histogram match",
+      "condition": "stress",
+      "pooled_delta_dice": 0.17721876634993916,
+      "mean_seed_delta_dice": 0.1601992457974943,
+      "paired_ci95_seed_and_frame": [
+        -0.006581315247453107,
+        0.3555656559540038
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": 0.37932239316833744
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.03303849632628064
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": 0.06823684789786488
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "H50Z style vs generic histogram match",
+      "condition": "clean",
+      "pooled_delta_dice": -0.006715430359002794,
+      "mean_seed_delta_dice": -0.00637835999819573,
+      "paired_ci95_seed_and_frame": [
+        -0.030511806037810712,
+        0.013702841670524804
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.0006397352965856751
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": 0.0020263538529793346
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.02052169855098085
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    },
+    {
+      "model": "unet",
+      "comparison": "H50Z style vs generic histogram match",
+      "condition": "stress",
+      "pooled_delta_dice": -0.13734346721645108,
+      "mean_seed_delta_dice": -0.1429453426135418,
+      "paired_ci95_seed_and_frame": [
+        -0.2506293414966637,
+        -0.0008913383527814197
+      ],
+      "per_seed_delta": [
+        {
+          "seed": 20261024,
+          "delta_dice": -0.24374952387746024
+        },
+        {
+          "seed": 20261025,
+          "delta_dice": -0.1849641677987265
+        },
+        {
+          "seed": 20261026,
+          "delta_dice": -0.00012233616443868556
+        }
+      ],
+      "seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "test_unique_source_frames": 13,
+      "bootstrap_draws": 4000,
+      "conditional_limit": "all frames from ONE film 070, no independent camera/run replication"
+    }
+  ],
+  "scientific_limitations": [
+    "Synthetic pixels/labels from film 070 expert click geometry only; no real film mask GT",
+    "Seed and frame bootstrap conditional on ONE film and 3 inits",
+    "Sparse annotation counts differ slightly between measured and book renderers even though 120 images and optimizer steps are equal",
+    "Threshold uses DENSE SYNTHETIC validation GT (not available for small real human annotation)",
+    "Style C uses unlabeled H50Z imagery, not human labels or independent photogrammetry",
+    "Style E is post-hoc, selected after initial C result, exploratory only",
+    "No false-merge/particle-ID metric without independently labeled instances",
+    "No external multi-run/medium transfer demonstrated"
+  ]
+}
