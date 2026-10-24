@@ -1,0 +1,11 @@
+{
+  "status": "P0_BOOTSTRAP_NOT_VALIDATED_ON_REAL_GT",
+  "date": "2026-10-24",
+  "base_branch": "research/coronary-connectivity-repair",
+  "base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
+  "objective": "Human-review-first candidate extraction and reproducible local synthetic baseline",
+  "gate": "obtain and independently annotate stereo BMP triplets",
+  "input_available": "user-supplied archive action.jpg (unlabelled; not committed)",
+  "metrics_policy": "no real accuracy claim; output result.json contains only synthetic tolerant pixel statistics and unlabeled real counts",
+  "next_action": "Run python -m pytest tests/test_bubble_chamber_pilot.py -q and synthetic all; inspect photo overlay; calibrate threshold on train-only; obtain expert annotations"
+}
