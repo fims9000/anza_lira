@@ -1,11 +1,29 @@
 {
-  "status": "P0_BOOTSTRAP_NOT_VALIDATED_ON_REAL_GT",
   "date": "2026-10-24",
-  "base_branch": "research/coronary-connectivity-repair",
-  "base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "objective": "Human-review-first candidate extraction and reproducible local synthetic baseline",
-  "gate": "obtain and independently annotate stereo BMP triplets",
-  "input_available": "user-supplied archive action.jpg (unlabelled; not committed)",
-  "metrics_policy": "no real accuracy claim; output result.json contains only synthetic tolerant pixel statistics and unlabeled real counts",
-  "next_action": "Run python -m pytest tests/test_bubble_chamber_pilot.py -q and synthetic all; inspect photo overlay; calibrate threshold on train-only; obtain expert annotations"
+  "branch": "research/bubble-chamber-graph-lira",
+  "parent_branch": "research/coronary-connectivity-repair",
+  "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
+  "status": "P1_HUMAN_REVIEW_FUNCTIONAL_NO_EXPERT_LABELS",
+  "pipeline": "bubble_classical_p0_v1",
+  "verified": {
+    "python_tests_passed": 19,
+    "local_real_image_candidates": 17,
+    "automatic_merges": 0,
+    "html_export_created": true,
+    "javascript_syntax_checked": true,
+    "human_browser_acceptance": false,
+    "external_public_images_downloaded": 0
+  },
+  "data": {
+    "archive_image": "unlabeled single real image action.jpg; locally present; not committed",
+    "public_qualitative": "two source URLs verified; download blocked by sandbox DNS",
+    "stereo_triplets": "not available",
+    "expert_pair_labels": "not available"
+  },
+  "next_executable_action": "Collect expert decisions in offline reviewer on original frame; obtain calibrated stereo BMP triplets and run-separated true links before Graph-LIRA training; run public downloader where network is available.",
+  "scientific_limits": [
+    "No true-positive or false-positive measurements from unlabeled photographs",
+    "No automatic merges or physical reconstruction",
+    "No H2-to-C3H8 transfer claim"
+  ]
 }
