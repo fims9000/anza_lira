@@ -3,10 +3,10 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "P2_SYNTHETIC_SEGMENTATION_AND_LOCAL_IMAGE_PHOTOMETRY_COMPLETE",
+  "status": "P3_DATA_INTEGRITY_AND_HUMAN_CURATED_2D_TRACKS_COMPLETE",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
-    "python_tests_passed": 31,
+    "python_tests_passed": 43,
     "local_real_image_candidates": 17,
     "automatic_merges": 0,
     "html_export_created": true,
@@ -31,7 +31,12 @@
     "P2_real_unlabeled_frangi_fragments": 37,
     "P2_real_unlabeled_frangi_review_pairs": 3,
     "P2_real_unlabeled_photometry_valid": 511,
-    "P2_real_unlabeled_photometry_total": 518
+    "P2_real_unlabeled_photometry_total": 518,
+    "P3_stereo_manifest_tests": 6,
+    "P3_human_curation_tests": 6,
+    "P3_synthetic_triplet_runner": true,
+    "P3_real_unlabeled_curation_groups": 37,
+    "P3_real_unlabeled_accepted_bridges": 0
   },
   "data": {
     "archive_image": "unlabeled single real image action.jpg; locally present; not committed",
@@ -39,12 +44,14 @@
     "stereo_triplets": "not available",
     "expert_pair_labels": "not available"
   },
-  "next_executable_action": "Obtain expert-stamped 3-view images and fragment-identity labels; integrate calibrated multi-view check before any auto-merge; test ANZA/U-Net against P2 on same split.",
+  "next_executable_action": "Get actual 3-view calibrated BMP acquisitions, compatible visualMetro per-track text examples and expert same/different link labels. First do real run-disjoint pilot, then implement optical ray/epipolar adapter without pinhole shortcuts.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
     "No H2-to-C3H8 transfer claim",
     "P2 Frangi gain is limited to synthetic optical stress test; no independently labeled real photos",
-    "Image transverse FWHM and darkness are not calibrated ionization or particle identification"
+    "Image transverse FWHM and darkness are not calibrated ionization or particle identification",
+    "P3 triplet runner has no actual measured three-view acquisition and no stereo matching",
+    "P3 curation only connects explicit reviewed fragment identities; no human labels are available for real archive photo"
   ]
 }
