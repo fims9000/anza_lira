@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S14_LOW_LABEL_ORIGINAL_ANZA_AND_GRAPH_RELATION_PROTOTYPE_NOT_PHYSICAL_VALIDATION",
+  "status": "S17_BOOK_PHYSICS_PRIOR_AND_MIXED_SYNTHETIC_TRAINING_READY_NO_REAL_PHOTO_ACCURACY",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Collect a few matched original BMP/crops and human-confirmed partial 1/0/255 labels plus same/different segment reviews from separate physical runs. Train AZ via s14_train_sparse_anza.py and links via s14_graph_from_reviews.py; compare independent real test segmentation and wrong-track joins before allowing unattended physical interpretation.",
+  "next_executable_action": "Run controlled equal-budget multi-seed ANZA and U-Net experiments on measured-shape synthetic set with/without 20% book hadroida and optional unlabeled photo style. Keep originals untouched. Prioritize expert-confirmed real crop segments and matched 3-view BMPs plus optical/B-field calibrations before physical reconstruction or deployment.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -396,5 +396,46 @@
     "independent_run_test": false,
     "physical_unattended_merges_certified": false,
     "all_local_tests_passed": 60
+  },
+  "S17": {
+    "date": "2026-10-25",
+    "source_guides": [
+      "VisualMetro guide Belyaev Bushmina Klevtsova 2025",
+      "Belyaev JINR P1-2023-22 eq9"
+    ],
+    "book_only_dataset": {
+      "train": 24,
+      "val": 8,
+      "unlabeled": 8,
+      "test_synthetic": 8
+    },
+    "book_style": {
+      "real_unlabeled_photo_reference_crops": 7,
+      "synthetic_samples_styled": 48,
+      "real_labels_created": 0
+    },
+    "mixed_geometry": {
+      "train_visualmetro": 96,
+      "train_book": 24,
+      "validation_visualmetro": 24,
+      "validation_book": 8,
+      "unlabeled": 8,
+      "heldout_synthetic_test": 32,
+      "source_film_070_only": true
+    },
+    "physical_applicability": "only confirmed stopping charged tracks, 0<=s<a, explicit medium, B and optical calibration",
+    "real_bmp_prerequisites": {
+      "bmp_files": 2,
+      "complete_three_view_events": 0,
+      "start_keypoints": 9,
+      "fiducial_marks": 15,
+      "expert_pixel_masks": 0
+    },
+    "source_models_verified": true,
+    "original_azunet_training_smoke": "1 epoch on synthetic book/mixed 0/1/255 masks; no real-photo quality claims",
+    "smoke_evaluation": "book only four synthetic test images: AZUNet degenerate all-positive, U-Net all-negative at 0.5 after 1 epoch",
+    "local_regression_tests_passed": 24,
+    "physical_particle_identification_certified": false,
+    "real_photo_accuracy_known": false
   }
 }

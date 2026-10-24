@@ -119,3 +119,7 @@ See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay v
 ## S14: few expert labels -> automatic provisional track inference
 
 [Small-label ANZA/Graph-LIRA research and workflow](S14_SMALL_LABEL_RESEARCH_2026_10_24.md): source-locked AZUnet trained on sparse 1/0/255 expert labels with controlled teacher consistency, active collection of same/different connection reviews, and graphical inference on new crops. Three split seeds use real 070 clicked geometry with artificial gaps, not real photographic labels; physical autonomous operation remains unvalidated.
+
+## S17 book-grounded physics priors and synthetic augmentation
+
+[Book-source limited physics and data generators](S17_BELYAEV_BOOK_PRIOR_2026_10_25.md): implements Belyaev's *near-stop-only* hadroida angular law and generates artificial curve/mask data for training original AZUNet, with optional grayscale appearance adaptation from **unlabeled** H50Z. Mixed dataset is 96 expert-click geometries + 24 book curves for training (all raster pixels simulated). Real-photo 3-view calibration and expert masks are absent; no physical PID/real-film accuracy proven.
