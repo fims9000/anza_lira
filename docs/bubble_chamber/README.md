@@ -115,3 +115,7 @@ See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay v
 ## S13 gated AZConv guidance (negative result)
 
 [Controlled S13 report](S13_GUIDED_AZ_EVALUATION.md): three-seed original-AZConv-guided U-Net vs regular-conv-guided U-Net, plain U-Net and pure AZUNet on fixed expert-measured track geometries with generated image pixels. No statistically supported AZ-specific gain and no real-camera pixel masks. Do not promote this branch to automated physical reconstruction.
+
+## S14: few expert labels -> automatic provisional track inference
+
+[Small-label ANZA/Graph-LIRA research and workflow](S14_SMALL_LABEL_RESEARCH_2026_10_24.md): source-locked AZUnet trained on sparse 1/0/255 expert labels with controlled teacher consistency, active collection of same/different connection reviews, and graphical inference on new crops. Three split seeds use real 070 clicked geometry with artificial gaps, not real photographic labels; physical autonomous operation remains unvalidated.
