@@ -3,3 +3,4 @@ scipy>=1.10
 scikit-image>=0.21
 opencv-python-headless>=4.7
 pytest>=7.0
+scikit-learn>=1.2
