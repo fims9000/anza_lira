@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S9_ORIGINAL_MODELS_SAVED_AND_FULLY_REPLAYED_NO_REAL_FILM_SUPERIORITY",
+  "status": "S10_FIXED_SPLIT_ORIGINAL_AZUNET_REPRODUCED_NEGATIVE",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "For physical pixel-level superiority, obtain expert-confirmed masks on paired BMP photos and an independent camera/filling/film. Current S9 is complete as a source-locked synthetic-pixel negative/unstable-result study.",
+  "next_executable_action": "Improve joint ANZA+LIRA continuity/topology under strictly fixed train/val/test frames. Compare every ablation against matched U-Net and Frangi, avoid claiming real-film generalization until manually validated pixel masks and independent films exist.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -233,5 +233,24 @@
     "ci_success": true,
     "release_checksum_manifest": true,
     "release_one_command_replay_passed": true
+  },
+  "S10": {
+    "date": "2026-10-24",
+    "n_model_seeds": 3,
+    "data_seed": 20261024,
+    "heldout_source_frames": 25,
+    "training_source_frames": 60,
+    "clean_mean_unet_dice": 0.6909981850911673,
+    "clean_mean_az_dice": 0.6493095294652936,
+    "stress_mean_unet_dice": 0.41534367939014477,
+    "stress_mean_az_dice": 0.4122245866732714,
+    "stress_delta_paired": -0.008333559358075449,
+    "stress_ci95": [
+      -0.040434798080681754,
+      0.024727475403424775
+    ],
+    "checkpoint_replay": "6 of 6 models verified from best_final.pt",
+    "scientific_outcome": "No stable AZUNet advantage on synthetic images",
+    "real_film_masks": false
   }
 }

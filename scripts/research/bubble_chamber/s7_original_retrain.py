@@ -55,6 +55,7 @@ def verify_sources(root: Path = REPO_ROOT) -> dict[str, str]:
 class RunConfig:
     source: str = 'procedural'  # or visualmetro
     seed: int = 20261024
+    data_seed: int | None = None  # source data fixed independently of model initialization
     size: int = 64
     epochs: int = 2
     batch_size: int = 4
@@ -74,6 +75,10 @@ class RunConfig:
     robust_scale_min: float = 0.15
     robust_scale_max: float = 1.0
     robust_noise_max: float = 0.08
+
+
+def effective_data_seed(cfg: RunConfig) -> int:
+    return cfg.seed if cfg.data_seed is None else int(cfg.data_seed)
 
 
 class TrackDataset(Dataset):
@@ -130,7 +135,7 @@ def measured_examples(root: Path, cfg: RunConfig):
     from bubble_chamber.synthetic_from_clicks import SyntheticFilmConfig, frame_render_dataset
     manifest=audited_large_manifest(root)
     frames=[f['frame_id'] for f in manifest['frames']]
-    splits=frame_partition(frames,cfg.seed)
+    splits=frame_partition(frames,effective_data_seed(cfg))
     limits={'train':cfg.train_limit,'val':cfg.val_limit,'test':cfg.test_limit}
     data={}
     for name, frame_ids in splits.items():
@@ -141,7 +146,7 @@ def measured_examples(root: Path, cfg: RunConfig):
         per_frame_cap=max(1, int(np.ceil(cap / len(frame_ids)))) if cap else 0
         seen_per_frame={}
         for im,mask,meta in frame_render_dataset(manifest,frame_ids,
-                                                 cfg=SyntheticFilmConfig(size=cfg.size,sample_seed=cfg.seed),repeats=3):
+                                                 cfg=SyntheticFilmConfig(size=cfg.size,sample_seed=effective_data_seed(cfg)),repeats=3):
             source_frame=str(meta['source_frame'])
             used=seen_per_frame.get(source_frame,0)
             if cap and used >= per_frame_cap:continue
@@ -165,7 +170,7 @@ def make_datasets(cfg: RunConfig, measurements: Path | None):
         if measurements is None:raise ValueError('--measurements required')
         return measured_examples(measurements,cfg)
     if cfg.source!='procedural':raise ValueError('Unknown source')
-    d={name:procedural_examples(getattr(cfg,f'{name}_limit'),cfg.size,seed=cfg.seed,split=name)
+    d={name:procedural_examples(getattr(cfg,f'{name}_limit'),cfg.size,seed=effective_data_seed(cfg),split=name)
        for name in ('train','val','test')}
     return d,{'source_kind':'fully_procedural_synthetic_software_smoke',
               'film_ids':[],'real_pixel_labels':False,'frame_split_counts':{k:len(v) for k,v in d.items()}}
@@ -203,7 +208,7 @@ def select_threshold(probs: np.ndarray, labels: np.ndarray):
 def apply_stress(x: torch.Tensor, indices: torch.Tensor, cfg: RunConfig):
     result=x*cfg.stress_contrast
     for n,idx in enumerate(indices.tolist()):
-        generator=torch.Generator(device='cpu').manual_seed(cfg.seed*37+int(idx))
+        generator=torch.Generator(device='cpu').manual_seed(effective_data_seed(cfg)*37+int(idx))
         noise=torch.randn(x[n].shape,generator=generator,dtype=x.dtype)*cfg.stress_noise_std
         result[n]=(result[n]+noise).clamp(0,1)
     return result
@@ -216,7 +221,7 @@ def robust_augment(x: torch.Tensor, indices: torch.Tensor, cfg: RunConfig, epoch
     if x.shape[0] != len(indices):raise ValueError('batch/index mismatch')
     result=x.clone()
     for n,index in enumerate(indices.tolist()):
-        g=torch.Generator(device='cpu').manual_seed(int(cfg.seed)*100007+int(epoch)*4099+int(index)*13)
+        g=torch.Generator(device='cpu').manual_seed(effective_data_seed(cfg)*100007+int(epoch)*4099+int(index)*13)
         if float(torch.rand((),generator=g)) >= cfg.robust_probability:continue
         scale=cfg.robust_scale_min+(cfg.robust_scale_max-cfg.robust_scale_min)*float(torch.rand((),generator=g))
         sigma=cfg.robust_noise_max*float(torch.rand((),generator=g))
@@ -435,7 +440,19 @@ def run(cfg:RunConfig,*,measurements:Path|None,out_dir:Path, resume:bool=False):
     for condition in ('clean','stress'):
         a=predictions['original_azunet'][condition]
         b=predictions['plain_unet'][condition]
-        paired[condition]=paired_bootstrap(a,b,groups,seed=cfg.seed+233)
+        paired[condition]=paired_bootstrap(a,b,groups,seed=effective_data_seed(cfg)+233)
+    # S10 fixed-source evaluation: only expert frame identifiers and sufficient
+    # confusion counts. Never save source BMP images or synthetic masks here.
+    if cfg.data_seed is not None:
+        frame_counts={'data_seed':effective_data_seed(cfg),'model_seed':cfg.seed,
+                      'test_groups':groups,'conditions':{}}
+        for condition in ('clean','stress'):
+            frame_counts['conditions'][condition]={}
+            for model_name in ('plain_unet','original_azunet'):
+                predicted,labels=predictions[model_name][condition]
+                frame_counts['conditions'][condition][model_name]=[
+                    list(metrics_counts(x,y)) for x,y in zip(predicted,labels)]
+        (out_dir/'s10_test_frame_counts.json').write_text(json.dumps(frame_counts,indent=2)+'\n')
     report={'experiment':'S7_ORIGINAL_LOCKED_AZUNET_VS_UNET','original_source_git_blobs':SOURCE_BLOBS,
             'source_data':source,'config':asdict(cfg),'results':results,'paired':paired,
             'scientific_claim':'synthetic pixels generated from measured geometry only; not real film superiority',
@@ -456,6 +473,7 @@ def main():
     parser.add_argument('--batch-size',type=int,default=4)
     parser.add_argument('--size',type=int,default=64)
     parser.add_argument('--seed',type=int,default=20261024)
+    parser.add_argument('--data-seed',type=int,default=None,help='Lock source frames/rendering/stress independently of model initialization')
     parser.add_argument('--widths',type=int,nargs=4,default=[8,16,24,32])
     parser.add_argument('--rules',type=int,default=2)
     parser.add_argument('--train-limit',type=int,default=48)
@@ -471,7 +489,7 @@ def main():
     parser.add_argument('--robust-scale-max',type=float,default=1.0)
     parser.add_argument('--robust-noise-max',type=float,default=0.08)
     args=parser.parse_args()
-    cfg=RunConfig(source=args.source,seed=args.seed,size=args.size,epochs=args.epochs,batch_size=args.batch_size,
+    cfg=RunConfig(source=args.source,seed=args.seed,data_seed=args.data_seed,size=args.size,epochs=args.epochs,batch_size=args.batch_size,
                   widths=tuple(args.widths),num_rules=args.rules,train_limit=args.train_limit,val_limit=args.val_limit,
                   test_limit=args.test_limit,steps_per_epoch=args.steps_per_epoch,cpu_threads=args.cpu_threads,
                   az_residual=args.az_residual,robust_train=args.robust_train,

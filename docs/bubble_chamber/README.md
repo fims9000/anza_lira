@@ -103,3 +103,7 @@ python source/scripts/research/bubble_chamber/s9_replay_release.py \
 ```
 
 See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay verifies **synthetic generated-pixel** metrics from expert-measured geometry, not segmentation accuracy on real bubble-chamber photographs.
+
+## S10 fixed-data architecture comparison
+
+[Fixed-frame S10 study](S10_FIXED_SPLIT_EVALUATION.md): original ANZA vs U-Net vs Frangi across 3 model initializations, synthetic images derived from expert clicks. All 6 checkpoints replayed; **no stable ANZA advantage** established and **no real film Dice** is claimed.

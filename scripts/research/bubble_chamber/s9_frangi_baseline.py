@@ -45,8 +45,9 @@ if __name__=="__main__":
     p.add_argument("--measurements",type=Path,required=True)
     p.add_argument("--out",type=Path,required=True)
     p.add_argument("--seed",type=int,default=20261024)
+    p.add_argument("--data-seed",type=int,default=None)
     a=p.parse_args()
-    cfg=RunConfig(source="visualmetro",seed=a.seed,size=64,train_limit=120,val_limit=26,test_limit=25,
+    cfg=RunConfig(source="visualmetro",seed=a.seed,data_seed=a.data_seed,size=64,train_limit=120,val_limit=26,test_limit=25,
                   widths=(4,6,8,12),num_rules=2,robust_train=True,az_residual=True)
     ds,source=make_datasets(cfg,a.measurements)
     result=evaluate(ds,cfg)

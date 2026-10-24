@@ -1,0 +1,55 @@
+{
+  "status": "FULL_CHECKPOINT_REPLAY_PASSED",
+  "checkpoints": [
+    {
+      "seed": 20261024,
+      "model": "plain_unet",
+      "checkpoint_sha256": "2747589013a08832bcc2f2833e46443c5c0209e86232c727e67d708647b854d2",
+      "checkpoint_verified": true,
+      "clean_dice": 0.6644748226336736,
+      "stress_dice": 0.42722837081994525
+    },
+    {
+      "seed": 20261024,
+      "model": "original_azunet",
+      "checkpoint_sha256": "40d51941278398a3a6102986498f5933147da45a25465e5e1556194f28a67564",
+      "checkpoint_verified": true,
+      "clean_dice": 0.6267432321575062,
+      "stress_dice": 0.42181615288045754
+    },
+    {
+      "seed": 20261025,
+      "model": "plain_unet",
+      "checkpoint_sha256": "9ed0c4fafa6ada1a65192b1d4d0b328f6898cb5420338961ec15b1b7ea4b58d6",
+      "checkpoint_verified": true,
+      "clean_dice": 0.6657909551510602,
+      "stress_dice": 0.3094517322569795
+    },
+    {
+      "seed": 20261025,
+      "model": "original_azunet",
+      "checkpoint_sha256": "7c692121e807784806fc36eaeff85d0bbb594ae3a1d7b242b5411e0bef470c03",
+      "checkpoint_verified": true,
+      "clean_dice": 0.664227714821094,
+      "stress_dice": 0.39360222531293465
+    },
+    {
+      "seed": 20261026,
+      "model": "plain_unet",
+      "checkpoint_sha256": "f2d21f9317e67c24b51a797c6a7470770d79242caa5887adeb77185a21aa9786",
+      "checkpoint_verified": true,
+      "clean_dice": 0.742728777488768,
+      "stress_dice": 0.5093509350935094
+    },
+    {
+      "seed": 20261026,
+      "model": "original_azunet",
+      "checkpoint_sha256": "e4fb15509f9cffe05678ab0454217cb1b2d88c4a852c20bae5cfc740ed57f703",
+      "checkpoint_verified": true,
+      "clean_dice": 0.6569576414172809,
+      "stress_dice": 0.4212553818264219
+    }
+  ],
+  "source": "synthetic pixels from real measured geometry",
+  "real_camera_accuracy_proven": false
+}

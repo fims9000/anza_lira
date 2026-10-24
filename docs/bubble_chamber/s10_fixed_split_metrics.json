@@ -1,0 +1,144 @@
+{
+  "experiment": "S10_FIXED_SOURCE_RANDOM_INITIALIZATION_ORIGINAL_AZUNET",
+  "status": "EXPLORATORY_NO_REAL_PIXEL_GT",
+  "data_seed": 20261024,
+  "model_seeds": [
+    20261024,
+    20261025,
+    20261026
+  ],
+  "data_provenance_sha256": "bd8e28247c5d178ae4f2f5a86215cbf5626f3ad86560928f4521093ce9188dea",
+  "fixed_split_fingerprints": {
+    "train": "a42158730d943e93ec0c8a3667771b9276b4a8e86170f630e1eda75bebe38956",
+    "val": "14984b28141cee55b3f729dd881eb9a648e043e0d67bdda2737a1c9a83c193dc",
+    "test": "a5442f0b8249f4c20a27790c454a19e3cb7ca3693774d5f435941fdb483db0d7"
+  },
+  "n_test_original_frames": 25,
+  "film_id": "070",
+  "original_pixels_available_in_training": false,
+  "source_blobs": {
+    "models/azconv.py": "f4217ada00024927506fa8ebe520aa1f68ae5854",
+    "models/segmentation.py": "0b971c117f3d56cc588ebade6991c65faceb8a2a"
+  },
+  "per_model_seed": [
+    {
+      "seed": 20261024,
+      "model_scores": {
+        "plain_unet": {
+          "dice_clean": 0.6644748226336736,
+          "dice_stress": 0.42722837081994525,
+          "cldice_clean": 0.8814802536245651,
+          "cldice_stress": 0.4257013570707842,
+          "time_seconds": 4.819,
+          "checkpoint_sha256": "2747589013a08832bcc2f2833e46443c5c0209e86232c727e67d708647b854d2"
+        },
+        "original_azunet": {
+          "dice_clean": 0.6267432321575062,
+          "dice_stress": 0.42181615288045754,
+          "cldice_clean": 0.8556456630727922,
+          "cldice_stress": 0.38924597707824504,
+          "time_seconds": 25.003,
+          "checkpoint_sha256": "40d51941278398a3a6102986498f5933147da45a25465e5e1556194f28a67564"
+        }
+      }
+    },
+    {
+      "seed": 20261025,
+      "model_scores": {
+        "plain_unet": {
+          "dice_clean": 0.6657909551510602,
+          "dice_stress": 0.3094517322569795,
+          "cldice_clean": 0.7812027522096047,
+          "cldice_stress": 0.3049049574916065,
+          "time_seconds": 4.74,
+          "checkpoint_sha256": "9ed0c4fafa6ada1a65192b1d4d0b328f6898cb5420338961ec15b1b7ea4b58d6"
+        },
+        "original_azunet": {
+          "dice_clean": 0.664227714821094,
+          "dice_stress": 0.39360222531293465,
+          "cldice_clean": 0.8165689967213348,
+          "cldice_stress": 0.3088423593374221,
+          "time_seconds": 24.19,
+          "checkpoint_sha256": "7c692121e807784806fc36eaeff85d0bbb594ae3a1d7b242b5411e0bef470c03"
+        }
+      }
+    },
+    {
+      "seed": 20261026,
+      "model_scores": {
+        "plain_unet": {
+          "dice_clean": 0.742728777488768,
+          "dice_stress": 0.5093509350935094,
+          "cldice_clean": 0.7924598829188221,
+          "cldice_stress": 0.4660602970738142,
+          "time_seconds": 4.023,
+          "checkpoint_sha256": "f2d21f9317e67c24b51a797c6a7470770d79242caa5887adeb77185a21aa9786"
+        },
+        "original_azunet": {
+          "dice_clean": 0.6569576414172809,
+          "dice_stress": 0.4212553818264219,
+          "cldice_clean": 0.8732352350275836,
+          "cldice_stress": 0.42380751320531523,
+          "time_seconds": 24.269,
+          "checkpoint_sha256": "e4fb15509f9cffe05678ab0454217cb1b2d88c4a852c20bae5cfc740ed57f703"
+        }
+      }
+    }
+  ],
+  "mean_dice_per_model": {
+    "plain_unet": {
+      "clean": 0.6909981850911673,
+      "stress": 0.41534367939014477
+    },
+    "original_azunet": {
+      "clean": 0.6493095294652936,
+      "stress": 0.4122245866732714
+    }
+  },
+  "frangi_fixed_data": {
+    "clean": 0.8266881460598738,
+    "stress": 0.11807580174927114,
+    "threshold_val": 0.23730677043917967
+  },
+  "paired_az_minus_unet": {
+    "clean": {
+      "delta_pooled_micro_dice": -0.03782834654952505,
+      "ci95_by_test_source_frame": [
+        -0.10587408250122902,
+        0.01986388112603382
+      ],
+      "bootstrap_repeats": 2000,
+      "resampling_unit": "source frame, all seeds paired",
+      "n_unique_test_frames": 25,
+      "model_seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "conditional_on_these_model_seeds": true
+    },
+    "stress": {
+      "delta_pooled_micro_dice": -0.008333559358075449,
+      "ci95_by_test_source_frame": [
+        -0.040434798080681754,
+        0.024727475403424775
+      ],
+      "bootstrap_repeats": 2000,
+      "resampling_unit": "source frame, all seeds paired",
+      "n_unique_test_frames": 25,
+      "model_seeds": [
+        20261024,
+        20261025,
+        20261026
+      ],
+      "conditional_on_these_model_seeds": true
+    }
+  },
+  "limitations": [
+    "Synthetic pixels from real measured trajectories, no verified real-film masks",
+    "All frames belong to a single film (070); no independent-camera holdout",
+    "Only three model-initialization seeds, same small network widths and 8 epochs",
+    "Bootstrap resamples the fixed 25 test frames conditioned on the three seeds",
+    "Cannot infer universal ANZA superiority from synthetic benchmark"
+  ]
+}
