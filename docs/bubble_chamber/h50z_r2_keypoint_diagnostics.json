@@ -1,0 +1,42 @@
+{
+  "status": "KEYPOINT_ADJACENCY_ONLY_NO_PIXEL_SEGMENTATION_GROUND_TRUTH",
+  "audit": {
+    "annotated_frames_in_json": 105,
+    "available_original_bmps": 2,
+    "missing_original_bmps": 103,
+    "keypoints_by_class_all_frames": {
+      "f1": 105,
+      "f2": 105,
+      "f3": 104,
+      "f4": 106,
+      "f5": 106,
+      "f6": 104,
+      "f7": 102,
+      "f8": 105,
+      "start": 570
+    },
+    "available_filenames": [
+      "H50Z_030_01_005.bmp",
+      "H50Z_030_01_006.bmp"
+    ],
+    "available_start_points": 9,
+    "available_fiducial_points": 15,
+    "segmentation_mask_available": false,
+    "valid_labels": "start or fiducial landmarks ONLY, not pixel mask or particle identity",
+    "unknown_pixels": "UNKNOWN - not background supervision"
+  },
+  "keypoint_proximity_diagnostics": {
+    "contrast": {
+      "start_landmark_count": 9,
+      "near_start_count": 1,
+      "mean_nearest_ridge_px": 26.392
+    },
+    "frangi": {
+      "start_landmark_count": 9,
+      "near_start_count": 1,
+      "mean_nearest_ridge_px": 67.788
+    }
+  },
+  "real_segmentation_accuracy": "NOT_MEASURABLE",
+  "comparison_claim": "Neither Frangi nor ANZA has been shown superior on real labeled track masks; none are provided."
+}

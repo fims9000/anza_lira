@@ -59,3 +59,7 @@ Pixel coordinates in the emitted CSV refer to the **original input image**, even
 ## New real data, 2026-10-24
 
 See [REAL_H50Z_AND_070_DATA_AUDIT_2026_10_24.md](REAL_H50Z_AND_070_DATA_AUDIT_2026_10_24.md). Two H50Z BMPs and point-only labels are available, but there is no dense line mask; film 070 has a different, sparse three-view measurement dataset without matching BMPs. Use `export_small_bmp_tiles.py` to send lossless point-registered 1024x1024 crops instead of multi-hundred-MB BMPs; do not pair H50Z and 070 as the same event.
+
+## S2/R3 (24 October 2026): actual sparse measurements and partial mask bootstrapping
+
+New code: `bubble_chamber/real_sparse_lira.py`, `h50z_seed_analysis.py`, `track_mask_review.py`, `anza_segmentation_adapter.py`. The accompanying S2 study shows that basic geometry **outperformed** ANZA-inspired features in the very limited same-film sparse coordinate task. H50Z keypoint proposals are **not** ground truth. See `docs/bubble_chamber/S2_REAL_SPARSE_LIRA_AND_H50Z_REVIEW.md` for exact commands, metrics and gates.

@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Acquire matched view 1/2/3 lossless BMP crops for 070_008 with original pixel offsets, then collect expert continuous track masks and train compared ANZA vs U-Net vs Frangi under run-disjoint splits.",
+  "next_executable_action": "Collect expert decisions from track_mask_review.html; only then build certified partial masks and run original repo AZUNet vs U-Net; independently paired 070 image triplets needed for supervised image-grounded LIRA benchmark.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -78,5 +78,36 @@
     "Film 070 manual track coordinates cannot be paired to H50Z BMPs by filename/position alone",
     "H50Z contains two of 105 annotated named images; the other 103 are not available",
     "No independent film/run-disjoint supervised segmentation evaluation yet"
-  ]
+  ],
+  "current_milestone": "S2_REAL_SPARSE_RELATION_R2_REAL_KEYPOINTS_R3_REVIEW_BOOTSTRAP",
+  "last_update": "2026-10-24",
+  "local_tests_passed": 82,
+  "full_compileall_passed": true,
+  "real_sparse_relation": {
+    "frames": 7,
+    "films": 1,
+    "expert_tracks": 42,
+    "xyz_points": 620,
+    "stereo_measured_clicks": 1860,
+    "total_candidates": 1626,
+    "true_candidate_recall": 1.0,
+    "basic_tp_fp": [
+      276,
+      0
+    ],
+    "axial_fuzzy_tp_fp": [
+      261,
+      1
+    ],
+    "axial_beats_geometry": false,
+    "real_images_paired": 0
+  },
+  "h50z_available": {
+    "json_images": 105,
+    "available_bmps": 2,
+    "available_start_landmarks": 9,
+    "available_fiducials": 15,
+    "human_review_proposals": 41,
+    "expert_reviewed_centerlines": 0
+  }
 }
