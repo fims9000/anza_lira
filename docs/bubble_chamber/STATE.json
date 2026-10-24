@@ -3,16 +3,21 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "P1_HUMAN_REVIEW_FUNCTIONAL_NO_EXPERT_LABELS",
+  "status": "S0_SYNTHETIC_RELATION_ISOLATION_COMPLETED_REAL_DATA_GATE_OPEN",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
-    "python_tests_passed": 19,
+    "python_tests_passed": 23,
     "local_real_image_candidates": 17,
     "automatic_merges": 0,
     "html_export_created": true,
     "javascript_syntax_checked": true,
     "human_browser_acceptance": false,
-    "external_public_images_downloaded": 0
+    "external_public_images_downloaded": 0,
+    "synthetic_scenes": 300,
+    "synthetic_test_fpr_geometry": 0.067227,
+    "synthetic_test_fpr_geometry_image": 0.033613,
+    "synthetic_gate_max_fpr": 0.02,
+    "synthetic_gate_passed": false
   },
   "data": {
     "archive_image": "unlabeled single real image action.jpg; locally present; not committed",
@@ -20,7 +25,7 @@
     "stereo_triplets": "not available",
     "expert_pair_labels": "not available"
   },
-  "next_executable_action": "Collect expert decisions in offline reviewer on original frame; obtain calibrated stereo BMP triplets and run-separated true links before Graph-LIRA training; run public downloader where network is available.",
+  "next_executable_action": "Collect true same/different track labels via offline reviewer; obtain H2 and propane calibrated 3-view original BMPs; only then train/validate relation model for real data.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",

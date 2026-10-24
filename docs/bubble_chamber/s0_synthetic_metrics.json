@@ -1,0 +1,101 @@
+{
+  "status": "SYNTHETIC_RELATION_ISOLATION_ONLY",
+  "protocol": {
+    "seed": 20261024,
+    "train_scenes": 160,
+    "val_scenes": 70,
+    "test_scenes": 70,
+    "max_gap_px": 53.0,
+    "max_angle_deg": 38.0,
+    "max_val_false_positive_rate": 0.02,
+    "image_size": 320
+  },
+  "splits": {
+    "train": {
+      "total_true_links": 387,
+      "candidate_true_links": 387,
+      "scene_count": 160,
+      "seed_start": 20261024,
+      "candidate_count": 658
+    },
+    "validation": {
+      "total_true_links": 173,
+      "candidate_true_links": 173,
+      "scene_count": 70,
+      "seed_start": 20261184,
+      "candidate_count": 294
+    },
+    "test": {
+      "total_true_links": 171,
+      "candidate_true_links": 171,
+      "scene_count": 70,
+      "seed_start": 20261254,
+      "candidate_count": 290
+    }
+  },
+  "results": {
+    "geometry_only": {
+      "validation": {
+        "tp": 34,
+        "fp": 2,
+        "fn": 139,
+        "tn": 119,
+        "threshold_validation_selected": 0.8172613606509839,
+        "recall_candidates": 0.196532,
+        "false_positive_rate_candidates": 0.016529,
+        "false_joins_per_scene": 0.028571,
+        "accepted_candidates": 36,
+        "auroc": 0.795873,
+        "auprc": 0.815879,
+        "automatic_merges_in_real_pilot": 0
+      },
+      "test": {
+        "tp": 22,
+        "fp": 8,
+        "fn": 149,
+        "tn": 111,
+        "threshold_validation_selected": 0.8172613606509839,
+        "recall_candidates": 0.128655,
+        "false_positive_rate_candidates": 0.067227,
+        "false_joins_per_scene": 0.114286,
+        "accepted_candidates": 30,
+        "auroc": 0.78967,
+        "auprc": 0.79323,
+        "automatic_merges_in_real_pilot": 0
+      },
+      "model_features": "geometry only"
+    },
+    "geometry_plus_image": {
+      "validation": {
+        "tp": 35,
+        "fp": 2,
+        "fn": 138,
+        "tn": 119,
+        "threshold_validation_selected": 0.8698564994722207,
+        "recall_candidates": 0.202312,
+        "false_positive_rate_candidates": 0.016529,
+        "false_joins_per_scene": 0.028571,
+        "accepted_candidates": 37,
+        "auroc": 0.886399,
+        "auprc": 0.88079,
+        "automatic_merges_in_real_pilot": 0
+      },
+      "test": {
+        "tp": 28,
+        "fp": 4,
+        "fn": 143,
+        "tn": 115,
+        "threshold_validation_selected": 0.8698564994722207,
+        "recall_candidates": 0.163743,
+        "false_positive_rate_candidates": 0.033613,
+        "false_joins_per_scene": 0.057143,
+        "accepted_candidates": 32,
+        "auroc": 0.871542,
+        "auprc": 0.876856,
+        "automatic_merges_in_real_pilot": 0
+      },
+      "model_features": "geometry and source-image darkness"
+    }
+  },
+  "interpretation_warning": "Oracle synthetic fragments and scene design: cannot claim real segmentation, run transfer, JINR precision, physical validation, or superiority of ANZA."
+}
