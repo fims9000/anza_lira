@@ -3,10 +3,10 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S0_SYNTHETIC_RELATION_ISOLATION_COMPLETED_REAL_DATA_GATE_OPEN",
+  "status": "P2_SYNTHETIC_SEGMENTATION_AND_LOCAL_IMAGE_PHOTOMETRY_COMPLETE",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
-    "python_tests_passed": 23,
+    "python_tests_passed": 31,
     "local_real_image_candidates": 17,
     "automatic_merges": 0,
     "html_export_created": true,
@@ -17,7 +17,21 @@
     "synthetic_test_fpr_geometry": 0.067227,
     "synthetic_test_fpr_geometry_image": 0.033613,
     "synthetic_gate_max_fpr": 0.02,
-    "synthetic_gate_passed": false
+    "synthetic_gate_passed": false,
+    "P2_synthetic_test_scenes": 36,
+    "P2_validation_scenes": 24,
+    "P2_contrast_selected_threshold": 12,
+    "P2_frangi_selected_fraction": 0.16,
+    "P2_clutter_F1_contrast": 0.7351,
+    "P2_clutter_F1_frangi": 0.835721,
+    "P2_clutter_paired_CI95": [
+      0.006609,
+      0.220956
+    ],
+    "P2_real_unlabeled_frangi_fragments": 37,
+    "P2_real_unlabeled_frangi_review_pairs": 3,
+    "P2_real_unlabeled_photometry_valid": 511,
+    "P2_real_unlabeled_photometry_total": 518
   },
   "data": {
     "archive_image": "unlabeled single real image action.jpg; locally present; not committed",
@@ -25,10 +39,12 @@
     "stereo_triplets": "not available",
     "expert_pair_labels": "not available"
   },
-  "next_executable_action": "Collect true same/different track labels via offline reviewer; obtain H2 and propane calibrated 3-view original BMPs; only then train/validate relation model for real data.",
+  "next_executable_action": "Obtain expert-stamped 3-view images and fragment-identity labels; integrate calibrated multi-view check before any auto-merge; test ANZA/U-Net against P2 on same split.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
-    "No H2-to-C3H8 transfer claim"
+    "No H2-to-C3H8 transfer claim",
+    "P2 Frangi gain is limited to synthetic optical stress test; no independently labeled real photos",
+    "Image transverse FWHM and darkness are not calibrated ionization or particle identification"
   ]
 }

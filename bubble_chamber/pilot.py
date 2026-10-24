@@ -18,6 +18,9 @@ import numpy as np
 from scipy.ndimage import label as label_components
 from skimage.morphology import skeletonize
 
+from .ridges import frangi_dark_ridges
+from .photometry import sample_track_profiles
+
 
 VERSION = "bubble_classical_p0_v1"
 OFFSETS = tuple((dy, dx) for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dy or dx)
@@ -34,6 +37,9 @@ class PilotConfig:
     max_gap_px: float = 42.0
     max_join_angle_deg: float = 32.0
     max_candidates_per_endpoint: int = 4
+    segmentation_method: str = "contrast"  # or "frangi"; original default preserved
+    ridge_response_fraction: float = 0.12
+    ridge_scales: tuple[float, ...] = (1.0, 2.0, 3.0)
 
 
 def _edge(a: tuple[int, int], b: tuple[int, int]) -> tuple[tuple[int, int], tuple[int, int]]:
@@ -232,10 +238,20 @@ def analyze_frame(image_gray: np.ndarray, cfg: PilotConfig = PilotConfig(), *, r
     smooth = cv2.GaussianBlur(crop, (0, 0), sigmaX=cfg.denoise_sigma)
     background = cv2.GaussianBlur(smooth, (0, 0), sigmaX=cfg.background_sigma)
     contrast = cv2.subtract(background, smooth)
-    raw_mask = contrast >= cfg.threshold
-    components, _ = label_components(raw_mask, structure=np.ones((3, 3), dtype=np.uint8))
-    component_sizes = np.bincount(components.ravel())
-    mask = raw_mask & (component_sizes[components] >= cfg.min_component_area)
+    if cfg.segmentation_method == "contrast":
+        raw_mask = contrast >= cfg.threshold
+        components, _ = label_components(raw_mask, structure=np.ones((3, 3), dtype=np.uint8))
+        component_sizes = np.bincount(components.ravel())
+        mask = raw_mask & (components > 0) & (component_sizes[components] >= cfg.min_component_area)
+        pipeline_id = VERSION
+    elif cfg.segmentation_method == "frangi":
+        mask, _ = frangi_dark_ridges(
+            crop, response_fraction=cfg.ridge_response_fraction,
+            scales=cfg.ridge_scales, min_area=cfg.min_component_area,
+        )
+        pipeline_id = "bubble_p2_multiscale_frangi_v1"
+    else:
+        raise ValueError("unknown segmentation_method: " + repr(cfg.segmentation_method))
     skeleton = skeletonize(mask)
     pieces = extract_skeleton_segments(skeleton, cfg.min_segment_length_px)
     distance = cv2.distanceTransform(mask.astype(np.uint8), cv2.DIST_L2, 3)
@@ -250,11 +266,22 @@ def analyze_frame(image_gray: np.ndarray, cfg: PilotConfig = PilotConfig(), *, r
         pix = np.rint(seg).astype(int)
         widths = 2 * distance[np.clip(pix[:, 0], 0, len(crop) - 1), np.clip(pix[:, 1], 0, crop.shape[1] - 1)]
         darkness = contrast[np.clip(pix[:, 0], 0, len(crop) - 1), np.clip(pix[:, 1], 0, crop.shape[1] - 1)]
-        fitted.append({"segment_id": len(fitted), "observed_length_px": round(float(np.linalg.norm(np.diff(seg, axis=0), axis=1).sum()), 4),
+        segment_data = {"segment_id": len(fitted), "observed_length_px": round(float(np.linalg.norm(np.diff(seg, axis=0), axis=1).sum()), 4),
                        "fit": poly, "measurement_xy_px": sample[:, ::-1].tolist(),
                        "width_proxy_px_mean": round(float(widths.mean()), 4),
                        "darkness_proxy_mean": round(float(darkness.mean()), 4),
-                       "semantic_warning": "A/B are geometric endpoints, not physical start/stop"})
+                       "semantic_warning": "A/B are geometric endpoints, not physical start/stop"}
+        if cfg.segmentation_method == "frangi":
+            # Photometry uses source image intensity, not the binary Frangi mask.
+            # Profile records are in original full-image XY coordinates.
+            crop_sample_xy = sample[:, ::-1] - np.array([x0, y0], dtype=float)
+            profiles = sample_track_profiles(crop, crop_sample_xy)
+            for record, (x, y) in zip(profiles, sample[:, ::-1]):
+                record["x_source_px"] = float(x)
+                record["y_source_px"] = float(y)
+            segment_data["transverse_profile_samples"] = profiles
+            segment_data["profile_status"] = "IMAGE_SPACE_ONLY_NOT_CALIBRATED_DEDX"
+        fitted.append(segment_data)
     proposals = propose_joins(shifted, max_gap_px=cfg.max_gap_px, max_join_angle_deg=cfg.max_join_angle_deg, max_candidates_per_endpoint=cfg.max_candidates_per_endpoint)
     overlay = cv2.cvtColor(crop, cv2.COLOR_GRAY2RGB)
     for i, seg in enumerate(pieces):
@@ -263,7 +290,7 @@ def analyze_frame(image_gray: np.ndarray, cfg: PilotConfig = PilotConfig(), *, r
         cv2.polylines(overlay, [path.reshape(-1, 1, 2)], False, rgb, 2, cv2.LINE_AA)
         # ID annotation is intentionally omitted: too dense on full film frames.
     result = {
-        "pipeline": VERSION, "config": asdict(cfg), "roi_xyxy": list(roi),
+        "pipeline": pipeline_id, "config": asdict(cfg), "roi_xyxy": list(roi),
         "source_sha256_grayscale_pixels": sha256(raw.tobytes()).hexdigest(),
         "frame_shape_yx": [h, w], "foreground_pixel_count": int(mask.sum()),
         "fragment_count": len(fitted), "proposed_joins_count": len(proposals),

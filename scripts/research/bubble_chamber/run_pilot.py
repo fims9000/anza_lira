@@ -38,6 +38,15 @@ def write_case(image, output: Path, cfg: PilotConfig, roi, *, ground_truth=None,
         for item in result["segments"]:
             for idx, (x, y) in enumerate(item["measurement_xy_px"]):
                 writer.writerow([item["segment_id"], idx, f"{x:.5f}", f"{y:.5f}", "false"])
+    if any("transverse_profile_samples" in segment for segment in result["segments"]):
+        with (output / "transverse_photometry.csv").open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(["fragment_id", "point_index", "x_source_px", "y_source_px", "status", "width_fwhm_px", "darkness_px", "calibrated_dedx"])
+            for segment in result["segments"]:
+                for point in segment.get("transverse_profile_samples", []):
+                    writer.writerow([segment["segment_id"], point["index"], f'{point["x_source_px"]:.5f}', f'{point["y_source_px"]:.5f}', point["status"],
+                                     "" if point["width_fwhm_px"] is None else point["width_fwhm_px"],
+                                     "" if point["darkness_px"] is None else point["darkness_px"], "false"])
     return result
 
 
@@ -48,11 +57,14 @@ def main():
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--roi", nargs=4, type=int, metavar=("X0", "Y0", "X1", "Y1"))
     parser.add_argument("--threshold", type=float, default=18.0)
+    parser.add_argument("--segmentation", choices=("contrast", "frangi"), default="contrast")
+    parser.add_argument("--ridge-fraction", type=float, default=0.12)
     parser.add_argument("--min-length", type=float, default=28.0)
     args = parser.parse_args()
     if bool(args.image) == bool(args.synthetic):
         parser.error("provide exactly one of --image or --synthetic")
-    cfg = PilotConfig(threshold=args.threshold, min_segment_length_px=args.min_length)
+    cfg = PilotConfig(threshold=args.threshold, min_segment_length_px=args.min_length,
+                      segmentation_method=args.segmentation, ridge_response_fraction=args.ridge_fraction)
     if args.image:
         image = cv2.imread(str(args.image), cv2.IMREAD_GRAYSCALE)
         if image is None:
