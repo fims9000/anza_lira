@@ -1,0 +1,45 @@
+name: Bubble S14 few-label ANZA and Graph-LIRA contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s14_*.py'
+      - 'scripts/research/bubble_chamber/s14_*.py'
+      - 'tests/test_s14_*.py'
+      - '.github/workflows/s14_low_label_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  small-label-inference-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch numpy scipy scikit-image opencv-python-headless scikit-learn pytest
+      - name: S14 active review and sparse teacher contracts
+        run: python -m pytest -q tests/test_s14_*.py
+      - name: Original source AZUNet sparse-label smoke (synthetic only)
+        run: |
+          python scripts/research/bubble_chamber/s14_make_synthetic_sparse_demo.py --out-dir /tmp/s14-label-demo
+          python scripts/research/bubble_chamber/s14_train_sparse_anza.py \
+            --manifest /tmp/s14-label-demo/s14_sparse_demo_manifest.json \
+            --out-dir /tmp/s14-smoke-checkpoints --model azunet --epochs 1 \
+            --widths 4 4 4 4 --rules 2
+          test -s /tmp/s14-smoke-checkpoints/best.pt
+          test -s /tmp/s14-smoke-checkpoints/metrics.json
+      - name: Preserve fully synthetic demonstration receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bubble-s14-synthetic-azunet-technical-smoke
+          path: /tmp/s14-smoke-checkpoints/
+          if-no-files-found: warn
+          retention-days: 7
