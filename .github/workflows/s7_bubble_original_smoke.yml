@@ -44,6 +44,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: s7-original-azconv-cpu-smoke
-          path: results/bubble_chamber/s7_ci/
+          path: |
+            results/bubble_chamber/s7_ci/
+            models/azconv.py
+            models/segmentation.py
           if-no-files-found: warn
           retention-days: 14
