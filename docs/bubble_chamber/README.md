@@ -107,3 +107,7 @@ See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay v
 ## S10 fixed-data architecture comparison
 
 [Fixed-frame S10 study](S10_FIXED_SPLIT_EVALUATION.md): original ANZA vs U-Net vs Frangi across 3 model initializations, synthetic images derived from expert clicks. All 6 checkpoints replayed; **no stable ANZA advantage** established and **no real film Dice** is claimed.
+
+## S11–S12 topology and direct tangent supervision
+
+[Original ANZA experiments and ablations](S11_S12_EVALUATION_2026_10_24.md): real visualMetro geometries with synthetic pixel renderings, 3 independent model initializations, unchanged original AZConv and U-Net source. Heavy clDice harms quality; direct tangent orientation yields a **small clean synthetic Dice gain**, not stable under stress. A safety-gated 2D polynomial fit reports image-pixel coefficients/endpoints and abstains on fragmented tracks; no physical 3D reconstruction or real-film accuracy established.

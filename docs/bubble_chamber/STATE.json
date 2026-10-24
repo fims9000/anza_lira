@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S10_FIXED_SPLIT_ORIGINAL_AZUNET_REPRODUCED_NEGATIVE",
+  "status": "S12_ORIGINAL_AZCONV_DIRECT_TANGENT_SMALL_SYNTHETIC_GAIN_NOT_NOISE_ROBUST",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Improve joint ANZA+LIRA continuity/topology under strictly fixed train/val/test frames. Compare every ablation against matched U-Net and Frangi, avoid claiming real-film generalization until manually validated pixel masks and independent films exist.",
+  "next_executable_action": "Evaluate S13 gated AZConv-derived image prior against matched standard Conv guidance and unchanged U-Net on fixed expert-click-generated images. Require real expert dense track masks and independent films before claims of actual bubble-film benefit.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -77,7 +77,11 @@
     "H50Z labels.json annotates f1..f8 and start keypoints, not a dense track mask or all visible particle traces",
     "Film 070 manual track coordinates cannot be paired to H50Z BMPs by filename/position alone",
     "H50Z contains two of 105 annotated named images; the other 103 are not available",
-    "No independent film/run-disjoint supervised segmentation evaluation yet"
+    "No independent film/run-disjoint supervised segmentation evaluation yet",
+    "S11/S12 use real manual track shapes but generated grayscale pixels/masks, never authentic pixel segmentation labels",
+    "All model-seed confidence intervals conditional on source film 070 and selected training initializations; cannot claim independent run transfer",
+    "S12 direct tangent clean Dice gain is small and stressed Dice did not improve reliably",
+    "Quadratic fit only a 2D review aid; no optics, B-field, 3D mass/momentum inference"
   ],
   "current_milestone": "S2_REAL_SPARSE_RELATION_R2_REAL_KEYPOINTS_R3_REVIEW_BOOTSTRAP",
   "last_update": "2026-10-24",
@@ -252,5 +256,70 @@
     "checkpoint_replay": "6 of 6 models verified from best_final.pt",
     "scientific_outcome": "No stable AZUNet advantage on synthetic images",
     "real_film_masks": false
+  },
+  "S11": {
+    "data_seed": 20261024,
+    "seeds": [
+      20261024,
+      20261025,
+      20261026
+    ],
+    "sample_source": "1mH2Data film 070 measured track shapes, simulated pixels",
+    "trained_arms": 5,
+    "epochs": 8,
+    "stress_mean_dice": {
+      "unet_base": 0.4033,
+      "az_base": 0.41,
+      "az_cldice": 0.3262,
+      "az_cldice_axis": 0.4071
+    },
+    "conclusion": "Strong clDice=0.2 materially hurts original AZ on measured track geometry; native AZ axis loss recovers but does not exceed baseline",
+    "real_pixel_masks": false
+  },
+  "S12": {
+    "data_seed": 20261027,
+    "seeds": [
+      20261024,
+      20261025,
+      20261026
+    ],
+    "trained_arms": 5,
+    "epochs": 8,
+    "mean_dice_clean": {
+      "unet_base": 0.6419,
+      "az_base": 0.6456,
+      "az_direct05": 0.6503,
+      "az_direct_cldice05": 0.6349
+    },
+    "mean_dice_stress": {
+      "unet_base": 0.4575,
+      "az_base": 0.4712,
+      "az_direct05": 0.4636,
+      "az_direct_cldice05": 0.4726
+    },
+    "paired_clean_direct_minus_base": 0.00871,
+    "paired_clean_frame_bootstrap95": [
+      0.00167,
+      0.01561
+    ],
+    "paired_stress_direct_minus_base": -0.01194,
+    "paired_stress_frame_bootstrap95": [
+      -0.02555,
+      0.00002
+    ],
+    "curves_clean_accepted_over_75": {
+      "unet_base": 55,
+      "az_base": 47,
+      "az_direct05": 52,
+      "az_direct_cldice05": 52
+    },
+    "curves_stress_accepted_over_75": {
+      "unet_base": 5,
+      "az_base": 4,
+      "az_direct05": 2,
+      "az_direct_cldice05": 3
+    },
+    "conditional_on_one_film": true,
+    "physical_three_view_reconstruction": false
   }
 }
