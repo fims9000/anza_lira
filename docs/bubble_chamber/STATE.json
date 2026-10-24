@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S9_REAL_MEASURED_GEOMETRY_SYNTHETIC_NEURAL_ABLATIONS_COMPLETE_NO_STABLE_SUPERIORITY",
+  "status": "S9_ORIGINAL_MODELS_SAVED_AND_FULLY_REPLAYED_NO_REAL_FILM_SUPERIORITY",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Obtain expert-traced H50Z full pixel masks and paired original 070 BMPs for independent-film testing. Existing S9 results cannot ground a real-film advantage.",
+  "next_executable_action": "For physical pixel-level superiority, obtain expert-confirmed masks on paired BMP photos and an independent camera/filling/film. Current S9 is complete as a source-locked synthetic-pixel negative/unstable-result study.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -225,6 +225,13 @@
     },
     "focused_tests_locally_passed": 19,
     "conclusion": "ANZA did not show stable superiority across seeds; 1 positive and 2 negative stress deltas",
-    "real_h50z": "qualitative only"
+    "real_h50z": "qualitative only",
+    "checkpoint_replay_completed": true,
+    "replayed_saved_models": 6,
+    "replayed_source_test_frames_per_seed": 25,
+    "ci_run_original_source_smoke": "40121882044",
+    "ci_success": true,
+    "release_checksum_manifest": true,
+    "release_one_command_replay_passed": true
   }
 }

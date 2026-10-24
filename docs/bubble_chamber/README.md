@@ -91,3 +91,15 @@ See [S6 synthetic model comparison](S6_SYNTHETIC_NEURAL_RESULT.md). A local port
 ## S9 original-model study on real-click-derived synthetic images
 
 [Report](S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md) and [three-seed results](s9_multiseed_metrics.json). The original AZConv kernel remains unchanged; residual AZ and robust contrast/noise training show mixed outcomes. **No stable ANZA advantage over standard U-Net or reliable real-film pixel accuracy is established.**
+
+## S9 single-command scientific reproduction
+
+A verified result package containing original model code, six weights, qualitative H50Z examples and a full SHA256 inventory can be replayed against the user-provided measured-track archive without re-training:
+
+```bash
+python source/scripts/research/bubble_chamber/s9_replay_release.py \
+  --package /path/to/unpacked/bubble_chamber_S9_verified_complete \
+  --archive /path/to/1mH2Data.7z
+```
+
+See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay verifies **synthetic generated-pixel** metrics from expert-measured geometry, not segmentation accuracy on real bubble-chamber photographs.
