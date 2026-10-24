@@ -1,0 +1,46 @@
+name: S17 Belyaev Book Physics and Synthetic ANZA Smoke
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s17_*.py'
+      - 'scripts/research/bubble_chamber/s17_*.py'
+      - 'tests/test_s17_*.py'
+      - '.github/workflows/s17_book_physics_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  book-physics-technical-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numeric and testing libraries
+        run: python -m pip install torch numpy scipy opencv-python-headless scikit-image scikit-learn pytest
+      - name: Test paper equations, stop/calibration abstention and labels
+        run: python -m pytest -q tests/test_s17_*.py
+      - name: Generate entirely synthetic book-based sparse samples
+        run: |
+          python scripts/research/bubble_chamber/s17_make_book_prior_dataset.py \
+            --out-dir /tmp/s17_book_ci --size 64 --train 6 --val 3 --unlabeled 2 --test 4
+      - name: Smoke train the ORIGINAL source-locked AZUNet (NOT real-photo validation)
+        run: |
+          python scripts/research/bubble_chamber/s14_train_sparse_anza.py \
+            --manifest /tmp/s17_book_ci/s17_book_synthetic_sparse_manifest.json \
+            --out-dir /tmp/s17_book_ci/az_ckpt --model azunet \
+            --epochs 1 --widths 4 4 4 4 --rules 2
+          test -s /tmp/s17_book_ci/az_ckpt/best.pt
+      - name: Preserve synthetic technical receipt only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s17-book-equation-synthetic-only-technical-smoke
+          path: |
+            /tmp/s17_book_ci/az_ckpt/metrics.json
+            /tmp/s17_book_ci/s17_receipt.json
+          if-no-files-found: warn
+          retention-days: 7
