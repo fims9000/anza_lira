@@ -1,0 +1,483 @@
+{
+  "research_id": "S5_REAL_EXPERT_CLICKS_MULTI_FRAME_RELATION_2026_10_24",
+  "status": "MEASURED_GEOMETRY_WITH_SYNTHETIC_GAPS_NO_REAL_PIXEL_SEGMENTATION",
+  "source_archive_sha256": "9d34dc71fd023de8cb7a21d2e6ef2b973fdc33a670a80bdc5f89ebfebfe65d1a",
+  "audited_source_sha256": "bd8e28247c5d178ae4f2f5a86215cbf5626f3ad86560928f4521093ce9188dea",
+  "source_inventory": {
+    "frame_folders_found": 152,
+    "frames_complete_used": 145,
+    "frames_quarantined": 7,
+    "track_entries_in_lists": 1085,
+    "tracks_parsed_overall": 1084,
+    "spatial_points_parsed_overall": 17448,
+    "tracks_used": 1073,
+    "spatial_points_used": 17321,
+    "stereo_pixel_measurements_used": 51963,
+    "tracks_of_incomplete_frames_not_used": 11,
+    "legacy_nonstandard_track_ids": 3,
+    "unlisted_track_files": 10,
+    "track_view_block_orders": {
+      "1/2/3": 3,
+      "1/3/2": 1018,
+      "3/1/2": 63
+    },
+    "distinct_film_ids": [
+      "070"
+    ],
+    "matched_bmp_count": 0,
+    "split_limitation": "frame-disjoint is achievable; independent FILM/RUN-disjoint is not",
+    "no_full_pixel_segmentation_masks": true
+  },
+  "split_count": {
+    "train": {
+      "frames": 94,
+      "candidates": 30350,
+      "positive_candidates": 5289
+    },
+    "val": {
+      "frames": 26,
+      "candidates": 7293,
+      "positive_candidates": 1337
+    },
+    "test": {
+      "frames": 25,
+      "candidates": 6798,
+      "positive_candidates": 1246
+    }
+  },
+  "gaps": {
+    "1": {
+      "test_candidates": 6798,
+      "test_positives": 1246,
+      "candidate_recall_possible": 1.0,
+      "test_models": {
+        "distance_direction_fixed": {
+          "tp": 927,
+          "fp": 13,
+          "recall": 0.743981,
+          "fpr": 0.002341,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.665662,
+              0.818443
+            ],
+            "fpr_ci95": [
+              0.000779,
+              0.003908
+            ]
+          }
+        },
+        "basic_logreg": {
+          "tp": 1084,
+          "fp": 0,
+          "recall": 0.869984,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.818738,
+              0.921154
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "generic_logreg": {
+          "tp": 1149,
+          "fp": 0,
+          "recall": 0.922151,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.877784,
+              0.962999
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "axial_logreg": {
+          "tp": 1148,
+          "fp": 0,
+          "recall": 0.921348,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.877139,
+              0.958372
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "generic_hgb": {
+          "tp": 1221,
+          "fp": 1,
+          "recall": 0.979936,
+          "fpr": 0.00018,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.96287,
+              0.993935
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.000599
+            ]
+          }
+        },
+        "axial_hgb": {
+          "tp": 1224,
+          "fp": 1,
+          "recall": 0.982343,
+          "fpr": 0.00018,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.965983,
+              0.993797
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.000588
+            ]
+          }
+        }
+      },
+      "axial_vs_generic_boosted_paired_frame_stats": {
+        "test_frames": 25,
+        "positive_candidates": 1246,
+        "A": "generic_hgb",
+        "B": "axial_hgb",
+        "test_tp_A": 1221,
+        "test_tp_B": 1224,
+        "test_fp_A": 1,
+        "test_fp_B": 1,
+        "B_minus_A_recall": 0.002408,
+        "B_minus_A_recall_frame_bootstrap_ci95": [
+          -0.001779,
+          0.008299
+        ],
+        "B_minus_A_false_links_per_frame": 0.0,
+        "B_minus_A_false_links_per_frame_ci95": [
+          -0.12,
+          0.12
+        ],
+        "interpretation": "within-film, model comparison exploratory: this is not segmentation performance"
+      }
+    },
+    "3": {
+      "test_candidates": 5357,
+      "test_positives": 1039,
+      "candidate_recall_possible": 1.0,
+      "test_models": {
+        "distance_direction_fixed": {
+          "tp": 9,
+          "fp": 16,
+          "recall": 0.008662,
+          "fpr": 0.003705,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.0,
+              0.028338
+            ],
+            "fpr_ci95": [
+              0.001392,
+              0.006264
+            ]
+          }
+        },
+        "basic_logreg": {
+          "tp": 719,
+          "fp": 3,
+          "recall": 0.692012,
+          "fpr": 0.000695,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.611952,
+              0.765923
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.001738
+            ]
+          }
+        },
+        "generic_logreg": {
+          "tp": 888,
+          "fp": 0,
+          "recall": 0.854668,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.79466,
+              0.900276
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "axial_logreg": {
+          "tp": 929,
+          "fp": 0,
+          "recall": 0.894129,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.840448,
+              0.939478
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "generic_hgb": {
+          "tp": 1025,
+          "fp": 0,
+          "recall": 0.986526,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.975668,
+              0.995311
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "axial_hgb": {
+          "tp": 1016,
+          "fp": 0,
+          "recall": 0.977863,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.962799,
+              0.991718
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "axial_vs_generic_boosted_paired_frame_stats": {
+        "test_frames": 25,
+        "positive_candidates": 1039,
+        "A": "generic_hgb",
+        "B": "axial_hgb",
+        "test_tp_A": 1025,
+        "test_tp_B": 1016,
+        "test_fp_A": 0,
+        "test_fp_B": 0,
+        "B_minus_A_recall": -0.008662,
+        "B_minus_A_recall_frame_bootstrap_ci95": [
+          -0.019462,
+          0.001895
+        ],
+        "B_minus_A_false_links_per_frame": 0.0,
+        "B_minus_A_false_links_per_frame_ci95": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "within-film, model comparison exploratory: this is not segmentation performance"
+      }
+    },
+    "5": {
+      "test_candidates": 4207,
+      "test_positives": 864,
+      "candidate_recall_possible": 0.998768689533861,
+      "test_models": {
+        "distance_direction_fixed": {
+          "tp": 0,
+          "fp": 12,
+          "recall": 0.0,
+          "fpr": 0.00359,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.0,
+              0.0
+            ],
+            "fpr_ci95": [
+              0.000748,
+              0.007592
+            ]
+          }
+        },
+        "basic_logreg": {
+          "tp": 394,
+          "fp": 3,
+          "recall": 0.456019,
+          "fpr": 0.000897,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.354483,
+              0.541626
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.002189
+            ]
+          }
+        },
+        "generic_logreg": {
+          "tp": 693,
+          "fp": 2,
+          "recall": 0.802083,
+          "fpr": 0.000598,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.697513,
+              0.874299
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.001518
+            ]
+          }
+        },
+        "axial_logreg": {
+          "tp": 800,
+          "fp": 0,
+          "recall": 0.925926,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.884335,
+              0.961712
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "generic_hgb": {
+          "tp": 844,
+          "fp": 0,
+          "recall": 0.976852,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.955159,
+              0.993828
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "axial_hgb": {
+          "tp": 852,
+          "fp": 0,
+          "recall": 0.986111,
+          "fpr": 0.0,
+          "frame_bootstrap_ci95": {
+            "recall_ci95": [
+              0.970728,
+              0.997573
+            ],
+            "fpr_ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      "axial_vs_generic_boosted_paired_frame_stats": {
+        "test_frames": 24,
+        "positive_candidates": 864,
+        "A": "generic_hgb",
+        "B": "axial_hgb",
+        "test_tp_A": 844,
+        "test_tp_B": 852,
+        "test_fp_A": 0,
+        "test_fp_B": 0,
+        "B_minus_A_recall": 0.009259,
+        "B_minus_A_recall_frame_bootstrap_ci95": [
+          -0.002017,
+          0.024796
+        ],
+        "B_minus_A_false_links_per_frame": 0.0,
+        "B_minus_A_false_links_per_frame_ci95": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "within-film, model comparison exploratory: this is not segmentation performance"
+      }
+    }
+  },
+  "click_interpolation_by_gap": {
+    "1": {
+      "eligible_tracks": 1073,
+      "pixel_median_p90": {
+        "linear": {
+          "median": 4.12311,
+          "p90": 51.06124
+        },
+        "quadratic": {
+          "median": 4.36241,
+          "p90": 59.42758
+        },
+        "hermite": {
+          "median": 5.67478,
+          "p90": 78.75248
+        }
+      }
+    },
+    "3": {
+      "eligible_tracks": 907,
+      "pixel_median_p90": {
+        "linear": {
+          "median": 11.42366,
+          "p90": 92.19544
+        },
+        "quadratic": {
+          "median": 10.62902,
+          "p90": 106.15359
+        },
+        "hermite": {
+          "median": 11.5644,
+          "p90": 120.55625
+        }
+      }
+    },
+    "5": {
+      "eligible_tracks": 772,
+      "pixel_median_p90": {
+        "linear": {
+          "median": 20.73376,
+          "p90": 117.34517
+        },
+        "quadratic": {
+          "median": 16.93065,
+          "p90": 133.10472
+        },
+        "hermite": {
+          "median": 15.58322,
+          "p90": 162.69317
+        }
+      }
+    }
+  },
+  "limitations": [
+    "all physical measurements on film 070, no independent cross-film test",
+    "synthetically hidden measured clicks, not real missed photographic track fragments",
+    "ANZA-inspired features are NOT the trained original AZConv",
+    "real BMP image segmentation not evaluated because matching film070 BMPs are missing",
+    "all negative relations are between named measured tracks, not exhaustive film background",
+    "data files are NOT published in Git due provenance/permission uncertainty"
+  ]
+}

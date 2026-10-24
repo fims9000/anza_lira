@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S4_DATA_REQUEST_AND_FID_QA_PROTOTYPE_COMPLETE_NO_AZ_TRAINING",
+  "status": "S5_REAL_1MH2DATA_MEASURED_COORDINATE_STUDY_COMPLETE_NO_REAL_AZCONV_COMPARISON",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Receive 070_008 view1/view2/view3 exact BMP crops aligned to visualMetro clicks, or 24 H50Z 1024px crops from named annotated frames, then create expert-reviewed pixel masks and train AZUNet vs BaselineUNet with independent film holdouts.",
+  "next_executable_action": "Run authentic repo AZUNet vs BaselineUNet synthetic-geometry comparison using run_synthetic_anza_pretrain.py; inspect failures and tune ONLY on development; preserve real-photo non-superiority boundary.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -130,5 +130,26 @@
     "local_pytest_passed": 91
   },
   "training_gate": "BLOCKED_BY_NO_DENSE_EXPERT_TRACK_MASKS_IN_AVAILABLE_REAL_SOURCES",
-  "scientific_limit": "RANSAC fiducial geometry is QC only, not physical optics calibration. No ANZA-on-real segmentation gain measured."
+  "scientific_limit": "RANSAC fiducial geometry is QC only, not physical optics calibration. No ANZA-on-real segmentation gain measured.",
+  "S5": {
+    "user_archive": "1mH2Data.7z",
+    "archive_sha256": "9d34dc71fd023de8cb7a21d2e6ef2b973fdc33a670a80bdc5f89ebfebfe65d1a",
+    "complete_frames": 145,
+    "used_tracks": 1073,
+    "spatial_clicks": 17321,
+    "two_dimensional_clicks": 51963,
+    "quarantined_frames": 7,
+    "synthetic_gap_lengths": [
+      1,
+      3,
+      5
+    ],
+    "real_source_images_paired": 0,
+    "neural_network_training_run": false,
+    "paired_axial_gain_significant": false,
+    "experiment_files": [
+      "docs/bubble_chamber/S5_LARGE_1MH2DATA_RESEARCH_2026_10_24.md",
+      "docs/bubble_chamber/s5_metric_summary.json"
+    ]
+  }
 }

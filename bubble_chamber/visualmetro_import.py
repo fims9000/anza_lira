@@ -63,13 +63,21 @@ def parse_track(path: Path, frame: str, track_id: str) -> dict[str, Any]:
     pixel_rows = [VIEW_ROW.fullmatch(line) for line in lines[1 + n:-1]]
     if any(match is None for match in pixel_rows):
         raise AnnotationFormatError(f"track {path.name}: malformed 2D coordinate row")
-    view_ids = [int(row.group(1)) for row in pixel_rows]
-    if view_ids != [view_id for view_id in VIEWS for _ in range(n)]:
+    # The historical export does not guarantee block order: source film 070
+    # contains 1/3/2, 3/1/2 and 1/2/3. Do not silently relabel a view by
+    # position. Each of the three n-row blocks must contain ONE distinct view.
+    blocks = [pixel_rows[i * n:(i + 1) * n] for i in range(3)]
+    view_order = []
+    for block in blocks:
+        ids = {int(row.group(1)) for row in block}
+        if len(ids) != 1:
+            raise AnnotationFormatError(f"track {path.name}: inconsistent view order or missing points")
+        view_order.append(ids.pop())
+    if sorted(view_order) != [1, 2, 3]:
         raise AnnotationFormatError(f"track {path.name}: inconsistent view order or missing points")
     views = {}
     view_color = {}
-    for v_index, view_id in enumerate(VIEWS):
-        rows = pixel_rows[v_index * n:(v_index + 1) * n]
+    for rows, view_id in zip(blocks, view_order):
         coords = [[int(row.group(3)), int(row.group(4))] for row in rows]
         if any(x < 0 or y < 0 for x, y in coords):
             raise AnnotationFormatError(f"track {path.name}: negative pixels in view {view_id}")
@@ -91,6 +99,7 @@ def parse_track(path: Path, frame: str, track_id: str) -> dict[str, Any]:
         "xyz_sigma_cm": geometry[:, [1, 3, 5]].tolist(),
         "measured_pixel_xy": views,
         "raw_pixel_row_color": view_color,
+        "raw_view_block_order": view_order,
     }
 
 

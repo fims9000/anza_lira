@@ -32,6 +32,7 @@ class SparseProtocol:
     missing_right_fraction: float = 0.18
     max_val_fpr: float = 0.02
     margin: float = 0.05
+    missing_clicks: int = 1
 
 
 def _unit(vector: np.ndarray) -> np.ndarray:
@@ -105,14 +106,14 @@ def _features(left: np.ndarray, right: np.ndarray) -> tuple[list[float], list[fl
     return basic, generic, axial
 
 
-def _split_track(points: np.ndarray, fraction: float) -> tuple[np.ndarray, np.ndarray]:
+def _split_track(points: np.ndarray, fraction: float, missing_clicks: int = 1) -> tuple[np.ndarray, np.ndarray]:
     n = len(points)
-    if n < 7:
-        raise ValueError("need at least seven sparse expert points")
-    # Leave at least one full expert click unobserved. Near-short track cuts
-    # have fewer distinct available positions; no gap labels are invented.
-    left_end = min(max(2, int(round((n - 1) * fraction))), n - 5)
-    right_start = left_end + 2
+    if missing_clicks < 1 or n < missing_clicks + 6:
+        raise ValueError("not enough sparse expert points to hide the required clicks")
+    # These are deliberately hidden MEASUREMENTS, not observed photographic
+    # occlusions. Keep >=3 visible clicks on BOTH sides of each gap.
+    left_end = min(max(2, int(round((n - 1) * fraction))), n - missing_clicks - 4)
+    right_start = left_end + missing_clicks + 1
     assert len(points[:left_end+1]) >= 3 and len(points[right_start:]) >= 3
     return points[:left_end + 1], points[right_start:]
 
@@ -125,7 +126,7 @@ def _omit(seed: int, frame: str, view: int, track: str, cut: int, rate: float) -
 def make_examples(manifest: dict, config: SparseProtocol = SparseProtocol()) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if manifest.get("schema") != SCHEMA:
         raise ValueError("requires a validated visualMetro sparse manifest")
-    if not (0 <= config.missing_right_fraction < 1) or config.k_candidates < 1:
+    if not (0 <= config.missing_right_fraction < 1) or config.k_candidates < 1 or config.missing_clicks < 1:
         raise ValueError("invalid candidate protocol")
     if any(not 0.0 < c < 1.0 for c in config.cuts):
         raise ValueError("cut fractions out of range")
@@ -133,14 +134,14 @@ def make_examples(manifest: dict, config: SparseProtocol = SparseProtocol()) -> 
     scenes: list[dict[str, Any]] = []
     for frame in manifest['frames']:
         fid = frame['frame_id']
-        tracks = [t for t in frame['tracks'] if t['n_points'] >= 7]
+        tracks = [t for t in frame['tracks'] if t['n_points'] >= config.missing_clicks + 6]
         for view in (1, 3, 2):
             for cut_index, fraction in enumerate(config.cuts):
                 scene = f"{fid}:v{view}:cut{cut_index}"
                 left, right = [], []
                 for tr in tracks:
                     p = np.asarray(tr['measured_pixel_xy'][str(view)], dtype=float)
-                    l, r = _split_track(p, fraction)
+                    l, r = _split_track(p, fraction, config.missing_clicks)
                     left.append((tr['track_id'], l))
                     if not _omit(config.seed, fid, view, tr['track_id'], cut_index, config.missing_right_fraction):
                         right.append((tr['track_id'], r))

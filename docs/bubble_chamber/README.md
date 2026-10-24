@@ -67,3 +67,11 @@ New code: `bubble_chamber/real_sparse_lira.py`, `h50z_seed_analysis.py`, `track_
 ## S4 acquisition, crop and label-quality audit (2026-10-24)
 
 See [S4_DATA_ACQUISITION_AND_FID_QC_2026_10_24.md](S4_DATA_ACQUISITION_AND_FID_QC_2026_10_24.md). An automated CSV request selects three-view 070 and H50Z vertex crops. Fiducial duplicates/outliers are flagged without relabeling. The local image-to-track segmenter still needs real reviewed masks.
+
+## S5 real sparse expansion (24 October 2026)
+
+A new user-provided archive `1mH2Data.7z` contains 152 frame folders of film 070, not BMP photographs. Audited ingestion yields **145 complete frames, 1,073 measured tracks, 17,321 3D clicks and 51,963 stereo click positions**. Different source view block orders are parsed using explicit IDs, and incomplete/ambiguous source files are quarantined. See `S5_LARGE_1MH2DATA_RESEARCH_2026_10_24.md` and `s5_metric_summary.json`.
+
+The S5 coordinate-only relation study tests artificially withheld clicks (1/3/5) on frame-disjoint train/val/test. Ordinary geometry is very strong; adding ANZA-inspired axial features has **no established incremental benefit**. This study does NOT train AZConv and does NOT evaluate real-image pixel segmentation.
+
+The new `synthetic_from_clicks.py` builds explicitly artificial film-like masks from real measured curve geometry. `scripts/research/bubble_chamber/run_synthetic_anza_pretrain.py` is a reproducible training entrypoint for the *authentic* repo `AZUNet` vs `BaselineUNet`, but no real BMP segmentation performance may be claimed from those synthetic examples.
