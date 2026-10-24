@@ -63,3 +63,7 @@ See [REAL_H50Z_AND_070_DATA_AUDIT_2026_10_24.md](REAL_H50Z_AND_070_DATA_AUDIT_20
 ## S2/R3 (24 October 2026): actual sparse measurements and partial mask bootstrapping
 
 New code: `bubble_chamber/real_sparse_lira.py`, `h50z_seed_analysis.py`, `track_mask_review.py`, `anza_segmentation_adapter.py`. The accompanying S2 study shows that basic geometry **outperformed** ANZA-inspired features in the very limited same-film sparse coordinate task. H50Z keypoint proposals are **not** ground truth. See `docs/bubble_chamber/S2_REAL_SPARSE_LIRA_AND_H50Z_REVIEW.md` for exact commands, metrics and gates.
+
+## S4 acquisition, crop and label-quality audit (2026-10-24)
+
+See [S4_DATA_ACQUISITION_AND_FID_QC_2026_10_24.md](S4_DATA_ACQUISITION_AND_FID_QC_2026_10_24.md). An automated CSV request selects three-view 070 and H50Z vertex crops. Fiducial duplicates/outliers are flagged without relabeling. The local image-to-track segmenter still needs real reviewed masks.

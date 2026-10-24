@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "REAL_DATA_KEYPOINT_ONLY_H50Z_AND_SPARSE_FILM070_NO_DENSE_TRACK_MASKS",
+  "status": "S4_DATA_REQUEST_AND_FID_QA_PROTOTYPE_COMPLETE_NO_AZ_TRAINING",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Collect expert decisions from track_mask_review.html; only then build certified partial masks and run original repo AZUNet vs U-Net; independently paired 070 image triplets needed for supervised image-grounded LIRA benchmark.",
+  "next_executable_action": "Receive 070_008 view1/view2/view3 exact BMP crops aligned to visualMetro clicks, or 24 H50Z 1024px crops from named annotated frames, then create expert-reviewed pixel masks and train AZUNet vs BaselineUNet with independent film holdouts.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -109,5 +109,26 @@
     "available_fiducials": 15,
     "human_review_proposals": 41,
     "expert_reviewed_centerlines": 0
-  }
+  },
+  "new_evidence": {
+    "h50z_labelled_filenames": 105,
+    "start_keypoints_metadata": 570,
+    "available_H50Z_BMPs": 2,
+    "known_070_frames": 7,
+    "visualmetro_measured_tracks": 42,
+    "visualmetro_xyz_points": 620,
+    "fiducial_duplicate_frames": 2,
+    "fiducial_RANSAC_outlier_frames": 4,
+    "next_H50Z_bmp_names": [
+      "H50Z_030_02_705.bmp",
+      "H50Z_030_02_758.bmp",
+      "H50Z_030_02_700.bmp",
+      "H50Z_030_01_007.bmp"
+    ],
+    "requested_native_resolution_tiles": 51,
+    "real_smoke_export_tiles": 4,
+    "local_pytest_passed": 91
+  },
+  "training_gate": "BLOCKED_BY_NO_DENSE_EXPERT_TRACK_MASKS_IN_AVAILABLE_REAL_SOURCES",
+  "scientific_limit": "RANSAC fiducial geometry is QC only, not physical optics calibration. No ANZA-on-real segmentation gain measured."
 }
