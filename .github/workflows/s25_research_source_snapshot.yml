@@ -1,4 +1,5 @@
 name: Bubble Chamber research source snapshot
+# S32: fresh snapshot of canonical S31 code before modifications
 on:
   push:
     branches: [research/bubble-chamber-graph-lira]
