@@ -1,0 +1,30 @@
+name: S26 H50Z low-label source and safety unit tests
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'scripts/research/bubble_chamber/s26_*'
+      - 'tests/test_s26_*'
+      - '.github/workflows/s26_h50z_source_and_safety_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-unknown-label-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU research requirements
+        run: python -m pip install numpy scipy scikit-learn scikit-image opencv-python-headless torch pytest
+      - name: Check S26 contracts without user private photos
+        run: python -m pytest -q tests/test_s26_two_photo_baselines.py tests/test_s26_compile_review.py
+      - name: Ensure private user's BMPs and review HTML are not versioned
+        run: |
+          test ! -e H50Z_030_01_005.bmp
+          test ! -e H50Z_030_01_006.bmp
+          test ! -e S26_manual_sparse_review.html
+          test ! -e S26_real_H50Z_expert_strokes.json

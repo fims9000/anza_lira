@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S24_CONSERVATIVE_GRAPH_CONSENSUS_EXPLORATORY_SAME_FILM_NOT_PHYSICALLY_CERTIFIED",
+  "status": "S29_REAL_H50Z_2PHOTO_REVIEWABLE_2D_PATHS_NOT_PHYSICAL_TRACK_VALIDATION",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Receive human-authored H50Z partial 0/1/255 pixel scribbles and same/different track pairs; run S19 real-picture training and Graph-LIRA consensus/review on photo-disjoint, independent physical runs; report wrong connections per accepted track and uncertain abstentions. No unattended merges absent external independent photo validation.",
+  "next_executable_action": "Receive authentic human-reviewed S29 export with 0/1/255 track/artifact scribbles on BOTH original H50Z BMPs and a few manually certified SAME/DIFFERENT track relationships; fit/evaluate source-locked original ANZA against same-budget U-Net and strong classical curvature, then acquire independent physical run/fill and 3-view/B-field calibration. Until these real labels are supplied, no true physical accuracy/automatic joining can be certified.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -758,5 +758,78 @@
     "study_metric_artifact": "docs/bubble_chamber/s24_consensus_metrics.json",
     "local_tests_passed": 19,
     "original_models_modified": false
+  },
+  "S26_S29": {
+    "date": "2026-10-25",
+    "original_photos": [
+      "H50Z_030_01_005.bmp",
+      "H50Z_030_01_006.bmp"
+    ],
+    "physical_run_count": 1,
+    "real_512px_roi_crops": 39,
+    "photo005_crops": 21,
+    "photo006_crops": 18,
+    "true_operator_start_landmarks": 9,
+    "authentic_fiducial_points": 15,
+    "measured_real_native_track_pixel_masks": 0,
+    "expert_confirmed_track_relations": 0,
+    "original_AZConv_blob": "f4217ada00024927506fa8ebe520aa1f68ae5854",
+    "original_segmentation_blob": "0b971c117f3d56cc588ebade6991c65faceb8a2a",
+    "S27_overlap_window_size": 64,
+    "S27_overlap_stride": 32,
+    "S27_seam_jump_reduction_percent": {
+      "photo005": {
+        "UNet": 51.7,
+        "AZUNet": 72.7,
+        "AZUNet_guided": 63.6
+      },
+      "photo006": {
+        "UNet": 57,
+        "AZUNet": 77.4,
+        "AZUNet_guided": 66.9
+      }
+    },
+    "S27_exploratory_synthetic_long_trajectory_auc": {
+      "UNet": {
+        "stride64": 0.43,
+        "stride32": 0.274
+      },
+      "AZUNet": {
+        "stride64": 0.307,
+        "stride32": 0.202
+      },
+      "AZUNet_guided": {
+        "stride64": 0.396,
+        "stride32": 0.165
+      }
+    },
+    "S28_true_software_injected_anchor_control": {
+      "trials": 16,
+      "straight_top1_coverage": 0.2266,
+      "classic_curvature_top1_coverage": 0.9667,
+      "original_ANZA_plus_curvature_top1_coverage": 0.909,
+      "classic_70pct_successes": 16,
+      "ANZA_70pct_successes": 15
+    },
+    "S29_new_software_seed_offset_stress": {
+      "trial_backgrounds": 8,
+      "offsets_px": [
+        0,
+        3,
+        6,
+        10
+      ],
+      "artificial_gap_variants": 2,
+      "top1_successes_at_70pct": "7/8 for every tested condition, classical curvature"
+    },
+    "unverified_real_2d_candidate_paths": 72,
+    "parametric_quadratic_pixel_fits": 72,
+    "user_private_reviewer": "S29_ANZA_2D_metrics_human_reviewer.html (embedded real photos, not committed)",
+    "browser_qa": "39 authentic crops rendered, 9 start overlays, selected candidate numbers, JSON export with zero synthetic approved labels",
+    "local_S14_to_S29_regression_tests": "140 passed, 3 skipped",
+    "independent_physical_run_test_available": false,
+    "auto_particle_joins_allowed": false,
+    "real_bubble_track_segmentation_accuracy": "NOT_MEASURED",
+    "analysis_conclusion": "Overlap improves seam continuity but degrades synthetic scratch-vs-trace AUC in the evaluated stress test. Dynamic curvature constraints greatly improve known-injected-line recovery; original ANZA assistance did not exceed classical best control. Real H50Z path and width measures remain provisional."
   }
 }

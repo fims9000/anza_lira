@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>S26: разметка реальных треков H50Z</title>
+<style>
+:root{font:16px/1.35 system-ui,sans-serif;color-scheme:dark;background:#101922;color:#e6f2fa}
+body{margin:0;padding:20px;max-width:1250px;margin:auto}h1{font-size:1.35rem}p{max-width:1000px}label{display:inline-flex;flex-direction:column;gap:4px;font-size:13px;margin-right:10px}button,select,input{font:inherit;padding:7px;border-radius:8px;background:#192d40;color:white;border:1px solid #648095}button:focus,select:focus{outline:3px solid #c4c0ff}.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:12px 0}#scene{position:relative;max-width:850px;display:inline-block;background:#000;border:1px solid #758da3}#background{display:block;width:100%;height:auto;image-rendering:auto}#annotations{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none}#warning{color:#ffdca2}.help{font-size:13px;color:#adc4d2}#status{min-height:2rem;white-space:pre-wrap}
+</style></head><body>
+<h1>H50Z · S26 — экспертная разметка линий</h1>
+<p id="warning"><strong>ВАЖНО:</strong> цветные области — неподтверждённые ответы фильтров и сетей. Ни одного трека система за вас не подтверждала. Только нарисованные вручную линии считаются экспертной разметкой. Файлы и координаты остаются в браузере до экспорта JSON.</p>
+<div class="tools"><label>Фрагмент<select id="crop"></select></label><label>Наложение<select id="mode"><option value="original">Оригинал</option><option value="sato">Sato (классика)</option><option value="unet">U-Net local</option><option value="azunet">AZUNet local</option><option value="guided_az">AZUNet + oriented ridge</option><option value="consensus">Совпадение U-Net и AZ</option><option value="disagreement">Несогласие моделей</option></select></label><label>Что рисуем<select id="tool"><option value="track">Трек (подтверждён)</option><option value="artifact">Артефакт (подтверждён)</option><option value="none">Просмотр без рисования</option></select></label><label>Радиус (пиксели)<input type="number" id="radius" min="1" max="12" value="2" style="width:80px"></label></div>
+<div class="tools"><button id="undo">Отменить последний штрих</button><button id="save">Скачать экспертные решения JSON</button><label>Восстановить сохранённый JSON<input id="load" type="file" accept=".json"></label></div>
+<div id="scene"><img id="background" width="512" height="512" alt="Реальный участок плёнки с неподтверждённым наложением"><canvas id="annotations" width="512" height="512"></canvas></div>
+<p class="help">Рисуйте мышью или пальцем вдоль настоящей линии, а не закрашивайте автоматически всё зелёное. Для фрагмента около отметки «start» её примерное положение — центр кадра. Красный штрих означает подтверждённый фон/артефакт. При отсутствии уверенности ничего не рисуйте.</p>
+<p id="status"></p>
+<script type="application/json" id="payload">___S26_PAYLOAD___</script>
+<script>
+'use strict';
+const pack=JSON.parse(document.getElementById('payload').textContent);
+const byId=x=>document.getElementById(x), entries=pack.photos;
+const annotations={};let active=0,ongoing=null;
+for(const f of entries)annotations[f.crop_id]=[];
+function mouseXY(e){let r=byId('annotations').getBoundingClientRect();return [Math.max(0,Math.min(511,Math.round((e.clientX-r.left)*512/r.width))),Math.max(0,Math.min(511,Math.round((e.clientY-r.top)*512/r.height)))];}
+function redraw(){
+ const c=byId('annotations'),ctx=c.getContext('2d');ctx.clearRect(0,0,512,512);
+ const all=annotations[entries[active].crop_id].concat(ongoing?[ongoing]:[]);
+ for(const stroke of all){if(!stroke.points_xy?.length)continue;ctx.strokeStyle=stroke.label==='track'?'#64ff7d':'#ff527b';ctx.lineWidth=2*stroke.radius_px;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();stroke.points_xy.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));if(stroke.points_xy.length===1){ctx.lineTo(stroke.points_xy[0][0]+.01,stroke.points_xy[0][1]+.01);}ctx.stroke();}
+ byId('status').textContent='Фрагмент '+entries[active].crop_id+' • экспертных штрихов: '+annotations[entries[active].crop_id].length+' • общая разметка: '+Object.values(annotations).reduce((s,a)=>s+a.length,0)+' штрихов. Нейросети не засчитываются как эксперт.';
+}
+function update(){byId('background').src=entries[active].image_modes[byId('mode').value];redraw();}
+for(let i=0;i<entries.length;i++){const opt=document.createElement('option');opt.value=String(i);opt.textContent=entries[i].crop_id;byId('crop').appendChild(opt);}
+byId('crop').onchange=e=>{active=Number(e.target.value);ongoing=null;update()};byId('mode').onchange=update;
+const canvas=byId('annotations');
+canvas.addEventListener('pointerdown',e=>{if(byId('tool').value==='none')return;e.preventDefault();canvas.setPointerCapture(e.pointerId);ongoing={label:byId('tool').value,radius_px:Math.max(1,Math.min(12,Number(byId('radius').value)||2)),points_xy:[mouseXY(e)]};redraw();});
+canvas.addEventListener('pointermove',e=>{if(!ongoing)return;e.preventDefault();const p=mouseXY(e);if(p.toString()!==ongoing.points_xy.at(-1).toString()){ongoing.points_xy.push(p);redraw();}});
+function end(e){if(!ongoing)return;annotations[entries[active].crop_id].push(ongoing);ongoing=null;redraw();}
+canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',()=>{ongoing=null;redraw()});
+byId('undo').onclick=()=>{annotations[entries[active].crop_id].pop();ongoing=null;redraw()};
+function serialize(){return {schema:'s26_real_track_manual_review_v1',images:entries.map(x=>({crop_id:x.crop_id,source_crop_sha256:x.sha256,width:512,height:512,strokes:annotations[x.crop_id]})),
+   generated_model_labels:0,unknown_pixels_not_background:true,annotation_source:'manually_drawn_by_user_not_model'};}
+byId('save').onclick=()=>{const blob=new Blob([JSON.stringify(serialize(),null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='S26_real_H50Z_expert_strokes.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),500);};
+byId('load').onchange=async e=>{try{const files=e.target.files;if(!files?.length)return;let ob=JSON.parse(await files[0].text());if(ob.schema!=='s26_real_track_manual_review_v1'||ob.images.length!==entries.length)throw Error('неверный JSON/schema');
+for(let i=0;i<entries.length;i++){const a=ob.images[i],b=entries[i];if(a.crop_id!==b.crop_id||a.source_crop_sha256!==b.sha256||a.width!==512||a.height!==512)throw Error('изменился исходный файл');if(!Array.isArray(a.strokes))throw Error('нет штрихов');for(const s of a.strokes){if(!['track','artifact'].includes(s.label)||!Number.isFinite(s.radius_px)||s.radius_px<1||s.radius_px>12||!Array.isArray(s.points_xy)||!s.points_xy.length||s.points_xy.some(p=>p.length!==2||p.some(z=>!Number.isFinite(z)||z<0||z>511)))throw Error('недопустимый штрих');}}
+for(let i=0;i<entries.length;i++)annotations[entries[i].crop_id]=ob.images[i].strokes;update();}catch(err){byId('status').textContent='Ошибка импорта: '+err.message;}};
+update();
+</script></body></html>

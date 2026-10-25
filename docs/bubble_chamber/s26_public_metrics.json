@@ -1,0 +1,207 @@
+{
+  "schema": "s26_public_source_locked_metrics_2026_10_25",
+  "source_count": 2,
+  "one_physical_run": true,
+  "physical_accuracy": "NOT_ESTABLISHED",
+  "true_native_track_pixels": 0,
+  "manual_track_pair_labels": 0,
+  "auto_links_authorized": false,
+  "candidate_fragments_unverified": 98,
+  "candidate_join_questions_unverified": 29,
+  "geometric_junction_questions_unverified": 32,
+  "sources": {
+    "original_azconv_git_blob": "f4217ada00024927506fa8ebe520aa1f68ae5854",
+    "original_segmentation_git_blob": "0b971c117f3d56cc588ebade6991c65faceb8a2a"
+  },
+  "test_is_real_photo_background_with_synthetic_trace_vs_scratch_truth": true,
+  "annotation_labels_source": "artificial overlays of visualMetro measured shapes and scratches",
+  "photo006_repeatedly_compared_after_preliminary_results": true,
+  "methods": {
+    "darkness": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.5944198630881655,
+        "tpr_at_photo005_calibrated_threshold": 0.0191793041926851,
+        "fpr_at_photo005_calibrated_threshold": 0.01021073213121877
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.5681380261627506,
+        "tpr_at_photo005_calibrated_threshold": 0.013680197353666742,
+        "fpr_at_photo005_calibrated_threshold": 0.015013054830287207
+      }
+    },
+    "local_contrast": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.5562309506870495,
+        "tpr_at_photo005_calibrated_threshold": 0.0,
+        "fpr_at_photo005_calibrated_threshold": 0.0
+      }
+    },
+    "blackhat": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.6060971997279826,
+        "tpr_at_photo005_calibrated_threshold": 0.12042818911685994,
+        "fpr_at_photo005_calibrated_threshold": 0.06626113404301542
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.5751861657640417,
+        "tpr_at_photo005_calibrated_threshold": 0.13186813186813187,
+        "fpr_at_photo005_calibrated_threshold": 0.06962576153176675
+      }
+    },
+    "clahe_blackhat": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.5922671586986186,
+        "tpr_at_photo005_calibrated_threshold": 0.05419268510258698,
+        "fpr_at_photo005_calibrated_threshold": 0.021507712361503367
+      }
+    },
+    "frangi": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.5037833362371009,
+        "tpr_at_photo005_calibrated_threshold": 0.09143621766280106,
+        "fpr_at_photo005_calibrated_threshold": 0.07603736693460786
+      }
+    },
+    "sato": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.630875575076798,
+        "tpr_at_photo005_calibrated_threshold": 0.17105263157894737,
+        "fpr_at_photo005_calibrated_threshold": 0.06278514012600478
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.6026533988914763,
+        "tpr_at_photo005_calibrated_threshold": 0.14263287732675486,
+        "fpr_at_photo005_calibrated_threshold": 0.06810269799825935
+      }
+    },
+    "meijering": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.5871944721309048,
+        "tpr_at_photo005_calibrated_threshold": 0.1068242640499554,
+        "fpr_at_photo005_calibrated_threshold": 0.08755159678470563
+      }
+    },
+    "steerable_ridge": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.6119101774566988,
+        "tpr_at_photo005_calibrated_threshold": 0.13425512934879572,
+        "fpr_at_photo005_calibrated_threshold": 0.051270910275907015
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.5807053375391416,
+        "tpr_at_photo005_calibrated_threshold": 0.13949315990132316,
+        "fpr_at_photo005_calibrated_threshold": 0.06505657093124456
+      }
+    },
+    "unet_raw": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.8314640773586943,
+        "tpr_at_photo005_calibrated_threshold": 0.538135593220339,
+        "fpr_at_photo005_calibrated_threshold": 0.08385835324788182
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.8422898037647332,
+        "tpr_at_photo005_calibrated_threshold": 0.5575241085445167,
+        "fpr_at_photo005_calibrated_threshold": 0.11118363794604004
+      }
+    },
+    "unet_local": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.8778146035155678,
+        "tpr_at_photo005_calibrated_threshold": 0.7045049063336307,
+        "fpr_at_photo005_calibrated_threshold": 0.11492504888116446
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.8610717247619789,
+        "tpr_at_photo005_calibrated_threshold": 0.6153846153846154,
+        "fpr_at_photo005_calibrated_threshold": 0.09073107049608355
+      }
+    },
+    "azunet_raw": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.7967824575486298,
+        "tpr_at_photo005_calibrated_threshold": 0.6177520071364853,
+        "fpr_at_photo005_calibrated_threshold": 0.16380621333912665
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.725220513132806,
+        "tpr_at_photo005_calibrated_threshold": 0.0,
+        "fpr_at_photo005_calibrated_threshold": 0.0
+      }
+    },
+    "azunet_local": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.8469400119729541,
+        "tpr_at_photo005_calibrated_threshold": 0.5316681534344335,
+        "fpr_at_photo005_calibrated_threshold": 0.08755159678470563
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.8425611572491734,
+        "tpr_at_photo005_calibrated_threshold": 0.5252298721686477,
+        "fpr_at_photo005_calibrated_threshold": 0.08224543080939947
+      }
+    },
+    "unet_two_channel": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.8679701046305952,
+        "tpr_at_photo005_calibrated_threshold": 0.6108385370205174,
+        "fpr_at_photo005_calibrated_threshold": 0.09732782967629806
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.848444174961466,
+        "tpr_at_photo005_calibrated_threshold": 0.6680870150257905,
+        "fpr_at_photo005_calibrated_threshold": 0.13511749347258487
+      }
+    },
+    "azunet_two_channel": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.8819125980166911,
+        "tpr_at_photo005_calibrated_threshold": 0.6630240856378233,
+        "fpr_at_photo005_calibrated_threshold": 0.07842711275255268
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.8438168929523435,
+        "tpr_at_photo005_calibrated_threshold": 0.5851087687822382,
+        "fpr_at_photo005_calibrated_threshold": 0.08550913838120104
+      }
+    },
+    "local_only_logreg": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.4437690493129506,
+        "tpr_at_photo005_calibrated_threshold": 0.09656556645851917,
+        "fpr_at_photo005_calibrated_threshold": 0.14751249185313925
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.4603437693902339,
+        "tpr_at_photo005_calibrated_threshold": 0.07198923525454137,
+        "fpr_at_photo005_calibrated_threshold": 0.07615317667536989
+      }
+    },
+    "multi_feature_logreg": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.6378299127338705,
+        "tpr_at_photo005_calibrated_threshold": 0.241971454058876,
+        "fpr_at_photo005_calibrated_threshold": 0.06408863784488378
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.627199836982967,
+        "tpr_at_photo005_calibrated_threshold": 0.19735366674142185,
+        "fpr_at_photo005_calibrated_threshold": 0.07332463011314186
+      }
+    },
+    "multi_feature_HGB": {
+      "20261027": {
+        "roc_auc_synthetic_marks": 0.6405566764722925,
+        "tpr_at_photo005_calibrated_threshold": 0.23059768064228367,
+        "fpr_at_photo005_calibrated_threshold": 0.08972409298283728
+      },
+      "20261028": {
+        "roc_auc_synthetic_marks": 0.6483371072010705,
+        "tpr_at_photo005_calibrated_threshold": 0.29423637586902895,
+        "fpr_at_photo005_calibrated_threshold": 0.12467362924281984
+      }
+    }
+  },
+  "tests_local": 46,
+  "browser_real_photo_manual_review_export_import": "PASS"
+}

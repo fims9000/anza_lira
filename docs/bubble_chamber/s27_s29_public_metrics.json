@@ -1,0 +1,257 @@
+{
+  "schema": "S27_S29_TRUTH_DISTINCTIONS_AND_REPRODUCIBLE_METRICS_V1",
+  "study_date": "2026-10-25",
+  "photographs": {
+    "H50Z_030_01_005": 21,
+    "H50Z_030_01_006": 18,
+    "physical_run_count": 1
+  },
+  "real_operator_start_points": 9,
+  "real_expert_contour_track_masks": 0,
+  "real_expert_same_track_relation_labels": 0,
+  "S27_seam_absolute_predicted_probability_jump": {
+    "005": {
+      "crops": 21,
+      "strata": {
+        "dense": 4,
+        "faint": 3,
+        "fiducial_control": 3,
+        "geometry": 3,
+        "quiet": 2,
+        "start_anchor_nearby": 6
+      },
+      "unet": {
+        "mean_no_overlap_boundary_jump": 0.037728515143195786,
+        "mean_overlap_boundary_jump": 0.01823254594845431,
+        "pooled_boundary_jump_reduction_pct": 51.67436121126412,
+        "cropped_regions_with_reduced_boundary_jump": 21,
+        "median_candidate_fraction_changed": 0.02402496337890625
+      },
+      "azunet": {
+        "mean_no_overlap_boundary_jump": 0.05623436470826467,
+        "mean_overlap_boundary_jump": 0.015355778991111688,
+        "pooled_boundary_jump_reduction_pct": 72.69324714385033,
+        "cropped_regions_with_reduced_boundary_jump": 21,
+        "median_candidate_fraction_changed": 0.013278961181640625
+      },
+      "guided_az": {
+        "mean_no_overlap_boundary_jump": 0.06995353173641931,
+        "mean_overlap_boundary_jump": 0.025473789090201968,
+        "pooled_boundary_jump_reduction_pct": 63.584699073971464,
+        "cropped_regions_with_reduced_boundary_jump": 21,
+        "median_candidate_fraction_changed": 0.009521484375
+      }
+    },
+    "006": {
+      "crops": 18,
+      "strata": {
+        "dense": 4,
+        "faint": 3,
+        "fiducial_control": 3,
+        "geometry": 3,
+        "quiet": 2,
+        "start_anchor_nearby": 3
+      },
+      "unet": {
+        "mean_no_overlap_boundary_jump": 0.03343197537793054,
+        "mean_overlap_boundary_jump": 0.014368151107596027,
+        "pooled_boundary_jump_reduction_pct": 57.02272765766369,
+        "cropped_regions_with_reduced_boundary_jump": 18,
+        "median_candidate_fraction_changed": 0.011142730712890625
+      },
+      "azunet": {
+        "mean_no_overlap_boundary_jump": 0.04524105776929193,
+        "mean_overlap_boundary_jump": 0.010246702185314562,
+        "pooled_boundary_jump_reduction_pct": 77.35087840437349,
+        "cropped_regions_with_reduced_boundary_jump": 18,
+        "median_candidate_fraction_changed": 0.007837295532226562
+      },
+      "guided_az": {
+        "mean_no_overlap_boundary_jump": 0.06003063544631004,
+        "mean_overlap_boundary_jump": 0.019885448790672753,
+        "pooled_boundary_jump_reduction_pct": 66.87449892404051,
+        "cropped_regions_with_reduced_boundary_jump": 18,
+        "median_candidate_fraction_changed": 0.004230499267578125
+      }
+    }
+  },
+  "S27_long_injected_synthetic_AUC": {
+    "unet": {
+      "stride64": 0.43009345483346817,
+      "stride32": 0.2742884067945751
+    },
+    "azunet": {
+      "stride64": 0.3068965067058009,
+      "stride32": 0.20227570582469748
+    },
+    "guided_az": {
+      "stride64": 0.3957857862837185,
+      "stride32": 0.16498183686515325
+    }
+  },
+  "S28_injected_known_anchor_prefix_recovery": {
+    "straight_evidence": {
+      "top1": {
+        "n": 16,
+        "mean_precision_against_injected_trace": 0.25065104166666663,
+        "mean_injected_prefix_coverage": 0.2266025641025641,
+        "successful_at_70pct_prefix_coverage_count": 0
+      },
+      "best_of_top4_oracle_NOT_DEPLOYABLE": {
+        "n": 16,
+        "mean_precision_against_injected_trace": 0.263671875,
+        "mean_injected_prefix_coverage": 0.2371794871794872,
+        "successful_at_70pct_prefix_coverage_count": 0
+      }
+    },
+    "curvature_constrained_evidence": {
+      "top1": {
+        "n": 16,
+        "mean_precision_against_injected_trace": 0.9876302083333333,
+        "mean_injected_prefix_coverage": 0.9666666666666667,
+        "successful_at_70pct_prefix_coverage_count": 16
+      },
+      "best_of_top4_oracle_NOT_DEPLOYABLE": {
+        "n": 16,
+        "mean_precision_against_injected_trace": 0.9876302083333333,
+        "mean_injected_prefix_coverage": 0.9666666666666667,
+        "successful_at_70pct_prefix_coverage_count": 16
+      }
+    },
+    "original_AZ_plus_curvature": {
+      "top1": {
+        "n": 16,
+        "mean_precision_against_injected_trace": 0.9270833333333334,
+        "mean_injected_prefix_coverage": 0.9089743589743591,
+        "successful_at_70pct_prefix_coverage_count": 15
+      },
+      "best_of_top4_oracle_NOT_DEPLOYABLE": {
+        "n": 16,
+        "mean_precision_against_injected_trace": 0.97265625,
+        "mean_injected_prefix_coverage": 0.9532051282051283,
+        "successful_at_70pct_prefix_coverage_count": 16
+      }
+    }
+  },
+  "S29_anchor_offset_plus_erased_synthetic_gaps": {
+    "gap0_offset0_top1": {
+      "n": 8,
+      "mean_prefix_coverage": 0.8500000000000001,
+      "successes_70pct": 7,
+      "mean_precision": 0.8723958333333333
+    },
+    "gap0_offset0_best_of_top4_oracle_NOT_OPERATOR_AVAILABLE": {
+      "n": 8,
+      "mean_prefix_coverage": 0.9551282051282051,
+      "successes_70pct": 8,
+      "mean_precision": 0.9791666666666666
+    },
+    "gap0_offset3_top1": {
+      "n": 8,
+      "mean_prefix_coverage": 0.8570512820512821,
+      "successes_70pct": 7,
+      "mean_precision": 0.8723958333333334
+    },
+    "gap0_offset3_best_of_top4_oracle_NOT_OPERATOR_AVAILABLE": {
+      "n": 8,
+      "mean_prefix_coverage": 0.9673076923076923,
+      "successes_70pct": 8,
+      "mean_precision": 0.9856770833333334
+    },
+    "gap0_offset6_top1": {
+      "n": 8,
+      "mean_prefix_coverage": 0.8461538461538463,
+      "successes_70pct": 7,
+      "mean_precision": 0.87109375
+    },
+    "gap0_offset6_best_of_top4_oracle_NOT_OPERATOR_AVAILABLE": {
+      "n": 8,
+      "mean_prefix_coverage": 0.9557692307692308,
+      "successes_70pct": 8,
+      "mean_precision": 0.9817708333333333
+    },
+    "gap0_offset10_top1": {
+      "n": 8,
+      "mean_prefix_coverage": 0.844871794871795,
+      "successes_70pct": 7,
+      "mean_precision": 0.86328125
+    },
+    "gap0_offset10_best_of_top4_oracle_NOT_OPERATOR_AVAILABLE": {
+      "n": 8,
+      "mean_prefix_coverage": 0.9544871794871794,
+      "successes_70pct": 8,
+      "mean_precision": 0.97265625
+    },
+    "gap1_offset0_top1": {
+      "n": 8,
+      "mean_prefix_coverage": 0.8378205128205128,
+      "successes_70pct": 7,
+      "mean_precision": 0.8580729166666666
+    },
+    "gap1_offset0_best_of_top4_oracle_NOT_OPERATOR_AVAILABLE": {
+      "n": 8,
+      "mean_prefix_coverage": 0.9397435897435897,
+      "successes_70pct": 8,
+      "mean_precision": 0.9596354166666666
+    },
+    "gap1_offset3_top1": {
+      "n": 8,
+      "mean_prefix_coverage": 0.851923076923077,
+      "successes_70pct": 7,
+      "mean_precision": 0.86328125
+    },
+    "gap1_offset3_best_of_top4_oracle_NOT_OPERATOR_AVAILABLE": {
+      "n": 8,
+      "mean_prefix_coverage": 0.9608974358974359,
+      "successes_70pct": 8,
+      "mean_precision": 0.9752604166666667
+    },
+    "gap1_offset6_top1": {
+      "n": 8,
+      "mean_prefix_coverage": 0.8333333333333334,
+      "successes_70pct": 7,
+      "mean_precision": 0.85546875
+    },
+    "gap1_offset6_best_of_top4_oracle_NOT_OPERATOR_AVAILABLE": {
+      "n": 8,
+      "mean_prefix_coverage": 0.9397435897435897,
+      "successes_70pct": 8,
+      "mean_precision": 0.9609375
+    },
+    "gap1_offset10_top1": {
+      "n": 8,
+      "mean_prefix_coverage": 0.8326923076923077,
+      "successes_70pct": 7,
+      "mean_precision": 0.84765625
+    },
+    "gap1_offset10_best_of_top4_oracle_NOT_OPERATOR_AVAILABLE": {
+      "n": 8,
+      "mean_prefix_coverage": 0.9391025641025641,
+      "successes_70pct": 8,
+      "mean_precision": 0.9518229166666667
+    }
+  },
+  "S29_real_photo_candidate_provisional_measurements": 72,
+  "S29_physical_particle_identity_confirmations": 0,
+  "source_original_weights_sha256": {
+    "unet": "848c89b86c75be5b6ace09b073efb5da84b6849323a068494e3280ef2fdfbc18",
+    "azunet": "85ea3a155146dbe1cdbc261aaafae72581e279d8631fd51cf36cca69929219e6",
+    "guided_az": "e08dd66b846d6e3050c94d1281013d66e08eaa00691d4f7b5d9eb54eb89cdec5"
+  },
+  "preexisting_source_S26_thresholds": {
+    "unet": 0.7364889979362488,
+    "azunet": 0.7920557856559753,
+    "guided_az": 0.6835122108459473,
+    "sato": 0.11154668033123016
+  },
+  "strict_evidence": {
+    "pixel_probabilities_seam_statistic_is_not_true_label_accuracy": true,
+    "artificial_injected_traces_are_the_ONLY_ground_truth_in_all_tests": true,
+    "S28_perfect_known_seed_is_not_real_operator_localization_validation": true,
+    "S29_seed_error_is_software_added_not_measured": true,
+    "oracle_best_of_top4_never_operator_usable": true,
+    "real_native_particle_2d_curve_is_undetermined": true,
+    "3D_particle_momentum_or_type_is_unavailable": true,
+    "automatic_physics_merges_must_remain_disabled": true
+  }
+}
