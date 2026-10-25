@@ -1,0 +1,30 @@
+name: Bubble S21-S23 selective graph review contracts
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s21_*.py'
+      - 'bubble_chamber/s23_*.py'
+      - 'scripts/research/bubble_chamber/s21_*.py'
+      - 'scripts/research/bubble_chamber/s22_*.py'
+      - 'scripts/research/bubble_chamber/s23_*.py'
+      - 'tests/test_s21_*.py'
+      - 'tests/test_s22_*.py'
+      - 'tests/test_s23_*.py'
+      - '.github/workflows/s21_s23_graph_safe_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-free-unit-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test prerequisites
+        run: python -m pip install numpy scipy scikit-learn scikit-image opencv-python-headless pytest
+      - name: Verify no hidden-label calibration and graph review abstention
+        run: python -m pytest -q tests/test_s21_selective_graph.py tests/test_s22_curriculum.py tests/test_s23_review_rank.py

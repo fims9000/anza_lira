@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S20_UNLABELED_H50Z_PROXY_NEGATIVE_LOW_LABEL_REVIEW_QUEUE_COMPLETE_REAL_TRACK_LABELS_ABSENT",
+  "status": "S23_SELECTIVE_GRAPH_GAP_CURRICULUM_REVIEW_ONLY_NOT_REAL_PHYSICAL_VALIDATION",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Obtain a SMALL authentic S19_H50Z_expert_reviews.json from original offline workbench (some TRACK and ARTIFACT pixels on each source photo plus same/different candidate pairs). Run S19 baseline scratch and optional S20 pretrained-encoder variants at identical budgets, compare only manually CERTIFIED pixels and zero unsafe joins; acquire independent physical run for real generalization test. Do not use inpainting MAE as segmentation accuracy or auto-label unreviewed photos.",
+  "next_executable_action": "Collect a small real S19/S23 expert review JSON, then train original AZUNet on confirmed sparse photo scribbles and fewshot Graph-LIRA on human same/different pair labels; evaluate against ordinary U-Net/geometry on independent H50Z physical run with false-join criterion. Until then prioritize review questions, never auto-merge physical tracks.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -81,7 +81,9 @@
     "S11/S12 use real manual track shapes but generated grayscale pixels/masks, never authentic pixel segmentation labels",
     "All model-seed confidence intervals conditional on source film 070 and selected training initializations; cannot claim independent run transfer",
     "S12 direct tangent clean Dice gain is small and stressed Dice did not improve reliably",
-    "Quadratic fit only a 2D review aid; no optics, B-field, 3D mass/momentum inference"
+    "Quadratic fit only a 2D review aid; no optics, B-field, 3D mass/momentum inference",
+    "S21/S22 gap-shift studies are synthetic occlusions of authentic manually clicked film 070 tracks, not actual H50Z photo gaps",
+    "S23 rescoring is out-of-domain human review question ordering and does not produce trusted labels or calibrated connection probabilities"
   ],
   "current_milestone": "S2_REAL_SPARSE_RELATION_R2_REAL_KEYPOINTS_R3_REVIEW_BOOTSTRAP",
   "last_update": "2026-10-24",
@@ -599,5 +601,114 @@
     "photo_accuracy": "NOT_MEASURED",
     "particle_id_accuracy": "NOT_MEASURED",
     "report": "docs/bubble_chamber/S20_UNLABELED_AND_REVIEW_2026_10_25.md"
+  },
+  "S21": {
+    "date": "2026-10-25",
+    "original_film_id": "070",
+    "source_sha256": "bd8e28247c5d178ae4f2f5a86215cbf5626f3ad86560928f4521093ce9188dea",
+    "real_expert_tracks_used": 1073,
+    "real_measured_source_frames": 145,
+    "training_hidden_gaps": [
+      1,
+      3
+    ],
+    "validation_hidden_gap": 3,
+    "test_hidden_gaps": [
+      1,
+      3,
+      5
+    ],
+    "split_seeds": [
+      20261024,
+      20261025,
+      20261026
+    ],
+    "training_pair_review_budgets": [
+      160,
+      320,
+      640
+    ],
+    "calibration_pair_reviews_extra_per_split": 160,
+    "graph_context_HGB_test_gap5_at_320": {
+      "correct": 267,
+      "possible": 847,
+      "false_links": 5
+    },
+    "graph_context_HGB_test_gap5_at_640": {
+      "correct": 603,
+      "possible": 847,
+      "false_links": 26
+    },
+    "physical_join_certified": false,
+    "independent_physical_runs": 0,
+    "model_kind": "HistGradientBoostingClassifier using ANZA-inspired 14D observed geometry + 10D graph context, NOT original image AZConv"
+  },
+  "S22": {
+    "date": "2026-10-25",
+    "registered_test_split_seeds": [
+      20261027,
+      20261028,
+      20261029
+    ],
+    "training_review_budgets": [
+      320,
+      640
+    ],
+    "additional_calibration_labels": 160,
+    "train_gap_regimes": [
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        3,
+        5
+      ]
+    ],
+    "test_gap5_true_candidate_count_over_three_splits": 876,
+    "graph_context_320_short": {
+      "tp": 117,
+      "fp": 1
+    },
+    "graph_context_320_mixed": {
+      "tp": 323,
+      "fp": 1
+    },
+    "graph_context_640_short": {
+      "tp": 369,
+      "fp": 4
+    },
+    "graph_context_640_mixed": {
+      "tp": 554,
+      "fp": 3
+    },
+    "geometric_no_graph_320_mixed": {
+      "tp": 456,
+      "fp": 1
+    },
+    "geometric_no_graph_640_mixed": {
+      "tp": 421,
+      "fp": 0
+    },
+    "conclusion": "Mixed-gap labels improve held-out long-gap continuation; graph features do not dominate a strong ordinary geometry HGB baseline at every budget; physical false merges remain.",
+    "source_film_count": 1,
+    "real_pixel_masks": 0,
+    "real_photo_accuracy_estimate_available": false
+  },
+  "S23": {
+    "date": "2026-10-25",
+    "real_original_photo_count": 2,
+    "real_cropped_tiles": 7,
+    "candidate_line_questions": 37,
+    "candidate_relation_questions": 23,
+    "model_training": "640 synthetically reviewed pair labels from film-070 manual geometry, HGB graph context",
+    "real_h50z_expert_confirmed_track_pixels": 0,
+    "real_h50z_expert_confirmed_relation_pairs": 0,
+    "status": "Optional alternate source-checked human review ordering ONLY, not inference approval",
+    "browser_verified": "Chromium: all 7 source tiles load, next pair/line, JSON export with 0 fictional decisions; no JS page errors",
+    "physical_automatic_links_authorized": false,
+    "private_photo_embedded_html_in_github": false,
+    "tests_total_focused_plus_regressions_passed": 42
   }
 }
