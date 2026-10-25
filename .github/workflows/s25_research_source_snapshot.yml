@@ -1,0 +1,26 @@
+name: S25 research source snapshot
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - '.github/workflows/s25_research_source_snapshot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package only repository source and tests
+        run: |
+          mkdir -p /tmp/s25_repo_snapshot
+          cp -a bubble_chamber models scripts tests docs .github /tmp/s25_repo_snapshot/
+          cd /tmp/s25_repo_snapshot
+          tar -czf "$GITHUB_WORKSPACE/s25_repo_snapshot.tar.gz" bubble_chamber models scripts tests docs .github
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s25-repository-source
+          path: s25_repo_snapshot.tar.gz
+          retention-days: 2
