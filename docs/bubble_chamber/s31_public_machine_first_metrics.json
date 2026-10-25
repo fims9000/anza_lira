@@ -29,7 +29,7 @@
   "actual_operator_start_points": 9,
   "real_expert_certified_track_masks": 0,
   "machine_weak_pseudolabels_not_expert": true,
-  "faint_and_fiducial_control_auto_positives_disabled": true,
+  "fiducial_and_quiet_control_auto_positives_disabled": true,
   "training_models": "source-locked original AZUNet and ordinary U-Net (4,6,8,12), two epochs, same pseudo-label source",
   "matched_training_receipt": {
     "unet": {
