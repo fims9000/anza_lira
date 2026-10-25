@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S34_IMAGE_DOMAIN_ROBUSTNESS_AND_ALIGNED_AXIS_ABLATION_COMPLETE; REAL_PHYSICS_TRACK_VALIDATION_MISSING",
+  "status": "S35_PHOTO_CONSISTENCY_FULLY_TESTED_AND_REPRODUCED_TINY_GAIN_NOT_PHYSICALLY_VALIDATED",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Collect manually corrected S33/S32 machine-first JSON and separate physicist-certified real 2D track pixels, artifacts and same/different links; perform real photo/run-disjoint evaluation incl. different fill media/field. Keep quantile AZUNet and local U-Net baselines and do not auto-merge physical tracks until independently validated.",
+  "next_executable_action": "Investigate and preregister saturation-aware photometric input handling using source-side statistics, then evaluate on NEW unseen artificial-injection seeds in both cross-photo directions. Keep original AZConv, local U-Net and S33 quantile AZUNet baseline and preserve all S31 MACHINE drafts as unverified. Real human-checked track/pair labels and independent physics run remain prerequisites for physical deployment.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -1073,5 +1073,81 @@
     "tests": 4,
     "conclusion": "Not reliably better. Do not enable axis loss by default on unverified pseudo-lines.",
     "physics_auto_join_authorized": false
+  },
+  "S35": {
+    "date": "2026-10-25",
+    "status": "SOURCE_LOCKED_PHOTO_VIEW_CONSISTENCY_RCT_COMPLETE_NEGATIVE_OR_TINY_GAIN",
+    "private_research_archive": "/ANZA-LIRA Bubble Chamber - private archive/2026-10-25 S35/private_research/S35_ANZA_PHOTO_CONSISTENCY_PRIVATE_RESEARCH.zip",
+    "source_real_photo_count": 2,
+    "source_same_physical_run": true,
+    "original_AZConv_unchanged": true,
+    "S31_machine_only_annotation_no_human_physical_truth": true,
+    "train_photo_splits": [
+      "005->006",
+      "006->005"
+    ],
+    "train_seeds": [
+      20261025,
+      20261026
+    ],
+    "forward_test_seeds": [
+      20261041,
+      20261042,
+      20261043,
+      20261044
+    ],
+    "reverse_test_seeds": [
+      20261045,
+      20261046,
+      20261047,
+      20261048
+    ],
+    "n_injected_test_scenes_per_direction": 192,
+    "architectures": [
+      "original AZUNet + quantile",
+      "baseline U-Net + local"
+    ],
+    "consistent_train_budget": {
+      "epochs": 2,
+      "batch_size": 4,
+      "photo_views_per_batch": 2
+    },
+    "new_unsupervised_objective": "lambda 0.10 squared photo-view consistency on UNKNOWN photo pixels only with stop-gradient teacher; first epoch supervised-only",
+    "source_fit_free_photometric_normalizers": true,
+    "forward_identity_test_mean_AUROC": {
+      "azunet_baseline": 0.62563,
+      "azunet_consistency": 0.62666,
+      "unet_baseline": 0.63187,
+      "unet_consistency": 0.63167
+    },
+    "reverse_identity_test_mean_AUROC": {
+      "azunet_baseline": 0.60788,
+      "azunet_consistency": 0.60903,
+      "unet_baseline": 0.59409,
+      "unet_consistency": 0.59454
+    },
+    "raw_photo_input_exposure_audit": {
+      "patch_count_total": 312,
+      "photo_005": {
+        "raw_change": 0.09729,
+        "quantile_change": 0.06493,
+        "local_change": 0.02683,
+        "after_perturb_clipped_fraction": 0.1376
+      },
+      "photo_006": {
+        "raw_change": 0.10532,
+        "quantile_change": 0.11145,
+        "local_change": 0.04877,
+        "after_perturb_clipped_fraction": 0.23978
+      }
+    },
+    "result": "Extra consistency adds only approximately +0.001 AUROC on simulated overlays, with no established native-film gain. Under strong clipped exposure on photo 006, quantile invariance fails.",
+    "statistically_independent_acquisitions": 0,
+    "real_native_track_ground_truth_available": false,
+    "physical_auto_join_authorized": false,
+    "report": "docs/bubble_chamber/S35_PHOTOMETRIC_CONSISTENCY_NEGATIVE_2026_10_25.md",
+    "metrics": "docs/bubble_chamber/s35_public_machine_injection_metrics.json",
+    "unit_regression_tests": "18 selected source-only tests pass locally",
+    "public_raw_photo_or_private_model_weights": false
   }
 }

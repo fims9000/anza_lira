@@ -1,0 +1,319 @@
+{
+  "schema": "s35_photo_consistency_frozen_summary_v1",
+  "source": "real H50Z backgrounds, S31 MACHINE weak labels and artificially injected track/scratch controls",
+  "natural_real_bmp_track_gold_count": 0,
+  "operator_corrected_ground_truth": false,
+  "both_photos_same_physical_run": true,
+  "independent_physical_run": false,
+  "epochs_fixed": 2,
+  "train_source_model_architectures_unchanged": true,
+  "train_seeds": [
+    20261025,
+    20261026
+  ],
+  "test_seeds": {
+    "005_to_006": [
+      20261041,
+      20261042,
+      20261043,
+      20261044
+    ],
+    "006_to_005": [
+      20261045,
+      20261046,
+      20261047,
+      20261048
+    ]
+  },
+  "test_seed_repetitions_share_original_photographs_and_measured_templates": true,
+  "test_n_injections_per_direction": 192,
+  "test_n_both_directions": 384,
+  "baseline_matched_two_photo_views_and_compute": true,
+  "lambda_consistency": 0.1,
+  "domain_diagnostic": {
+    "005": {
+      "crop_count": 21,
+      "patches": 168,
+      "input_patch_std_gray_mean": 15.078961463470126,
+      "mean_quantile_90_minus_10_gray_span": 34.788690476190474,
+      "original_sensor_zero_or_255_fraction": 0.016604468936011904,
+      "after_seeded_affine_zero_or_255_fraction": 0.13759940011160715,
+      "mean_abs_normalized_input_change_under_seeded_affine_exposure": {
+        "raw": 0.0972924009445359,
+        "quantile": 0.06492951113406369,
+        "local": 0.026827294063618216
+      },
+      "fraction_of_patches_with_lower_shift_than_raw": {
+        "quantile": 0.8154761904761905,
+        "local": 0.8511904761904762
+      },
+      "source_native_track_accuracy": "NOT_MEASURED"
+    },
+    "006": {
+      "crop_count": 18,
+      "patches": 144,
+      "input_patch_std_gray_mean": 13.744771697461845,
+      "mean_quantile_90_minus_10_gray_span": 31.32986111111111,
+      "original_sensor_zero_or_255_fraction": 0.00047980414496527775,
+      "after_seeded_affine_zero_or_255_fraction": 0.23978169759114584,
+      "mean_abs_normalized_input_change_under_seeded_affine_exposure": {
+        "raw": 0.10532185750263226,
+        "quantile": 0.11144910364803057,
+        "local": 0.048765673047404964
+      },
+      "fraction_of_patches_with_lower_shift_than_raw": {
+        "quantile": 0.7361111111111112,
+        "local": 0.7708333333333334
+      },
+      "source_native_track_accuracy": "NOT_MEASURED"
+    }
+  },
+  "results": {
+    "005_to_006": {
+      "azunet": {
+        "identity": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.6256334472044623,
+          "mean_AUROC_extra_photo_consistency": 0.6266573662911606,
+          "mean_paired_delta_AUROC": 0.001023919086698244,
+          "paired_seed_deltas": [
+            0.0018633481309283662,
+            0.0011537882936206723,
+            0.0016890975109639106,
+            -0.0006105575887199732
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -3.564381379900228e-05,
+            0.0017762228209461384
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "bright": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.6273966250831686,
+          "mean_AUROC_extra_photo_consistency": 0.6283283376265073,
+          "mean_paired_delta_AUROC": 0.000931712543338653,
+          "paired_seed_deltas": [
+            0.0013768030068328496,
+            0.0011675454855235579,
+            0.0017743034086923348,
+            -0.0005918017276941301
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -9.965054406238516e-05,
+            0.0016226139279001406
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "dark": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.6246788080843154,
+          "mean_AUROC_extra_photo_consistency": 0.6259481407768729,
+          "mean_paired_delta_AUROC": 0.00126933269255744,
+          "paired_seed_deltas": [
+            0.0021324254695993528,
+            0.0010703680058068432,
+            0.0021627547731308816,
+            -0.0002882174783073177
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            0.0003169432586693499,
+            0.002147590121365117
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "last_epoch_unsupervised_to_supervised_magnitude_ratio_by_seed": [
+          0.0014226382501192957,
+          7.804985214096797e-05
+        ]
+      },
+      "unet": {
+        "identity": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.6318694047175919,
+          "mean_AUROC_extra_photo_consistency": 0.6316738453620363,
+          "mean_paired_delta_AUROC": -0.00019555935555562454,
+          "paired_seed_deltas": [
+            -0.000169203039860788,
+            -0.0003721674341968795,
+            -0.0006940201371739008,
+            0.0004531531890090701
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -0.0005628158628456226,
+            0.0002468230332075827
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "bright": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.6314820742285775,
+          "mean_AUROC_extra_photo_consistency": 0.6313061890510471,
+          "mean_paired_delta_AUROC": -0.0001758851775304493,
+          "paired_seed_deltas": [
+            -0.000254689137029418,
+            -0.0005293287327479135,
+            -0.0004863408921553791,
+            0.0005668180518109134
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -0.0005078348124516463,
+            0.00030352831581934026
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "dark": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.630999005857756,
+          "mean_AUROC_extra_photo_consistency": 0.6308879153142578,
+          "mean_paired_delta_AUROC": -0.00011109054349819902,
+          "paired_seed_deltas": [
+            1.5687424460231192e-05,
+            -0.00020488059619183652,
+            -0.0007604910031729917,
+            0.0005053220009118009
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -0.000566446396264686,
+            0.00032777135163589155
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "last_epoch_unsupervised_to_supervised_magnitude_ratio_by_seed": [
+          0.00028420838643371016,
+          0.00013070886649960896
+        ]
+      }
+    },
+    "006_to_005": {
+      "azunet": {
+        "identity": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.6078837867738681,
+          "mean_AUROC_extra_photo_consistency": 0.6090309917320459,
+          "mean_paired_delta_AUROC": 0.0011472049581777999,
+          "paired_seed_deltas": [
+            -7.1208536595035454e-06,
+            0.002313415944706465,
+            0.0003823295251836889,
+            0.0019001952164805491
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            0.00018760433576209268,
+            0.002106805580593507
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "bright": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.6071223007877662,
+          "mean_AUROC_extra_photo_consistency": 0.6082399673108189,
+          "mean_paired_delta_AUROC": 0.0011176665230525629,
+          "paired_seed_deltas": [
+            -0.00015309835367782743,
+            0.0023498973185039906,
+            0.0003308341395741321,
+            0.0019430329878099561
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            8.886789294815234e-05,
+            0.0021464651531569734
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "dark": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.6056599366487403,
+          "mean_AUROC_extra_photo_consistency": 0.6065186775484169,
+          "mean_paired_delta_AUROC": 0.00085874089967658,
+          "paired_seed_deltas": [
+            -0.0009038215354412182,
+            0.0020843454269316997,
+            0.0014205138278727825,
+            0.000833925879343056
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -0.00032273769461271806,
+            0.0017717405400345387
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "last_epoch_unsupervised_to_supervised_magnitude_ratio_by_seed": [
+          0.0019634956402872134,
+          0.00015946780106019037
+        ]
+      },
+      "unet": {
+        "identity": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.5940938015534944,
+          "mean_AUROC_extra_photo_consistency": 0.5945387592486471,
+          "mean_paired_delta_AUROC": 0.00044495769515254247,
+          "paired_seed_deltas": [
+            0.0006913295144695963,
+            -0.0005361949206396099,
+            0.0018563581655526296,
+            -0.0002316619787724461
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -0.000383928449706028,
+            0.0013343531294713606
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "bright": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.5948686202324333,
+          "mean_AUROC_extra_photo_consistency": 0.5951751205328011,
+          "mean_paired_delta_AUROC": 0.00030650030036788456,
+          "paired_seed_deltas": [
+            0.00012466283715883986,
+            -0.0005188513167030395,
+            0.0016567714749220475,
+            -3.6581793906309557e-05
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -0.0003579727782375697,
+            0.0012334331577149582
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "dark": {
+          "n_injection_seeds": 4,
+          "n_injected_scenes": 192,
+          "mean_AUROC_matched_two_view": 0.5908159037129983,
+          "mean_AUROC_extra_photo_consistency": 0.5911801792759908,
+          "mean_paired_delta_AUROC": 0.0003642755629924277,
+          "paired_seed_deltas": [
+            0.0005941601974935873,
+            -0.0003561802728849761,
+            0.0012324929457746547,
+            -1.3370618413555135e-05
+          ],
+          "cluster_seed_bootstrap_CI95_NOT_INDEPENDENT_RUNS": [
+            -0.00018477544564926562,
+            0.0009210270547276023
+          ],
+          "real_film_tracks_metric": "NOT_MEASURED"
+        },
+        "last_epoch_unsupervised_to_supervised_magnitude_ratio_by_seed": [
+          0.0004424991516538934,
+          0.00031924386272704224
+        ]
+      }
+    }
+  },
+  "fixed_research_conclusion": "No meaningful reliable improvement from extra unknown-pixel consistency; dominant remaining issue is noisy machine weak masks and saturation-driven photometric shift.",
+  "physical_auto_join_authorized": false
+}
