@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S30_GATE_COMMITTED_AND_DATASET_BYTE_VERIFIED_PRIVATE_ARCHIVE; REAL_H50Z_TRACK_TRUTH_MISSING",
+  "status": "S31_PRIVATE_MACHINE_FIRST_CANDIDATES_AND_WEAK_ANZA_TRAINING_COMPLETE; PHYSICS_CERTIFICATION_PENDING",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Get actual human-certified 2D track pixel lines and same/different relations from an S29/S30 reviewer; compare original AZUNet, geometry baseline and Graph-LIRA on real photo-disjoint plus independent run. Do not call model proposal expert truth or auto-join physical tracks.",
+  "next_executable_action": "Continue improving the S31 provisional annotation by local corrections in S31_MACHINE_FIRST_REVIEWER.html, save S31_machine_labels_local_corrections.json, rebuild S31 pseudo masks using --corrections, keep 005/006 held-out photos disjoint, calibrate independent run only once available. Physical truth and automatic joins remain disabled.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -859,5 +859,74 @@
     "catalog": "docs/bubble_chamber/s30_dataset_integrity.json",
     "verification": "Local 16 focused tests and exact-byte SHA256 verification of 3 source archives; GitHub CI for S30 review gate green after dependency correction",
     "physical_track_validation": "NOT_MEASURED"
+  },
+  "S31": {
+    "date": "2026-10-25",
+    "status": "S31_MACHINE_FIRST_ANNOTATION_AND_PROVISIONAL_TRAINING_COMPLETED_UNVERIFIED",
+    "private_annotation_archive": "ChatGPT private Library /ANZA-LIRA Bubble Chamber - private archive/2026-10-25 S31",
+    "source_photos": 2,
+    "source_crops": 39,
+    "operator_verified_start_locations": 9,
+    "total_machine_drafts": 133,
+    "original_AZUNet_assisted_drafts": 36,
+    "classical_curvature_drafts": 36,
+    "image_segment_drafts": 61,
+    "local_relation_questions": 28,
+    "local_human_corrections_at_generation": 0,
+    "physically_certified_track_labels": 0,
+    "physically_certified_links": 0,
+    "machine_weak_pixel_labels": {
+      "positive": 11097,
+      "negative_assumed": 25350,
+      "unknown": 10187169,
+      "positive_crops": 13,
+      "labels_are_not_ground_truth": true
+    },
+    "matched_pseudo_training": {
+      "training_photo": "005",
+      "heldout_photo": "006",
+      "same_physical_run": true,
+      "epochs": 2,
+      "unet": {
+        "pseudo_holdout_BCE": 0.6795,
+        "pseudo_pos_found": 0.972,
+        "pseudo_assumed_negative_accepted": 0.8807
+      },
+      "original_AZUNet": {
+        "pseudo_holdout_BCE": 0.5784,
+        "pseudo_pos_found": 0.8643,
+        "pseudo_assumed_negative_accepted": 0.2286
+      }
+    },
+    "separate_artificial_injection_control": {
+      "n_cases_per_seed": 48,
+      "seeds": [
+        20261029,
+        20261030
+      ],
+      "unet_AUROC": [
+        0.6997,
+        0.6071
+      ],
+      "original_AZUNet_AUROC": [
+        0.6989,
+        0.58
+      ],
+      "classical_steerable_AUROC": [
+        0.5793,
+        0.5834
+      ],
+      "result_type": "artificially injected traces versus artificial scratches on real H50Z-006 background, NOT real film GT"
+    },
+    "physics_auto_join_authorized": false,
+    "source_model_code_changed": false,
+    "private_raw_photos_in_public_repo": false,
+    "source_sha_verified_real_BMP_pixels": 39,
+    "original_encoding_sha_matched": 30,
+    "remade_start_png_encoding_sha_diff_but_pixels_match": 9,
+    "S29_original_manual_export_preserved": true,
+    "correction_file_schema": "s31_machine_corrections_v1",
+    "local_verification": "14 tests source/graph/geometry passed + offline Chromium draft/path/pair correction/export/import test",
+    "report": "docs/bubble_chamber/S31_MACHINE_FIRST_PSEUDOLABELS_2026_10_25.md"
   }
 }

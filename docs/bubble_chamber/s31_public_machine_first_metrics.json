@@ -1,0 +1,165 @@
+{
+  "schema": "s31_real_h50z_machine_first_research_receipt_v1",
+  "date": "2026-10-25",
+  "real_photo_source_count": 2,
+  "real_crop_count": 39,
+  "source_S28_machine_hypotheses_sha256": "8890dc9553c7013a9ad45dd2ad5d06c9d9e86d4aba269865cd144ad83c6eb217",
+  "source_S29_private_reviewer_sha256": "30ae762c155ecf60ebb3fefc1e5108aee0a9f5b1419149ca4185856fc1e86937",
+  "candidate_counts": {
+    "source_crops": 39,
+    "starts": 9,
+    "candidate_drafts": 133,
+    "original_ANZA_candidates": 36,
+    "classical_candidates": 36,
+    "image_LSD_drafts": 61,
+    "possible_relation_questions": 28,
+    "human_accepted": 0,
+    "human_rejected": 0
+  },
+  "weak_label_counts": {
+    "crops": 39,
+    "source_start_crops": 9,
+    "weak_positive_px": 11097,
+    "weak_negative_px": 25350,
+    "unlabeled_px": 10187169,
+    "crops_with_weak_positive": 13
+  },
+  "run_is_one_physical_film": true,
+  "native_real_track_GT_available": false,
+  "actual_operator_start_points": 9,
+  "real_expert_certified_track_masks": 0,
+  "machine_weak_pseudolabels_not_expert": true,
+  "faint_and_fiducial_control_auto_positives_disabled": true,
+  "training_models": "source-locked original AZUNet and ordinary U-Net (4,6,8,12), two epochs, same pseudo-label source",
+  "matched_training_receipt": {
+    "unet": {
+      "best_epoch": 2,
+      "pseudo_holdout": {
+        "pseudo_label_proxy_BCE": 0.6795253455638885,
+        "machine_positive_fraction_found": 0.972011385199241,
+        "machine_assumed_negative_fraction_misidentified": 0.8806970509383378,
+        "evaluated_pseudo_pixels_positive": 4216,
+        "evaluated_pseudo_pixels_negative_assumed": 1492,
+        "real_native_photo_track_Dice": "NOT_AVAILABLE",
+        "real_track_false_joins": "NOT_AVAILABLE",
+        "test_source_photo": "006_same_physical_run_as_train_005"
+      },
+      "train_patches": 36,
+      "heldout_patches": 12
+    },
+    "azunet": {
+      "best_epoch": 2,
+      "pseudo_holdout": {
+        "pseudo_label_proxy_BCE": 0.578351154923439,
+        "machine_positive_fraction_found": 0.864326375711575,
+        "machine_assumed_negative_fraction_misidentified": 0.22855227882037535,
+        "evaluated_pseudo_pixels_positive": 4216,
+        "evaluated_pseudo_pixels_negative_assumed": 1492,
+        "real_native_photo_track_Dice": "NOT_AVAILABLE",
+        "real_track_false_joins": "NOT_AVAILABLE",
+        "test_source_photo": "006_same_physical_run_as_train_005"
+      },
+      "train_patches": 36,
+      "heldout_patches": 12
+    }
+  },
+  "synthetic_overlays_heldout_test": {
+    "source": "H50Z_030_01_006 real pixels; model never trained on that photo",
+    "n_composites_per_seed": 48,
+    "seeds": [
+      20261029,
+      20261030
+    ],
+    "methods_and_scores": [
+      {
+        "seed": "20261029",
+        "method": "unet",
+        "auc": 0.699739585776993,
+        "ap": 0.7475577185828747,
+        "auc_ci95": [
+          0.654272089489618,
+          0.741994808180557
+        ]
+      },
+      {
+        "seed": "20261029",
+        "method": "azunet",
+        "auc": 0.6989068503115576,
+        "ap": 0.7808528254208111,
+        "auc_ci95": [
+          0.6229570919793983,
+          0.7744242514927284
+        ]
+      },
+      {
+        "seed": "20261029",
+        "method": "local_contrast",
+        "auc": 0.462377594325093,
+        "ap": 0.5838797399474207,
+        "auc_ci95": [
+          0.3875643124655882,
+          0.5500716675991009
+        ]
+      },
+      {
+        "seed": "20261029",
+        "method": "steerable_ridge",
+        "auc": 0.5793006276643965,
+        "ap": 0.6797222450383948,
+        "auc_ci95": [
+          0.5164515648240552,
+          0.6482151652330108
+        ]
+      },
+      {
+        "seed": "20261030",
+        "method": "unet",
+        "auc": 0.6070986512401337,
+        "ap": 0.6138656974618417,
+        "auc_ci95": [
+          0.5345817641972971,
+          0.6704806475908017
+        ]
+      },
+      {
+        "seed": "20261030",
+        "method": "azunet",
+        "auc": 0.580001096469735,
+        "ap": 0.5919228618222958,
+        "auc_ci95": [
+          0.5176963337735909,
+          0.6380943571764197
+        ]
+      },
+      {
+        "seed": "20261030",
+        "method": "local_contrast",
+        "auc": 0.4901610217872824,
+        "ap": 0.561138387653892,
+        "auc_ci95": [
+          0.3962216867860168,
+          0.5727924141583378
+        ]
+      },
+      {
+        "seed": "20261030",
+        "method": "steerable_ridge",
+        "auc": 0.583408052028612,
+        "ap": 0.6537085145755273,
+        "auc_ci95": [
+          0.5106719929923668,
+          0.6543504485522001
+        ]
+      }
+    ],
+    "is_real_native_track_recognition": false
+  },
+  "forbidden_physical_claims": [
+    "provisional 2D path is NOT particle identity",
+    "local-operator approval is NOT authenticated physicist certification",
+    "injected synthetic pixel AUROC NOT actual real film trace accuracy",
+    "no physical merges, no momentum/charge/mass, no 3D calibration"
+  ],
+  "physical_auto_links_accepted": 0,
+  "next_action": "Iteratively revise S31 local JSON using human review UI. Retrain pseudo-models with revised masks; keep separate unchanged photo-006 and independent-run tests."
+}

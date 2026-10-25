@@ -1,0 +1,27 @@
+name: S31 machine-first candidate and local correction integrity
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s31_*.py'
+      - 'scripts/research/bubble_chamber/s31_*.py'
+      - 'tests/test_s31_contracts.py'
+      - '.github/workflows/s31_machine_first_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  safe_machine_first_contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install contract prerequisites
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless pytest
+      - name: Validate 39 synthetic fixture source-lock, provisional masks and correction roundtrip
+        run: python -m pytest -q tests/test_s31_contracts.py tests/test_s30_trajectory_identity.py tests/test_s29_candidate_measurement.py
+      - name: Compile S31 code
+        run: python -m compileall -q bubble_chamber/s31_*.py scripts/research/bubble_chamber/s31_*.py
