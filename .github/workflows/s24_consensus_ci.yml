@@ -1,0 +1,28 @@
+name: Bubble S24 conservative graph risk and review contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s24_*.py'
+      - 'scripts/research/bubble_chamber/s24_*.py'
+      - 'tests/test_s24_*.py'
+      - '.github/workflows/s24_consensus_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  graph-consensus-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install small-model scientific dependencies
+        run: python -m pip install numpy scipy scikit-learn pytest
+      - name: S24 new contracts and source-sensitive regression tests
+        run: python -m pytest -q tests/test_s24_consensus_review.py tests/test_s21_selective_graph.py tests/test_s22_curriculum.py
+      - name: Compile reproducible runner
+        run: python -m py_compile scripts/research/bubble_chamber/s24_consensus_audit.py

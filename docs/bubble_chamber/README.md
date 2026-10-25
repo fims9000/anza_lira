@@ -139,3 +139,7 @@ See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay v
 ## S21–S23 few-expert-label Graph-LIRA and review queue
 
 [Source-locked mixed-gap curriculum and graph risk report](S21_S23_FEWSHOT_TOPOLOGY_RESEARCH_2026_10_25.md). On 3 new same-film frame partitions, mixed 1/3/5 missing-click training increased 640-review long-gap Graph-LIRA correct joins from 369 to 554 of 876, with 4 vs 3 false joins. Graph context did **not** consistently beat geometry-only HGB. These are real operator **coordinates** with artificially hidden points, NOT real-photo segmentation. Optional S23 H50Z review priority keeps all 37 line/23 pair decisions unknown; its embedded real-photo HTML and private classifier remain user-local, not committed to GitHub. Physics auto-merging is prohibited.
+
+## S24 — conservative graph consensus, independent audit, review recovery
+
+[S24 controlled report](S24_CONSENSUS_AND_AUDIT_2026_10_25.md) evaluates two geometry/graph HGB models and their agreement-only matcher on new frame splits from one expert-measured film 070 with simulated missing clicks. Graph-only: 900 correct / 9 wrong; geometry-only: 882 / 5; agreement: 834 / 2 on 993 possible correct continuations. A counterfactual 80 manual review questions per split adds 114 verified positive links across three splits but does NOT eliminate two false matches. The audit contains too few accepted joins for a real physical error guarantee; automatic release remains prohibited. No raw BMPs or manual photographic labels committed.

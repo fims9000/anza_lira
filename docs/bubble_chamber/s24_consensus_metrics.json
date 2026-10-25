@@ -1,0 +1,719 @@
+{
+  "schema": "S24_CONSENSUS_SELECTIVE_AUDIT_V1",
+  "registered_config": {
+    "calibration_reviews": 80,
+    "independent_audit_reviews": 80,
+    "training_reviews": 640,
+    "review_budgets": [
+      20,
+      40,
+      80
+    ],
+    "training_gaps": [
+      1,
+      3,
+      5
+    ],
+    "test_gap": 5,
+    "split_seeds": [
+      20261030,
+      20261031,
+      20261032
+    ],
+    "matching_margin": 0.05,
+    "support_quantile": 0.995
+  },
+  "source_sha256": "bd8e28247c5d178ae4f2f5a86215cbf5626f3ad86560928f4521093ce9188dea",
+  "source_film_ids": [
+    "070"
+  ],
+  "results": [
+    {
+      "split_seed": 20261030,
+      "original_frame_counts": {
+        "train": 94,
+        "val": 26,
+        "test": 25
+      },
+      "data_counts": {
+        "training_candidate_pool": 23099,
+        "validation_calibration_candidate_pool": 1957,
+        "validation_audit_candidate_pool": 2473,
+        "test_gap5_candidate_pool": 1772,
+        "test_possible_true_continuations": 334,
+        "test_positive_candidates": 333
+      },
+      "training_reviewed_pairs": 640,
+      "training_reviewed_positives": 99,
+      "additional_calibration_pairs": 80,
+      "additional_audit_pairs": 80,
+      "calibration_frames": [
+        "070_023",
+        "070_027",
+        "070_056",
+        "070_156",
+        "070_163",
+        "070_183",
+        "070_201",
+        "070_213",
+        "070_462",
+        "070_466",
+        "070_478",
+        "070_482",
+        "070_486"
+      ],
+      "audit_frames": [
+        "070_022",
+        "070_049",
+        "070_063",
+        "070_173",
+        "070_181",
+        "070_185",
+        "070_194",
+        "070_206",
+        "070_207",
+        "070_312",
+        "070_455",
+        "070_461",
+        "070_464"
+      ],
+      "model_calibration": {
+        "geometry_hgb": {
+          "threshold": 0.22834735077031126,
+          "val_reviewed_tp": 56,
+          "val_reviewed_fp": 0,
+          "validation_reviewed_pairs": 80,
+          "validation_reviewed_positive_pairs": 57,
+          "selected_unreviewed_val_candidates": 277,
+          "zero_observed_false_joins_on_reviewed_pairs": true,
+          "reviewed_only_calibration": true,
+          "physical_release_authorized": false
+        },
+        "graph_context_hgb": {
+          "threshold": 0.2256523422335081,
+          "val_reviewed_tp": 56,
+          "val_reviewed_fp": 0,
+          "validation_reviewed_pairs": 80,
+          "validation_reviewed_positive_pairs": 57,
+          "selected_unreviewed_val_candidates": 284,
+          "zero_observed_false_joins_on_reviewed_pairs": true,
+          "reviewed_only_calibration": true,
+          "physical_release_authorized": false
+        }
+      },
+      "independent_audit_pairs": {
+        "geometry_hgb": {
+          "reviews": 80,
+          "accepted_among_reviewed": 10,
+          "correct_accepted": 9,
+          "wrong_accepted": 1,
+          "descriptive_iid_95pct_upper_error_fraction_among_accepted": 0.39416330243650466,
+          "physical_certification_possible": false,
+          "sampling_note": "Hash-ranked candidate samples on validation frames of the same film; not i.i.d. photo-run observations"
+        },
+        "graph_context_hgb": {
+          "reviews": 80,
+          "accepted_among_reviewed": 10,
+          "correct_accepted": 9,
+          "wrong_accepted": 1,
+          "descriptive_iid_95pct_upper_error_fraction_among_accepted": 0.39416330243650466,
+          "physical_certification_possible": false,
+          "sampling_note": "Hash-ranked candidate samples on validation frames of the same film; not i.i.d. photo-run observations"
+        }
+      },
+      "geometry_hgb": {
+        "tp": 286,
+        "fp": 2,
+        "positive_candidates": 333,
+        "negative_candidates": 1439,
+        "recall_on_present_candidates": 0.858859,
+        "accepted_links": 288,
+        "rejected_or_uncertain_candidates": 1484,
+        "false_join_rate_per_accepted": 0.006944,
+        "false_joins_per_frame": 0.08,
+        "frames_with_any_false_join": 2,
+        "frames": 25,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.8562874251497006
+      },
+      "graph_context_hgb": {
+        "tp": 280,
+        "fp": 7,
+        "positive_candidates": 333,
+        "negative_candidates": 1439,
+        "recall_on_present_candidates": 0.840841,
+        "accepted_links": 287,
+        "rejected_or_uncertain_candidates": 1485,
+        "false_join_rate_per_accepted": 0.02439,
+        "false_joins_per_frame": 0.28,
+        "frames_with_any_false_join": 4,
+        "frames": 25,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.8383233532934131
+      },
+      "consensus": {
+        "tp": 258,
+        "fp": 1,
+        "positive_candidates": 333,
+        "negative_candidates": 1439,
+        "recall_on_present_candidates": 0.774775,
+        "accepted_links": 259,
+        "rejected_or_uncertain_candidates": 1513,
+        "false_join_rate_per_accepted": 0.003861,
+        "false_joins_per_frame": 0.04,
+        "frames_with_any_false_join": 1,
+        "frames": 25,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.7724550898203593
+      },
+      "paired_graph_minus_consensus": {
+        "delta_recall_b_minus_a": 0.06606606606606606,
+        "frame_bootstrap_ci95": [
+          0.03831465283960963,
+          0.09885719052385718
+        ],
+        "same_film_cluster_only": true
+      },
+      "paired_geometry_minus_consensus": {
+        "delta_recall_b_minus_a": 0.08408408408408409,
+        "frame_bootstrap_ci95": [
+          0.032564364802704235,
+          0.14884261226802661
+        ],
+        "same_film_cluster_only": true
+      },
+      "test_disagreement_candidates_rankable": 57,
+      "review_simulation": {
+        "uncertainty_diversity_queue": {
+          "20": {
+            "human_pairs_reviewed": 20,
+            "manually_verified_correct_joins_added": 19,
+            "reviewed_different_track_rejected": 1,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 278,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "40": {
+            "human_pairs_reviewed": 40,
+            "manually_verified_correct_joins_added": 38,
+            "reviewed_different_track_rejected": 2,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 297,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "80": {
+            "human_pairs_reviewed": 57,
+            "manually_verified_correct_joins_added": 50,
+            "reviewed_different_track_rejected": 7,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 309,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          }
+        },
+        "hash_control": {
+          "20": {
+            "human_pairs_reviewed": 20,
+            "manually_verified_correct_joins_added": 17,
+            "reviewed_different_track_rejected": 3,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 276,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "40": {
+            "human_pairs_reviewed": 40,
+            "manually_verified_correct_joins_added": 35,
+            "reviewed_different_track_rejected": 5,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 294,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "80": {
+            "human_pairs_reviewed": 57,
+            "manually_verified_correct_joins_added": 50,
+            "reviewed_different_track_rejected": 7,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 309,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          }
+        }
+      },
+      "all_predictions_are_offline": true,
+      "physical_release_authorized": false
+    },
+    {
+      "split_seed": 20261031,
+      "original_frame_counts": {
+        "train": 94,
+        "val": 26,
+        "test": 25
+      },
+      "data_counts": {
+        "training_candidate_pool": 24148,
+        "validation_calibration_candidate_pool": 973,
+        "validation_audit_candidate_pool": 2414,
+        "test_gap5_candidate_pool": 1780,
+        "test_possible_true_continuations": 341,
+        "test_positive_candidates": 341
+      },
+      "training_reviewed_pairs": 640,
+      "training_reviewed_positives": 132,
+      "additional_calibration_pairs": 80,
+      "additional_audit_pairs": 80,
+      "calibration_frames": [
+        "070_008",
+        "070_009",
+        "070_037",
+        "070_064",
+        "070_166",
+        "070_200",
+        "070_206",
+        "070_208",
+        "070_304",
+        "070_312",
+        "070_454",
+        "070_469",
+        "070_470"
+      ],
+      "audit_frames": [
+        "070_017",
+        "070_032",
+        "070_036",
+        "070_041",
+        "070_045",
+        "070_052",
+        "070_054",
+        "070_055",
+        "070_188",
+        "070_194",
+        "070_196",
+        "070_209",
+        "070_482"
+      ],
+      "model_calibration": {
+        "geometry_hgb": {
+          "threshold": 0.39363524213642515,
+          "val_reviewed_tp": 64,
+          "val_reviewed_fp": 0,
+          "validation_reviewed_pairs": 80,
+          "validation_reviewed_positive_pairs": 66,
+          "selected_unreviewed_val_candidates": 170,
+          "zero_observed_false_joins_on_reviewed_pairs": true,
+          "reviewed_only_calibration": true,
+          "physical_release_authorized": false
+        },
+        "graph_context_hgb": {
+          "threshold": 0.4356175460975317,
+          "val_reviewed_tp": 66,
+          "val_reviewed_fp": 0,
+          "validation_reviewed_pairs": 80,
+          "validation_reviewed_positive_pairs": 66,
+          "selected_unreviewed_val_candidates": 170,
+          "zero_observed_false_joins_on_reviewed_pairs": true,
+          "reviewed_only_calibration": true,
+          "physical_release_authorized": false
+        }
+      },
+      "independent_audit_pairs": {
+        "geometry_hgb": {
+          "reviews": 80,
+          "accepted_among_reviewed": 11,
+          "correct_accepted": 11,
+          "wrong_accepted": 0,
+          "descriptive_iid_95pct_upper_error_fraction_among_accepted": 0.2384041903808526,
+          "physical_certification_possible": false,
+          "sampling_note": "Hash-ranked candidate samples on validation frames of the same film; not i.i.d. photo-run observations"
+        },
+        "graph_context_hgb": {
+          "reviews": 80,
+          "accepted_among_reviewed": 10,
+          "correct_accepted": 10,
+          "wrong_accepted": 0,
+          "descriptive_iid_95pct_upper_error_fraction_among_accepted": 0.2588655508930522,
+          "physical_certification_possible": false,
+          "sampling_note": "Hash-ranked candidate samples on validation frames of the same film; not i.i.d. photo-run observations"
+        }
+      },
+      "geometry_hgb": {
+        "tp": 307,
+        "fp": 1,
+        "positive_candidates": 341,
+        "negative_candidates": 1439,
+        "recall_on_present_candidates": 0.900293,
+        "accepted_links": 308,
+        "rejected_or_uncertain_candidates": 1472,
+        "false_join_rate_per_accepted": 0.003247,
+        "false_joins_per_frame": 0.04,
+        "frames_with_any_false_join": 1,
+        "frames": 25,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.9002932551319648
+      },
+      "graph_context_hgb": {
+        "tp": 316,
+        "fp": 0,
+        "positive_candidates": 341,
+        "negative_candidates": 1439,
+        "recall_on_present_candidates": 0.926686,
+        "accepted_links": 316,
+        "rejected_or_uncertain_candidates": 1464,
+        "false_join_rate_per_accepted": 0.0,
+        "false_joins_per_frame": 0.0,
+        "frames_with_any_false_join": 0,
+        "frames": 25,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.9266862170087976
+      },
+      "consensus": {
+        "tp": 289,
+        "fp": 0,
+        "positive_candidates": 341,
+        "negative_candidates": 1439,
+        "recall_on_present_candidates": 0.847507,
+        "accepted_links": 289,
+        "rejected_or_uncertain_candidates": 1491,
+        "false_join_rate_per_accepted": 0.0,
+        "false_joins_per_frame": 0.0,
+        "frames_with_any_false_join": 0,
+        "frames": 25,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.8475073313782991
+      },
+      "paired_graph_minus_consensus": {
+        "delta_recall_b_minus_a": 0.07917888563049853,
+        "frame_bootstrap_ci95": [
+          0.05208270475041067,
+          0.1144981809842491
+        ],
+        "same_film_cluster_only": true
+      },
+      "paired_geometry_minus_consensus": {
+        "delta_recall_b_minus_a": 0.05278592375366569,
+        "frame_bootstrap_ci95": [
+          0.022254192534064337,
+          0.0941074361654472
+        ],
+        "same_film_cluster_only": true
+      },
+      "test_disagreement_candidates_rankable": 46,
+      "review_simulation": {
+        "uncertainty_diversity_queue": {
+          "20": {
+            "human_pairs_reviewed": 20,
+            "manually_verified_correct_joins_added": 19,
+            "reviewed_different_track_rejected": 1,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 308,
+            "provisional_false_joins": 0,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "40": {
+            "human_pairs_reviewed": 40,
+            "manually_verified_correct_joins_added": 39,
+            "reviewed_different_track_rejected": 1,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 328,
+            "provisional_false_joins": 0,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "80": {
+            "human_pairs_reviewed": 46,
+            "manually_verified_correct_joins_added": 45,
+            "reviewed_different_track_rejected": 1,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 334,
+            "provisional_false_joins": 0,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          }
+        },
+        "hash_control": {
+          "20": {
+            "human_pairs_reviewed": 20,
+            "manually_verified_correct_joins_added": 20,
+            "reviewed_different_track_rejected": 0,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 309,
+            "provisional_false_joins": 0,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "40": {
+            "human_pairs_reviewed": 40,
+            "manually_verified_correct_joins_added": 40,
+            "reviewed_different_track_rejected": 0,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 329,
+            "provisional_false_joins": 0,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "80": {
+            "human_pairs_reviewed": 46,
+            "manually_verified_correct_joins_added": 45,
+            "reviewed_different_track_rejected": 1,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 334,
+            "provisional_false_joins": 0,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          }
+        }
+      },
+      "all_predictions_are_offline": true,
+      "physical_release_authorized": false
+    },
+    {
+      "split_seed": 20261032,
+      "original_frame_counts": {
+        "train": 94,
+        "val": 26,
+        "test": 25
+      },
+      "data_counts": {
+        "training_candidate_pool": 25116,
+        "validation_calibration_candidate_pool": 1386,
+        "validation_audit_candidate_pool": 1985,
+        "test_gap5_candidate_pool": 1597,
+        "test_possible_true_continuations": 318,
+        "test_positive_candidates": 318
+      },
+      "training_reviewed_pairs": 640,
+      "training_reviewed_positives": 105,
+      "additional_calibration_pairs": 80,
+      "additional_audit_pairs": 80,
+      "calibration_frames": [
+        "070_012",
+        "070_046",
+        "070_052",
+        "070_054",
+        "070_056",
+        "070_058",
+        "070_202",
+        "070_209",
+        "070_455",
+        "070_464",
+        "070_471",
+        "070_479",
+        "070_483"
+      ],
+      "audit_frames": [
+        "070_019",
+        "070_030",
+        "070_051",
+        "070_065",
+        "070_163",
+        "070_165",
+        "070_176",
+        "070_179",
+        "070_184",
+        "070_187",
+        "070_193",
+        "070_208",
+        "070_309"
+      ],
+      "model_calibration": {
+        "geometry_hgb": {
+          "threshold": 0.20719666063601583,
+          "val_reviewed_tp": 38,
+          "val_reviewed_fp": 0,
+          "validation_reviewed_pairs": 80,
+          "validation_reviewed_positive_pairs": 38,
+          "selected_unreviewed_val_candidates": 244,
+          "zero_observed_false_joins_on_reviewed_pairs": true,
+          "reviewed_only_calibration": true,
+          "physical_release_authorized": false
+        },
+        "graph_context_hgb": {
+          "threshold": 0.18287257848553606,
+          "val_reviewed_tp": 38,
+          "val_reviewed_fp": 0,
+          "validation_reviewed_pairs": 80,
+          "validation_reviewed_positive_pairs": 38,
+          "selected_unreviewed_val_candidates": 234,
+          "zero_observed_false_joins_on_reviewed_pairs": true,
+          "reviewed_only_calibration": true,
+          "physical_release_authorized": false
+        }
+      },
+      "independent_audit_pairs": {
+        "geometry_hgb": {
+          "reviews": 80,
+          "accepted_among_reviewed": 12,
+          "correct_accepted": 12,
+          "wrong_accepted": 0,
+          "descriptive_iid_95pct_upper_error_fraction_among_accepted": 0.22092219194555585,
+          "physical_certification_possible": false,
+          "sampling_note": "Hash-ranked candidate samples on validation frames of the same film; not i.i.d. photo-run observations"
+        },
+        "graph_context_hgb": {
+          "reviews": 80,
+          "accepted_among_reviewed": 12,
+          "correct_accepted": 12,
+          "wrong_accepted": 0,
+          "descriptive_iid_95pct_upper_error_fraction_among_accepted": 0.22092219194555585,
+          "physical_certification_possible": false,
+          "sampling_note": "Hash-ranked candidate samples on validation frames of the same film; not i.i.d. photo-run observations"
+        }
+      },
+      "geometry_hgb": {
+        "tp": 289,
+        "fp": 2,
+        "positive_candidates": 318,
+        "negative_candidates": 1279,
+        "recall_on_present_candidates": 0.908805,
+        "accepted_links": 291,
+        "rejected_or_uncertain_candidates": 1306,
+        "false_join_rate_per_accepted": 0.006873,
+        "false_joins_per_frame": 0.083333,
+        "frames_with_any_false_join": 1,
+        "frames": 24,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.9088050314465409
+      },
+      "graph_context_hgb": {
+        "tp": 304,
+        "fp": 2,
+        "positive_candidates": 318,
+        "negative_candidates": 1279,
+        "recall_on_present_candidates": 0.955975,
+        "accepted_links": 306,
+        "rejected_or_uncertain_candidates": 1291,
+        "false_join_rate_per_accepted": 0.006536,
+        "false_joins_per_frame": 0.083333,
+        "frames_with_any_false_join": 2,
+        "frames": 24,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.9559748427672956
+      },
+      "consensus": {
+        "tp": 287,
+        "fp": 1,
+        "positive_candidates": 318,
+        "negative_candidates": 1279,
+        "recall_on_present_candidates": 0.902516,
+        "accepted_links": 288,
+        "rejected_or_uncertain_candidates": 1309,
+        "false_join_rate_per_accepted": 0.003472,
+        "false_joins_per_frame": 0.041667,
+        "frames_with_any_false_join": 1,
+        "frames": 24,
+        "release_to_physics": false,
+        "end_to_end_recall": 0.9025157232704403
+      },
+      "paired_graph_minus_consensus": {
+        "delta_recall_b_minus_a": 0.05345911949685535,
+        "frame_bootstrap_ci95": [
+          0.026182862679955704,
+          0.09245125908059837
+        ],
+        "same_film_cluster_only": true
+      },
+      "paired_geometry_minus_consensus": {
+        "delta_recall_b_minus_a": 0.006289308176100629,
+        "frame_bootstrap_ci95": [
+          0.0,
+          0.015110747869526884
+        ],
+        "same_film_cluster_only": true
+      },
+      "test_disagreement_candidates_rankable": 21,
+      "review_simulation": {
+        "uncertainty_diversity_queue": {
+          "20": {
+            "human_pairs_reviewed": 20,
+            "manually_verified_correct_joins_added": 18,
+            "reviewed_different_track_rejected": 2,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 306,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "40": {
+            "human_pairs_reviewed": 21,
+            "manually_verified_correct_joins_added": 19,
+            "reviewed_different_track_rejected": 2,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 307,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "80": {
+            "human_pairs_reviewed": 21,
+            "manually_verified_correct_joins_added": 19,
+            "reviewed_different_track_rejected": 2,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 307,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          }
+        },
+        "hash_control": {
+          "20": {
+            "human_pairs_reviewed": 20,
+            "manually_verified_correct_joins_added": 18,
+            "reviewed_different_track_rejected": 2,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 306,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "40": {
+            "human_pairs_reviewed": 21,
+            "manually_verified_correct_joins_added": 19,
+            "reviewed_different_track_rejected": 2,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 307,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          },
+          "80": {
+            "human_pairs_reviewed": 21,
+            "manually_verified_correct_joins_added": 19,
+            "reviewed_different_track_rejected": 2,
+            "reviewed_correct_but_conflicting": 0,
+            "provisional_total_accepted": 307,
+            "provisional_false_joins": 1,
+            "offline_oracle_only": true,
+            "automated_physical_merge_authorized": false
+          }
+        }
+      },
+      "all_predictions_are_offline": true,
+      "physical_release_authorized": false
+    }
+  ],
+  "timing_seconds": 39.63,
+  "real_pixel_level_ground_truth": false,
+  "true_independent_run_test": false,
+  "test_labels_used_for_fit_or_calibration": false,
+  "test_labels_used_for_offline_review_simulation": true,
+  "physical_auto_merge_allowed": false,
+  "limitations": [
+    "Original geometry is manually measured; missing clicks and review responses are synthetic simulation, not labels on real H50Z photographs",
+    "Three new frame-disjoint partitions of the SAME film 070, not independent chamber runs or liquid fillings",
+    "Calibration (80) and audit (80) are extra reviewed pairs beyond 640 training decisions per split",
+    "Audit reviews are a hash-ranked candidate sample on same-film frames; exact binomial iid bound does NOT certify real-world false-join risk",
+    "Consensus may sacrifice a large number of correct joins, and any positive auto join must remain provisional",
+    "Only expert-confirmed real BMP instance pairs and separate physical-run tests can permit safety/accuracy claims",
+    "Review simulation uses held-out truth only AFTER selecting candidate review order and only for test reporting"
+  ]
+}
