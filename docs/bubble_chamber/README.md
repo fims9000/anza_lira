@@ -131,3 +131,7 @@ See `docs/bubble_chamber/S9_ORIGINAL_MEASURED_GEOMETRY_REPORT.md`. This replay v
 ## S19 real H50Z low-label expert review (human annotations required)
 
 [Offline expert workbench and safe fine-tuning](S19_REAL_H50Z_EXPERT_ANNOTATION_2026_10_25.md): 7 real grayscale crops from 2 H50Z BMPs, 37 Frangi suggestions **not** ground truth, browser brush to add omitted lines/artifacts, same/different expert link review, source-locked 0/1/255 masks, review-centered patches, original AZUNet vs U-Net sparse training, provisional Graph-LIRA. No actual expert marks have been provided; automatic real-photo accuracy and physical link release are **not** established. Source crops and review answers remain outside Git.
+
+## S20 real unlabeled H50Z pretext and prioritized low-budget expert review
+
+[Source-locked S20 findings](S20_UNLABELED_AND_REVIEW_2026_10_25.md): original AZUNet and ordinary U-Net were trained on artificial missing blocks of **real unlabelled H50Z pixels**, splitting by original source photos. Both reconstruction models lost to classical Telea; **no track segmentation accuracy claim**. Optional encoder-only checkpoint transfer into S19 requires the same source hashes and still refuses to train without true 0/1 expert scribbles. 37 source-hashed Frangi candidate lines and 23 possible pairs are ranked to minimize review effort; scores are uncalibrated and no human decisions are invented. User-owned real images, private checkpoints and reviewer answers are not published in Git.

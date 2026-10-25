@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S19_REAL_H50Z_EXPERT_ANNOTATION_READY_NO_HUMAN_LABELS_NO_REAL_ACCURACY",
+  "status": "S20_UNLABELED_H50Z_PROXY_NEGATIVE_LOW_LABEL_REVIEW_QUEUE_COMPLETE_REAL_TRACK_LABELS_ABSENT",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Process the ACTUAL expert JSON from S19_review_workbench.html with s19_run_small_label_pipeline.py; train original AZUNet and BaselineUNet on photo-disjoint confirmed sparse masks; fit provisional Graph-LIRA only with ≥10 positive/negative human pair labels; obtain another physical run for independent real pixel/instance validation, then calibrate false joins. Do not invent masks or auto merge on current same-run H50Z.",
+  "next_executable_action": "Obtain a SMALL authentic S19_H50Z_expert_reviews.json from original offline workbench (some TRACK and ARTIFACT pixels on each source photo plus same/different candidate pairs). Run S19 baseline scratch and optional S20 pretrained-encoder variants at identical budgets, compare only manually CERTIFIED pixels and zero unsafe joins; acquire independent physical run for real generalization test. Do not use inpainting MAE as segmentation accuracy or auto-label unreviewed photos.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -540,5 +540,64 @@
     "independent_real_run_validated": false,
     "physical_auto_join_allowed": false,
     "next_human_dependency": "Expert needs to return S19_H50Z_expert_reviews.json with confirmed line/artifact scribbles from both photos; 10+ same/different pair reviews needed to train graph classifier."
+  },
+  "S20": {
+    "date": "2026-10-25",
+    "source": "7 real cropped H50Z grayscale images from 2 parent BMPs (single physical run)",
+    "true_human_track_labels": 0,
+    "true_human_artifact_labels": 0,
+    "true_human_pair_labels": 0,
+    "photo_disjoint_pretext": {
+      "train_photo": "H50Z_030_01_005",
+      "validation_photo": "H50Z_030_01_006",
+      "independent_physical_run_test": false
+    },
+    "methods": [
+      "Original AZUNet masked reconstruction",
+      "Original U-Net masked reconstruction",
+      "Classical Telea"
+    ],
+    "reconstruction_proxy": "Only 22% artificially hidden pixels, not physical track segmentation",
+    "matched_training_seeds": [
+      20261025,
+      20261026
+    ],
+    "matched_training_epochs": 6,
+    "matched_train_patches_per_tile": 16,
+    "matched_val_patches_per_tile": 8,
+    "val_masked_mae_by_seed": {
+      "20261025": {
+        "unet": 0.355687,
+        "unet_aug": 0.357892,
+        "azunet": 0.44846,
+        "azunet_aug": 0.392058,
+        "telea": 0.023598
+      },
+      "20261026": {
+        "unet": 0.13827,
+        "unet_aug": 0.13813,
+        "azunet": 0.461811,
+        "azunet_aug": 0.462106,
+        "telea": 0.024211
+      }
+    },
+    "conclusion": "Neural reconstruction worse than classical inpainting; NO evidence yet that S20 encoder pretraining helps REAL track segmentation. Encoder-only optional transfer with separate verified expert training required.",
+    "photo_mask_transfer": "Source-blob-locked; encoder and bottleneck only; segmentation head fresh; supervised training still blocked at zero positive/negative certified labels",
+    "active_review": {
+      "candidate_questions": 37,
+      "heuristic_pair_questions": 23,
+      "automatic_confirmed_tracks": 0,
+      "automatic_confirmed_links": 0,
+      "provenance_locked": true
+    },
+    "local_focused_tests": 22,
+    "browser_check": "Seven actual PNG crops rendered, next question, temporary fictional test decision export/reimport passed; test JSON deleted",
+    "exact_original_azconv_blob": "f4217ada00024927506fa8ebe520aa1f68ae5854",
+    "exact_original_segmentation_blob": "0b971c117f3d56cc588ebade6991c65faceb8a2a",
+    "experiment_source_private": true,
+    "checkpoints_in_git": false,
+    "photo_accuracy": "NOT_MEASURED",
+    "particle_id_accuracy": "NOT_MEASURED",
+    "report": "docs/bubble_chamber/S20_UNLABELED_AND_REVIEW_2026_10_25.md"
   }
 }

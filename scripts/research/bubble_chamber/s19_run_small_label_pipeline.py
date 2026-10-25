@@ -26,7 +26,7 @@ from bubble_chamber.s19_sparse_patches import make_sparse_patches
 
 def run_pipeline(*,proposals:Path, images:Path, reviews:Path, out_dir:Path, epochs:int=4,
                  seed:int=20261025,widths:tuple[int,int,int,int]=(4,6,8,12),rules:int=2,
-                 patch_size:int=128):
+                 patch_size:int=128, init_azunet:Path|None=None, init_unet:Path|None=None):
     if epochs<1 or any(w<2 for w in widths) or rules<1 or (patch_size and (patch_size<32 or patch_size%16)):
         raise ValueError('invalid training budget')
     package=load_package(proposals,images)
@@ -59,11 +59,13 @@ def run_pipeline(*,proposals:Path, images:Path, reviews:Path, out_dir:Path, epoc
         for architecture in ('azunet','unet'):
             train=fit_sparse_reviews(groups,summary,out_dir=out/architecture,
                                      architecture=architecture,epochs=epochs,seed=seed,
-                                     teacher_cfg=disabled_teacher,widths=widths,rules=rules)
+                                     teacher_cfg=disabled_teacher,widths=widths,rules=rules,
+                                     init_unlabeled_encoder=init_azunet if architecture=='azunet' else init_unet)
             receipt['trained_models'][architecture]={
                 'best_val_known_pixel_bce':min(float(x['known_validation_bce']) for x in train['history']),
                 'epochs':len(train['history']), 'checkpoint':'best.pt',
                 'source':'original source-locked architecture',
+                'unlabeled_pretraining':train['unlabeled_encoder_pretraining'],
                 'real_full_image_pixel_dice':'NOT_MEASURED',
             }
     (out/'s19_pipeline_receipt.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
@@ -81,10 +83,12 @@ def main():
     p.add_argument('--widths',type=int,nargs=4,default=[4,6,8,12])
     p.add_argument('--rules',type=int,default=2)
     p.add_argument('--patch-size',type=int,default=128,help='Review-centered patches; 0 uses full photo tiles')
+    p.add_argument('--init-azunet',type=Path,help='Optional S20 checkpoint for original AZUNet encoder only')
+    p.add_argument('--init-unet',type=Path,help='Optional S20 checkpoint for ordinary U-Net encoder only')
     a=p.parse_args()
     r=run_pipeline(proposals=a.proposals,images=a.images,reviews=a.expert_review_json,
                    out_dir=a.out_dir,epochs=a.epochs,seed=a.seed,widths=tuple(a.widths),rules=a.rules,
-                   patch_size=a.patch_size)
+                   patch_size=a.patch_size,init_azunet=a.init_azunet,init_unet=a.init_unet)
     print(json.dumps({'status':r['status'],'trained_models':r['trained_models'],
                       'graph_status':r['graph']['status'],'physical_track_merges':0},ensure_ascii=False,indent=2))
 

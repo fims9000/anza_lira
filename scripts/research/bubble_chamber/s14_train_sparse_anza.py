@@ -131,10 +131,16 @@ def _known_bce(model,examples):
 
 def fit_sparse_reviews(groups:dict,manifest_summary:dict,*,out_dir:Path,architecture='azunet',
                       epochs:int=2,seed:int=20261024,teacher_cfg:SparseTeacherProtocol=SparseTeacherProtocol(),
-                      widths=(4,6,8,12),rules=2,learning_rate=3e-4):
+                      widths=(4,6,8,12),rules=2,learning_rate=3e-4,
+                      init_unlabeled_encoder:Path|None=None):
     if epochs<1 or learning_rate<=0:raise ValueError('epochs/rate invalid')
     torch.manual_seed(seed);torch.set_num_threads(min(4,torch.get_num_threads()))
     model=build_model(architecture,widths,rules)
+    encoder_transfer=None
+    if init_unlabeled_encoder is not None:
+        from bubble_chamber.s20_transfer import transfer_unlabeled_encoder
+        encoder_transfer=transfer_unlabeled_encoder(model,init_unlabeled_encoder,
+            architecture=architecture,widths=tuple(widths),rules=rules)
     teacher=copy.deepcopy(model)
     for p in teacher.parameters():p.requires_grad_(False)
     optimizer=torch.optim.AdamW(model.parameters(),lr=learning_rate)
@@ -196,13 +202,15 @@ def fit_sparse_reviews(groups:dict,manifest_summary:dict,*,out_dir:Path,architec
               'teacher_weights':teacher.state_dict(),'optimizer':optimizer.state_dict(),
               'history':history,'source_git_blobs':MODEL_SOURCE_BLOBS,
               'dataset_fingerprint':manifest_summary['source_manifest_sha256'],
-              'architecture_widths':tuple(widths),'rules':rules,'source_data_private':True}
+              'architecture_widths':tuple(widths),'rules':rules,'source_data_private':True,
+              'unlabeled_encoder_pretraining':encoder_transfer}
         torch.save(snap,out_dir/'last.pt')
         if validation_loss<best:
             best=validation_loss;torch.save(snap,out_dir/'best.pt')
     report={'schema':'s14_sparse_original_anza_training_v1','architecture':architecture,
             'source_models_unchanged':True,'data':manifest_summary,
             'train_episodes':epochs,'history':history,
+            'unlabeled_encoder_pretraining':encoder_transfer,
             'validation_metric':'BCE on CERTIFIED pixels only, NOT full-image Dice',
             'real_unattended_accuracy_established':False,
             'limitations':['No real physical track-instance labels used for graph joining in this step',
@@ -221,10 +229,12 @@ def main():
     p.add_argument('--epochs',type=int,default=2)
     p.add_argument('--widths',type=int,nargs=4,default=[4,6,8,12])
     p.add_argument('--rules',type=int,default=2)
+    p.add_argument('--init-unlabeled-encoder',type=Path,help='Optional trusted S20 unlabeled photo encoder; expert 0/1/255 labels still mandatory')
     args=p.parse_args()
     groups,summary=read_reviewed_manifest(args.manifest,image_root=args.image_root)
     result=fit_sparse_reviews(groups,summary,out_dir=args.out_dir,architecture=args.model,
-                              epochs=args.epochs,widths=args.widths,rules=args.rules)
+                              epochs=args.epochs,widths=args.widths,rules=args.rules,
+                              init_unlabeled_encoder=args.init_unlabeled_encoder)
     print(json.dumps({'architecture':result['architecture'], 'data':result['data'],
                       'training':result['history'],'unattended_validated':False},indent=2,ensure_ascii=False))
 if __name__=='__main__':main()
