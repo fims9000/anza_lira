@@ -1,0 +1,36 @@
+{
+  "schema": "s30_deterministic_fork_contract_only",
+  "source": "constructed mathematical centerlines, NOT native H50Z photo labels",
+  "physics_validation": false,
+  "real_photo_false_link_rate": "NOT_MEASURED",
+  "cases": [
+    {
+      "case": "duplicated_same_path",
+      "status": "SINGLE_PROVISIONAL_REVIEW",
+      "physical_joins_accepted": 0,
+      "unique_hypotheses": 1,
+      "input_candidates": 2
+    },
+    {
+      "case": "ambiguous_fork",
+      "status": "AMBIGUOUS_REVIEW",
+      "physical_joins_accepted": 0,
+      "unique_hypotheses": 2,
+      "input_candidates": 2
+    },
+    {
+      "case": "low_signal",
+      "status": "LOW_EVIDENCE_REVIEW",
+      "physical_joins_accepted": 0,
+      "unique_hypotheses": 1,
+      "input_candidates": 1
+    },
+    {
+      "case": "single_hypothesis",
+      "status": "SINGLE_PROVISIONAL_REVIEW",
+      "physical_joins_accepted": 0,
+      "unique_hypotheses": 1,
+      "input_candidates": 1
+    }
+  ]
+}
