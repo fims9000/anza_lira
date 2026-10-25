@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S32_MACHINE_REVIEW_AND_CONFIDENCE_AWARE_TRAINING_PROVISIONAL; PHYSICS_GT_NOT_AVAILABLE",
+  "status": "S34_IMAGE_DOMAIN_ROBUSTNESS_AND_ALIGNED_AXIS_ABLATION_COMPLETE; REAL_PHYSICS_TRACK_VALIDATION_MISSING",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Continue local S32 annotation review: produce and save nonempty S31_machine_labels_local_corrections.json via private S32 reviewer; regenerate 0/1/255 machine masks using S31 source locked build_weak_masks --corrections, compare AZUNet vs U-Net plus S31 historical on same external injections, and only start provisional Graph-LIRA pair model when enough explicitly corrected local same/different pairs exist; require physicist/independent film to claim physical validity.",
+  "next_executable_action": "Collect manually corrected S33/S32 machine-first JSON and separate physicist-certified real 2D track pixels, artifacts and same/different links; perform real photo/run-disjoint evaluation incl. different fill media/field. Keep quantile AZUNet and local U-Net baselines and do not auto-merge physical tracks until independently validated.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -979,5 +979,99 @@
     "browser_checked": "Chromium: review next risky line, local provisional accept, next pair, unsure, export/reimport corrections. Fictional test corrections destroyed.",
     "focused_regression_tests_passed": 15,
     "source_report": "docs/bubble_chamber/S32_MACHINE_FIRST_CONFIDENCE_2026_10_25.md"
+  },
+  "S33": {
+    "date": "2026-10-25",
+    "status": "PHOTO-NORMALIZED MACHINE-PSEUDOLABEL RESEARCH, NOT REAL PHYSICAL SEGMENTATION",
+    "photos": [
+      "H50Z_030_01_005",
+      "H50Z_030_01_006"
+    ],
+    "same_physical_run": true,
+    "original_model_sources_unchanged": true,
+    "source_photo_mean_gray": {
+      "photo_005": 182.6,
+      "photo_006": 215.6
+    },
+    "training_source_weak_masks": "S31 0/1/255 MACHINE ONLY",
+    "train_positive_source_crops": {
+      "photo_005": 9,
+      "photo_006": 4
+    },
+    "train_seeds": [
+      20261025,
+      20261026
+    ],
+    "model_architectures": [
+      "original AZUNet",
+      "BaselineUNet"
+    ],
+    "widths": [
+      4,
+      6,
+      8,
+      12
+    ],
+    "AZConv_fuzzy_rules": 2,
+    "preprocessing": [
+      "raw",
+      "quantile normalization",
+      "local contrast",
+      "raw photometric augmentation"
+    ],
+    "source_fit_free_normalization": true,
+    "fixed_epochs": 2,
+    "heldout_test_photos_disjoint": true,
+    "test_artificial_injections_per_direction": 192,
+    "forward_005_to_006_mean_AUROC": {
+      "azunet_raw": 0.6143,
+      "azunet_quantile": 0.6535,
+      "azunet_local": 0.6464,
+      "unet_raw": 0.5829,
+      "unet_local": 0.6503
+    },
+    "reverse_006_to_005_mean_AUROC": {
+      "azunet_raw": 0.5302,
+      "azunet_quantile": 0.6164,
+      "azunet_local": 0.5348,
+      "unet_raw": 0.5304,
+      "unet_local": 0.6375
+    },
+    "gains_are_tested_on": "artificially overlaid measured-shape lines versus synthetic scratches, real pixels as background",
+    "real_H50Z_native_track_GT": 0,
+    "independent_physical_run_validation": false,
+    "fuzzy_gate_photo_JSD_reduced_by_normalization": true,
+    "source_locked_azunet_evidence_for_original_S31_drafts": 133,
+    "unverified_photo_crops": 39,
+    "reviewer_browser": "Chromium: machine score appears; next risky draft; provisional acceptance; JSON export and reimport; no JS errors",
+    "private_data_archive": "/ANZA-LIRA Bubble Chamber - private archive/2026-10-25 S33/private_research/",
+    "reports": "docs/bubble_chamber/S33_S34_PHOTOMETRIC_AND_AXIAL_RESEARCH_2026_10_25.md",
+    "code": "bubble_chamber/s33_photometric_domain.py",
+    "physics_auto_join_authorized": false,
+    "planned_default": "quantile AZUNet experimental input; local normalized U-Net required control, not a physics deploy default"
+  },
+  "S34": {
+    "date": "2026-10-25",
+    "status": "AXIAL GEOMETRY REGULARIZATION ABLATION NEGATIVE/INCONCLUSIVE",
+    "original_geometry_source_unchanged": true,
+    "axis_loss_weight": 0.03,
+    "soft_skeleton_iterations": 5,
+    "verified_azconv_geometry_gradient": true,
+    "reserved_injection_seeds": [
+      20261033,
+      20261034,
+      20261035,
+      20261036
+    ],
+    "axis_delta_AUROC_per_seed": [
+      -0.0058,
+      0.0233,
+      -0.0082,
+      0.0152
+    ],
+    "wins": 2,
+    "tests": 4,
+    "conclusion": "Not reliably better. Do not enable axis loss by default on unverified pseudo-lines.",
+    "physics_auto_join_authorized": false
   }
 }

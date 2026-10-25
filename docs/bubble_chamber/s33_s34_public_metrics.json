@@ -1,0 +1,363 @@
+{
+  "schema": "s33_s34_photometric_and_axial_research_2026_10_25_v1",
+  "original_AZConv_source_changed": false,
+  "native_H50Z_physical_track_truth": false,
+  "source_original_photo_count": 2,
+  "source_physical_runs": 1,
+  "source_H50Z_512px_crops": 39,
+  "machine_positive_crops": {
+    "005": 9,
+    "006": 4
+  },
+  "real_expert_confirmed_track_masks": 0,
+  "real_expert_confirmed_relation_pairs": 0,
+  "training_machine_marks_only": true,
+  "train_photo_test_photo_disjoint": true,
+  "injection_seeds_not_independent_physical_runs": true,
+  "photometric_preprocessing_fit_free_per_patch": true,
+  "photo_006_never_used_for_forward_checkpoint_selection": true,
+  "photo_005_never_used_for_reverse_checkpoint_selection": true,
+  "model_widths": [
+    4,
+    6,
+    8,
+    12
+  ],
+  "fuzzy_rules": 2,
+  "epochs_fixed": 2,
+  "train_seed_count": 2,
+  "directions": {
+    "005_train_006_test": {
+      "seeds": [
+        20261029,
+        20261030,
+        20261031,
+        20261032
+      ],
+      "per_seed_synthetic_injections": 48,
+      "target_from_artificial_track_vs_scratch_only": true,
+      "methods": {
+        "azunet_raw": {
+          "mean_AUROC": 0.614273,
+          "AUROC_per_injection_seed": [
+            0.643561,
+            0.595303,
+            0.599146,
+            0.61908
+          ],
+          "mean_delta_vs_raw": 0.0,
+          "positive_delta_seed_count": 0,
+          "mean_abs_brightness_shift_AUROC": 0.008079,
+          "not_native_real_photo_accuracies": true
+        },
+        "azunet_quantile": {
+          "mean_AUROC": 0.653498,
+          "AUROC_per_injection_seed": [
+            0.674552,
+            0.634299,
+            0.687199,
+            0.617941
+          ],
+          "mean_delta_vs_raw": 0.039225,
+          "positive_delta_seed_count": 3,
+          "mean_abs_brightness_shift_AUROC": 0.00248,
+          "not_native_real_photo_accuracies": true
+        },
+        "azunet_local": {
+          "mean_AUROC": 0.646407,
+          "AUROC_per_injection_seed": [
+            0.668803,
+            0.653538,
+            0.653005,
+            0.610282
+          ],
+          "mean_delta_vs_raw": 0.032134,
+          "positive_delta_seed_count": 3,
+          "mean_abs_brightness_shift_AUROC": 0.003426,
+          "not_native_real_photo_accuracies": true
+        },
+        "unet_raw": {
+          "mean_AUROC": 0.582901,
+          "AUROC_per_injection_seed": [
+            0.587087,
+            0.579327,
+            0.553256,
+            0.611933
+          ],
+          "mean_delta_vs_raw": 0.0,
+          "positive_delta_seed_count": 0,
+          "mean_abs_brightness_shift_AUROC": 0.005347,
+          "not_native_real_photo_accuracies": true
+        },
+        "unet_quantile": {
+          "mean_AUROC": 0.630992,
+          "AUROC_per_injection_seed": [
+            0.686815,
+            0.615249,
+            0.644027,
+            0.577877
+          ],
+          "mean_delta_vs_raw": 0.048091,
+          "positive_delta_seed_count": 3,
+          "mean_abs_brightness_shift_AUROC": 0.002038,
+          "not_native_real_photo_accuracies": true
+        },
+        "unet_local": {
+          "mean_AUROC": 0.650324,
+          "AUROC_per_injection_seed": [
+            0.634766,
+            0.696991,
+            0.59802,
+            0.671521
+          ],
+          "mean_delta_vs_raw": 0.067423,
+          "positive_delta_seed_count": 4,
+          "mean_abs_brightness_shift_AUROC": 0.002728,
+          "not_native_real_photo_accuracies": true
+        }
+      }
+    },
+    "006_train_005_test": {
+      "seeds": [
+        20261037,
+        20261038,
+        20261039,
+        20261040
+      ],
+      "per_seed_synthetic_injections": 48,
+      "target_from_artificial_track_vs_scratch_only": true,
+      "methods": {
+        "azunet_raw": {
+          "mean_AUROC": 0.530245,
+          "AUROC_per_injection_seed": [
+            0.595655,
+            0.49466,
+            0.590259,
+            0.440405
+          ],
+          "mean_delta_vs_raw": 0.0,
+          "positive_delta_seed_count": 0,
+          "mean_abs_brightness_shift_AUROC": 0.010141,
+          "not_native_real_photo_accuracies": true
+        },
+        "azunet_quantile": {
+          "mean_AUROC": 0.616402,
+          "AUROC_per_injection_seed": [
+            0.572829,
+            0.664664,
+            0.598978,
+            0.629136
+          ],
+          "mean_delta_vs_raw": 0.086157,
+          "positive_delta_seed_count": 3,
+          "mean_abs_brightness_shift_AUROC": 0.002173,
+          "not_native_real_photo_accuracies": true
+        },
+        "azunet_local": {
+          "mean_AUROC": 0.534826,
+          "AUROC_per_injection_seed": [
+            0.527543,
+            0.544162,
+            0.548925,
+            0.518674
+          ],
+          "mean_delta_vs_raw": 0.004581,
+          "positive_delta_seed_count": 2,
+          "mean_abs_brightness_shift_AUROC": 0.002365,
+          "not_native_real_photo_accuracies": true
+        },
+        "unet_raw": {
+          "mean_AUROC": 0.530359,
+          "AUROC_per_injection_seed": [
+            0.484722,
+            0.586363,
+            0.487498,
+            0.562853
+          ],
+          "mean_delta_vs_raw": 0.0,
+          "positive_delta_seed_count": 0,
+          "mean_abs_brightness_shift_AUROC": 0.025364,
+          "not_native_real_photo_accuracies": true
+        },
+        "unet_quantile": {
+          "mean_AUROC": 0.564548,
+          "AUROC_per_injection_seed": [
+            0.540632,
+            0.576076,
+            0.616208,
+            0.525276
+          ],
+          "mean_delta_vs_raw": 0.034189,
+          "positive_delta_seed_count": 2,
+          "mean_abs_brightness_shift_AUROC": 0.002454,
+          "not_native_real_photo_accuracies": true
+        },
+        "unet_local": {
+          "mean_AUROC": 0.637459,
+          "AUROC_per_injection_seed": [
+            0.569489,
+            0.696251,
+            0.646948,
+            0.637146
+          ],
+          "mean_delta_vs_raw": 0.1071,
+          "positive_delta_seed_count": 4,
+          "mean_abs_brightness_shift_AUROC": 0.001012,
+          "not_native_real_photo_accuracies": true
+        }
+      }
+    }
+  },
+  "S34_axial": {
+    "new_unseen_injection_seeds": [
+      20261033,
+      20261034,
+      20261035,
+      20261036
+    ],
+    "same_train_photo": "005",
+    "same_test_photo": "006",
+    "lambda_axis_pre_registered": 0.03,
+    "mean_baseline_AUROC": 0.6495529538115112,
+    "mean_axial_AUROC": 0.6556671560420023,
+    "delta_AUROC_per_seed": [
+      -0.005817767137820673,
+      0.023267910067875208,
+      -0.008219987521615568,
+      0.015226653513524924
+    ],
+    "positive_delta_seed_count": 2,
+    "mean_delta_AUROC": 0.006114202230490973,
+    "conclusion": "No consistent axial improvement, do not enable by default"
+  },
+  "source_candidate_evidence": {
+    "total_unreviewed_model_drafts": 133,
+    "original_H50Z_review_crops": 39,
+    "quantile_model_center_vs_flank": {
+      "with_finite_centerline_evidence": 133,
+      "positive_center_minus_flank_count": 133,
+      "median_center_minus_flank": 0.135648,
+      "q10_q90": [
+        0.08927500000000001,
+        0.1849772
+      ]
+    },
+    "local_model_center_vs_flank": {
+      "with_finite_centerline_evidence": 133,
+      "positive_center_minus_flank_count": 128,
+      "median_center_minus_flank": 0.05691,
+      "q10_q90": [
+        0.0245264,
+        0.1022052
+      ]
+    },
+    "no_human_certification": true,
+    "candidate_selection_bias": "Original candidates already selected by darkness; positive center-flank score cannot be interpreted as accuracy"
+  },
+  "interpretation": "Photo normalization reduces gate sensitivity to brightness; real bubble-chamber track recognition unverified",
+  "physics_autonomous_join_permitted": false,
+  "AZConv_first_rule_diagnostic": {
+    "schema": "s33_azconv_fuzzy_gate_photometric_diagnostic_v1",
+    "true_real_particle_labels": 0,
+    "independent_physical_run_test": false,
+    "method": "first AZConv layer fuzzy memberships of 64px photo patches",
+    "results": [
+      {
+        "train_seed": 20261025,
+        "input_mode": "raw",
+        "005": {
+          "gate_entropy": 0.8823071208091371,
+          "gate_jsd_photometric": 0.00015537478282654082,
+          "gate_mean_max_rule_probability": 0.686593823016636,
+          "gate_rule_1_mean": 0.31340617556420586
+        },
+        "006": {
+          "gate_entropy": 0.9288336567389747,
+          "gate_jsd_photometric": 0.0002756232749932139,
+          "gate_mean_max_rule_probability": 0.6430298101018976,
+          "gate_rule_1_mean": 0.3569701885183652
+        }
+      },
+      {
+        "train_seed": 20261025,
+        "input_mode": "quantile",
+        "005": {
+          "gate_entropy": 0.8166145981275544,
+          "gate_jsd_photometric": 1.29303783218968e-05,
+          "gate_mean_max_rule_probability": 0.7229262316037738,
+          "gate_rule_1_mean": 0.2770737840069665
+        },
+        "006": {
+          "gate_entropy": 0.8086477826583356,
+          "gate_jsd_photometric": 2.5643160273392385e-05,
+          "gate_mean_max_rule_probability": 0.7275054609334027,
+          "gate_rule_1_mean": 0.27249455810696993
+        }
+      },
+      {
+        "train_seed": 20261025,
+        "input_mode": "local",
+        "005": {
+          "gate_entropy": 0.8063507103243359,
+          "gate_jsd_photometric": 4.1553035646843675e-06,
+          "gate_mean_max_rule_probability": 0.7446337872081332,
+          "gate_rule_1_mean": 0.2553662165762886
+        },
+        "006": {
+          "gate_entropy": 0.8064476963091542,
+          "gate_jsd_photometric": 7.926948035587969e-06,
+          "gate_mean_max_rule_probability": 0.744290664240166,
+          "gate_rule_1_mean": 0.25570933520793915
+        }
+      },
+      {
+        "train_seed": 20261026,
+        "input_mode": "raw",
+        "005": {
+          "gate_entropy": 0.9705771595019568,
+          "gate_jsd_photometric": 9.959535352916444e-05,
+          "gate_mean_max_rule_probability": 0.5910732774507432,
+          "gate_rule_1_mean": 0.5801908435329558
+        },
+        "006": {
+          "gate_entropy": 0.9514031635909356,
+          "gate_jsd_photometric": 0.00016654798848860622,
+          "gate_mean_max_rule_probability": 0.6253857259397153,
+          "gate_rule_1_mean": 0.6167447263443911
+        }
+      },
+      {
+        "train_seed": 20261026,
+        "input_mode": "quantile",
+        "005": {
+          "gate_entropy": 0.9696808318198239,
+          "gate_jsd_photometric": 9.918417272310474e-06,
+          "gate_mean_max_rule_probability": 0.5876121757522462,
+          "gate_rule_1_mean": 0.5304277946078588
+        },
+        "006": {
+          "gate_entropy": 0.9694517190071457,
+          "gate_jsd_photometric": 2.0723022939724462e-05,
+          "gate_mean_max_rule_probability": 0.5877463342966857,
+          "gate_rule_1_mean": 0.5254265809500659
+        }
+      },
+      {
+        "train_seed": 20261026,
+        "input_mode": "local",
+        "005": {
+          "gate_entropy": 0.9885932812653724,
+          "gate_jsd_photometric": 3.286921506444395e-06,
+          "gate_mean_max_rule_probability": 0.5474580753417242,
+          "gate_rule_1_mean": 0.5153349978583199
+        },
+        "006": {
+          "gate_entropy": 0.9883267630713887,
+          "gate_jsd_photometric": 6.3774766745597035e-06,
+          "gate_mean_max_rule_probability": 0.5479796893066831,
+          "gate_rule_1_mean": 0.5155577769985905
+        }
+      }
+    ]
+  }
+}

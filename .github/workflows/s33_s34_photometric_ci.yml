@@ -1,0 +1,31 @@
+name: S33-S34 photo-normalized AZConv research contracts
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s33_*.py'
+      - 'scripts/research/bubble_chamber/s33_*.py'
+      - 'scripts/research/bubble_chamber/s34_*.py'
+      - 'tests/test_s33_*.py'
+      - 'tests/test_s34_axis_source_lock.py'
+      - '.github/workflows/s33_s34_photometric_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reproducible_public_unit_contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: python -m pip install numpy scipy scikit-learn scikit-image opencv-python-headless pytest torch
+      - name: Verify original ANZA model sources have not been edited
+        run: python -c "from scripts.research.bubble_chamber.s14_train_sparse_anza import verify_model_source;verify_model_source()"
+      - name: Unit and security/provenance contracts
+        run: python -m pytest -q tests/test_s33_photometric_domain.py tests/test_s33_normalized_inference.py tests/test_s33_evidence_review.py tests/test_s34_axis_source_lock.py tests/test_s32_confidence.py tests/test_s32_queue.py tests/test_s32_relation_bridge.py
+      - name: Compile source-only research modules
+        run: python -m compileall -q bubble_chamber/s33_*.py scripts/research/bubble_chamber/s33_*.py scripts/research/bubble_chamber/s34_*.py
