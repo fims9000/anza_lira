@@ -6,6 +6,9 @@ on:
       - 'bubble_chamber/s30_trajectory_identity.py'
       - 'scripts/research/bubble_chamber/s30_fork_gate_demo.py'
       - 'tests/test_s30_trajectory_identity.py'
+      - 'tests/test_s30_verify_dataset_archive.py'
+      - 'scripts/research/bubble_chamber/s30_verify_dataset_archive.py'
+      - 'docs/bubble_chamber/s30_dataset_integrity.json'
       - '.github/workflows/s30_trajectory_identity_ci.yml'
   workflow_dispatch:
 permissions:
@@ -22,4 +25,4 @@ jobs:
       - name: Install dependencies
         run: python -m pip install numpy scipy pytest opencv-python-headless scikit-image
       - name: Assert S30 gate never authorizes physical link
-        run: python -m pytest -q tests/test_s30_trajectory_identity.py
+        run: python -m pytest -q tests/test_s30_trajectory_identity.py tests/test_s30_verify_dataset_archive.py

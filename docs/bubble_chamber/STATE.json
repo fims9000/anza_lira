@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S29_REAL_H50Z_2PHOTO_REVIEWABLE_2D_PATHS_NOT_PHYSICAL_TRACK_VALIDATION",
+  "status": "S30_GATE_COMMITTED_AND_DATASET_BYTE_VERIFIED_PRIVATE_ARCHIVE; REAL_H50Z_TRACK_TRUTH_MISSING",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Receive authentic human-reviewed S29 export with 0/1/255 track/artifact scribbles on BOTH original H50Z BMPs and a few manually certified SAME/DIFFERENT track relationships; fit/evaluate source-locked original ANZA against same-budget U-Net and strong classical curvature, then acquire independent physical run/fill and 3-view/B-field calibration. Until these real labels are supplied, no true physical accuracy/automatic joining can be certified.",
+  "next_executable_action": "Get actual human-certified 2D track pixel lines and same/different relations from an S29/S30 reviewer; compare original AZUNet, geometry baseline and Graph-LIRA on real photo-disjoint plus independent run. Do not call model proposal expert truth or auto-join physical tracks.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -831,5 +831,33 @@
     "auto_particle_joins_allowed": false,
     "real_bubble_track_segmentation_accuracy": "NOT_MEASURED",
     "analysis_conclusion": "Overlap improves seam continuity but degrades synthetic scratch-vs-trace AUC in the evaluated stress test. Dynamic curvature constraints greatly improve known-injected-line recovery; original ANZA assistance did not exceed classical best control. Real H50Z path and width measures remain provisional."
+  },
+  "S30": {
+    "date": "2026-10-25",
+    "original_source_bundle_sha256": "b93e378b0f13d1524c04c461eeeb0b9a23d701f7df69f394ec2664d44823946d",
+    "gate_module": "bubble_chamber/s30_trajectory_identity.py",
+    "gate_proposals_are_not_expert_truth": true,
+    "physical_joins_authorized": false,
+    "source_archives_preserved_in_private_library": 3,
+    "source_archive_integrity_checked": true,
+    "original_camera_bmp_count": 2,
+    "operator_point_metadata_photo_entries": 105,
+    "operator_start_points": 570,
+    "operator_fiducials": 837,
+    "available_expert_confirmed_real_track_pixel_masks": 0,
+    "available_expert_confirmed_real_pair_relations": 0,
+    "raw_source_sha256": {
+      "H50Z_030_01_006.7z": "041a89f5b71a1ed4945729208c64e9064b9ebce3e0400f5191972a2f1e06558a",
+      "1mH2Data.7z": "9d34dc71fd023de8cb7a21d2e6ef2b973fdc33a670a80bdc5f89ebfebfe65d1a",
+      "070_008.7z": "47200019ada73d03576b033c1f5f3800762c471358cda56ece4f285fa5d1e5c6"
+    },
+    "private_backup_storage": "User's private ChatGPT Library, 2026-10-25 S30, raw/derived/metadata",
+    "private_backup_derived_objects": 15,
+    "private_backup_metadata_objects": 13,
+    "public_repository_data_policy": "NO raw archive, bitmap, original operator coordinate JSON, HTML with embedded real photo pixels in public Git",
+    "source_checksum_script": "scripts/research/bubble_chamber/s30_verify_dataset_archive.py",
+    "catalog": "docs/bubble_chamber/s30_dataset_integrity.json",
+    "verification": "Local 16 focused tests and exact-byte SHA256 verification of 3 source archives; GitHub CI for S30 review gate green after dependency correction",
+    "physical_track_validation": "NOT_MEASURED"
   }
 }

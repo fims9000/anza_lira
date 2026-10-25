@@ -1,0 +1,41 @@
+{
+  "schema": "anza_bubble_chamber_dataset_integrity_v1",
+  "date": "2026-10-25",
+  "release": "S30",
+  "repository": "fims9000/anza_lira",
+  "repository_visibility": "public",
+  "data_storage": "private user Library; original data deliberately excluded from public Git",
+  "source_archives": [
+    {
+      "file": "H50Z_030_01_006.7z",
+      "size_bytes": 267584705,
+      "sha256": "041a89f5b71a1ed4945729208c64e9064b9ebce3e0400f5191972a2f1e06558a",
+      "kind": "raw_scanned_camera_images_and_operator_keypoints"
+    },
+    {
+      "file": "1mH2Data.7z",
+      "size_bytes": 11662586,
+      "sha256": "9d34dc71fd023de8cb7a21d2e6ef2b973fdc33a670a80bdc5f89ebfebfe65d1a",
+      "kind": "visualMetro_operator_measured_tracks"
+    },
+    {
+      "file": "070_008.7z",
+      "size_bytes": 469593,
+      "sha256": "47200019ada73d03576b033c1f5f3800762c471358cda56ece4f285fa5d1e5c6",
+      "kind": "visualMetro_additional_single_frame_measurements"
+    }
+  ],
+  "labeled_dataset_truth_taxonomy": {
+    "H50Z_operator_point_metadata_images": 105,
+    "H50Z_operator_start_marks": 570,
+    "H50Z_operator_fiducial_marks": 837,
+    "H50Z_BMPs_physically_present_in_source_archive": 2,
+    "visualMetro_measurements_archive_members": 5627,
+    "single_frame_measurements_archive_members": 223,
+    "genuine_human_checked_full_photo_track_masks_in_available_backup": 0,
+    "genuine_human_checked_pair_relations_in_available_backup": 0,
+    "model_proposals_are_human_verified": false
+  },
+  "integrity_check": "python scripts/research/bubble_chamber/s30_verify_dataset_archive.py --source-dir /path/to/unpacked/raw --manifest docs/bubble_chamber/s30_dataset_integrity.json",
+  "privacy_guard": "Do not add BMP, 7z, original labels.json, raw visualMetro coordinates or HTML with embedded photos to this public repository."
+}
