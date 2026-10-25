@@ -1,0 +1,284 @@
+{
+  "schema": "S32_H50Z_MACHINE_FIRST_CONFIDENCE_AND_REVIEW_V1",
+  "date": "2026-10-25",
+  "private_source_s31_zip_sha256": "916ce7c2d55598654c9420f1b6422eb5bba585ca70b2de01fde049b17a18ac9c",
+  "source_machine_draft_sha256": "f4bd42251cef4a4f2a397d4d0c2f629b1a8d2f17feefd56d86282563ef5398f6",
+  "source_mask_manifest_sha256": "7884bf0f4250b89adb6247eda4ca0311d85ceaad976674fa9f98d4ff846aa8e6",
+  "original_model_git_blobs": {
+    "models/azconv.py": "f4217ada00024927506fa8ebe520aa1f68ae5854",
+    "models/segmentation.py": "0b971c117f3d56cc588ebade6991c65faceb8a2a"
+  },
+  "real_photo_source_count": 2,
+  "same_physical_run": true,
+  "source_512px_crops": 39,
+  "machine_track_hypotheses": 133,
+  "unverified_possible_links": 28,
+  "physics_certified_real_track_pixels": 0,
+  "physics_certified_relations": 0,
+  "weak_train_label_counts": {
+    "crops": 39,
+    "source_start_crops": 9,
+    "weak_positive_px": 11097,
+    "weak_negative_px": 25350,
+    "unlabeled_px": 10187169,
+    "crops_with_weak_positive": 13
+  },
+  "S32_sampler": {
+    "train_seeds": [
+      20261025,
+      20261026
+    ],
+    "epochs": 2,
+    "architecture": [
+      "original AZUNet",
+      "original U-Net"
+    ],
+    "arms": [
+      "S31 original loss on same balanced windows",
+      "S32 confidence aware loss on same balanced windows"
+    ],
+    "model_selection": "lowest photo-006 pseudo-label BCE; NOT physical ground truth",
+    "positive_windows_per_eligible_crop": 4,
+    "negative_windows_per_eligible_crop": 4,
+    "pseudo_class_coverage_by_seed": [
+      {
+        "seed": 20261025,
+        "train": {
+          "windows": 120,
+          "positive_centered": 36,
+          "negative_centered": 84,
+          "pseudo_positive": 16490,
+          "assumed_negative": 9085,
+          "unknown": 465945,
+          "human_confirmed_labels": 0,
+          "physical_validity": "UNKNOWN"
+        },
+        "val": {
+          "windows": 88,
+          "positive_centered": 16,
+          "negative_centered": 72,
+          "pseudo_positive": 7659,
+          "assumed_negative": 4310,
+          "unknown": 348479,
+          "human_confirmed_labels": 0,
+          "physical_validity": "UNKNOWN"
+        }
+      },
+      {
+        "seed": 20261026,
+        "train": {
+          "windows": 120,
+          "positive_centered": 36,
+          "negative_centered": 84,
+          "pseudo_positive": 16660,
+          "assumed_negative": 8792,
+          "unknown": 466068,
+          "human_confirmed_labels": 0,
+          "physical_validity": "UNKNOWN"
+        },
+        "val": {
+          "windows": 88,
+          "positive_centered": 16,
+          "negative_centered": 72,
+          "pseudo_positive": 7490,
+          "assumed_negative": 4593,
+          "unknown": 348365,
+          "human_confirmed_labels": 0,
+          "physical_validity": "UNKNOWN"
+        }
+      }
+    ]
+  },
+  "machine_only_validation": [
+    {
+      "seed": 20261025,
+      "architecture": "unet",
+      "mode": "s31_unweighted_control",
+      "best_epoch": 2,
+      "validation_proxy": {
+        "pseudo_positive_fraction": 0.7131479305392349,
+        "assumed_negative_fraction_predicted_track": 0.6176334106728538,
+        "pseudo_unweighted_BCE_common_metric": 0.7277314182032238,
+        "pseudo_positive_pixels_evaluated": 7659,
+        "assumed_negative_pixels_evaluated": 4310,
+        "human_track_quality": "NOT_MEASURED",
+        "physical_false_joins": "NOT_MEASURED"
+      },
+      "checkpoint_sha256": "7718850533a529a55b68e36d24133d57d3bd0ec9c49dbbeec00080e9697a1169"
+    },
+    {
+      "seed": 20261025,
+      "architecture": "unet",
+      "mode": "s32_confidence",
+      "best_epoch": 2,
+      "validation_proxy": {
+        "pseudo_positive_fraction": 0.9565217391304348,
+        "assumed_negative_fraction_predicted_track": 0.777262180974478,
+        "pseudo_unweighted_BCE_common_metric": 0.7490081082690846,
+        "pseudo_positive_pixels_evaluated": 7659,
+        "assumed_negative_pixels_evaluated": 4310,
+        "human_track_quality": "NOT_MEASURED",
+        "physical_false_joins": "NOT_MEASURED"
+      },
+      "checkpoint_sha256": "60c8ace5b01d785624a528331ce8d6468b3f091949242a99ea7293e1696bc05a"
+    },
+    {
+      "seed": 20261025,
+      "architecture": "azunet",
+      "mode": "s31_unweighted_control",
+      "best_epoch": 1,
+      "validation_proxy": {
+        "pseudo_positive_fraction": 0.5379292335814075,
+        "assumed_negative_fraction_predicted_track": 0.14013921113689096,
+        "pseudo_unweighted_BCE_common_metric": 0.6454345445063981,
+        "pseudo_positive_pixels_evaluated": 7659,
+        "assumed_negative_pixels_evaluated": 4310,
+        "human_track_quality": "NOT_MEASURED",
+        "physical_false_joins": "NOT_MEASURED"
+      },
+      "checkpoint_sha256": "dc0d4d7dd360f25b35be0d2734b0b49f73445f6bf9df2948223a9b8e3c0471dc"
+    },
+    {
+      "seed": 20261025,
+      "architecture": "azunet",
+      "mode": "s32_confidence",
+      "best_epoch": 1,
+      "validation_proxy": {
+        "pseudo_positive_fraction": 0.6021673847760804,
+        "assumed_negative_fraction_predicted_track": 0.09234338747099768,
+        "pseudo_unweighted_BCE_common_metric": 0.5736438046124849,
+        "pseudo_positive_pixels_evaluated": 7659,
+        "assumed_negative_pixels_evaluated": 4310,
+        "human_track_quality": "NOT_MEASURED",
+        "physical_false_joins": "NOT_MEASURED"
+      },
+      "checkpoint_sha256": "40fecff7e9203b626e1a10df6674075bd65acfa3b173ed63cdda102964f7d9ef"
+    },
+    {
+      "seed": 20261026,
+      "architecture": "unet",
+      "mode": "s31_unweighted_control",
+      "best_epoch": 1,
+      "validation_proxy": {
+        "pseudo_positive_fraction": 0.16809078771695593,
+        "assumed_negative_fraction_predicted_track": 0.013716525146962769,
+        "pseudo_unweighted_BCE_common_metric": 0.5399036441336978,
+        "pseudo_positive_pixels_evaluated": 7490,
+        "assumed_negative_pixels_evaluated": 4593,
+        "human_track_quality": "NOT_MEASURED",
+        "physical_false_joins": "NOT_MEASURED"
+      },
+      "checkpoint_sha256": "63ae4a0b85d2c84f785f776c156b2e8a70615be62f280c224a1e6e9c4ffdf7ae"
+    },
+    {
+      "seed": 20261026,
+      "architecture": "unet",
+      "mode": "s32_confidence",
+      "best_epoch": 1,
+      "validation_proxy": {
+        "pseudo_positive_fraction": 0.23044058744993323,
+        "assumed_negative_fraction_predicted_track": 0.014151970389723493,
+        "pseudo_unweighted_BCE_common_metric": 0.5699457593939521,
+        "pseudo_positive_pixels_evaluated": 7490,
+        "assumed_negative_pixels_evaluated": 4593,
+        "human_track_quality": "NOT_MEASURED",
+        "physical_false_joins": "NOT_MEASURED"
+      },
+      "checkpoint_sha256": "9c61d06a03957753294c51d3aca63b3571d9199d5b1b993cd7f54ca3a3e89027"
+    },
+    {
+      "seed": 20261026,
+      "architecture": "azunet",
+      "mode": "s31_unweighted_control",
+      "best_epoch": 1,
+      "validation_proxy": {
+        "pseudo_positive_fraction": 1.0,
+        "assumed_negative_fraction_predicted_track": 1.0,
+        "pseudo_unweighted_BCE_common_metric": 1.0495702170512893,
+        "pseudo_positive_pixels_evaluated": 7490,
+        "assumed_negative_pixels_evaluated": 4593,
+        "human_track_quality": "NOT_MEASURED",
+        "physical_false_joins": "NOT_MEASURED"
+      },
+      "checkpoint_sha256": "b4e209a938ae9111aa36109ba3e87d1b4fcd3bd624ea80774b5ea5d16dac5cba"
+    },
+    {
+      "seed": 20261026,
+      "architecture": "azunet",
+      "mode": "s32_confidence",
+      "best_epoch": 2,
+      "validation_proxy": {
+        "pseudo_positive_fraction": 1.0,
+        "assumed_negative_fraction_predicted_track": 1.0,
+        "pseudo_unweighted_BCE_common_metric": 0.9694552922790701,
+        "pseudo_positive_pixels_evaluated": 7490,
+        "assumed_negative_pixels_evaluated": 4593,
+        "human_track_quality": "NOT_MEASURED",
+        "physical_false_joins": "NOT_MEASURED"
+      },
+      "checkpoint_sha256": "65caefe36cf3fdfc1cbcdee1c673a1d6f66daf3a64a957ea985b1089052dc85c"
+    }
+  ],
+  "external_synthetic_injection": {
+    "test_photo": "006",
+    "n_injections_per_seed": 48,
+    "seeds": [
+      20261029,
+      20261030
+    ],
+    "different_supervision_than_training": true,
+    "comparison_AUROC_by_seed": [
+      {
+        "seed": 20261029,
+        "AUROC": {
+          "unet_s31_unweighted_control": 0.577818,
+          "unet_s32_confidence": 0.486381,
+          "azunet_s31_unweighted_control": 0.670048,
+          "azunet_s32_confidence": 0.668939,
+          "historical_S31_unet": 0.640091,
+          "historical_S31_azunet": 0.704501,
+          "local_contrast": 0.447076,
+          "steerable_ridge": 0.564355
+        },
+        "positive_injected_px": 7792,
+        "negative_injected_px": 5033
+      },
+      {
+        "seed": 20261030,
+        "AUROC": {
+          "unet_s31_unweighted_control": 0.603241,
+          "unet_s32_confidence": 0.601302,
+          "azunet_s31_unweighted_control": 0.470312,
+          "azunet_s32_confidence": 0.510618,
+          "historical_S31_unet": 0.661798,
+          "historical_S31_azunet": 0.611135,
+          "local_contrast": 0.471073,
+          "steerable_ridge": 0.564142
+        },
+        "positive_injected_px": 7168,
+        "negative_injected_px": 5466
+      }
+    ]
+  },
+  "provisional_graph_relation_bridge": {
+    "source_relation_questions": 28,
+    "locally_verified_pairs_at_generation": 0,
+    "physical_links_authorized": false
+  },
+  "review_queue": {
+    "machine_lines": 133,
+    "relation_questions": 28,
+    "risk_score_is_calibrated_probability": false,
+    "human_confirmations": 0
+  },
+  "browser_verified": "Offline Chromium selection, manual provisional correction, relation answer, JSON export and re-import; fictional test decision deleted",
+  "limits": [
+    "Neither S31 pseudo-label quality nor injected synthetic score measures actual real track segmentation",
+    "The photo held out for S31 pseudo training belongs to the same physical run",
+    "Augmented two-seed training did not consistently outperform historical S31 weights",
+    "Real H50Z graph connectivity and momentum measurements are unknown",
+    "No original private photos, annotation HTML or checkpoints may be committed to the public repository"
+  ],
+  "physical_auto_join_allowed": false,
+  "scientific_conclusion": "S32 repairs an ignored confidence-loss argument and substantially increases negative-mark coverage in patch validation. It does NOT demonstrate robust AZUNet accuracy improvement; historical S31 weights remain an essential control."
+}

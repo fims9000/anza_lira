@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S31_PRIVATE_MACHINE_FIRST_CANDIDATES_AND_WEAK_ANZA_TRAINING_COMPLETE; PHYSICS_CERTIFICATION_PENDING",
+  "status": "S32_MACHINE_REVIEW_AND_CONFIDENCE_AWARE_TRAINING_PROVISIONAL; PHYSICS_GT_NOT_AVAILABLE",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Continue improving the S31 provisional annotation by local corrections in S31_MACHINE_FIRST_REVIEWER.html, save S31_machine_labels_local_corrections.json, rebuild S31 pseudo masks using --corrections, keep 005/006 held-out photos disjoint, calibrate independent run only once available. Physical truth and automatic joins remain disabled.",
+  "next_executable_action": "Continue local S32 annotation review: produce and save nonempty S31_machine_labels_local_corrections.json via private S32 reviewer; regenerate 0/1/255 machine masks using S31 source locked build_weak_masks --corrections, compare AZUNet vs U-Net plus S31 historical on same external injections, and only start provisional Graph-LIRA pair model when enough explicitly corrected local same/different pairs exist; require physicist/independent film to claim physical validity.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -928,5 +928,56 @@
     "correction_file_schema": "s31_machine_corrections_v1",
     "local_verification": "14 tests source/graph/geometry passed + offline Chromium draft/path/pair correction/export/import test",
     "report": "docs/bubble_chamber/S31_MACHINE_FIRST_PSEUDOLABELS_2026_10_25.md"
+  },
+  "S32": {
+    "date": "2026-10-25",
+    "status": "MACHINE_REVIEW_QUEUE_WEIGHTED_PSEUDO_TRAINING_COMPLETE_NO_TRUE_PHYSICS_VALIDATION",
+    "original_physical_run_count": 1,
+    "original_H50Z_crop_count": 39,
+    "machine_hypothesis_count": 133,
+    "possible_relation_questions": 28,
+    "original_ANZA_and_UNet_sources_unchanged": true,
+    "correction": "Actually use per-mark S31 confidence weights; class-balanced loss with bounded negative relative influence, compared to old loss on same patches",
+    "machine_weak_target_positives": 11097,
+    "assumed_weak_negatives": 25350,
+    "source_255_unknown_pixels": 10187169,
+    "new_patch_sampler": "Source-disjoint by BMP 005/006; same sampled positive- and negative-centered windows for both architectures and both loss arms",
+    "training_seeds": [
+      20261025,
+      20261026
+    ],
+    "epochs": 2,
+    "test_real_photo": "006",
+    "injected_patches_per_seed": 48,
+    "test_injection_seeds": [
+      20261029,
+      20261030
+    ],
+    "external_injection_AUROC": {
+      "20261029": {
+        "unet_unweighted": 0.5778,
+        "unet_confidence": 0.4864,
+        "AZUNet_unweighted": 0.67,
+        "AZUNet_confidence": 0.6689,
+        "historical_S31_AZUNet": 0.7045
+      },
+      "20261030": {
+        "unet_unweighted": 0.6032,
+        "unet_confidence": 0.6013,
+        "AZUNet_unweighted": 0.4703,
+        "AZUNet_confidence": 0.5106,
+        "historical_S31_AZUNet": 0.6111
+      }
+    },
+    "conclusion": "No robust improvement in real-photo injected line ranking despite fixing confidence loss. Keep S31 old checkpoint as comparison; do NOT claim original ANZA image segmentation validated or deploy confidence weights as better.",
+    "machine_review_queue": "133 machine lines prioritized by duplicate, fiducial, image edge and photometry; 28 possible relations prioritized geometrically, no auto label",
+    "relation_training_guard": "0 local same/different decisions -> 0 training relations; only user explicit local provisional choices eligible for experimental graph model, never physical links",
+    "human_physicist_approved_tracks": 0,
+    "human_physicist_approved_links": 0,
+    "private_dataset_backup": "ChatGPT Library /ANZA-LIRA Bubble Chamber - private archive/2026-10-25 S32/datasets/",
+    "public_dataset_in_repository": false,
+    "browser_checked": "Chromium: review next risky line, local provisional accept, next pair, unsure, export/reimport corrections. Fictional test corrections destroyed.",
+    "focused_regression_tests_passed": 15,
+    "source_report": "docs/bubble_chamber/S32_MACHINE_FIRST_CONFIDENCE_2026_10_25.md"
   }
 }
