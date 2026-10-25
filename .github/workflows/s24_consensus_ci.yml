@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install small-model scientific dependencies
-        run: python -m pip install numpy scipy scikit-learn pytest
+        run: python -m pip install numpy scipy scikit-learn opencv-python-headless scikit-image pytest
       - name: S24 new contracts and source-sensitive regression tests
         run: python -m pytest -q tests/test_s24_consensus_review.py tests/test_s21_selective_graph.py tests/test_s22_curriculum.py
       - name: Compile reproducible runner
