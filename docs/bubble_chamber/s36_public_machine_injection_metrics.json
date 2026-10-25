@@ -1,0 +1,235 @@
+{
+  "schema": "s36_predeclared_saturation_blend_summary_v1",
+  "source_material": "one physical run, two original H50Z photos, machine S31 marks, artificial test tracks+scratches",
+  "real_native_track_ground_truth": false,
+  "human_approved_pair_truth": false,
+  "independent_physical_runs": 0,
+  "automatic_physical_track_joins_authorized": false,
+  "test_heldout_injection_seeds": {
+    "005_to_006": [
+      20261049,
+      20261050,
+      20261051,
+      20261052
+    ],
+    "006_to_005": [
+      20261053,
+      20261054,
+      20261055,
+      20261056
+    ]
+  },
+  "new_injection_scenes_per_direction": 192,
+  "extra_exposure_variants_per_case": 4,
+  "normalizer": "z = (1-alpha) * quantile(I) + alpha * local(I); alpha = clip((fraction(I<=1 or I>=254)-.02)/.18,0,1)",
+  "test_results": {
+    "005_to_006": {
+      "identity": {
+        "n_injected_scenes": 192,
+        "mean_source_clipped_pixels_fraction": 0.014938354492187498,
+        "mean_local_blend_fraction_UNCALIBRATED": 0.026324801974826388,
+        "mean_AUROC_generated_only": {
+          "AZUNet_quantile_S35_matched": 0.6376074248656398,
+          "AZUNet_saturation_blend_S36": 0.6632606193347599,
+          "U_Net_local_S35_matched": 0.6535401913895775
+        },
+        "paired_delta_s36_minus_s35_AZUNet_mean": 0.02565319446912004,
+        "paired_delta_by_synthetic_seed": [
+          0.0348708130623141,
+          0.0005449673277541089,
+          0.07224042400524844,
+          -0.005043426518836491
+        ],
+        "seed_delta_bootstrap_95CI_NOT_INDEPENDENT_RUN": [
+          -0.002249229595541191,
+          0.054316559835874856
+        ],
+        "number_of_seeds_improved_AZUNet": 3
+      },
+      "bright": {
+        "n_injected_scenes": 192,
+        "mean_source_clipped_pixels_fraction": 0.0,
+        "mean_local_blend_fraction_UNCALIBRATED": 0.0,
+        "mean_AUROC_generated_only": {
+          "AZUNet_quantile_S35_matched": 0.6368243691559696,
+          "AZUNet_saturation_blend_S36": 0.6648266407218176,
+          "U_Net_local_S35_matched": 0.6535205142746798
+        },
+        "paired_delta_s36_minus_s35_AZUNet_mean": 0.02800227156584803,
+        "paired_delta_by_synthetic_seed": [
+          0.051832498092914236,
+          0.005620581604188213,
+          0.05778309368681933,
+          -0.003227087120529659
+        ],
+        "seed_delta_bootstrap_95CI_NOT_INDEPENDENT_RUN": [
+          0.0011967472418292768,
+          0.054807795889866784
+        ],
+        "number_of_seeds_improved_AZUNet": 3
+      },
+      "dark": {
+        "n_injected_scenes": 192,
+        "mean_source_clipped_pixels_fraction": 0.04192606608072917,
+        "mean_local_blend_fraction_UNCALIBRATED": 0.09314614755135994,
+        "mean_AUROC_generated_only": {
+          "AZUNet_quantile_S35_matched": 0.6343646980060832,
+          "AZUNet_saturation_blend_S36": 0.6653492872110899,
+          "U_Net_local_S35_matched": 0.6522849099782655
+        },
+        "paired_delta_s36_minus_s35_AZUNet_mean": 0.030984589205006657,
+        "paired_delta_by_synthetic_seed": [
+          0.047944621081880356,
+          0.0006862923051448311,
+          0.07031013200126368,
+          0.004997311431737761
+        ],
+        "seed_delta_bootstrap_95CI_NOT_INDEPENDENT_RUN": [
+          0.002841801868441296,
+          0.05912737654157202
+        ],
+        "number_of_seeds_improved_AZUNet": 4
+      },
+      "highlight_clip": {
+        "n_injected_scenes": 192,
+        "mean_source_clipped_pixels_fraction": 0.8001670837402344,
+        "mean_local_blend_fraction_UNCALIBRATED": 0.9215927124023436,
+        "mean_AUROC_generated_only": {
+          "AZUNet_quantile_S35_matched": 0.6962330097039093,
+          "AZUNet_saturation_blend_S36": 0.6945100198313854,
+          "U_Net_local_S35_matched": 0.6472619124581136
+        },
+        "paired_delta_s36_minus_s35_AZUNet_mean": -0.0017229898725238668,
+        "paired_delta_by_synthetic_seed": [
+          0.0019104004964638488,
+          -0.018952704854344193,
+          -0.004289027235521492,
+          0.01443937210330637
+        ],
+        "seed_delta_bootstrap_95CI_NOT_INDEPENDENT_RUN": [
+          -0.013736928516642183,
+          0.009757272268599404
+        ],
+        "number_of_seeds_improved_AZUNet": 2
+      }
+    },
+    "006_to_005": {
+      "identity": {
+        "n_injected_scenes": 192,
+        "mean_source_clipped_pixels_fraction": 0.0022595723470052085,
+        "mean_local_blend_fraction_UNCALIBRATED": 0.002935056333188657,
+        "mean_AUROC_generated_only": {
+          "AZUNet_quantile_S35_matched": 0.6695800570132864,
+          "AZUNet_saturation_blend_S36": 0.6648082694471766,
+          "U_Net_local_S35_matched": 0.6432358381917598
+        },
+        "paired_delta_s36_minus_s35_AZUNet_mean": -0.00477178756610977,
+        "paired_delta_by_synthetic_seed": [
+          0.028498856740764134,
+          -0.03484752691300541,
+          -0.006188265712984253,
+          -0.006550214379213548
+        ],
+        "seed_delta_bootstrap_95CI_NOT_INDEPENDENT_RUN": [
+          -0.02768271161300012,
+          0.019736588960769713
+        ],
+        "number_of_seeds_improved_AZUNet": 1
+      },
+      "bright": {
+        "n_injected_scenes": 192,
+        "mean_source_clipped_pixels_fraction": 0.0,
+        "mean_local_blend_fraction_UNCALIBRATED": 0.0,
+        "mean_AUROC_generated_only": {
+          "AZUNet_quantile_S35_matched": 0.6692946835140248,
+          "AZUNet_saturation_blend_S36": 0.6654886791641885,
+          "U_Net_local_S35_matched": 0.6427330819896035
+        },
+        "paired_delta_s36_minus_s35_AZUNet_mean": -0.0038060043498361895,
+        "paired_delta_by_synthetic_seed": [
+          0.028213290010985936,
+          -0.03622580739016579,
+          -0.003921215897906061,
+          -0.0032902841222588464
+        ],
+        "seed_delta_bootstrap_95CI_NOT_INDEPENDENT_RUN": [
+          -0.027991926573189052,
+          0.020179663533762937
+        ],
+        "number_of_seeds_improved_AZUNet": 1
+      },
+      "dark": {
+        "n_injected_scenes": 192,
+        "mean_source_clipped_pixels_fraction": 0.051476796468098954,
+        "mean_local_blend_fraction_UNCALIBRATED": 0.21499266447844328,
+        "mean_AUROC_generated_only": {
+          "AZUNet_quantile_S35_matched": 0.6717179237219395,
+          "AZUNet_saturation_blend_S36": 0.6734682394511851,
+          "U_Net_local_S35_matched": 0.6410842543588303
+        },
+        "paired_delta_s36_minus_s35_AZUNet_mean": 0.0017503157292455829,
+        "paired_delta_by_synthetic_seed": [
+          0.03699306116949608,
+          -0.02307592377073031,
+          -0.0025239523998679125,
+          -0.0043919220819155225
+        ],
+        "seed_delta_bootstrap_95CI_NOT_INDEPENDENT_RUN": [
+          -0.01793793092801471,
+          0.026646815356643178
+        ],
+        "number_of_seeds_improved_AZUNet": 1
+      },
+      "highlight_clip": {
+        "n_injected_scenes": 192,
+        "mean_source_clipped_pixels_fraction": 0.2910321553548177,
+        "mean_local_blend_fraction_UNCALIBRATED": 0.34691309045862273,
+        "mean_AUROC_generated_only": {
+          "AZUNet_quantile_S35_matched": 0.6650439675088058,
+          "AZUNet_saturation_blend_S36": 0.6651014902850501,
+          "U_Net_local_S35_matched": 0.6298591704619172
+        },
+        "paired_delta_s36_minus_s35_AZUNet_mean": 5.752277624446189e-05,
+        "paired_delta_by_synthetic_seed": [
+          0.02768643868959486,
+          -0.02066504218795462,
+          -0.007540000475641406,
+          0.0007486950789790114
+        ],
+        "seed_delta_bootstrap_95CI_NOT_INDEPENDENT_RUN": [
+          -0.015311607871221211,
+          0.018879828898285794
+        ],
+        "number_of_seeds_improved_AZUNet": 2
+      }
+    }
+  },
+  "posthoc_source_of_effect_not_confirmatory": {
+    "005_to_006": {
+      "identity": {
+        "delta_inference_only": -0.0024722198191104716,
+        "delta_training_only": 0.027499366037862683,
+        "delta_full": 0.02565319446912004
+      },
+      "highlight_clip": {
+        "delta_inference_only": -0.027632459561107242,
+        "delta_training_only": 0.0024172267092048005,
+        "delta_full": -0.0017229898725238668
+      }
+    },
+    "006_to_005": {
+      "identity": {
+        "delta_inference_only": 0.00027570933375486995,
+        "delta_training_only": -0.005032262915979913,
+        "delta_full": -0.00477178756610977
+      },
+      "highlight_clip": {
+        "delta_inference_only": 0.002024983949654363,
+        "delta_training_only": 0.0034806365066628042,
+        "delta_full": 5.752277624446189e-05
+      }
+    }
+  },
+  "selection_policy": "no tuning or checkpoint selection on either target photograph or these S36 injected labels",
+  "recommendation": "Do not enable saturation blend globally without independent run validation; apparent gain is direction dependent and mostly from training perturbation, not inference blend."
+}

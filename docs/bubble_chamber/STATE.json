@@ -3,7 +3,7 @@
   "branch": "research/bubble-chamber-graph-lira",
   "parent_branch": "research/coronary-connectivity-repair",
   "parent_base_sha": "80a7521c2000a9eced23b492cb7ecf082bf64b4a",
-  "status": "S35_PHOTO_CONSISTENCY_FULLY_TESTED_AND_REPRODUCED_TINY_GAIN_NOT_PHYSICALLY_VALIDATED",
+  "status": "S36_SATURATION_AWARE_TRANSFER_ABLATION_COMPLETE_DIRECTION_SENSITIVE; NO_REAL_PHYSICS_GT",
   "pipeline": "bubble_classical_p0_v1",
   "verified": {
     "python_tests_passed": 65,
@@ -63,7 +63,7 @@
     "h50z": "Two full grayscale BMPs (005 and 006), 24 matching keypoints only; original images stored locally, not in public Git",
     "film_070": "Seven frames with 42 measured tracks, 620 aligned 3-D and 1860 2-D view coordinates; no matching BMPs supplied"
   },
-  "next_executable_action": "Investigate and preregister saturation-aware photometric input handling using source-side statistics, then evaluate on NEW unseen artificial-injection seeds in both cross-photo directions. Keep original AZConv, local U-Net and S33 quantile AZUNet baseline and preserve all S31 MACHINE drafts as unverified. Real human-checked track/pair labels and independent physics run remain prerequisites for physical deployment.",
+  "next_executable_action": "Prioritize correction of S31/S32/S33 draft lines and fragment pair labels (no physicist truth yet) and evaluate robust weak-label noise handling, then validate on independent photographed physical run. Retain quantile AZUNet, local U-Net and curvature-constrained classical tracker; do not auto-connect particles or treat injected AUROC as native-trace accuracy.",
   "scientific_limits": [
     "No true-positive or false-positive measurements from unlabeled photographs",
     "No automatic merges or physical reconstruction",
@@ -1149,5 +1149,69 @@
     "metrics": "docs/bubble_chamber/s35_public_machine_injection_metrics.json",
     "unit_regression_tests": "18 selected source-only tests pass locally",
     "public_raw_photo_or_private_model_weights": false
+  },
+  "S36": {
+    "date": "2026-10-25",
+    "status": "DIRECTION_DEPENDENT_SATURATION_AWARE_AZUNET_EXPERIMENT_COMPLETE_NOT_PROVEN_BETTER",
+    "source_architecture": "original locked AZConv2d and AZUNet; original U-Net control",
+    "source_labels": "S31 provisional 0/1/255 machine weak masks only, zero approved human track/pair labels",
+    "source_photos": [
+      "005",
+      "006"
+    ],
+    "one_physical_run": true,
+    "input_formula": "s=mean(I<=1 or I>=254); alpha=clip((s-.02)/.18,0,1); new_input=(1-alpha)*S33_quantile(I)+alpha*S33_local(I)",
+    "alpha_uses_real_photo_intensity_only": true,
+    "train_epochs": 2,
+    "train_seeds": [
+      20261025,
+      20261026
+    ],
+    "reserved_forward_test_seeds": [
+      20261049,
+      20261050,
+      20261051,
+      20261052
+    ],
+    "reserved_reverse_test_seeds": [
+      20261053,
+      20261054,
+      20261055,
+      20261056
+    ],
+    "new_generated_test_scenes_per_direction": 192,
+    "tests_are_injected_not_native_H50Z_tracks": true,
+    "forward_005_to_006_identity_AUROC": {
+      "azunet_quantile_baseline": 0.6376,
+      "azunet_saturation_blend": 0.6633,
+      "unet_local_baseline": 0.6535,
+      "gain": 0.0257
+    },
+    "reverse_006_to_005_identity_AUROC": {
+      "azunet_quantile_baseline": 0.6696,
+      "azunet_saturation_blend": 0.6648,
+      "unet_local_baseline": 0.6432,
+      "gain": -0.0048
+    },
+    "forward_highlight_clipping_AUROC": {
+      "azunet_quantile_baseline": 0.6962,
+      "azunet_saturation_blend": 0.6945
+    },
+    "reverse_highlight_clipping_AUROC": {
+      "azunet_quantile_baseline": 0.665,
+      "azunet_saturation_blend": 0.6651
+    },
+    "posthoc_not_confirmatory": true,
+    "posthoc_identity_forward_training_effect": 0.0275,
+    "posthoc_identity_forward_input_switch_effect": -0.00247,
+    "posthoc_highlight_clip_forward_input_switch_effect": -0.02763,
+    "physical_auto_merge_authorized": false,
+    "source_original_models_modified": false,
+    "independent_physical_runs": 0,
+    "private_archive": "/ANZA-LIRA Bubble Chamber - private archive/2026-10-25 S36/private_research/S36_ANZA_SATURATION_PHOTO_TRANSFER_PRIVATE.zip",
+    "public_report": "docs/bubble_chamber/S36_SATURATION_AWARE_NORMALIZER_2026_10_25.md",
+    "public_metrics": "docs/bubble_chamber/s36_public_machine_injection_metrics.json",
+    "local_tests": "22 source-only S35/S36/S33/S34 tests passed",
+    "conclusion": "Do not enable this normalizer as default: apparent forward gain is training-induced and not reproduced in the reverse source/target direction. Highlight clipping benefit not shown."
   }
 }
