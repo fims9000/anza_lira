@@ -1,0 +1,221 @@
+{
+  "schema": "S75_POSTHOC_PAIRED_SCENE_BOOTSTRAP_NOT_NEW_TEST_V1",
+  "source_photo": "005",
+  "heldout_target_photo": "006",
+  "all_results_synthetic_only": true,
+  "original_S75_TEST_sha256": "77393828e7415196327a5f45d62ce2b2e89bd9a85fe8ce6ad8f186e64ab5d306",
+  "original_S75_CAL_sha256": "48290980dea0944b462904229b7711de36560356b688fe1dff5193b64979fc6e",
+  "original_TEST_seeds_replayed": [
+    20267503,
+    20267504
+  ],
+  "no_test_set_reselection": true,
+  "independent_new_test": false,
+  "physical_native_ground_truth": 0,
+  "conditions": {
+    "clean": {
+      "coherent_dog_080": {
+        "matched_48_scenes": 48,
+        "arm_minus_identity_paired_scene_bootstrap": {
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              -0.0625,
+              0.125
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": 0.10416666666666667,
+            "paired_scene_bootstrap_95pct": [
+              -0.041666666666666664,
+              0.2708333333333333
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": 0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              -0.08333333333333333,
+              0.14583333333333334
+            ]
+          },
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": -0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              -0.0625,
+              0.0
+            ]
+          }
+        }
+      },
+      "local_blackhat_070": {
+        "matched_48_scenes": 48,
+        "arm_minus_identity_paired_scene_bootstrap": {
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.041666666666666664,
+            "paired_scene_bootstrap_95pct": [
+              -0.041666666666666664,
+              0.125
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": 0.08333333333333333,
+            "paired_scene_bootstrap_95pct": [
+              -0.08333333333333333,
+              0.25
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": -0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              -0.14583333333333334,
+              0.10416666666666667
+            ]
+          },
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              -0.0625,
+              0.0625
+            ]
+          }
+        }
+      }
+    },
+    "blur_sigma_11": {
+      "coherent_dog_080": {
+        "matched_48_scenes": 48,
+        "arm_minus_identity_paired_scene_bootstrap": {
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.0625,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.14583333333333334
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": -0.041666666666666664,
+            "paired_scene_bootstrap_95pct": [
+              -0.20833333333333334,
+              0.10416666666666667
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": -0.08333333333333333,
+            "paired_scene_bootstrap_95pct": [
+              -0.20833333333333334,
+              0.020833333333333332
+            ]
+          },
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0625
+            ]
+          }
+        }
+      },
+      "local_blackhat_070": {
+        "matched_48_scenes": 48,
+        "arm_minus_identity_paired_scene_bootstrap": {
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.041666666666666664,
+            "paired_scene_bootstrap_95pct": [
+              -0.041666666666666664,
+              0.125
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": -0.08333333333333333,
+            "paired_scene_bootstrap_95pct": [
+              -0.22968749999999996,
+              0.08333333333333333
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": -0.10416666666666667,
+            "paired_scene_bootstrap_95pct": [
+              -0.22916666666666666,
+              0.020833333333333332
+            ]
+          },
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    },
+    "blur_sigma_16": {
+      "coherent_dog_080": {
+        "matched_48_scenes": 48,
+        "arm_minus_identity_paired_scene_bootstrap": {
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              -0.08333333333333333,
+              0.08333333333333333
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": 0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              -0.10416666666666667,
+              0.125
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": 0.041666666666666664,
+            "paired_scene_bootstrap_95pct": [
+              -0.041666666666666664,
+              0.125
+            ]
+          },
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0625
+            ]
+          }
+        }
+      },
+      "local_blackhat_070": {
+        "matched_48_scenes": 48,
+        "arm_minus_identity_paired_scene_bootstrap": {
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              -0.0625,
+              0.0625
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": -0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              -0.14635416666666665,
+              0.08333333333333333
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              -0.08333333333333333,
+              0.08333333333333333
+            ]
+          },
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.020833333333333332,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0625
+            ]
+          }
+        }
+      }
+    }
+  }
+}

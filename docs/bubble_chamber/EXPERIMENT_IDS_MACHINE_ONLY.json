@@ -171,6 +171,46 @@
       "calibration_sha256": "21f808c876dc0a7b9e56733594ab9a8f108e671e55587385e37e7f6f72e8770f",
       "predictor_sha256": "f0eff92343bfa0a1399c9312495cc8a1221354064642c5328dcece74e530b41a",
       "benchmark_sha256": "71ddb73d9670adf39c90e22a989d63e985280d4d533a5494400571850e3bef67"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S75-20261026",
+      "phase": "S75",
+      "status": "CAL_rejected_local_ridge_enhancers_both_directions;new_TEST_partial_blur_benefits_NOT_promoted",
+      "protocol": "docs/bubble_chamber/S75_FROZEN_LOCAL_RIDGE_RESCUE_2026_10_26.md",
+      "report": "docs/bubble_chamber/S75_LOCAL_RIDGE_RESCUE_AND_TRANSFER_TRADEOFF_2026_10_26.md",
+      "calibration": "docs/bubble_chamber/S75_PUBLIC_FROZEN_CAL_2026_10_26.json",
+      "results": "docs/bubble_chamber/S75_PUBLIC_FRESH_TEST_2026_10_26.json",
+      "predictor": "bubble_chamber/s75_local_ridge_rescue.py",
+      "benchmark": "scripts/research/bubble_chamber/s75_calibrate_then_test_local_ridges.py",
+      "posthoc_runner": "scripts/research/bubble_chamber/s75_posthoc_paired_uncertainty.py",
+      "posthoc_results_005": "docs/bubble_chamber/S75_POSTHOC_PAIRED_CI_005_2026_10_26.json",
+      "posthoc_results_006": "docs/bubble_chamber/S75_POSTHOC_PAIRED_CI_006_2026_10_26.json",
+      "protocol_sha256": "2331972bedef75cf30cd7a7859a05e4627814b465adee2d96bb56b2fcc20f79e",
+      "report_sha256": "9c80cd5f66be6589a8536b02aedc6ec78e897e652c42d7cd8bf9f11b764f79f4",
+      "calibration_sha256": "48290980dea0944b462904229b7711de36560356b688fe1dff5193b64979fc6e",
+      "results_sha256": "77393828e7415196327a5f45d62ce2b2e89bd9a85fe8ce6ad8f186e64ab5d306",
+      "predictor_sha256": "fb82a9dc4c5c7e1e9b34a47a9882eaa555ad1dec92218daabc2a7d99e738c52a",
+      "benchmark_sha256": "d49d4fe48b7aecf5e5f2c98543c694e614d26866cf169227c0365353d31fdf1c",
+      "posthoc_runner_sha256": "aa7334e14d739e7cc8ebc5f17aed61443502c55fe4aca67f20415972171ece85",
+      "posthoc_results_005_sha256": "ba1588f59aebd1872cf7ba5f69f50c11ce250422824db6ff5b3ff7ec8e094bbc",
+      "posthoc_results_006_sha256": "be4f0d86527c9a89f8c89d92a8e831110d59d634708dc44b46f590c3ea432f41",
+      "frozen_S72_calibration_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "new_test_scene_seeds": [
+        20267503,
+        20267504,
+        20267513,
+        20267514
+      ],
+      "CAL_only_selected": {
+        "005_to_006": "identity",
+        "006_to_005": "identity"
+      },
+      "new_test_scenes": 96,
+      "photographic_source_runs": 1,
+      "native_H50Z_expert_GT_count": 0,
+      "native_physics_auto_join_authorized": false,
+      "privacy": "only public-safe source and aggregate JSON; no native image/coordinates/weights"
     }
   ]
 }

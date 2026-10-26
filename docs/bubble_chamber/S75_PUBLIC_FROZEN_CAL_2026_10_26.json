@@ -1,0 +1,219 @@
+{
+  "schema": "S75_CAL_ONLY_LOCAL_RIDGE_THEN_FRESH_TEST_SYNTHETIC_ONLY_V1",
+  "experiment_id": "ANZA-LIRA-BC-S75-20261026",
+  "phase": "cal",
+  "smoke_NOT_CONFIRMATORY": false,
+  "protocol_sha256": "2331972bedef75cf30cd7a7859a05e4627814b465adee2d96bb56b2fcc20f79e",
+  "operator_sha256": "fb82a9dc4c5c7e1e9b34a47a9882eaa555ad1dec92218daabc2a7d99e738c52a",
+  "frozen_S72_calibration_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+  "original_S72_code_sha256": {
+    "bubble_chamber/s68_branch_preserving_instances.py": "dc16718c9bcac613eacc38771b2fa9a840266d9f7da377cc7538ae136bc4a91a",
+    "scripts/research/bubble_chamber/s68_benchmark_branch_preservation.py": "f8a841eb7c6fc8e5074e7d88c667891a36f95be67d5a7eb86d145cc9c3fc3e71",
+    "bubble_chamber/s69_orientation_invariant_audit.py": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+    "scripts/research/bubble_chamber/s56_benchmark_global_paths.py": "088024077e5f86b5f4308c5d23e72643c8b261a355cfb12f2bbc8c1d3d87355b"
+  },
+  "S37_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "H50Z_photographic_backgrounds_one_physical_run": true,
+  "visualmetro_film070_is_not_H50Z_native_ground_truth": true,
+  "physical_H50Z_expert_GT_count": 0,
+  "physical_auto_join_authorized": false,
+  "all_metrics_synthetic_injections_only": true,
+  "directions": {
+    "005_to_006": {
+      "source_photo": "005",
+      "test_photo": "006",
+      "frozen_S72_graph_method": "s68_branch_endpoint_refine",
+      "frozen_S56_cutoff": 0.8443092691176276,
+      "CAL_all_arms": {
+        "identity": {
+          "clean": {
+            "candidate_polylines": 98,
+            "candidate_pairs_after_strict_gate": 57,
+            "source_node_matches": 29,
+            "synthetic_decoy_matched": 9,
+            "selected_provisional_links": 21,
+            "selected_synthetic_correct_links": 9,
+            "synthetic_noncorrect_selected": 12,
+            "scene_any_noncorrect": 11,
+            "complete_three_piece_paths_synthetic": 2,
+            "solver_failure": 0,
+            "scene_count": 24
+          },
+          "blur_sigma_11": {
+            "candidate_polylines": 92,
+            "candidate_pairs_after_strict_gate": 40,
+            "source_node_matches": 24,
+            "synthetic_decoy_matched": 5,
+            "selected_provisional_links": 13,
+            "selected_synthetic_correct_links": 5,
+            "synthetic_noncorrect_selected": 8,
+            "scene_any_noncorrect": 7,
+            "complete_three_piece_paths_synthetic": 1,
+            "solver_failure": 0,
+            "scene_count": 24
+          }
+        },
+        "coherent_dog_080": {
+          "clean": {
+            "candidate_polylines": 108,
+            "candidate_pairs_after_strict_gate": 70,
+            "source_node_matches": 37,
+            "synthetic_decoy_matched": 12,
+            "selected_provisional_links": 22,
+            "selected_synthetic_correct_links": 9,
+            "synthetic_noncorrect_selected": 13,
+            "scene_any_noncorrect": 12,
+            "complete_three_piece_paths_synthetic": 2,
+            "solver_failure": 0,
+            "scene_count": 24
+          },
+          "blur_sigma_11": {
+            "candidate_polylines": 92,
+            "candidate_pairs_after_strict_gate": 43,
+            "source_node_matches": 24,
+            "synthetic_decoy_matched": 7,
+            "selected_provisional_links": 8,
+            "selected_synthetic_correct_links": 3,
+            "synthetic_noncorrect_selected": 5,
+            "scene_any_noncorrect": 5,
+            "complete_three_piece_paths_synthetic": 0,
+            "solver_failure": 0,
+            "scene_count": 24
+          }
+        },
+        "local_blackhat_070": {
+          "clean": {
+            "candidate_polylines": 111,
+            "candidate_pairs_after_strict_gate": 72,
+            "source_node_matches": 40,
+            "synthetic_decoy_matched": 12,
+            "selected_provisional_links": 24,
+            "selected_synthetic_correct_links": 10,
+            "synthetic_noncorrect_selected": 14,
+            "scene_any_noncorrect": 13,
+            "complete_three_piece_paths_synthetic": 3,
+            "solver_failure": 0,
+            "scene_count": 24
+          },
+          "blur_sigma_11": {
+            "candidate_polylines": 94,
+            "candidate_pairs_after_strict_gate": 46,
+            "source_node_matches": 27,
+            "synthetic_decoy_matched": 7,
+            "selected_provisional_links": 12,
+            "selected_synthetic_correct_links": 5,
+            "synthetic_noncorrect_selected": 7,
+            "scene_any_noncorrect": 7,
+            "complete_three_piece_paths_synthetic": 1,
+            "solver_failure": 0,
+            "scene_count": 24
+          }
+        }
+      },
+      "CAL_only_choice": {
+        "chosen_CAL_only": "identity",
+        "eligible_arms": [],
+        "default_remains_original_S72": true,
+        "native_physics_auto_join_authorized": false
+      }
+    },
+    "006_to_005": {
+      "source_photo": "006",
+      "test_photo": "005",
+      "frozen_S72_graph_method": "s39_original",
+      "frozen_S56_cutoff": 0.8539211223090797,
+      "CAL_all_arms": {
+        "identity": {
+          "clean": {
+            "candidate_polylines": 124,
+            "candidate_pairs_after_strict_gate": 88,
+            "source_node_matches": 58,
+            "synthetic_decoy_matched": 12,
+            "selected_provisional_links": 21,
+            "selected_synthetic_correct_links": 15,
+            "synthetic_noncorrect_selected": 6,
+            "scene_any_noncorrect": 6,
+            "complete_three_piece_paths_synthetic": 3,
+            "solver_failure": 0,
+            "scene_count": 24
+          },
+          "blur_sigma_11": {
+            "candidate_polylines": 96,
+            "candidate_pairs_after_strict_gate": 56,
+            "source_node_matches": 29,
+            "synthetic_decoy_matched": 9,
+            "selected_provisional_links": 9,
+            "selected_synthetic_correct_links": 5,
+            "synthetic_noncorrect_selected": 4,
+            "scene_any_noncorrect": 4,
+            "complete_three_piece_paths_synthetic": 1,
+            "solver_failure": 0,
+            "scene_count": 24
+          }
+        },
+        "coherent_dog_080": {
+          "clean": {
+            "candidate_polylines": 121,
+            "candidate_pairs_after_strict_gate": 86,
+            "source_node_matches": 63,
+            "synthetic_decoy_matched": 11,
+            "selected_provisional_links": 18,
+            "selected_synthetic_correct_links": 15,
+            "synthetic_noncorrect_selected": 3,
+            "scene_any_noncorrect": 3,
+            "complete_three_piece_paths_synthetic": 4,
+            "solver_failure": 0,
+            "scene_count": 24
+          },
+          "blur_sigma_11": {
+            "candidate_polylines": 99,
+            "candidate_pairs_after_strict_gate": 59,
+            "source_node_matches": 29,
+            "synthetic_decoy_matched": 11,
+            "selected_provisional_links": 3,
+            "selected_synthetic_correct_links": 1,
+            "synthetic_noncorrect_selected": 2,
+            "scene_any_noncorrect": 2,
+            "complete_three_piece_paths_synthetic": 0,
+            "solver_failure": 0,
+            "scene_count": 24
+          }
+        },
+        "local_blackhat_070": {
+          "clean": {
+            "candidate_polylines": 129,
+            "candidate_pairs_after_strict_gate": 97,
+            "source_node_matches": 66,
+            "synthetic_decoy_matched": 11,
+            "selected_provisional_links": 19,
+            "selected_synthetic_correct_links": 12,
+            "synthetic_noncorrect_selected": 7,
+            "scene_any_noncorrect": 6,
+            "complete_three_piece_paths_synthetic": 4,
+            "solver_failure": 0,
+            "scene_count": 24
+          },
+          "blur_sigma_11": {
+            "candidate_polylines": 102,
+            "candidate_pairs_after_strict_gate": 58,
+            "source_node_matches": 32,
+            "synthetic_decoy_matched": 11,
+            "selected_provisional_links": 6,
+            "selected_synthetic_correct_links": 1,
+            "synthetic_noncorrect_selected": 5,
+            "scene_any_noncorrect": 5,
+            "complete_three_piece_paths_synthetic": 0,
+            "solver_failure": 0,
+            "scene_count": 24
+          }
+        }
+      },
+      "CAL_only_choice": {
+        "chosen_CAL_only": "identity",
+        "eligible_arms": [],
+        "default_remains_original_S72": true,
+        "native_physics_auto_join_authorized": false
+      }
+    }
+  }
+}
