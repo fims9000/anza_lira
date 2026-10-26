@@ -548,7 +548,65 @@
       "native_particle_GT_count": 0,
       "physical_auto_join_authorized": false,
       "synthetic_only": true,
-      "privacy": "No private H50Z pixels, raw coordinates, trained weights or precise photo locations committed"
+      "privacy": "No private H50Z pixels, raw coordinates, trained weights or precise photo locations committed",
+      "TEST_replay_byte_identical": true
+    },
+    {
+      "id": "ANZA-LIRA-BC-S83-20261026",
+      "phase": "S83",
+      "status": "non_saturating_feature_verified_CAL_negative_new_TEST_blurred_no_graph_gain",
+      "protocol": "docs/bubble_chamber/S83_FROZEN_NON_SATURATING_LINE_SUPPORT_2026_10_26.md",
+      "predictor": "bubble_chamber/s83_unsaturated_local_support.py",
+      "benchmark": "scripts/research/bubble_chamber/s83_calibrate_non_saturating.py",
+      "native_audit": "scripts/research/bubble_chamber/s83_native_readonly_audit.py",
+      "calibration": "docs/bubble_chamber/S83_PUBLIC_FROZEN_CAL_2026_10_26.json",
+      "test": "docs/bubble_chamber/S83_PUBLIC_FRESH_TEST_2026_10_26.json",
+      "native_smoke": "docs/bubble_chamber/S83_PUBLIC_NATIVE_UNKNOWN_2026_10_26.json",
+      "report": "docs/bubble_chamber/S83_UNSATURATED_LINE_SUPPORT_NEGATIVE_2026_10_26.md",
+      "protocol_sha256": "55cfde177a1e4c9097d089e49884239682b41f6e303193bc2d1d0ae274b36541",
+      "predictor_sha256": "60e7634755afb994a15643a20a17709d5b2d72fb32f09817fc5b479e882edf31",
+      "benchmark_sha256": "972c7e6d54e01491ae30b73a59b8c8fb46b9d6a4d5294251fe87afad8993d768",
+      "native_audit_sha256": "6c57380859e904892fb7a41d3c6fee17ec578cc2f2f99d01abaa48bc432adba4",
+      "calibration_sha256": "3c76e62eff9a2fbfe3fdb376b2524e5fedf900f9d5c6a63b26f8d4b709ea3e91",
+      "test_sha256": "ed272ea566513d20a4141900ecbd8b1564ebb14bb5fc387be652b25b4dc840e6",
+      "native_smoke_sha256": "1a6716e5a3a02ef22fc687c3cb4bf87994676f5514986cd14d6ddc65a4a91439",
+      "report_sha256": "d17b5f70abdd3f011de4211dc1586cdccc66bd5a0ec56b00455bc65afe891290",
+      "frozen_S72_CAL_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "frozen_S80_operator_sha256": "51316342d9c2d0a331898d7fb486695ca1c17430dc3946ac1ed962b05742c9dd",
+      "frozen_S82_resampling_sha256": "658ced3484534c33fa5689bf3b1663485dfd7b0f8d5da8453d655977d30507ab",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "CAL_thresholds": {
+        "005_to_006": {
+          "s83_local_q40": 0.17213753795489792,
+          "s83_local_q70": 0.2151013430472474
+        },
+        "006_to_005": {
+          "s83_local_q40": 0.12718407026539735,
+          "s83_local_q70": 0.21829017311008528
+        }
+      },
+      "CAL_selected": {
+        "005_to_006": "baseline",
+        "006_to_005": "baseline"
+      },
+      "CAL_seeds": [
+        20268301,
+        20268311
+      ],
+      "TEST_seeds": [
+        20268303,
+        20268304,
+        20268313,
+        20268314
+      ],
+      "fresh_TEST_synthetic_scenes_per_condition": 96,
+      "native_photo_crops": 39,
+      "independent_physical_runs": 1,
+      "native_particle_GT_count": 0,
+      "physical_auto_join_authorized": false,
+      "synthetic_only": true,
+      "privacy": "No raw H50Z pixels, visualMetro point coordinates, model weights or per-scene image outputs in Git",
+      "TEST_replay_byte_identical": true
     }
   ]
 }
