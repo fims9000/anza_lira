@@ -1,0 +1,31 @@
+name: S71 historic synthetic-audit correction contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'scripts/research/bubble_chamber/s71_reaudit_s65_s67_historic.py'
+      - 'tests/test_s71_*.py'
+      - 'docs/bubble_chamber/S71_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s71_historical_reaudit_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install public-source test dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: Install CPU-only torch for frozen historical scorer
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify frozen S65-S71 evaluator, source integrity, registries and original history
+        run: python -m pytest -q tests/test_s65_endpoint_guard.py tests/test_s65_calibration_protocol.py tests/test_s66_image_endpoint_tracing.py tests/test_s66_phase_protocol.py tests/test_s67_instance_continuity.py tests/test_s69_orientation_invariant_audit.py tests/test_s70_reaudit_protocol.py tests/test_s71_reaudit_immutability.py tests/test_s71_public_replay_registry.py
+      - name: Compile S71 offline private-data replay (no private data in CI)
+        run: python -m compileall -q scripts/research/bubble_chamber/s71_reaudit_s65_s67_historic.py
