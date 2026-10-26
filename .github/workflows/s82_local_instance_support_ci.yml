@@ -1,0 +1,39 @@
+name: S82 local per-line pixel support (source-only safety and replay receipts)
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s82_*.py'
+      - 'scripts/research/bubble_chamber/s82_*.py'
+      - 'tests/test_s82_*.py'
+      - 'docs/bubble_chamber/S82_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s82_local_instance_support_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install independent scientific source requirements
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: Install CPU-only torch for frozen source geometry imports
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Check orientation-invariant evaluator, frozen S82 CAL/TEST and native UNKNOWN
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s80_multiscale_instances.py tests/test_s81_quality_gated_instances.py tests/test_s82_local_instance_support.py tests/test_s82_protocol_integrity.py tests/test_s82_public_receipts.py
+      - name: Compile CAL and TEST replay entrypoints
+        run: python -m compileall -q bubble_chamber/s82_local_instance_support.py scripts/research/bubble_chamber/s82_calibrate_per_line_then_test.py scripts/research/bubble_chamber/s82_native_readonly_audit.py
+      - name: Reject private media or trained weights in S82 public research paths
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s82*' 'scripts/research/bubble_chamber/s82*' 'tests/test_s82*' 'docs/bubble_chamber/S82*' | grep -Ei '\.(bmp|png|jpe?g|tif|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'Private media or learned weights must not be tracked' >&2
+            exit 1
+          fi

@@ -1,0 +1,38 @@
+{
+  "schema": "S82_H50Z_39_NATIVE_MACHINE_ONLY_UNKNOWN_V1",
+  "experiment_id": "ANZA-LIRA-BC-S82-20261026",
+  "native_physics_GT_count": 0,
+  "all_machine_joins": "UNKNOWN",
+  "source_photo_runs": 1,
+  "tiles": 39,
+  "synthetic_injections_used": false,
+  "center_crop_192_of_512": true,
+  "physical_auto_joins_authorized": false,
+  "frozen_CAL_sha256": "d96bf450151f10bdc935562b243e1d341a1a429ba126701e6a391aa5c5a9646a",
+  "arms": {
+    "baseline": {
+      "candidate_lines": 83,
+      "graph_joins_advisory_UNKNOWN": 3,
+      "additional_lines": 0,
+      "extra_considered": 0,
+      "extra_rejected": 0,
+      "native_verified_GT": 0
+    },
+    "s82_local_q25": {
+      "candidate_lines": 92,
+      "graph_joins_advisory_UNKNOWN": 5,
+      "additional_lines": 9,
+      "extra_considered": 12,
+      "extra_rejected": 3,
+      "native_verified_GT": 0
+    },
+    "s82_local_q50": {
+      "candidate_lines": 92,
+      "graph_joins_advisory_UNKNOWN": 5,
+      "additional_lines": 9,
+      "extra_considered": 12,
+      "extra_rejected": 3,
+      "native_verified_GT": 0
+    }
+  }
+}
