@@ -1,0 +1,67 @@
+{
+  "schema": "ANZA_LIRA_S70_PUBLIC_HISTORIC_S64_CORRECTION_AGGREGATE_V1",
+  "experiment_id": "ANZA-LIRA-BC-S70-20261026",
+  "interpretation": "Retrospective evaluation correction only. No new heldout scenes, no changes to image predictions, no native physical particle GT.",
+  "historic_scenes": 96,
+  "historic_seeds": [
+    20266403,
+    20266404,
+    20266413,
+    20266414
+  ],
+  "native_physical_GT_count": 0,
+  "automatic_join_for_physical_tracks_authorized": false,
+  "original_S64_snapshot_sha256": "0cf514960cc47651a0b0b5579d0cd728d108f8d639eaf0ee6dc89565f33c3301",
+  "corrected_full_aggregate_sha256": "ab523bad98f68cf7a6b5fe0e0460d65ac915088d45c7534b4b34b3a22898f357",
+  "protocol_sha256": "eda0c9c75b7e28b2523978450f2bb10d1af3607b3f170b8290fa0bba41a2d783",
+  "S70_runner_sha256": "6b1e7b0b70839f3099bad933cb0ddd22f61b32a965a4bb2a2be437a96426fd14",
+  "source_snapshot_and_historic_CI_exactly_reproduced": true,
+  "totals": {
+    "s39_original": {
+      "proposals": 88,
+      "historic_correct_links": 9,
+      "corrected_correct_links": 53,
+      "historic_noncorrect_links": 79,
+      "corrected_noncorrect_links": 35,
+      "historic_complete_paths": 0,
+      "corrected_complete_paths": 13
+    },
+    "junction_less": {
+      "proposals": 94,
+      "historic_correct_links": 10,
+      "corrected_correct_links": 55,
+      "historic_noncorrect_links": 84,
+      "corrected_noncorrect_links": 39,
+      "historic_complete_paths": 0,
+      "corrected_complete_paths": 15
+    }
+  },
+  "directions": {
+    "005_to_006": {
+      "s39_original": {
+        "corrected_correct_links": 35,
+        "corrected_noncorrect_links": 16,
+        "corrected_complete_paths": 9
+      },
+      "junction_less": {
+        "corrected_correct_links": 37,
+        "corrected_noncorrect_links": 19,
+        "corrected_complete_paths": 10
+      }
+    },
+    "006_to_005": {
+      "s39_original": {
+        "corrected_correct_links": 18,
+        "corrected_noncorrect_links": 19,
+        "corrected_complete_paths": 4
+      },
+      "junction_less": {
+        "corrected_correct_links": 18,
+        "corrected_noncorrect_links": 20,
+        "corrected_complete_paths": 5
+      }
+    }
+  },
+  "source_and_privacy": "Only aggregate synthetic evaluations; private H50Z 7z/BMP/points/frame IDs never committed.",
+  "deployment_gate": "No promotion. Junction-less has 2 more correct but 4 more noncorrect proposals."
+}
