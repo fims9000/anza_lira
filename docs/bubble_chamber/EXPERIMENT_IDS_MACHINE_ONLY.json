@@ -228,6 +228,38 @@
       "native_physics_GT_count": 0,
       "physical_auto_join_authorized": false,
       "privacy": "public-safe aggregate error categories only; no raw points or film pixels"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S76-20261026",
+      "phase": "S76",
+      "status": "fresh_synthetic_shape_endpoint_separation_diagnostic_only_no_deployment",
+      "retrospective_source": "ANZA-LIRA-BC-S75C-20261026",
+      "not_retrospective_S75_TEST": true,
+      "no_model_training_selection_or_physics_auto_joins": true,
+      "frozen_S72_calibration_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "S69_original_sha256": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "new_synthetic_scene_seeds": [
+        20267603,
+        20267604,
+        20267613,
+        20267614
+      ],
+      "synthetic_scene_count": 96,
+      "photographic_run_count": 1,
+      "native_physics_GT_count": 0,
+      "physical_auto_join_authorized": false,
+      "privacy": "public safe aggregate only; real photos, operator coordinates and checkpoints remain PRIVATE",
+      "protocol": "docs/bubble_chamber/S76_FROZEN_ENDPOINT_BLIND_SHAPE_AUDIT_2026_10_26.md",
+      "protocol_sha256": "d024433522cf9eae15d6d76d11bc717e059b1bfd0aba88ee0c4caa5f06e9547a",
+      "auditor": "bubble_chamber/s76_shape_endpoint_diagnostics.py",
+      "auditor_sha256": "94b46c7966470cc519dd815ea44bd6d7d681995cde6e1ca51bd3c35dae40e411",
+      "benchmark": "scripts/research/bubble_chamber/s76_blind_shape_endpoint_benchmark.py",
+      "benchmark_sha256": "8f56083197ec0991204c2727eff3fe6d69820828f856ccd86d6d0eb1dcfbf730",
+      "report": "docs/bubble_chamber/S76_SHAPE_VS_ENDPOINT_SCIENTIFIC_REPORT_2026_10_26.md",
+      "report_sha256": "83d2aa822b44ab79e3b23447f45ca05063256a1863d3eba533efde89c61fcd99",
+      "results": "docs/bubble_chamber/S76_PUBLIC_FRESH_SHAPE_ENDPOINT_DIAGNOSTIC_2026_10_26.json",
+      "results_sha256": "cf2479f4134284b9705459c5ec3381deabcf8af768ac0117b0335c9e6b711bcc"
     }
   ]
 }

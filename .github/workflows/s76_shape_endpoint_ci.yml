@@ -1,0 +1,39 @@
+name: S76 endpoint-blind shape diagnostics (public source only)
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s76_*.py'
+      - 'scripts/research/bubble_chamber/s76_*.py'
+      - 'tests/test_s76_*.py'
+      - 'docs/bubble_chamber/S76_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s76_shape_endpoint_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_scientific_contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific libraries
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: Install CPU-only torch for the original frozen scorer imports
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify S69 historical orientation correction and S76 endpoint-blind separation
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s75c_public_error_taxonomy.py tests/test_s76_shape_endpoint_diagnostics.py tests/test_s76_protocol_and_replay.py tests/test_s76_public_receipts.py
+      - name: Syntax check offline replay
+        run: python -m compileall -q bubble_chamber/s76_shape_endpoint_diagnostics.py scripts/research/bubble_chamber/s76_blind_shape_endpoint_benchmark.py
+      - name: Check source-only S76 Git inputs
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s76*' 'scripts/research/bubble_chamber/s76*' 'docs/bubble_chamber/S76*' 'tests/test_s76*' | grep -Ei '\.(png|jpe?g|bmp|tiff?|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'Native film pixels, private data and model weights are not allowed in public research branch' >&2
+            exit 1
+          fi
