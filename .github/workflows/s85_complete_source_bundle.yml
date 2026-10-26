@@ -1,0 +1,56 @@
+name: S85 complete public-safe source snapshot
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - '.github/workflows/s85_complete_source_bundle.yml'
+      - 'bubble_chamber/s85_*.py'
+      - 'scripts/research/bubble_chamber/s85_*.py'
+      - 'tests/test_s85_*.py'
+      - 'docs/bubble_chamber/S85_*'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Archive audited text-only research sources, no private imaging data
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, subprocess, zipfile
+          from pathlib import Path
+          roots = ('bubble_chamber/', 'scripts/research/bubble_chamber/', 'tests/',
+                   'docs/bubble_chamber/', 'models/', '.github/workflows/')
+          extra = {'requirements.txt', 'pyproject.toml', 'pytest.ini', 'conftest.py'}
+          allowed = {'.py', '.md', '.json', '.yaml', '.yml', '.txt', '.html', '.toml', '.ini', '.cfg'}
+          paths = subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          manifest = {}
+          name = 'ANZA_LIRA_S85_COMPLETE_PUBLIC_SOURCE.zip'
+          with zipfile.ZipFile(name,'w',zipfile.ZIP_DEFLATED,compresslevel=7) as z:
+              for p in sorted(filter(None,paths)):
+                  if not (p.startswith(roots) or p in extra) or Path(p).suffix not in allowed:
+                      continue
+                  data = Path(p).read_bytes()
+                  if len(data)>2_000_000 or b'\0' in data:
+                      raise RuntimeError('Unverified binary/large source: '+p)
+                  data.decode('utf-8')
+                  z.writestr(p,data)
+                  manifest[p] = hashlib.sha256(data).hexdigest()
+              z.writestr('SAFE_SOURCE_SHA256_MANIFEST.json',json.dumps(
+                  {'source_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+                   'files':manifest},indent=2,sort_keys=True))
+          print('Archived',len(manifest),'text-only source files')
+          if len(manifest)<600:
+              raise RuntimeError('Source snapshot unexpectedly incomplete')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s85-complete-public-source
+          path: ANZA_LIRA_S85_COMPLETE_PUBLIC_SOURCE.zip
+          retention-days: 3
+          if-no-files-found: error
