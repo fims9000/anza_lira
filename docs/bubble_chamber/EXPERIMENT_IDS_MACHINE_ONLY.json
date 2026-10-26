@@ -607,6 +607,50 @@
       "synthetic_only": true,
       "privacy": "No raw H50Z pixels, visualMetro point coordinates, model weights or per-scene image outputs in Git",
       "TEST_replay_byte_identical": true
+    },
+    {
+      "id": "ANZA-LIRA-BC-S84-20261026",
+      "phase": "S84",
+      "status": "source_CAL_one_photo_gate_passed_but_fresh_TEST_noncorrect_increase_NO_promotion",
+      "protocol": "docs/bubble_chamber/S84_FROZEN_GRAPH_CONTEXT_EXTRA_INSTANCES_2026_10_26.md",
+      "predictor": "bubble_chamber/s84_graph_context_candidates.py",
+      "benchmark": "scripts/research/bubble_chamber/s84_calibrate_then_fresh_test_graph_context.py",
+      "native_audit": "scripts/research/bubble_chamber/s84_native_unknown_readonly.py",
+      "calibration": "docs/bubble_chamber/S84_PUBLIC_FROZEN_CAL_2026_10_26.json",
+      "results": "docs/bubble_chamber/S84_PUBLIC_FRESH_TEST_2026_10_26.json",
+      "native_smoke": "docs/bubble_chamber/S84_PUBLIC_NATIVE_UNKNOWN_2026_10_26.json",
+      "report": "docs/bubble_chamber/S84_GRAPH_CONTEXT_CANDIDATE_SELECTION_RESULT_2026_10_26.md",
+      "protocol_sha256": "ea5078ea5d96f7ece04b8f0e046d7c64615f7b45da2a87c27314985b51798818",
+      "predictor_sha256": "6a6b842542733a9f7a85efd1eebfb63341fd63af9162fb4162b9907f6d9b3889",
+      "benchmark_sha256": "02e743122cae08d8ef52de1fbbab0982994dfd82eaf1b5723cc1e9f7d1a0895c",
+      "native_audit_sha256": "48ca31455f460dab5e04e2cc987f58ffb776ed6b6905bed5e0501bc0fb51f9d3",
+      "calibration_sha256": "6f6fa443aa8fbfd93eec427039472c34a4fd96b4f0aa74e5bb81727c4dbf464b",
+      "results_sha256": "c0ac1a3dc6c99a780b57786d15b3e4ab40069673aae85df9c90935380307665a",
+      "native_smoke_sha256": "ab7714c03c81af1ca0df4065dbc903ffdad2e169c8012adee6d3d2d50250b415",
+      "report_sha256": "3edd00df63d77ad2bfba1bde568ecbb537961be4ecaf8fd6f04dec5cbac31f31",
+      "immutable_CAL_receipt_sha256": "6f6fa443aa8fbfd93eec427039472c34a4fd96b4f0aa74e5bb81727c4dbf464b",
+      "S72_source_CAL_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "CAL_seeds": [
+        20268401,
+        20268411
+      ],
+      "TEST_seeds": [
+        20268403,
+        20268404,
+        20268413,
+        20268414
+      ],
+      "CAL_selected": {
+        "005_to_006": "baseline",
+        "006_to_005": "s84_photo_q40"
+      },
+      "test_scenes_per_condition": 96,
+      "H50Z_private_crop_count": 39,
+      "native_GT": 0,
+      "physical_auto_join_authorized": false,
+      "privacy": "Synthetic aggregate-only; no private image or measured-point arrays in public git",
+      "fresh_TEST_repeat_byte_identical": false
     }
   ]
 }

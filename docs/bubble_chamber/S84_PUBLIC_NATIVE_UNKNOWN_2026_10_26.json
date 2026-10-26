@@ -1,0 +1,55 @@
+{
+  "schema": "S84_39_H50Z_REAL_PHOTOS_MACHINE_HYPOTHESES_ONLY_v1",
+  "experiment_id": "ANZA-LIRA-BC-S84-20261026",
+  "tiles": 39,
+  "photo_runs": 1,
+  "visualmetro_film070_is_not_H50Z_GT": true,
+  "no_synthetic_insertions": true,
+  "native_expert_GT_count": 0,
+  "all_native_joins": "UNKNOWN",
+  "physical_auto_joins_authorized": false,
+  "frozen_CAL_sha256": "6f6fa443aa8fbfd93eec427039472c34a4fd96b4f0aa74e5bb81727c4dbf464b",
+  "arms": {
+    "baseline": {
+      "candidate_lines": 83,
+      "proposed_joins_UNKNOWN": 3,
+      "additional_lines": 0,
+      "extra_considered": 0,
+      "extra_rejected": 0,
+      "synthetic_GT": 0,
+      "native_expert_GT": 0
+    },
+    "s84_photo_q40": {
+      "candidate_lines": 91,
+      "proposed_joins_UNKNOWN": 4,
+      "additional_lines": 8,
+      "extra_considered": 12,
+      "extra_rejected": 4,
+      "synthetic_GT": 0,
+      "native_expert_GT": 0
+    },
+    "s84_context_single": {
+      "candidate_lines": 83,
+      "proposed_joins_UNKNOWN": 3,
+      "additional_lines": 0,
+      "extra_considered": 12,
+      "extra_rejected": 12,
+      "synthetic_GT": 0,
+      "native_expert_GT": 0
+    },
+    "s84_context_bridge": {
+      "candidate_lines": 83,
+      "proposed_joins_UNKNOWN": 3,
+      "additional_lines": 0,
+      "extra_considered": 12,
+      "extra_rejected": 12,
+      "synthetic_GT": 0,
+      "native_expert_GT": 0
+    }
+  },
+  "direction_selected_counts": {
+    "candidate_lines": 90,
+    "proposed_joins_UNKNOWN": 4,
+    "additional_lines": 7
+  }
+}

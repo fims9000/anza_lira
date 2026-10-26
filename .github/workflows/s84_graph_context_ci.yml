@@ -1,0 +1,38 @@
+name: S84 graph-context source-only CAL/TEST correctness and privacy
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s84_*.py'
+      - 'scripts/research/bubble_chamber/s84_*.py'
+      - 'tests/test_s84_*.py'
+      - 'docs/bubble_chamber/S84_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s84_graph_context_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install public scientific source dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: Install frozen geometry scorer CPU dependencies
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify S69 orientation, S80-S84 history, source locks, S84 CAL and TEST receipts
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s80_multiscale_instances.py tests/test_s83_unsaturated_support.py tests/test_s84_graph_context_candidates.py tests/test_s84_frozen_protocol.py tests/test_s84_public_reproducibility.py
+      - name: Source syntax verification without private H50Z pixels
+        run: python -m compileall -q bubble_chamber/s84_graph_context_candidates.py scripts/research/bubble_chamber/s84_calibrate_then_fresh_test_graph_context.py scripts/research/bubble_chamber/s84_native_unknown_readonly.py
+      - name: Enforce S84 privacy boundary
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s84*' 'scripts/research/bubble_chamber/s84*' 'tests/test_s84*' 'docs/bubble_chamber/S84*' | grep -Ei '\.(bmp|png|jpe?g|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'Never publish private H50Z imagery, measured coordinates or model checkpoints' >&2
+            exit 1
+          fi
