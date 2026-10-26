@@ -1,0 +1,39 @@
+name: S73 frozen pixel-domain stress source checks
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s73_*.py'
+      - 'scripts/research/bubble_chamber/s73_*.py'
+      - 'tests/test_s73_*.py'
+      - 'docs/bubble_chamber/S73_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s73_pixel_stress_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific source dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: CPU-only torch for original frozen S56 source imports
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify image-only perturbations, S72 source locks and public S73 results
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s72_public_aggregate.py tests/test_s73_image_robustness.py tests/test_s73_stress_protocol.py tests/test_s73_public_frozen_results.py
+      - name: Compile S73 reproducible research code
+        run: python -m compileall -q bubble_chamber/s73_image_robustness.py scripts/research/bubble_chamber/s73_stress_test_pixel_graph.py
+      - name: Verify no private binary materials in S73 research paths
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s73*' 'scripts/research/bubble_chamber/s73*' 'docs/bubble_chamber/S73*' 'tests/test_s73*' | grep -Ei '\.(png|jpe?g|bmp|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'Private/non-source data must not be tracked' >&2
+            exit 1
+          fi
