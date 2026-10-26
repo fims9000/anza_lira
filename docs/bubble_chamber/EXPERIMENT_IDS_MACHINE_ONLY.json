@@ -47,6 +47,41 @@
       "git_base_sha": "57c7cb81c8d8592db9535d3c7b4db61fdaf38dfa",
       "privacy": "No private H50Z images, points, frame IDs, 7z files or checkpoints in Git",
       "native_physical_gt_count": 0
+    },
+    {
+      "id": "ANZA-LIRA-BC-S70-20261026",
+      "phase": "S70",
+      "status": "historic_S64_paired_replay_exact_original_CIs_reproduced; corrected_only; no_new_heldout; no_promotion",
+      "protocol": "docs/bubble_chamber/S70_FROZEN_S64_RETROSPECTIVE_REEVALUATION_2026_10_26.md",
+      "report": "docs/bubble_chamber/S70_S64_ORIENTATION_BIAS_HISTORICAL_CORRECTION_2026_10_26.md",
+      "results": "docs/bubble_chamber/S70_S64_RETROSPECTIVE_AGGREGATE_2026_10_26.json",
+      "protocol_sha256": "eda0c9c75b7e28b2523978450f2bb10d1af3607b3f170b8290fa0bba41a2d783",
+      "algorithm_sha256": "6b1e7b0b70839f3099bad933cb0ddd22f61b32a965a4bb2a2be437a96426fd14",
+      "evaluator_sha256": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+      "original_S64_aggregate_sha256": "0cf514960cc47651a0b0b5579d0cd728d108f8d639eaf0ee6dc89565f33c3301",
+      "corrected_S70_full_aggregate_sha256": "ab523bad98f68cf7a6b5fe0e0460d65ac915088d45c7534b4b34b3a22898f357",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "historic_test_seeds": [
+        20266403,
+        20266404,
+        20266413,
+        20266414
+      ],
+      "synthetic_scene_count": 96,
+      "original_correct_join_totals": {
+        "s39_original": 9,
+        "junction_less": 10
+      },
+      "corrected_correct_join_totals": {
+        "s39_original": 53,
+        "junction_less": 55
+      },
+      "corrected_full_three_piece_paths": {
+        "s39_original": 13,
+        "junction_less": 15
+      },
+      "physical_verified_native_GT_count": 0,
+      "privacy": "Source-only public aggregate; no photo pixels or native per-frame identities"
     }
   ]
 }
