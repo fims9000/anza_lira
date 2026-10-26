@@ -1,0 +1,24 @@
+name: S67 pixel-only crossing continuity source QA
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s67_instance_continuity.py'
+      - 'scripts/research/bubble_chamber/s67_benchmark_instance_continuity.py'
+      - 'tests/test_s67_instance_continuity.py'
+      - '.github/workflows/s67_instance_continuity_ci.yml'
+  workflow_dispatch:
+jobs:
+  source-qa:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy scipy opencv-python-headless scikit-image networkx pytest
+      - run: python -m pytest -q tests/test_s67_instance_continuity.py
+      - run: python -m compileall -q bubble_chamber/s67_instance_continuity.py scripts/research/bubble_chamber/s67_benchmark_instance_continuity.py
