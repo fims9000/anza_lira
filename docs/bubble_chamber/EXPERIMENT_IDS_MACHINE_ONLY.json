@@ -116,6 +116,31 @@
       "physical_verified_native_GT_count": 0,
       "physical_auto_joins_authorized": false,
       "privacy": "public synthetic aggregates only; two authentic photos same physical run; no raw photo pixels/coordinates/weights"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S73-20261026",
+      "phase": "S73",
+      "status": "fresh_96_paired_scenes_domain_stress_failure_no_promotion",
+      "protocol": "docs/bubble_chamber/S73_FROZEN_PIXEL_DOMAIN_STRESS_TEST_2026_10_26.md",
+      "results": "docs/bubble_chamber/S73_PUBLIC_FRESH_DOMAIN_STRESS_2026_10_26.json",
+      "report": "docs/bubble_chamber/S73_PIXEL_DOMAIN_STRESS_NEGATIVE_2026_10_26.md",
+      "protocol_sha256": "c0d3c1c7ca767a00b68d613f294fe8f7cbfba5cae9b9a6f4045af408b6eaa3a6",
+      "calibration_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "test_aggregate_sha256": "53205b96439c657f13fca35bcf6e0dd4108bf20a683473407a5c38507368e9fe",
+      "perturbation_sha256": "0560ff1d7f10b7e28fe744c2f6900c4a2e4dd64edf94c6085e95e251e913b38d",
+      "benchmark_source_sha256": "91d18fbebfe91f2e34dfed8b368b187d04268451cde490969025e45ae5e81a33",
+      "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "new_synthetic_scene_seeds": [
+        20267303,
+        20267304,
+        20267313,
+        20267314
+      ],
+      "synthetic_base_scenes": 96,
+      "paired_image_conditions": 5,
+      "native_physical_GT_count": 0,
+      "physical_auto_joins_authorized": false,
+      "privacy": "aggregate+code only, no native film image pixels, source operator coordinates or weights"
     }
   ]
 }
