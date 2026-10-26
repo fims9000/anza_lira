@@ -99,6 +99,23 @@
       "native_H50Z_GT_count": 0,
       "physical_auto_joins_authorized": false,
       "privacy": "public aggregated synthetic-only metrics; no raw photo pixels or per-scene labels"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S72-20261026",
+      "phase": "S72",
+      "status": "fresh_96_synthetic_scenes_corrected_audit_from_CAL; CAL_selected_hybrid_reduced_noncorrect_without_loss_synthetic_correct; native_physics_UNVERIFIED",
+      "protocol": "docs/bubble_chamber/S72_FROZEN_FRESH_ORIENTATION_CORRECTED_BRANCH_TEST_2026_10_26.md",
+      "results": "docs/bubble_chamber/S72_PUBLIC_FRESH_TEST_2026_10_26.json",
+      "calibration": "docs/bubble_chamber/S72_PUBLIC_FROZEN_CAL_2026_10_26.json",
+      "report": "docs/bubble_chamber/S72_FRESH_ORIENTATION_CORRECTED_HELDOUT_RESULTS_2026_10_26.md",
+      "protocol_sha256": "738a97157a8a6ae6ed118a61af2e8e54ee8fa2be479db7e155b9bd0f87a865e2",
+      "calibration_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "test_sha256": "9b50be77791d8b8dcfa2948554b9e19cc6eafac1b70a0f8f2b746841433f8ad3",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "evaluator_sha256": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+      "physical_verified_native_GT_count": 0,
+      "physical_auto_joins_authorized": false,
+      "privacy": "public synthetic aggregates only; two authentic photos same physical run; no raw photo pixels/coordinates/weights"
     }
   ]
 }

@@ -1,0 +1,140 @@
+{
+  "schema": "S72_FRESH_CORRECTED_PIXEL_GRAPH_SYNTHETIC_ONLY_V1",
+  "phase": "cal",
+  "experiment_id": "ANZA-LIRA-BC-S72-20261026",
+  "protocol_sha256": "738a97157a8a6ae6ed118a61af2e8e54ee8fa2be479db7e155b9bd0f87a865e2",
+  "frozen_source_sha256": {
+    "bubble_chamber/s68_branch_preserving_instances.py": "dc16718c9bcac613eacc38771b2fa9a840266d9f7da377cc7538ae136bc4a91a",
+    "scripts/research/bubble_chamber/s68_benchmark_branch_preservation.py": "f8a841eb7c6fc8e5074e7d88c667891a36f95be67d5a7eb86d145cc9c3fc3e71",
+    "bubble_chamber/s69_orientation_invariant_audit.py": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+    "scripts/research/bubble_chamber/s56_benchmark_global_paths.py": "088024077e5f86b5f4308c5d23e72643c8b261a355cfb12f2bbc8c1d3d87355b"
+  },
+  "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "physical_verified_H50Z_GT": 0,
+  "physical_auto_join_authorized": false,
+  "all_metrics_are_SYNTHETIC_ONLY": true,
+  "H50Z_photos_one_physical_run": true,
+  "visualmetro_film070_NOT_H50Z_GT": true,
+  "directions": {
+    "005_to_006": {
+      "source_H50Z_background": "005",
+      "target_H50Z_background": "006",
+      "S56_frozen_CAL_cutoff": 0.8443092691176276,
+      "CAL_selected": "s68_branch_endpoint_refine",
+      "CAL_fixed_arms": {
+        "s39_original": {
+          "candidate_polylines": 169,
+          "candidate_pairs_after_strict_gate": 101,
+          "source_node_matches": 59,
+          "synthetic_decoy_matched": 11,
+          "selected_provisional_links": 35,
+          "selected_synthetic_correct_links": 14,
+          "synthetic_noncorrect_selected": 21,
+          "scene_any_noncorrect": 15,
+          "complete_three_piece_paths_synthetic": 2,
+          "solver_failure": 0,
+          "scene_count": 32
+        },
+        "s67_crossing_orientation_v1": {
+          "candidate_polylines": 165,
+          "candidate_pairs_after_strict_gate": 92,
+          "source_node_matches": 55,
+          "synthetic_decoy_matched": 11,
+          "selected_provisional_links": 32,
+          "selected_synthetic_correct_links": 13,
+          "synthetic_noncorrect_selected": 19,
+          "scene_any_noncorrect": 14,
+          "complete_three_piece_paths_synthetic": 2,
+          "solver_failure": 0,
+          "scene_count": 32
+        },
+        "s68_branch_split": {
+          "candidate_polylines": 165,
+          "candidate_pairs_after_strict_gate": 99,
+          "source_node_matches": 60,
+          "synthetic_decoy_matched": 10,
+          "selected_provisional_links": 34,
+          "selected_synthetic_correct_links": 16,
+          "synthetic_noncorrect_selected": 18,
+          "scene_any_noncorrect": 14,
+          "complete_three_piece_paths_synthetic": 3,
+          "solver_failure": 0,
+          "scene_count": 32
+        },
+        "s68_branch_endpoint_refine": {
+          "candidate_polylines": 165,
+          "candidate_pairs_after_strict_gate": 94,
+          "source_node_matches": 60,
+          "synthetic_decoy_matched": 10,
+          "selected_provisional_links": 33,
+          "selected_synthetic_correct_links": 17,
+          "synthetic_noncorrect_selected": 16,
+          "scene_any_noncorrect": 13,
+          "complete_three_piece_paths_synthetic": 4,
+          "solver_failure": 0,
+          "scene_count": 32
+        }
+      }
+    },
+    "006_to_005": {
+      "source_H50Z_background": "006",
+      "target_H50Z_background": "005",
+      "S56_frozen_CAL_cutoff": 0.8539211223090797,
+      "CAL_selected": "s39_original",
+      "CAL_fixed_arms": {
+        "s39_original": {
+          "candidate_polylines": 149,
+          "candidate_pairs_after_strict_gate": 118,
+          "source_node_matches": 67,
+          "synthetic_decoy_matched": 11,
+          "selected_provisional_links": 23,
+          "selected_synthetic_correct_links": 14,
+          "synthetic_noncorrect_selected": 9,
+          "scene_any_noncorrect": 7,
+          "complete_three_piece_paths_synthetic": 2,
+          "solver_failure": 0,
+          "scene_count": 32
+        },
+        "s67_crossing_orientation_v1": {
+          "candidate_polylines": 146,
+          "candidate_pairs_after_strict_gate": 113,
+          "source_node_matches": 67,
+          "synthetic_decoy_matched": 11,
+          "selected_provisional_links": 21,
+          "selected_synthetic_correct_links": 14,
+          "synthetic_noncorrect_selected": 7,
+          "scene_any_noncorrect": 5,
+          "complete_three_piece_paths_synthetic": 2,
+          "solver_failure": 0,
+          "scene_count": 32
+        },
+        "s68_branch_split": {
+          "candidate_polylines": 145,
+          "candidate_pairs_after_strict_gate": 111,
+          "source_node_matches": 66,
+          "synthetic_decoy_matched": 12,
+          "selected_provisional_links": 24,
+          "selected_synthetic_correct_links": 15,
+          "synthetic_noncorrect_selected": 9,
+          "scene_any_noncorrect": 7,
+          "complete_three_piece_paths_synthetic": 2,
+          "solver_failure": 0,
+          "scene_count": 32
+        },
+        "s68_branch_endpoint_refine": {
+          "candidate_polylines": 145,
+          "candidate_pairs_after_strict_gate": 109,
+          "source_node_matches": 67,
+          "synthetic_decoy_matched": 12,
+          "selected_provisional_links": 22,
+          "selected_synthetic_correct_links": 15,
+          "synthetic_noncorrect_selected": 7,
+          "scene_any_noncorrect": 5,
+          "complete_three_piece_paths_synthetic": 2,
+          "solver_failure": 0,
+          "scene_count": 32
+        }
+      }
+    }
+  }
+}
