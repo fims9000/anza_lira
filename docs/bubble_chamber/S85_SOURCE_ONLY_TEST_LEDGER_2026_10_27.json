@@ -1,0 +1,50 @@
+{
+  "schema": "S85_SOURCE_ONLY_TEST_LEDGER_V1",
+  "experiment_id": "ANZA-LIRA-BC-S85-20261027",
+  "branch": "research/bubble-chamber-graph-lira",
+  "historical_parent": "51f4d6c709ca180bec6629d3c266e9bcc4e25185",
+  "phase": "SOURCE_ONLY",
+  "private_TRAIN_executed": false,
+  "private_CAL_executed": false,
+  "private_TEST_executed": false,
+  "native_H50Z_GT": 0,
+  "physical_auto_joins_authorized": false,
+  "independent_physical_runs": 1,
+  "scientific_metrics": null,
+  "blocked_on": [
+    "Authorized private H50Z_030_01_005/006 photo crops",
+    "Authorized measured visualMetro film070 geometry (1mH2Data/S1)"
+  ],
+  "next_action": "Run S85 TRAIN on authorized private inputs, record trained/abstain, then freeze CAL before TEST",
+  "source_only_tests": "19 PASSED; standalone local contract suite; full GitHub CI pending",
+  "published_source_paths": [
+    "bubble_chamber/s85_fragment_ranker.py",
+    "bubble_chamber/s85_train_reference_labels.py",
+    "bubble_chamber/s85_selection_gate.py",
+    "bubble_chamber/s85_image_disturbances.py",
+    "scripts/research/bubble_chamber/s85_train_calibrate_test_learned.py",
+    "scripts/research/bubble_chamber/s85_native_unknown_audit_v2.py",
+    "docs/bubble_chamber/S85_FROZEN_LEARNED_FRAGMENT_GATE_2026_10_27.md",
+    "docs/bubble_chamber/S85_IMPLEMENTATION_STATUS_2026_10_27.md",
+    "tests/test_s85_fragment_ranker.py",
+    "tests/test_s85_protocol_and_pipeline.py",
+    "tests/test_s85_native_audit_contract.py",
+    "tests/test_s85_learned_closed_loop_toy.py",
+    ".github/workflows/s85_source_only_train_cal_test_ci.yml"
+  ],
+  "source_sha256": {
+    "bubble_chamber/s85_fragment_ranker.py": "410b4e09090874d124275bc62c4ebf71c6878a0fb95c6fada012fd048b9b49b4",
+    "bubble_chamber/s85_train_reference_labels.py": "a119565a65416a24f285452693d4cb0f934b5b7aebeae224aca88ed959ee1d03",
+    "bubble_chamber/s85_selection_gate.py": "bdd1981512f38d811588d1eb315c078a4453e0b8c6ea6854eaa997a08255f019",
+    "bubble_chamber/s85_image_disturbances.py": "a4de1a1ce81b713065c504dd441763c5cf995b6d1e96bb485d8ba9f775783f80",
+    "scripts/research/bubble_chamber/s85_train_calibrate_test_learned.py": "f386232153efe0112fb447aad7bd952b751c7482bcde1a4aa966454b2a5a00b0",
+    "scripts/research/bubble_chamber/s85_native_unknown_audit_v2.py": "f89693820016ca1312f2551e47dc48faae7caa4d85f7222ce382b9988ba8cb49",
+    "docs/bubble_chamber/S85_FROZEN_LEARNED_FRAGMENT_GATE_2026_10_27.md": "df01ec5745aa9e9273145fca70cce5fc349ec8b5f9876eb9d98f5272fa1815dd",
+    "docs/bubble_chamber/S85_IMPLEMENTATION_STATUS_2026_10_27.md": "376ade1b996bfe0b9fe788b54357744b17cb3722206f481754a4e84032c71341",
+    "tests/test_s85_fragment_ranker.py": "8d68b788dd4624196180f6c2c48fe92c1ea0d1966e333617d9e5959c10e0e0c1",
+    "tests/test_s85_protocol_and_pipeline.py": "ab71e8e95cc9169b68983eb0d8dd7eb1947fcffb96f6997fdd230fc17007d3cc",
+    "tests/test_s85_native_audit_contract.py": "a508578eedb83d39afba5e6693cfdc7ca2bfaa07d3a2f469084460dfa29a3861",
+    "tests/test_s85_learned_closed_loop_toy.py": "d457553ad00302c8213ff35d01f724cf0ff18a264e3e12b650937e827f80e6d7",
+    ".github/workflows/s85_source_only_train_cal_test_ci.yml": "36250daf538a256c557a07fd8606c9b7b0b8f50b4a8c8ca64801ed871c5bc102"
+  }
+}

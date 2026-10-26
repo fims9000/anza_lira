@@ -1,0 +1,38 @@
+name: S85 learned instance selector source-only safety contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s85_*.py'
+      - 'scripts/research/bubble_chamber/s85_*.py'
+      - 'tests/test_s85_*.py'
+      - 'docs/bubble_chamber/S85_*'
+      - '.github/workflows/s85_source_only_train_cal_test_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_train_cal_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Source-only scientific dependencies
+        run: python -m pip install numpy scipy scikit-learn scikit-image opencv-python-headless networkx pytest
+      - name: Install torch CPU for frozen S56 import dependencies
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Preserve frozen S72/S84 protocol and test S85 TRAIN-only contracts
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s84_graph_context_candidates.py tests/test_s85_fragment_ranker.py tests/test_s85_protocol_and_pipeline.py tests/test_s85_native_audit_contract.py tests/test_s85_learned_closed_loop_toy.py
+      - name: Compile S85 learned code and native UNKNOWN diagnostic
+        run: python -m compileall -q bubble_chamber/s85_fragment_ranker.py bubble_chamber/s85_train_reference_labels.py bubble_chamber/s85_image_disturbances.py bubble_chamber/s85_selection_gate.py scripts/research/bubble_chamber/s85_train_calibrate_test_learned.py scripts/research/bubble_chamber/s85_native_unknown_audit_v2.py
+      - name: Do not commit private photos or weights with S85
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s85*' 'scripts/research/bubble_chamber/s85*' 'tests/test_s85*' 'docs/bubble_chamber/S85*' | grep -Ei '\.(bmp|png|jpe?g|tif|tiff|7z|zip|pt|pth|ckpt|pkl|joblib|npy|npz)$'; then
+            echo 'Private images/model weights are forbidden in public S85 source' >&2
+            exit 1
+          fi
