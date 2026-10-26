@@ -387,6 +387,56 @@
       "test_sha256": "6ff2cc98dcc0ce24a7186e923b3824f13f968bf016ff09b90553cea058661dc5",
       "report": "docs/bubble_chamber/S79_ALTERNATIVE_GRAPH_SYNTHETIC_NEGATIVE_2026_10_26.md",
       "report_sha256": "40e0a3cc4ac6dff76608e4294284c8aeafeff9d05c577f78fcc15e7c8a0c611e"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S80-20261026",
+      "phase": "S80",
+      "status": "negative_CAL_rejected_new_arms_fresh_TEST_replayed_byte_identical",
+      "source_S72_CAL_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "calibration_sha256": "a85134ddc709da48b7851ea6998f75c789a35010a0faff50ee00ee8d727ded28",
+      "test_sha256": "37e6f0711bab4d14924a3b2e79779bc08ee0613913a53bdfb49000ae34a9abdc",
+      "native_unlabelled_smoke_sha256": "3f99fc57b73b6f516b4a80bdbfd8e2eb3d1d8b562e2aed31a0f016ccd2438bd0",
+      "protocol_sha256": "a955d8b642017f0c8441a4c59b6257c80d9ad60f2a06ad241e2f86adc86921d3",
+      "algorithm_sha256": "51316342d9c2d0a331898d7fb486695ca1c17430dc3946ac1ed962b05742c9dd",
+      "benchmark_sha256": "39531201675a708fe55a247335621deb3051d2658b65702788e24689b0ddc711",
+      "native_audit_code_sha256": "0ad2bf02822c44cdafb03ce12c83f164835eab11f1e8b1d9c2165fb227f05b91",
+      "report_sha256": "e78cd3403102684ca6c78f675a80ac6ad1bbb96f4bc8aa39a62b48289efa101b",
+      "cal_seeds": [
+        20268001,
+        20268011
+      ],
+      "test_seeds": [
+        20268003,
+        20268004,
+        20268013,
+        20268014
+      ],
+      "source_cal_scenes": 32,
+      "synthetic_test_scenes_per_condition": 96,
+      "test_conditions": [
+        "clean",
+        "blur_sigma_11",
+        "blur_sigma_16"
+      ],
+      "cal_selection": {
+        "005_to_006": "baseline",
+        "006_to_005": "baseline"
+      },
+      "physical_auto_joins_authorized": false,
+      "native_H50Z_GT_count": 0,
+      "independent_physical_runs": 1,
+      "synthetic_only": true,
+      "replay_byte_identical": true,
+      "protocol": "docs/bubble_chamber/S80_FROZEN_MULTISCALE_PIXEL_INSTANCES_2026_10_26.md",
+      "predictor": "bubble_chamber/s80_multiscale_instances.py",
+      "benchmark": "scripts/research/bubble_chamber/s80_calibrate_then_test_multiscale.py",
+      "native_audit": "scripts/research/bubble_chamber/s80_native_unlabelled_audit.py",
+      "calibration": "docs/bubble_chamber/S80_PUBLIC_FROZEN_CAL_2026_10_26.json",
+      "test": "docs/bubble_chamber/S80_PUBLIC_FRESH_TEST_2026_10_26.json",
+      "native_smoke": "docs/bubble_chamber/S80_PUBLIC_NATIVE_UNLABELLED_2026_10_26.json",
+      "report": "docs/bubble_chamber/S80_MULTISCALE_PIXEL_INSTANCES_CAL_TEST_2026_10_26.md",
+      "privacy": "source-only public, genuine H50Z pixels and visualMetro point geometry PRIVATE"
     }
   ]
 }

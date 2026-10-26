@@ -1,0 +1,39 @@
+name: S80 frozen multiscale ridge instances source-only QA
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s80_*.py'
+      - 'scripts/research/bubble_chamber/s80_*.py'
+      - 'tests/test_s80_*.py'
+      - 'docs/bubble_chamber/S80_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s80_multiscale_instances_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific source-only dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: Install frozen S56 model CPU torch for imports only
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify S69 orientation evaluator and S80 pixel-only contracts, frozen CAL and receipts
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s80_multiscale_instances.py tests/test_s80_repro_protocol.py tests/test_s80_native_safety.py tests/test_s80_public_receipts.py
+      - name: Check Python syntax
+        run: python -m compileall -q bubble_chamber/s80_multiscale_instances.py scripts/research/bubble_chamber/s80_calibrate_then_test_multiscale.py scripts/research/bubble_chamber/s80_native_unlabelled_audit.py
+      - name: Block private pixel/model archives
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s80*' 'scripts/research/bubble_chamber/s80*' 'docs/bubble_chamber/S80*' 'tests/test_s80*' | grep -Ei '\.(png|jpe?g|bmp|tif|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'Private imaging data or weight files cannot be included in public S80' >&2
+            exit 1
+          fi

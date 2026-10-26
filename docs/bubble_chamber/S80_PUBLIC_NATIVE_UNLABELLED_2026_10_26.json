@@ -1,0 +1,34 @@
+{
+  "schema": "S80_NATIVE_UNLABELLED_CENTRE_39_MACHINE_ONLY_V1",
+  "experiment_id": "ANZA-LIRA-BC-S80-20261026",
+  "genuine_private_tiles": 39,
+  "central_192px_of_512px": true,
+  "independent_physics_runs": false,
+  "native_particle_GT": 0,
+  "all_proposals_status": "UNKNOWN",
+  "native_physical_joins_authorized": false,
+  "source_s72_cal_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+  "aggregates": {
+    "baseline": {
+      "image_only_line_candidates": 83,
+      "graph_advisory_links_UNKNOWN": 3,
+      "new_multiscale_line_instances": 0,
+      "rejected_duplicate_candidates": 0,
+      "native_physics_GT": 0
+    },
+    "s80_medium_add4": {
+      "image_only_line_candidates": 114,
+      "graph_advisory_links_UNKNOWN": 6,
+      "new_multiscale_line_instances": 31,
+      "rejected_duplicate_candidates": 51,
+      "native_physics_GT": 0
+    },
+    "s80_consensus_add6": {
+      "image_only_line_candidates": 95,
+      "graph_advisory_links_UNKNOWN": 5,
+      "new_multiscale_line_instances": 12,
+      "rejected_duplicate_candidates": 47,
+      "native_physics_GT": 0
+    }
+  }
+}
