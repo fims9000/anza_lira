@@ -1,0 +1,43 @@
+name: S78-S79 alternative-graph machine-only provenance and solver safety
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s78_*.py'
+      - 'bubble_chamber/s79_*.py'
+      - 'scripts/research/bubble_chamber/s78_*.py'
+      - 'scripts/research/bubble_chamber/s79_*.py'
+      - 'tests/test_s78_*.py'
+      - 'tests/test_s79_*.py'
+      - 'docs/bubble_chamber/S78_*'
+      - 'docs/bubble_chamber/S79_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s78_s79_alternative_graph_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_milp_and_synthetic_receipts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific Python source-only dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn networkx opencv-python-headless pytest
+      - name: CPU Torch for frozen S56 geometry scorer imports
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Ensure pixel-only inference, mutually exclusive alternatives and locked public receipts
+        run: python -m pytest -q tests/test_s78_*.py tests/test_s79_*.py tests/test_s69_orientation_invariant_audit.py tests/test_s77_short_gap_instances.py
+      - name: Reject private original imagery and weights in new public paths
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s78*' 'bubble_chamber/s79*' 'scripts/research/bubble_chamber/s78*' 'scripts/research/bubble_chamber/s79*' 'docs/bubble_chamber/S78*' 'docs/bubble_chamber/S79*' | grep -Ei '\.(bmp|jpe?g|png|tif|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'PRIVATE dataset or model found in S78/S79 public research files' >&2
+            exit 1
+          fi
+      - name: Syntax check without running private-film experiments
+        run: python -m compileall -q bubble_chamber/s78_exclusive_alternative_graph.py bubble_chamber/s79_pixel_gate_rescue.py scripts/research/bubble_chamber/s78_calibrate_then_test_exclusive_graph.py scripts/research/bubble_chamber/s79_calibrate_then_test_gate_rescue.py scripts/research/bubble_chamber/s79_native_readonly_review.py

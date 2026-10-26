@@ -313,6 +313,80 @@
       "report_sha256": "15b9158226386c16f9c19c2a74aa3fab428a90585c4f7f94138fad400e7bcf34",
       "native_smoke_aggregate_sha256": "a1b5e0a82ec3387bf42fcb8524b5f4f31f68f293a05d33e35ebfca005d56f5d5",
       "privacy": "source-only public; genuine H50Z pixels and original measured source coordinates remain private"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S78-20261026",
+      "phase": "S78",
+      "status": "negative_CAL_rejected_all_new_arms_full_TEST_replayed_byte_identical",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "source_S72_CAL_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "frozen_CAL_bytes_sha256": "109a39ffbc7b91c202b5e5c9368e17750f2c335a8c47d749a26550ac1419874a",
+      "TEST_replay_byte_identical": true,
+      "cal_seeds": [
+        20267801,
+        20267811
+      ],
+      "test_seeds": [
+        20267803,
+        20267804,
+        20267813,
+        20267814
+      ],
+      "synthetic_TEST_scenes": 96,
+      "native_H50Z_GT_count": 0,
+      "independent_photo_runs": 1,
+      "physical_auto_joins_authorized": false,
+      "native_unlabelled_audit": "docs/bubble_chamber/S78_S79_PUBLIC_NATIVE_UNLABELLED_SMOKE_2026_10_26.json",
+      "privacy": "PUBLIC_CODE_AGGREGATES_ONLY; native photos, source coordinates and weights PRIVATE",
+      "protocol": "docs/bubble_chamber/S78_FROZEN_EXCLUSIVE_ALTERNATIVE_GRAPH_2026_10_26.md",
+      "protocol_sha256": "f047cdcaf35b486481e8ba6ac92d4227a515fbec02bb22a53fef453ca0884a2d",
+      "predictor": "bubble_chamber/s78_exclusive_alternative_graph.py",
+      "predictor_sha256": "587cede01b205db7804058188e71370583f02af94fc08cedd9652ab90bd7f520",
+      "benchmark": "scripts/research/bubble_chamber/s78_calibrate_then_test_exclusive_graph.py",
+      "benchmark_sha256": "12bfb95be79ec4a22048863d977b18ccb1ab6de9cf9f10552b7b7b2005df74f6",
+      "calibration": "docs/bubble_chamber/S78_PUBLIC_FROZEN_CAL_2026_10_26.json",
+      "calibration_sha256": "109a39ffbc7b91c202b5e5c9368e17750f2c335a8c47d749a26550ac1419874a",
+      "test": "docs/bubble_chamber/S78_PUBLIC_FRESH_TEST_2026_10_26.json",
+      "test_sha256": "c34af7eeef79d8de40635d4af89542913232a76957b74f60405458b755bc0b51",
+      "report": "docs/bubble_chamber/S78_ALTERNATIVE_GRAPH_SYNTHETIC_NEGATIVE_2026_10_26.md",
+      "report_sha256": "c7f22a24d30da3690e132b77e9efb1cafd2540d45d243d8c5c4d5fb4816efd3d"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S79-20261026",
+      "phase": "S79",
+      "status": "negative_CAL_rejected_all_new_arms_full_TEST_replayed_byte_identical",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "source_S72_CAL_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "frozen_CAL_bytes_sha256": "886cad2d59e50f965cc0a7c9cf1e2df6da30cb2741a8849b7d64814238a939f5",
+      "TEST_replay_byte_identical": true,
+      "cal_seeds": [
+        20267901,
+        20267911
+      ],
+      "test_seeds": [
+        20267903,
+        20267904,
+        20267913,
+        20267914
+      ],
+      "synthetic_TEST_scenes": 96,
+      "native_H50Z_GT_count": 0,
+      "independent_photo_runs": 1,
+      "physical_auto_joins_authorized": false,
+      "native_unlabelled_audit": "docs/bubble_chamber/S78_S79_PUBLIC_NATIVE_UNLABELLED_SMOKE_2026_10_26.json",
+      "privacy": "PUBLIC_CODE_AGGREGATES_ONLY; native photos, source coordinates and weights PRIVATE",
+      "protocol": "docs/bubble_chamber/S79_FROZEN_PIXEL_SUPPORTED_GATE_RESCUE_2026_10_26.md",
+      "protocol_sha256": "214fbe7887447c7311150fe4fb981abae74349e1be5b11fc3067bd56038f2dc0",
+      "predictor": "bubble_chamber/s79_pixel_gate_rescue.py",
+      "predictor_sha256": "6e6485a453375d0d08d079cdb01e28c145f5e1ca6a26bd009d2194aeb8e81672",
+      "benchmark": "scripts/research/bubble_chamber/s79_calibrate_then_test_gate_rescue.py",
+      "benchmark_sha256": "049345e77af0770197e7ef00d46a89b7bfa8193eacff2ac980c761b251ddfece",
+      "calibration": "docs/bubble_chamber/S79_PUBLIC_FROZEN_CAL_2026_10_26.json",
+      "calibration_sha256": "886cad2d59e50f965cc0a7c9cf1e2df6da30cb2741a8849b7d64814238a939f5",
+      "test": "docs/bubble_chamber/S79_PUBLIC_FRESH_TEST_2026_10_26.json",
+      "test_sha256": "6ff2cc98dcc0ce24a7186e923b3824f13f968bf016ff09b90553cea058661dc5",
+      "report": "docs/bubble_chamber/S79_ALTERNATIVE_GRAPH_SYNTHETIC_NEGATIVE_2026_10_26.md",
+      "report_sha256": "40e0a3cc4ac6dff76608e4294284c8aeafeff9d05c577f78fcc15e7c8a0c611e"
     }
   ]
 }

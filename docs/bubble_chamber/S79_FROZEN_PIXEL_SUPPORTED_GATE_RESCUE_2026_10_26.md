@@ -1,0 +1,22 @@
+# S79 — frozen pixel-backed rescue of S59-gated alternatives (26 Oct 2026)
+
+**Preregistered BEFORE S79 CAL or TEST.** S78 demonstrated that local S77 short-gap proposals on image-derived fragments were either identical to the same-ports S56 candidate or rejected by the S59 geometric pair gate. This new study asks whether **only the locally pixel-supported S59-rejected pairs** can be added back as reversible graph alternatives without increasing synthetic wrong joins. The historical S78 TEST is not used for setting any new numeric threshold.
+
+## Locked methods and inference guard
+
+- `baseline`: exact untouched S72 direction-specific image extractor, S56 scorer, original S59 strict candidate pair gate and global margin 0.04.
+- `rescue_strict`: keep all original image line instances and all strict S59 graph candidates; add **only** S77 `short_gap_strict` local pair if it is not in the strict S59 pair list, or if it represents different endpoint ports for the same pair. Skip same-port exact duplicates. **No GT or per-scene synthetic identity may enter pixel inference.**
+- `rescue_relaxed`: same with S77 `short_gap_relaxed` local proposals. Source coordinates from synthetic generator never enter inference.
+- The 32-curve input and <=32 extra-pixel-candidate bounds remain. S77 original pixel-gap evidence and blocked-third-line/rival rules are unchanged. Use original S56 geometry-only scorer for **every pair** in the S56 complete `pair_rows` output, including pairs normally discarded by S59. Added hypothesis uses frozen ranking heuristic (NOT a probability) `min(0.999, max(geometry_score + 0.06, 0.68 + 0.24*pixel_gap_score))` and only qualifies for solver if > S56's source-CAL cutoff. Zero parameter fitting on S78 TEST or native GT.
+- Use S78 bounded graph MILP: at most one link per endpoint port, at most one variant per undirected pair, no cycles, 0.04 global counterfactual confidence margin. Solver failures -> no suggestions. Candidate IDs show source indices and `S79_PIXEL_RESCUE`, not physical IDs or private image hashes. Original source polylines never overwritten. All graph proposals reversible. If no extra candidate survives, output exactly original S72 selected graph, without retuning.
+
+## Data and frozen splits
+
+- H50Z 005 and 006 authentic private backgrounds belong to the **same physical run**. 39 real 512px crops (21+18). Geometric templates from separately measured visualMetro film 070, 145 complete source frames split **79 TRAIN /30 CAL/36 TEST** by entire source frame; H50Z has **zero** expert-verified native GT.
+- S72 source calibration immutable SHA-256 `1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952`. Original S56 scorer and selected extractor per direction unchanged; S69 orientation-invariant posthoc synthetic evaluator unchanged.
+- Fresh **S79 CAL** seeds `20267901` for source 005, `20267911` for 006, 16 artificial scenes each on source photo, paired `clean` and `blur_sigma_11` conditions. Select new arm **only if**: >=2 more synthetic true blur joins, no more synthetic noncorrect blur and clean joins, >= baseline complete paths blur and clean, loss of <=1 true clean joins and zero solver failures. Tie-break fewer blur noncorrect then more blur correct then strict first; otherwise keep `baseline`.
+- Fresh **S79 TEST** scene seeds 20267903/04 (005→006), 20267913/14 (006→005), 24 scenes per seed; **96** scenes, three paired conditions `clean`, `blur_sigma_11`, `blur_sigma_16`. Per-seed and per-direction results include good/noncorrect links, complete synthetic paths, detected curves, provenance counts, rejected duplicate candidates, solver failures, scene-paired bootstrap 1200 replicates (frozen starting seed 20267990). All TEST arms reported independently of CAL decision; TEST cannot be used to choose arm.
+
+## Scientific limits and provenance
+
+Only **synthetic-on-photo** counts can be audited. No unobserved physical particle identity is supplied, asserted, or certified. Same-run photo backgrounds do not establish independent domain transfer. Original S72/H50Z production policy remains unchanged unless gates are genuinely met on new independent data. Stable ID `ANZA-LIRA-BC-S79-20261026`. Git stores public-safe aggregate metrics and SHA-256 of protocol/code/CAL/source split, no photo pixels, raw visualMetro coordinates, private checkpoint weights, per-scene source identities or native track labels.
