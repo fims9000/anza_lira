@@ -1,0 +1,755 @@
+{
+  "schema": "S74_FROZEN_CAL_UNSHARP_THEN_FRESH_SYNTHETIC_TEST_V1",
+  "phase": "test",
+  "smoke_NOT_CONFIRMATORY": false,
+  "experiment_id": "ANZA-LIRA-BC-S74-20261026",
+  "S74_protocol_sha256": "50ae1a937673d15813eea18497f3f08590f68ae895a734ffeeebfbff7db4242e",
+  "S74_image_operator_sha256": "f0eff92343bfa0a1399c9312495cc8a1221354064642c5328dcece74e530b41a",
+  "S72_calibration_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+  "S72_source_code_fingerprints": {
+    "bubble_chamber/s68_branch_preserving_instances.py": "dc16718c9bcac613eacc38771b2fa9a840266d9f7da377cc7538ae136bc4a91a",
+    "scripts/research/bubble_chamber/s68_benchmark_branch_preservation.py": "f8a841eb7c6fc8e5074e7d88c667891a36f95be67d5a7eb86d145cc9c3fc3e71",
+    "bubble_chamber/s69_orientation_invariant_audit.py": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+    "scripts/research/bubble_chamber/s56_benchmark_global_paths.py": "088024077e5f86b5f4308c5d23e72643c8b261a355cfb12f2bbc8c1d3d87355b"
+  },
+  "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "all_metrics_synthetic_only": true,
+  "native_H50Z_verified_GT_count": 0,
+  "native_physical_auto_join_authorized": false,
+  "H50Z_backgrounds_one_physical_run": true,
+  "film070_shapes_not_H50Z_native_GT": true,
+  "directions": {
+    "005_to_006": {
+      "source_photo": "005",
+      "test_photo": "006",
+      "S72_CAL_method": "s68_branch_endpoint_refine",
+      "frozen_S56_cutoff": 0.8443092691176276,
+      "frozen_CAL_unsharp_choice": "identity",
+      "test_seeds": {
+        "20267403": {
+          "conditions": {
+            "clean": {
+              "arms": {
+                "identity": {
+                  "candidate_polylines": 138,
+                  "candidate_pairs_after_strict_gate": 116,
+                  "source_node_matches": 68,
+                  "synthetic_decoy_matched": 10,
+                  "selected_provisional_links": 36,
+                  "selected_synthetic_correct_links": 24,
+                  "synthetic_noncorrect_selected": 12,
+                  "scene_any_noncorrect": 10,
+                  "complete_three_piece_paths_synthetic": 8,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_065": {
+                  "candidate_polylines": 143,
+                  "candidate_pairs_after_strict_gate": 125,
+                  "source_node_matches": 74,
+                  "synthetic_decoy_matched": 11,
+                  "selected_provisional_links": 40,
+                  "selected_synthetic_correct_links": 25,
+                  "synthetic_noncorrect_selected": 15,
+                  "scene_any_noncorrect": 12,
+                  "complete_three_piece_paths_synthetic": 6,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_130": {
+                  "candidate_polylines": 143,
+                  "candidate_pairs_after_strict_gate": 125,
+                  "source_node_matches": 80,
+                  "synthetic_decoy_matched": 11,
+                  "selected_provisional_links": 39,
+                  "selected_synthetic_correct_links": 27,
+                  "synthetic_noncorrect_selected": 12,
+                  "scene_any_noncorrect": 9,
+                  "complete_three_piece_paths_synthetic": 8,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                }
+              },
+              "chosen_minus_identity": {
+                "selected_synthetic_correct_links": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "scene_any_noncorrect": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            },
+            "blur_sigma_11": {
+              "arms": {
+                "identity": {
+                  "candidate_polylines": 103,
+                  "candidate_pairs_after_strict_gate": 55,
+                  "source_node_matches": 40,
+                  "synthetic_decoy_matched": 2,
+                  "selected_provisional_links": 20,
+                  "selected_synthetic_correct_links": 10,
+                  "synthetic_noncorrect_selected": 10,
+                  "scene_any_noncorrect": 9,
+                  "complete_three_piece_paths_synthetic": 3,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_065": {
+                  "candidate_polylines": 112,
+                  "candidate_pairs_after_strict_gate": 70,
+                  "source_node_matches": 41,
+                  "synthetic_decoy_matched": 5,
+                  "selected_provisional_links": 22,
+                  "selected_synthetic_correct_links": 8,
+                  "synthetic_noncorrect_selected": 14,
+                  "scene_any_noncorrect": 12,
+                  "complete_three_piece_paths_synthetic": 3,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_130": {
+                  "candidate_polylines": 113,
+                  "candidate_pairs_after_strict_gate": 75,
+                  "source_node_matches": 50,
+                  "synthetic_decoy_matched": 7,
+                  "selected_provisional_links": 27,
+                  "selected_synthetic_correct_links": 15,
+                  "synthetic_noncorrect_selected": 12,
+                  "scene_any_noncorrect": 10,
+                  "complete_three_piece_paths_synthetic": 5,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                }
+              },
+              "chosen_minus_identity": {
+                "selected_synthetic_correct_links": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "scene_any_noncorrect": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "20267404": {
+          "conditions": {
+            "clean": {
+              "arms": {
+                "identity": {
+                  "candidate_polylines": 121,
+                  "candidate_pairs_after_strict_gate": 77,
+                  "source_node_matches": 58,
+                  "synthetic_decoy_matched": 8,
+                  "selected_provisional_links": 26,
+                  "selected_synthetic_correct_links": 16,
+                  "synthetic_noncorrect_selected": 10,
+                  "scene_any_noncorrect": 8,
+                  "complete_three_piece_paths_synthetic": 3,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_065": {
+                  "candidate_polylines": 120,
+                  "candidate_pairs_after_strict_gate": 79,
+                  "source_node_matches": 58,
+                  "synthetic_decoy_matched": 9,
+                  "selected_provisional_links": 28,
+                  "selected_synthetic_correct_links": 18,
+                  "synthetic_noncorrect_selected": 10,
+                  "scene_any_noncorrect": 6,
+                  "complete_three_piece_paths_synthetic": 5,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_130": {
+                  "candidate_polylines": 122,
+                  "candidate_pairs_after_strict_gate": 84,
+                  "source_node_matches": 60,
+                  "synthetic_decoy_matched": 11,
+                  "selected_provisional_links": 30,
+                  "selected_synthetic_correct_links": 18,
+                  "synthetic_noncorrect_selected": 12,
+                  "scene_any_noncorrect": 7,
+                  "complete_three_piece_paths_synthetic": 4,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                }
+              },
+              "chosen_minus_identity": {
+                "selected_synthetic_correct_links": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "scene_any_noncorrect": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            },
+            "blur_sigma_11": {
+              "arms": {
+                "identity": {
+                  "candidate_polylines": 90,
+                  "candidate_pairs_after_strict_gate": 26,
+                  "source_node_matches": 22,
+                  "synthetic_decoy_matched": 5,
+                  "selected_provisional_links": 11,
+                  "selected_synthetic_correct_links": 1,
+                  "synthetic_noncorrect_selected": 10,
+                  "scene_any_noncorrect": 9,
+                  "complete_three_piece_paths_synthetic": 0,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_065": {
+                  "candidate_polylines": 95,
+                  "candidate_pairs_after_strict_gate": 36,
+                  "source_node_matches": 23,
+                  "synthetic_decoy_matched": 4,
+                  "selected_provisional_links": 15,
+                  "selected_synthetic_correct_links": 2,
+                  "synthetic_noncorrect_selected": 13,
+                  "scene_any_noncorrect": 11,
+                  "complete_three_piece_paths_synthetic": 0,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_130": {
+                  "candidate_polylines": 100,
+                  "candidate_pairs_after_strict_gate": 42,
+                  "source_node_matches": 27,
+                  "synthetic_decoy_matched": 4,
+                  "selected_provisional_links": 17,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 13,
+                  "scene_any_noncorrect": 10,
+                  "complete_three_piece_paths_synthetic": 1,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                }
+              },
+              "chosen_minus_identity": {
+                "selected_synthetic_correct_links": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "scene_any_noncorrect": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "006_to_005": {
+      "source_photo": "006",
+      "test_photo": "005",
+      "S72_CAL_method": "s39_original",
+      "frozen_S56_cutoff": 0.8539211223090797,
+      "frozen_CAL_unsharp_choice": "identity",
+      "test_seeds": {
+        "20267413": {
+          "conditions": {
+            "clean": {
+              "arms": {
+                "identity": {
+                  "candidate_polylines": 108,
+                  "candidate_pairs_after_strict_gate": 73,
+                  "source_node_matches": 44,
+                  "synthetic_decoy_matched": 9,
+                  "selected_provisional_links": 18,
+                  "selected_synthetic_correct_links": 12,
+                  "synthetic_noncorrect_selected": 6,
+                  "scene_any_noncorrect": 6,
+                  "complete_three_piece_paths_synthetic": 5,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_065": {
+                  "candidate_polylines": 107,
+                  "candidate_pairs_after_strict_gate": 71,
+                  "source_node_matches": 43,
+                  "synthetic_decoy_matched": 9,
+                  "selected_provisional_links": 19,
+                  "selected_synthetic_correct_links": 14,
+                  "synthetic_noncorrect_selected": 5,
+                  "scene_any_noncorrect": 5,
+                  "complete_three_piece_paths_synthetic": 5,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_130": {
+                  "candidate_polylines": 119,
+                  "candidate_pairs_after_strict_gate": 82,
+                  "source_node_matches": 50,
+                  "synthetic_decoy_matched": 10,
+                  "selected_provisional_links": 20,
+                  "selected_synthetic_correct_links": 13,
+                  "synthetic_noncorrect_selected": 7,
+                  "scene_any_noncorrect": 7,
+                  "complete_three_piece_paths_synthetic": 3,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                }
+              },
+              "chosen_minus_identity": {
+                "selected_synthetic_correct_links": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "scene_any_noncorrect": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            },
+            "blur_sigma_11": {
+              "arms": {
+                "identity": {
+                  "candidate_polylines": 84,
+                  "candidate_pairs_after_strict_gate": 42,
+                  "source_node_matches": 27,
+                  "synthetic_decoy_matched": 4,
+                  "selected_provisional_links": 12,
+                  "selected_synthetic_correct_links": 6,
+                  "synthetic_noncorrect_selected": 6,
+                  "scene_any_noncorrect": 4,
+                  "complete_three_piece_paths_synthetic": 2,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_065": {
+                  "candidate_polylines": 91,
+                  "candidate_pairs_after_strict_gate": 47,
+                  "source_node_matches": 27,
+                  "synthetic_decoy_matched": 6,
+                  "selected_provisional_links": 18,
+                  "selected_synthetic_correct_links": 7,
+                  "synthetic_noncorrect_selected": 11,
+                  "scene_any_noncorrect": 7,
+                  "complete_three_piece_paths_synthetic": 2,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_130": {
+                  "candidate_polylines": 92,
+                  "candidate_pairs_after_strict_gate": 44,
+                  "source_node_matches": 32,
+                  "synthetic_decoy_matched": 6,
+                  "selected_provisional_links": 16,
+                  "selected_synthetic_correct_links": 8,
+                  "synthetic_noncorrect_selected": 8,
+                  "scene_any_noncorrect": 5,
+                  "complete_three_piece_paths_synthetic": 2,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                }
+              },
+              "chosen_minus_identity": {
+                "selected_synthetic_correct_links": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "scene_any_noncorrect": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "20267414": {
+          "conditions": {
+            "clean": {
+              "arms": {
+                "identity": {
+                  "candidate_polylines": 124,
+                  "candidate_pairs_after_strict_gate": 71,
+                  "source_node_matches": 43,
+                  "synthetic_decoy_matched": 9,
+                  "selected_provisional_links": 16,
+                  "selected_synthetic_correct_links": 7,
+                  "synthetic_noncorrect_selected": 9,
+                  "scene_any_noncorrect": 7,
+                  "complete_three_piece_paths_synthetic": 1,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_065": {
+                  "candidate_polylines": 131,
+                  "candidate_pairs_after_strict_gate": 73,
+                  "source_node_matches": 55,
+                  "synthetic_decoy_matched": 8,
+                  "selected_provisional_links": 19,
+                  "selected_synthetic_correct_links": 12,
+                  "synthetic_noncorrect_selected": 7,
+                  "scene_any_noncorrect": 6,
+                  "complete_three_piece_paths_synthetic": 2,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_130": {
+                  "candidate_polylines": 138,
+                  "candidate_pairs_after_strict_gate": 89,
+                  "source_node_matches": 59,
+                  "synthetic_decoy_matched": 9,
+                  "selected_provisional_links": 20,
+                  "selected_synthetic_correct_links": 15,
+                  "synthetic_noncorrect_selected": 5,
+                  "scene_any_noncorrect": 5,
+                  "complete_three_piece_paths_synthetic": 2,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                }
+              },
+              "chosen_minus_identity": {
+                "selected_synthetic_correct_links": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "scene_any_noncorrect": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            },
+            "blur_sigma_11": {
+              "arms": {
+                "identity": {
+                  "candidate_polylines": 101,
+                  "candidate_pairs_after_strict_gate": 46,
+                  "source_node_matches": 24,
+                  "synthetic_decoy_matched": 8,
+                  "selected_provisional_links": 9,
+                  "selected_synthetic_correct_links": 3,
+                  "synthetic_noncorrect_selected": 6,
+                  "scene_any_noncorrect": 5,
+                  "complete_three_piece_paths_synthetic": 0,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_065": {
+                  "candidate_polylines": 101,
+                  "candidate_pairs_after_strict_gate": 51,
+                  "source_node_matches": 27,
+                  "synthetic_decoy_matched": 8,
+                  "selected_provisional_links": 9,
+                  "selected_synthetic_correct_links": 3,
+                  "synthetic_noncorrect_selected": 6,
+                  "scene_any_noncorrect": 5,
+                  "complete_three_piece_paths_synthetic": 0,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                },
+                "unsharp_130": {
+                  "candidate_polylines": 97,
+                  "candidate_pairs_after_strict_gate": 47,
+                  "source_node_matches": 27,
+                  "synthetic_decoy_matched": 7,
+                  "selected_provisional_links": 12,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 8,
+                  "scene_any_noncorrect": 8,
+                  "complete_three_piece_paths_synthetic": 0,
+                  "solver_failure": 0,
+                  "scene_count": 24
+                }
+              },
+              "chosen_minus_identity": {
+                "selected_synthetic_correct_links": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "scene_any_noncorrect": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_delta_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "frozen_S74_CAL_sha256": "21f808c876dc0a7b9e56733594ab9a8f108e671e55587385e37e7f6f72e8770f",
+  "all_TEST_conditions": {
+    "clean": {
+      "identity": {
+        "candidate_polylines": 491,
+        "candidate_pairs_after_strict_gate": 337,
+        "source_node_matches": 213,
+        "synthetic_decoy_matched": 36,
+        "selected_provisional_links": 96,
+        "selected_synthetic_correct_links": 59,
+        "synthetic_noncorrect_selected": 37,
+        "scene_any_noncorrect": 31,
+        "complete_three_piece_paths_synthetic": 17,
+        "solver_failure": 0,
+        "scene_count": 96
+      },
+      "unsharp_065": {
+        "candidate_polylines": 501,
+        "candidate_pairs_after_strict_gate": 348,
+        "source_node_matches": 230,
+        "synthetic_decoy_matched": 37,
+        "selected_provisional_links": 106,
+        "selected_synthetic_correct_links": 69,
+        "synthetic_noncorrect_selected": 37,
+        "scene_any_noncorrect": 29,
+        "complete_three_piece_paths_synthetic": 18,
+        "solver_failure": 0,
+        "scene_count": 96
+      },
+      "unsharp_130": {
+        "candidate_polylines": 522,
+        "candidate_pairs_after_strict_gate": 380,
+        "source_node_matches": 249,
+        "synthetic_decoy_matched": 41,
+        "selected_provisional_links": 109,
+        "selected_synthetic_correct_links": 73,
+        "synthetic_noncorrect_selected": 36,
+        "scene_any_noncorrect": 28,
+        "complete_three_piece_paths_synthetic": 17,
+        "solver_failure": 0,
+        "scene_count": 96
+      }
+    },
+    "blur_sigma_11": {
+      "identity": {
+        "candidate_polylines": 378,
+        "candidate_pairs_after_strict_gate": 169,
+        "source_node_matches": 113,
+        "synthetic_decoy_matched": 19,
+        "selected_provisional_links": 52,
+        "selected_synthetic_correct_links": 20,
+        "synthetic_noncorrect_selected": 32,
+        "scene_any_noncorrect": 27,
+        "complete_three_piece_paths_synthetic": 5,
+        "solver_failure": 0,
+        "scene_count": 96
+      },
+      "unsharp_065": {
+        "candidate_polylines": 399,
+        "candidate_pairs_after_strict_gate": 204,
+        "source_node_matches": 118,
+        "synthetic_decoy_matched": 23,
+        "selected_provisional_links": 64,
+        "selected_synthetic_correct_links": 20,
+        "synthetic_noncorrect_selected": 44,
+        "scene_any_noncorrect": 35,
+        "complete_three_piece_paths_synthetic": 5,
+        "solver_failure": 0,
+        "scene_count": 96
+      },
+      "unsharp_130": {
+        "candidate_polylines": 402,
+        "candidate_pairs_after_strict_gate": 208,
+        "source_node_matches": 136,
+        "synthetic_decoy_matched": 24,
+        "selected_provisional_links": 72,
+        "selected_synthetic_correct_links": 31,
+        "synthetic_noncorrect_selected": 41,
+        "scene_any_noncorrect": 33,
+        "complete_three_piece_paths_synthetic": 8,
+        "solver_failure": 0,
+        "scene_count": 96
+      }
+    }
+  },
+  "CAL_selected_TEST": {
+    "clean": {
+      "candidate_polylines": 491,
+      "candidate_pairs_after_strict_gate": 337,
+      "source_node_matches": 213,
+      "synthetic_decoy_matched": 36,
+      "selected_provisional_links": 96,
+      "selected_synthetic_correct_links": 59,
+      "synthetic_noncorrect_selected": 37,
+      "scene_any_noncorrect": 31,
+      "complete_three_piece_paths_synthetic": 17,
+      "solver_failure": 0,
+      "scene_count": 96
+    },
+    "blur_sigma_11": {
+      "candidate_polylines": 378,
+      "candidate_pairs_after_strict_gate": 169,
+      "source_node_matches": 113,
+      "synthetic_decoy_matched": 19,
+      "selected_provisional_links": 52,
+      "selected_synthetic_correct_links": 20,
+      "synthetic_noncorrect_selected": 32,
+      "scene_any_noncorrect": 27,
+      "complete_three_piece_paths_synthetic": 5,
+      "solver_failure": 0,
+      "scene_count": 96
+    }
+  },
+  "native_physics_auto_promotion_authorized": false
+}
