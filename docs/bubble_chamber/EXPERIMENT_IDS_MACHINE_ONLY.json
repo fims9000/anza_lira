@@ -651,6 +651,61 @@
       "physical_auto_join_authorized": false,
       "privacy": "Synthetic aggregate-only; no private image or measured-point arrays in public git",
       "fresh_TEST_repeat_byte_identical": false
+    },
+    {
+      "id": "ANZA-LIRA-BC-S85-20261027",
+      "phase": "S85",
+      "status": "SOURCE_ONLY_READY_PRIVATE_DATA_MISSING_NO_SCIENTIFIC_TEST",
+      "protocol": "docs/bubble_chamber/S85_FROZEN_LEARNED_FRAGMENT_GATE_2026_10_27.md",
+      "predictor": "bubble_chamber/s85_fragment_ranker.py",
+      "labels": "bubble_chamber/s85_train_reference_labels.py",
+      "benchmark": "scripts/research/bubble_chamber/s85_train_calibrate_test_learned.py",
+      "calibration_gate": "bubble_chamber/s85_selection_gate.py",
+      "release_manager": "scripts/research/bubble_chamber/s85_release_manager.py",
+      "private_gallery_generator": "scripts/research/bubble_chamber/s85_private_review_gallery.py",
+      "native_audit": "scripts/research/bubble_chamber/s85_native_unknown_audit_v2.py",
+      "readiness_report": "docs/bubble_chamber/S85_RELEASE_READINESS_AND_FINISHING_PLAN_2026_10_27.md",
+      "source_ci": ".github/workflows/s85_source_only_train_cal_test_ci.yml",
+      "release_ci": ".github/workflows/s85_source_only_release_ci.yml",
+      "complete_source_artifact": ".github/workflows/s85_complete_source_bundle.yml",
+      "protocol_sha256": "df01ec5745aa9e9273145fca70cce5fc349ec8b5f9876eb9d98f5272fa1815dd",
+      "predictor_sha256": "410b4e09090874d124275bc62c4ebf71c6878a0fb95c6fada012fd048b9b49b4",
+      "labels_sha256": "a119565a65416a24f285452693d4cb0f934b5b7aebeae224aca88ed959ee1d03",
+      "benchmark_sha256": "f386232153efe0112fb447aad7bd952b751c7482bcde1a4aa966454b2a5a00b0",
+      "calibration_gate_sha256": "bdd1981512f38d811588d1eb315c078a4453e0b8c6ea6854eaa997a08255f019",
+      "release_manager_sha256": "f760568467e861f6c2a9b5746264d61ea64caa42693c236650b931803b930eda",
+      "private_gallery_generator_sha256": "990960f70cb2ab0b07f1bcbd1b7e5d2797ffd8e214ddea80e9c4675216b42802",
+      "native_audit_sha256": "f89693820016ca1312f2551e47dc48faae7caa4d85f7222ce382b9988ba8cb49",
+      "readiness_report_sha256": "7911228e363dd7b47792fa209f237a6c9a22ff103e5b7a47e996cd42d0552e32",
+      "source_ci_sha256": "36250daf538a256c557a07fd8606c9b7b0b8f50b4a8c8ca64801ed871c5bc102",
+      "release_ci_sha256": "5b9da518f6f775170ee3e43e87ff9b14415c0e1e202ec8b209554e56cf6880e3",
+      "complete_source_artifact_sha256": "b8b499ad57c69a7da9098d1c8bd343906df3058a1f98e172f4b1ae7512f531ba",
+      "validation_ledger": "docs/bubble_chamber/S85_SOURCE_ONLY_RELEASE_VALIDATION_2026_10_27.json",
+      "validation_ledger_sha256": "eb53df3c9a68328ffad007260afe0e53ff7565101bfe53845caadf6874778a8f",
+      "TRAIN_seeds": [
+        20268500,
+        20268510
+      ],
+      "CAL_seeds": [
+        20268501,
+        20268511
+      ],
+      "TEST_seeds": [
+        20268503,
+        20268504,
+        20268513,
+        20268514
+      ],
+      "source_split_frame_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "source_frozen_S72_CAL_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "private_TRAIN_complete": false,
+      "private_CAL_complete": false,
+      "private_TEST_complete": false,
+      "native_GT_count": 0,
+      "independent_physical_runs_available": 1,
+      "physical_auto_join_authorized": false,
+      "source_only_smoke_is_not_scientific_H50Z": true,
+      "privacy": "No private H50Z pixels, film070 measured points, model coefficients, weights, or private overlay images in public source"
     }
   ]
 }

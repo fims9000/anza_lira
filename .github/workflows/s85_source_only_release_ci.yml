@@ -1,0 +1,60 @@
+name: S85 release readiness, synthetic E2E and private-source guards
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'scripts/research/bubble_chamber/s85_release_manager.py'
+      - 'scripts/research/bubble_chamber/s85_private_review_gallery.py'
+      - 'tests/test_s85_release_manager.py'
+      - 'tests/test_s85_private_review_gallery.py'
+      - 'tests/test_s85_full_pipeline_synthetic_smoke.py'
+      - 'docs/bubble_chamber/S85_RELEASE_READINESS_AND_FINISHING_PLAN_2026_10_27.md'
+      - '.github/workflows/s85_source_only_release_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reproducible-source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install public-source scientific dependencies
+        run: python -m pip install numpy scipy scikit-learn scikit-image opencv-python-headless networkx pytest
+      - name: Install torch CPU for original frozen source scorer
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Execute private release safety and real code S85 TRAIN-CAL-TEST with fake-only fixture
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+          OMP_NUM_THREADS: '1'
+        run: >-
+          python -m pytest -q tests/test_s85_*.py
+          tests/test_s69_orientation_invariant_audit.py
+          tests/test_s84_public_reproducibility.py
+      - name: Check preflight fails closed without private inputs and validates source locks
+        run: |
+          python scripts/research/bubble_chamber/s85_release_manager.py preflight \
+            --visualmetro /PRIVATE_MISSING/1mH2Data/S1 \
+            --photo-tiles /PRIVATE_MISSING/H50Z \
+            --out /tmp/S85_SOURCE_ONLY_PREFLIGHT.json
+          python - <<'PY'
+          import json
+          j=json.load(open('/tmp/S85_SOURCE_ONLY_PREFLIGHT.json'))
+          assert j['source']['source_locks_valid']
+          assert not j['ready_for_private_TRAIN']
+          assert j['native_expert_GT_count']==0
+          assert j['physical_auto_joins_authorized'] is False
+          assert len(j['blockers'])==2
+          PY
+      - name: Compile release and visualization code
+        run: python -m compileall -q scripts/research/bubble_chamber/s85_release_manager.py scripts/research/bubble_chamber/s85_private_review_gallery.py
+      - name: Prevent source commit of private pixels or model weights
+        run: |
+          if git ls-files 'bubble_chamber/s85*' 'scripts/research/bubble_chamber/s85*' 'docs/bubble_chamber/S85*' 'tests/test_s85*' | grep -Ei '\.(bmp|jpe?g|png|tif|7z|zip|pt|pth|ckpt|pkl|joblib|npy|npz)$'; then
+            echo 'Private media or weights leaked into public research source' >&2
+            exit 1
+          fi
