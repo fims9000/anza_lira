@@ -17,6 +17,36 @@
       "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
       "git_base_sha": "d2d1d101a3a11a0c758d2edf815a89bdea0ae52b",
       "privacy": "no private images/raw geometry/weights committed"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S68-20261026",
+      "phase": "S68",
+      "status": "historical_orientation_metric_biased; corrected by S69; not promoted",
+      "protocol": "docs/bubble_chamber/S68_FROZEN_BRANCH_PRESERVATION_PROTOCOL_2026_10_26.md",
+      "results": "docs/bubble_chamber/S68_S69_ORIENTATION_ERRATUM_AND_RESULTS_2026_10_26.md",
+      "report": "docs/bubble_chamber/S68_S69_ORIENTATION_ERRATUM_AND_RESULTS_2026_10_26.md",
+      "algorithm_sha256": "dc16718c9bcac613eacc38771b2fa9a840266d9f7da377cc7538ae136bc4a91a",
+      "protocol_sha256": "caa8855975f686d61838f5d1a8646d212c707ebd137287c5b021cb69c7f05934",
+      "calibration_sha256": "df3cb7a43a4fee4bc781c10240bda499f581626e7b123c6800594f55f66438df",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "git_base_sha": "57c7cb81c8d8592db9535d3c7b4db61fdaf38dfa",
+      "privacy": "No private H50Z images, points, frame IDs, 7z files or checkpoints in Git",
+      "native_physical_gt_count": 0
+    },
+    {
+      "id": "ANZA-LIRA-BC-S69-20261026",
+      "phase": "S69",
+      "status": "corrected_fresh_96_scenes; no_directional_production_promotion",
+      "protocol": "docs/bubble_chamber/S69_FROZEN_REVERSAL_INVARIANT_AUDIT_PROTOCOL_2026_10_26.md",
+      "results": "docs/bubble_chamber/S68_S69_ORIENTATION_ERRATUM_AND_RESULTS_2026_10_26.md",
+      "report": "docs/bubble_chamber/S68_S69_ORIENTATION_ERRATUM_AND_RESULTS_2026_10_26.md",
+      "algorithm_sha256": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+      "protocol_sha256": "ab1247cf031c67bf04f1708f5d1d4a2ebd8df26210e4a8d9db5312a5ee1723ea",
+      "calibration_sha256": "2d05311be7f3dd095755df1639efdca66fca600a6034a680b66ab4c5ac2be62b",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "git_base_sha": "57c7cb81c8d8592db9535d3c7b4db61fdaf38dfa",
+      "privacy": "No private H50Z images, points, frame IDs, 7z files or checkpoints in Git",
+      "native_physical_gt_count": 0
     }
   ]
 }
