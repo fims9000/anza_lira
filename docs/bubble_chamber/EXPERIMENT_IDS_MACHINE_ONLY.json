@@ -211,6 +211,23 @@
       "native_H50Z_expert_GT_count": 0,
       "native_physics_auto_join_authorized": false,
       "privacy": "only public-safe source and aggregate JSON; no native image/coordinates/weights"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S75C-20261026",
+      "phase": "S75C",
+      "status": "retrospective_error_taxonomy_exact_S75_TEST_replay_not_independent",
+      "predictor": "scripts/research/bubble_chamber/s75_posthoc_error_taxonomy.py",
+      "report": "docs/bubble_chamber/S75C_POSTHOC_ERROR_TAXONOMY_2026_10_26.md",
+      "results": "docs/bubble_chamber/S75C_POSTHOC_ERROR_TAXONOMY_PUBLIC_2026_10_26.json",
+      "predictor_sha256": "1e4d75f2e996478707a0222d0dc955c54e08754ff374552380dbde82bfab85f5",
+      "report_sha256": "6e8ce76a651c2b2927ce3b247d0c8b1fd92c8eb5286e5887e0d584628c8b6c3f",
+      "results_sha256": "37133ecb9d8835f39d8f82dacba9470f61360412c171ed5dea31d9f83e80dd88",
+      "source_experiment_id": "ANZA-LIRA-BC-S75-20261026",
+      "original_TEST_sha256": "77393828e7415196327a5f45d62ce2b2e89bd9a85fe8ce6ad8f186e64ab5d306",
+      "new_independent_scenes": false,
+      "native_physics_GT_count": 0,
+      "physical_auto_join_authorized": false,
+      "privacy": "public-safe aggregate error categories only; no raw points or film pixels"
     }
   ]
 }

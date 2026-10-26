@@ -7,7 +7,9 @@ on:
       - 'bubble_chamber/s75_*.py'
       - 'scripts/research/bubble_chamber/s75_*.py'
       - 'tests/test_s75_*.py'
+      - 'tests/test_s75c_*.py'
       - 'docs/bubble_chamber/S75_*'
+      - 'docs/bubble_chamber/S75C_*'
       - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
       - '.github/workflows/s75_local_ridge_cal_ci.yml'
   workflow_dispatch:
@@ -26,14 +28,14 @@ jobs:
         run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
       - name: CPU torch for frozen S56 geometric scorer imports
         run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - name: Verify corrected S69 eval and frozen S75 CAL/TEST/registry
-        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s72_public_aggregate.py tests/test_s75_local_ridge_rescue.py tests/test_s75_replay_protocol.py tests/test_s75_posthoc_only.py tests/test_s75_public_replay_and_registry.py
-      - name: Compile S75 research scripts
-        run: python -m compileall -q bubble_chamber/s75_local_ridge_rescue.py scripts/research/bubble_chamber/s75_calibrate_then_test_local_ridges.py scripts/research/bubble_chamber/s75_posthoc_paired_uncertainty.py
-      - name: Ensure no native film media/weights in S75 paths
+      - name: Verify S69 corrected synthetic evaluator, S75 CAL/TEST/registry, S75C retrospective taxonomy
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s72_public_aggregate.py tests/test_s75_local_ridge_rescue.py tests/test_s75_replay_protocol.py tests/test_s75_posthoc_only.py tests/test_s75_public_replay_and_registry.py tests/test_s75_error_taxonomy_contract.py tests/test_s75c_public_error_taxonomy.py
+      - name: Compile S75 and S75C scripts
+        run: python -m compileall -q bubble_chamber/s75_local_ridge_rescue.py scripts/research/bubble_chamber/s75_calibrate_then_test_local_ridges.py scripts/research/bubble_chamber/s75_posthoc_paired_uncertainty.py scripts/research/bubble_chamber/s75_posthoc_error_taxonomy.py
+      - name: Ensure no private photos or weights are tracked in S75 research files
         shell: bash
         run: |
           if git ls-files 'bubble_chamber/s75*' 'scripts/research/bubble_chamber/s75*' 'tests/test_s75*' 'docs/bubble_chamber/S75*' | grep -Ei '\.(bmp|png|jpe?g|tif|7z|zip|pt|pth|ckpt|npy|npz)$'; then
-            echo 'S75 must commit only source, documentation and safe aggregates' >&2
+            echo 'S75 must commit only source, documentation and safe aggregate data' >&2
             exit 1
           fi
