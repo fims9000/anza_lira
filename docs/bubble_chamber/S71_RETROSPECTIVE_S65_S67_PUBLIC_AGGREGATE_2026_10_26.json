@@ -1,0 +1,1385 @@
+{
+  "S67_historical_paired_CI_exactly_reproduced": true,
+  "all_metrics_synthetic_injection_only": true,
+  "experiment_id": "ANZA-LIRA-BC-S71-20261026",
+  "frozen_source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "historical_CAL_TEST_exactly_reproduced": true,
+  "historical_test_set_reused": true,
+  "history_preserved_unmodified": true,
+  "native_verified_H50Z_particle_tracks": 0,
+  "new_independent_test_scenes": 0,
+  "physical_auto_joins_authorized": false,
+  "protocol_sha256": "482e12c5f769c422703d431f95b0d832b660d451115e19fd3f54344dc020675e",
+  "records_are_SYNTHETIC_ONLY": true,
+  "retrospective_only_NOT_NEW_TEST": true,
+  "schema": "S71_RETROSPECTIVE_DUAL_EVALUATOR_S65_S67_SYNTHETIC_ONLY_V1",
+  "source_file_locks": {
+    "bubble_chamber/s64_pixel_to_path.py": "c148e55dc9a94f2841e34d2f5e1f3f6b8c41a1ebd345152d2ca21ee7c3ff824c",
+    "bubble_chamber/s69_orientation_invariant_audit.py": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+    "scripts/research/bubble_chamber/s65_calibrate_endpoint_abstention.py": "958f959e2235ee1a90011cc1535afe0d58661cb94e9e0136b47fe032f9eb6515",
+    "scripts/research/bubble_chamber/s66_test_image_only_endpoint_extensions.py": "ec9ff00cd12a306ff2df78c36b1ec66a1b107110d3c020e76eca1f22029d6adf",
+    "scripts/research/bubble_chamber/s67_benchmark_instance_continuity.py": "5e5259639a9c99977dcec4a07bb46b07e82ae27e1285bb5b228143c0594c814c"
+  },
+  "studies": {
+    "S65": {
+      "directions": {
+        "005_to_006": {
+          "CAL_choice_changed": true,
+          "CAL_corrected": {
+            "0.25": {
+              "selected_synthetic_correct_links": 4,
+              "synthetic_noncorrect_selected": 2
+            },
+            "0.4": {
+              "selected_synthetic_correct_links": 5,
+              "synthetic_noncorrect_selected": 2
+            },
+            "0.55": {
+              "selected_synthetic_correct_links": 6,
+              "synthetic_noncorrect_selected": 2
+            },
+            "0.7": {
+              "selected_synthetic_correct_links": 8,
+              "synthetic_noncorrect_selected": 5
+            },
+            "0.85": {
+              "selected_synthetic_correct_links": 8,
+              "synthetic_noncorrect_selected": 5
+            },
+            "1.0": {
+              "selected_synthetic_correct_links": 9,
+              "synthetic_noncorrect_selected": 5
+            },
+            "1.25": {
+              "selected_synthetic_correct_links": 11,
+              "synthetic_noncorrect_selected": 6
+            },
+            "baseline": {
+              "selected_synthetic_correct_links": 19,
+              "synthetic_noncorrect_selected": 13
+            }
+          },
+          "CAL_corrected_selected": null,
+          "CAL_historic_selected": 0.7,
+          "TEST": {
+            "20266503": {
+              "0.7": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 6,
+                  "selected_synthetic_correct_links": 6,
+                  "synthetic_noncorrect_selected": 6
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.125
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.041666666666666664,
+                    0.3333333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.3333333333333333,
+                    -0.041666666666666664
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 10,
+                  "selected_synthetic_correct_links": 2,
+                  "synthetic_noncorrect_selected": 10
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.20833333333333334,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.5,
+                    -0.125
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.875,
+                    -0.20833333333333334
+                  ]
+                }
+              },
+              "baseline": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 3,
+                  "scene_any_noncorrect": 13,
+                  "selected_synthetic_correct_links": 13,
+                  "synthetic_noncorrect_selected": 18
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.251041666666661
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.16666666666666666,
+                    0.625
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.625,
+                    -0.16666666666666666
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 16,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 27
+                }
+              }
+            },
+            "20266504": {
+              "0.7": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 3,
+                  "scene_any_noncorrect": 7,
+                  "selected_synthetic_correct_links": 8,
+                  "synthetic_noncorrect_selected": 7
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.251041666666661
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.08333333333333333,
+                    0.4583333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.4583333333333333,
+                    -0.08333333333333333
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 12,
+                  "selected_synthetic_correct_links": 2,
+                  "synthetic_noncorrect_selected": 13
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.20833333333333334,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.5,
+                    -0.041666666666666664
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.6666666666666666,
+                    -0.16666666666666666
+                  ]
+                }
+              },
+              "baseline": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 5,
+                  "scene_any_noncorrect": 14,
+                  "selected_synthetic_correct_links": 14,
+                  "synthetic_noncorrect_selected": 17
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.041666666666666664,
+                    0.4166666666666667
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.125,
+                    0.75
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.75,
+                    -0.125
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 17,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 27
+                }
+              }
+            }
+          }
+        },
+        "006_to_005": {
+          "CAL_choice_changed": true,
+          "CAL_corrected": {
+            "0.25": {
+              "selected_synthetic_correct_links": 11,
+              "synthetic_noncorrect_selected": 1
+            },
+            "0.4": {
+              "selected_synthetic_correct_links": 12,
+              "synthetic_noncorrect_selected": 1
+            },
+            "0.55": {
+              "selected_synthetic_correct_links": 12,
+              "synthetic_noncorrect_selected": 1
+            },
+            "0.7": {
+              "selected_synthetic_correct_links": 12,
+              "synthetic_noncorrect_selected": 1
+            },
+            "0.85": {
+              "selected_synthetic_correct_links": 12,
+              "synthetic_noncorrect_selected": 1
+            },
+            "1.0": {
+              "selected_synthetic_correct_links": 12,
+              "synthetic_noncorrect_selected": 1
+            },
+            "1.25": {
+              "selected_synthetic_correct_links": 12,
+              "synthetic_noncorrect_selected": 2
+            },
+            "baseline": {
+              "selected_synthetic_correct_links": 16,
+              "synthetic_noncorrect_selected": 2
+            }
+          },
+          "CAL_corrected_selected": null,
+          "CAL_historic_selected": 0.4,
+          "TEST": {
+            "20266513": {
+              "0.4": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 2,
+                  "selected_synthetic_correct_links": 7,
+                  "synthetic_noncorrect_selected": 3
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.08333333333333333,
+                    0.4166666666666667
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.4166666666666667,
+                    -0.08333333333333333
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 6,
+                  "selected_synthetic_correct_links": 1,
+                  "synthetic_noncorrect_selected": 9
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.20833333333333334,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.375,
+                    0.0
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.5833333333333334,
+                    0.0
+                  ]
+                }
+              },
+              "baseline": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 5,
+                  "selected_synthetic_correct_links": 11,
+                  "synthetic_noncorrect_selected": 9
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.125
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.16666666666666666,
+                    0.5416666666666666
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.5416666666666666,
+                    -0.16666666666666666
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 10,
+                  "selected_synthetic_correct_links": 3,
+                  "synthetic_noncorrect_selected": 17
+                }
+              }
+            },
+            "20266514": {
+              "0.4": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 2,
+                  "selected_synthetic_correct_links": 6,
+                  "synthetic_noncorrect_selected": 2
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.125
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.041666666666666664,
+                    0.4583333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.4583333333333333,
+                    -0.041666666666666664
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 5,
+                  "selected_synthetic_correct_links": 1,
+                  "synthetic_noncorrect_selected": 7
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.20833333333333334,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.625,
+                    -0.125
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.4166666666666667,
+                    -0.041666666666666664
+                  ]
+                }
+              },
+              "baseline": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 3,
+                  "scene_any_noncorrect": 6,
+                  "selected_synthetic_correct_links": 14,
+                  "synthetic_noncorrect_selected": 7
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.25
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.16666666666666666,
+                    0.6666666666666666
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.6666666666666666,
+                    -0.16666666666666666
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 10,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 17
+                }
+              }
+            }
+          }
+        }
+      },
+      "total_TEST": {
+        "0.4": {
+          "corrected": {
+            "complete_three_piece_paths_synthetic": 1,
+            "scene_any_noncorrect": 4,
+            "selected_provisional_links": 18,
+            "selected_synthetic_correct_links": 13,
+            "selected_synthetic_wrong_endpoint": 0,
+            "synthetic_noncorrect_selected": 5
+          },
+          "historic": {
+            "complete_three_piece_paths_synthetic": 0,
+            "scene_any_noncorrect": 11,
+            "selected_provisional_links": 18,
+            "selected_synthetic_correct_links": 2,
+            "selected_synthetic_wrong_endpoint": 11,
+            "synthetic_noncorrect_selected": 16
+          },
+          "scene_count": 48
+        },
+        "0.7": {
+          "corrected": {
+            "complete_three_piece_paths_synthetic": 4,
+            "scene_any_noncorrect": 13,
+            "selected_provisional_links": 27,
+            "selected_synthetic_correct_links": 14,
+            "selected_synthetic_wrong_endpoint": 0,
+            "synthetic_noncorrect_selected": 13
+          },
+          "historic": {
+            "complete_three_piece_paths_synthetic": 0,
+            "scene_any_noncorrect": 22,
+            "selected_provisional_links": 27,
+            "selected_synthetic_correct_links": 4,
+            "selected_synthetic_wrong_endpoint": 10,
+            "synthetic_noncorrect_selected": 23
+          },
+          "scene_count": 48
+        },
+        "baseline": {
+          "corrected": {
+            "complete_three_piece_paths_synthetic": 13,
+            "scene_any_noncorrect": 38,
+            "selected_provisional_links": 103,
+            "selected_synthetic_correct_links": 52,
+            "selected_synthetic_wrong_endpoint": 0,
+            "synthetic_noncorrect_selected": 51
+          },
+          "historic": {
+            "complete_three_piece_paths_synthetic": 1,
+            "scene_any_noncorrect": 53,
+            "selected_provisional_links": 103,
+            "selected_synthetic_correct_links": 15,
+            "selected_synthetic_wrong_endpoint": 37,
+            "synthetic_noncorrect_selected": 88
+          },
+          "scene_count": 96
+        }
+      }
+    },
+    "S66": {
+      "directions": {
+        "005_to_006": {
+          "CAL_choice_changed": false,
+          "CAL_corrected": {
+            "ridge_extend_relaxed": {
+              "selected_synthetic_correct_links": 24,
+              "synthetic_noncorrect_selected": 16
+            },
+            "ridge_extend_strict": {
+              "selected_synthetic_correct_links": 21,
+              "synthetic_noncorrect_selected": 16
+            },
+            "s39_original": {
+              "selected_synthetic_correct_links": 20,
+              "synthetic_noncorrect_selected": 14
+            }
+          },
+          "CAL_corrected_selected": "s39_original",
+          "CAL_historic_selected": "s39_original",
+          "TEST": {
+            "20266603": {
+              "ridge_extend_relaxed": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 14,
+                  "selected_synthetic_correct_links": 14,
+                  "synthetic_noncorrect_selected": 18
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.20833333333333334
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.20833333333333334,
+                    0.751041666666661
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.7510416666666666,
+                    -0.20833333333333334
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 19,
+                  "selected_synthetic_correct_links": 3,
+                  "synthetic_noncorrect_selected": 29
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.125,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.08437499999999994,
+                    0.2916666666666667
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.041666666666666664,
+                    0.75
+                  ]
+                }
+              },
+              "ridge_extend_strict": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 12,
+                  "selected_synthetic_correct_links": 14,
+                  "synthetic_noncorrect_selected": 14
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.20833333333333334
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.20833333333333334,
+                    0.7916666666666666
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.7916666666666666,
+                    -0.20833333333333334
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 17,
+                  "selected_synthetic_correct_links": 3,
+                  "synthetic_noncorrect_selected": 25
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.125,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.08333333333333333,
+                    0.25
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.08333333333333333,
+                    0.4583333333333333
+                  ]
+                }
+              },
+              "s39_original": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 3,
+                  "scene_any_noncorrect": 8,
+                  "selected_synthetic_correct_links": 12,
+                  "synthetic_noncorrect_selected": 10
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.2916666666666667
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.125,
+                    0.7916666666666666
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.7916666666666666,
+                    -0.125
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 14,
+                  "selected_synthetic_correct_links": 2,
+                  "synthetic_noncorrect_selected": 20
+                }
+              }
+            },
+            "20266604": {
+              "ridge_extend_relaxed": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 5,
+                  "scene_any_noncorrect": 12,
+                  "selected_synthetic_correct_links": 17,
+                  "synthetic_noncorrect_selected": 17
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.041666666666666664,
+                    0.375
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.20833333333333334,
+                    0.7916666666666666
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.7916666666666666,
+                    -0.20833333333333334
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 14,
+                  "selected_synthetic_correct_links": 6,
+                  "synthetic_noncorrect_selected": 28
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.25,
+                    0.16666666666666666
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.375,
+                    0.375
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.08333333333333333,
+                    0.5416666666666666
+                  ]
+                }
+              },
+              "ridge_extend_strict": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 5,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 16,
+                  "synthetic_noncorrect_selected": 17
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.041666666666666664,
+                    0.375
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.16666666666666666,
+                    0.75
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.75,
+                    -0.16666666666666666
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 14,
+                  "selected_synthetic_correct_links": 6,
+                  "synthetic_noncorrect_selected": 27
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.25,
+                    0.16666666666666666
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.3343749999999999,
+                    0.25
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.08333333333333333,
+                    0.5416666666666666
+                  ]
+                }
+              },
+              "s39_original": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 6,
+                  "scene_any_noncorrect": 9,
+                  "selected_synthetic_correct_links": 17,
+                  "synthetic_noncorrect_selected": 12
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.041666666666666664,
+                    0.3333333333333333
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.125,
+                    0.5833333333333334
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.5833333333333334,
+                    -0.125
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 12,
+                  "selected_synthetic_correct_links": 9,
+                  "synthetic_noncorrect_selected": 20
+                }
+              }
+            }
+          }
+        },
+        "006_to_005": {
+          "CAL_choice_changed": false,
+          "CAL_corrected": {
+            "ridge_extend_relaxed": {
+              "selected_synthetic_correct_links": 24,
+              "synthetic_noncorrect_selected": 18
+            },
+            "ridge_extend_strict": {
+              "selected_synthetic_correct_links": 23,
+              "synthetic_noncorrect_selected": 18
+            },
+            "s39_original": {
+              "selected_synthetic_correct_links": 20,
+              "synthetic_noncorrect_selected": 12
+            }
+          },
+          "CAL_corrected_selected": "s39_original",
+          "CAL_historic_selected": "s39_original",
+          "TEST": {
+            "20266613": {
+              "ridge_extend_relaxed": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 10,
+                  "selected_synthetic_correct_links": 8,
+                  "synthetic_noncorrect_selected": 12
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.0,
+                    0.375
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.375,
+                    0.0
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 16
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.20833333333333334,
+                    0.125
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.25,
+                    0.4166666666666667
+                  ]
+                }
+              },
+              "ridge_extend_strict": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 10,
+                  "selected_synthetic_correct_links": 7,
+                  "synthetic_noncorrect_selected": 11
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.0,
+                    0.375
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.375,
+                    0.0
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 3,
+                  "synthetic_noncorrect_selected": 15
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.25,
+                    0.08333333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.16666666666666666,
+                    0.2916666666666667
+                  ]
+                }
+              },
+              "s39_original": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 7,
+                  "selected_synthetic_correct_links": 9,
+                  "synthetic_noncorrect_selected": 10
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.041666666666666664,
+                    0.4166666666666667
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.4166666666666667,
+                    -0.041666666666666664
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 8,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 15
+                }
+              }
+            },
+            "20266614": {
+              "ridge_extend_relaxed": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 4,
+                  "scene_any_noncorrect": 7,
+                  "selected_synthetic_correct_links": 16,
+                  "synthetic_noncorrect_selected": 10
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.4166666666666667
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.125,
+                    0.875
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.875,
+                    -0.125
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 10,
+                  "selected_synthetic_correct_links": 6,
+                  "synthetic_noncorrect_selected": 20
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.041666666666666664,
+                    0.3333333333333333
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.0,
+                    0.625
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.375,
+                    0.125
+                  ]
+                }
+              },
+              "ridge_extend_strict": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 4,
+                  "scene_any_noncorrect": 8,
+                  "selected_synthetic_correct_links": 14,
+                  "synthetic_noncorrect_selected": 14
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.4166666666666667
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.125,
+                    0.875
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.875,
+                    -0.125
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 24
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    -0.041666666666666664,
+                    0.3333333333333333
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.041666666666666664,
+                    0.5416666666666666
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    0.0,
+                    0.20833333333333334
+                  ]
+                }
+              },
+              "s39_original": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 7,
+                  "selected_synthetic_correct_links": 9,
+                  "synthetic_noncorrect_selected": 12
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.125
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.08333333333333333,
+                    0.4583333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.4583333333333333,
+                    -0.08333333333333333
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 3,
+                  "synthetic_noncorrect_selected": 18
+                }
+              }
+            }
+          }
+        }
+      },
+      "total_TEST": {
+        "baseline": {
+          "corrected": {
+            "complete_three_piece_paths_synthetic": 11,
+            "scene_any_noncorrect": 31,
+            "selected_provisional_links": 91,
+            "selected_synthetic_correct_links": 47,
+            "selected_synthetic_wrong_endpoint": 0,
+            "synthetic_noncorrect_selected": 44
+          },
+          "historic": {
+            "complete_three_piece_paths_synthetic": 3,
+            "scene_any_noncorrect": 45,
+            "selected_provisional_links": 91,
+            "selected_synthetic_correct_links": 18,
+            "selected_synthetic_wrong_endpoint": 29,
+            "synthetic_noncorrect_selected": 73
+          },
+          "scene_count": 96
+        },
+        "ridge_extend_relaxed": {
+          "corrected": {
+            "complete_three_piece_paths_synthetic": 12,
+            "scene_any_noncorrect": 43,
+            "selected_provisional_links": 112,
+            "selected_synthetic_correct_links": 55,
+            "selected_synthetic_wrong_endpoint": 0,
+            "synthetic_noncorrect_selected": 57
+          },
+          "historic": {
+            "complete_three_piece_paths_synthetic": 1,
+            "scene_any_noncorrect": 54,
+            "selected_provisional_links": 112,
+            "selected_synthetic_correct_links": 19,
+            "selected_synthetic_wrong_endpoint": 36,
+            "synthetic_noncorrect_selected": 93
+          },
+          "scene_count": 96
+        },
+        "ridge_extend_strict": {
+          "corrected": {
+            "complete_three_piece_paths_synthetic": 12,
+            "scene_any_noncorrect": 41,
+            "selected_provisional_links": 107,
+            "selected_synthetic_correct_links": 51,
+            "selected_synthetic_wrong_endpoint": 0,
+            "synthetic_noncorrect_selected": 56
+          },
+          "historic": {
+            "complete_three_piece_paths_synthetic": 1,
+            "scene_any_noncorrect": 53,
+            "selected_provisional_links": 107,
+            "selected_synthetic_correct_links": 16,
+            "selected_synthetic_wrong_endpoint": 35,
+            "synthetic_noncorrect_selected": 91
+          },
+          "scene_count": 96
+        }
+      }
+    },
+    "S67": {
+      "directions": {
+        "005_to_006": {
+          "CAL_choice_changed": false,
+          "CAL_corrected": {
+            "s39_original": {
+              "selected_synthetic_correct_links": 4,
+              "synthetic_noncorrect_selected": 9
+            },
+            "s67_crossing_orientation_v1": {
+              "selected_synthetic_correct_links": 4,
+              "synthetic_noncorrect_selected": 9
+            }
+          },
+          "CAL_corrected_selected": "s39_original",
+          "CAL_historic_selected": "s39_original",
+          "TEST": {
+            "20266703": {
+              "s39_original": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 6,
+                  "scene_any_noncorrect": 6,
+                  "selected_synthetic_correct_links": 19,
+                  "synthetic_noncorrect_selected": 8
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.041666666666666664,
+                    0.3333333333333333
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.25,
+                    1.0833333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -1.0833333333333333,
+                    -0.25
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 23
+                }
+              },
+              "s67_crossing_orientation_v1": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 6,
+                  "scene_any_noncorrect": 4,
+                  "selected_synthetic_correct_links": 19,
+                  "synthetic_noncorrect_selected": 6
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.041666666666666664,
+                    0.3333333333333333
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.25,
+                    1.0833333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -1.0833333333333333,
+                    -0.25
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 4,
+                  "synthetic_noncorrect_selected": 21
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.0,
+                    0.0
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                }
+              }
+            },
+            "20266704": {
+              "s39_original": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 12,
+                  "selected_synthetic_correct_links": 8,
+                  "synthetic_noncorrect_selected": 16
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.125
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.08333333333333333,
+                    0.5416666666666666
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.5416666666666666,
+                    -0.08333333333333333
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 15,
+                  "selected_synthetic_correct_links": 1,
+                  "synthetic_noncorrect_selected": 23
+                }
+              },
+              "s67_crossing_orientation_v1": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 1,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 7,
+                  "synthetic_noncorrect_selected": 15
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.125
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.041666666666666664,
+                    0.5
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.5,
+                    -0.041666666666666664
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 13,
+                  "selected_synthetic_correct_links": 1,
+                  "synthetic_noncorrect_selected": 21
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    -0.125,
+                    0.0
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "006_to_005": {
+          "CAL_choice_changed": false,
+          "CAL_corrected": {
+            "s39_original": {
+              "selected_synthetic_correct_links": 13,
+              "synthetic_noncorrect_selected": 6
+            },
+            "s67_crossing_orientation_v1": {
+              "selected_synthetic_correct_links": 13,
+              "synthetic_noncorrect_selected": 6
+            }
+          },
+          "CAL_corrected_selected": "s39_original",
+          "CAL_historic_selected": "s39_original",
+          "TEST": {
+            "20266713": {
+              "s39_original": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 5,
+                  "selected_synthetic_correct_links": 9,
+                  "synthetic_noncorrect_selected": 8
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.20833333333333334
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.08333333333333333,
+                    0.5833333333333334
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.5833333333333334,
+                    -0.08333333333333333
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 8,
+                  "selected_synthetic_correct_links": 1,
+                  "synthetic_noncorrect_selected": 16
+                }
+              },
+              "s67_crossing_orientation_v1": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 4,
+                  "selected_synthetic_correct_links": 9,
+                  "synthetic_noncorrect_selected": 7
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.20833333333333334
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.08333333333333333,
+                    0.5833333333333334
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.5833333333333334,
+                    -0.08333333333333333
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 7,
+                  "selected_synthetic_correct_links": 1,
+                  "synthetic_noncorrect_selected": 15
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.0,
+                    0.0
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              }
+            },
+            "20266714": {
+              "s39_original": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 7,
+                  "selected_synthetic_correct_links": 8,
+                  "synthetic_noncorrect_selected": 10
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.20833333333333334
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.041666666666666664,
+                    0.4583333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.4583333333333333,
+                    -0.041666666666666664
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 11,
+                  "selected_synthetic_correct_links": 2,
+                  "synthetic_noncorrect_selected": 16
+                }
+              },
+              "s67_crossing_orientation_v1": {
+                "corrected": {
+                  "complete_three_piece_paths_synthetic": 2,
+                  "scene_any_noncorrect": 6,
+                  "selected_synthetic_correct_links": 8,
+                  "synthetic_noncorrect_selected": 9
+                },
+                "correction_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.20833333333333334
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.041666666666666664,
+                    0.4583333333333333
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.4583333333333333,
+                    -0.041666666666666664
+                  ]
+                },
+                "historic": {
+                  "complete_three_piece_paths_synthetic": 0,
+                  "scene_any_noncorrect": 10,
+                  "selected_synthetic_correct_links": 2,
+                  "synthetic_noncorrect_selected": 15
+                },
+                "method_vs_baseline_CI95": {
+                  "complete_three_piece_paths_synthetic": [
+                    0.0,
+                    0.0
+                  ],
+                  "selected_synthetic_correct_links": [
+                    0.0,
+                    0.0
+                  ],
+                  "synthetic_noncorrect_selected": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "total_TEST": {
+        "baseline": {
+          "corrected": {
+            "complete_three_piece_paths_synthetic": 11,
+            "scene_any_noncorrect": 30,
+            "selected_provisional_links": 86,
+            "selected_synthetic_correct_links": 44,
+            "selected_synthetic_wrong_endpoint": 0,
+            "synthetic_noncorrect_selected": 42
+          },
+          "historic": {
+            "complete_three_piece_paths_synthetic": 2,
+            "scene_any_noncorrect": 45,
+            "selected_provisional_links": 86,
+            "selected_synthetic_correct_links": 8,
+            "selected_synthetic_wrong_endpoint": 36,
+            "synthetic_noncorrect_selected": 78
+          },
+          "scene_count": 96
+        },
+        "s67_crossing_orientation_v1": {
+          "corrected": {
+            "complete_three_piece_paths_synthetic": 11,
+            "scene_any_noncorrect": 25,
+            "selected_provisional_links": 80,
+            "selected_synthetic_correct_links": 43,
+            "selected_synthetic_wrong_endpoint": 0,
+            "synthetic_noncorrect_selected": 37
+          },
+          "historic": {
+            "complete_three_piece_paths_synthetic": 2,
+            "scene_any_noncorrect": 41,
+            "selected_provisional_links": 80,
+            "selected_synthetic_correct_links": 8,
+            "selected_synthetic_wrong_endpoint": 35,
+            "synthetic_noncorrect_selected": 72
+          },
+          "scene_count": 96
+        }
+      }
+    }
+  }
+}

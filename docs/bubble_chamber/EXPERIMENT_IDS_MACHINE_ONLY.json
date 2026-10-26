@@ -82,6 +82,23 @@
       },
       "physical_verified_native_GT_count": 0,
       "privacy": "Source-only public aggregate; no photo pixels or native per-frame identities"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S71-20261026",
+      "phase": "S71",
+      "status": "corrected_historical_S65_S67_evaluator_replay; old_aggregates_exactly_reproduced; S65_CAL_frozen_selection_changed; no_method_promotion",
+      "protocol": "docs/bubble_chamber/S71_FROZEN_RETROSPECTIVE_S65_S67_ORIENTATION_AUDIT_2026_10_26.md",
+      "results": "docs/bubble_chamber/S71_RETROSPECTIVE_S65_S67_PUBLIC_AGGREGATE_2026_10_26.json",
+      "report": "docs/bubble_chamber/S71_HISTORICAL_S65_S67_ORIENTATION_CORRECTION_2026_10_26.md",
+      "protocol_sha256": "482e12c5f769c422703d431f95b0d832b660d451115e19fd3f54344dc020675e",
+      "corrected_auditor_sha256": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+      "original_synthetic_auditor_sha256": "c148e55dc9a94f2841e34d2f5e1f3f6b8c41a1ebd345152d2ca21ee7c3ff824c",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "historical_test_reused": true,
+      "new_independent_test_scenes": 0,
+      "native_H50Z_GT_count": 0,
+      "physical_auto_joins_authorized": false,
+      "privacy": "public aggregated synthetic-only metrics; no raw photo pixels or per-scene labels"
     }
   ]
 }
