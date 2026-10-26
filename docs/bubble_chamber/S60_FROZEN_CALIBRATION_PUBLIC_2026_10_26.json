@@ -1,0 +1,162 @@
+{
+  "schema": "s60_risk_limited_global_margin_machine_only_v1",
+  "phase": "calibration_frozen_before_fresh_test",
+  "locked_protocol_sha256": "1668ff9a23e7ef7ff9b3b449b768a7ae23b0e772d8818158704c501b74ff02fe",
+  "S37_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "source_film_070_full_frames": 145,
+  "physically_validated_H50Z_track_labels": 0,
+  "cal_only_decision": {
+    "005": {
+      "selected_margin_CAL_only": 0.03,
+      "baseline_margin": 0.04,
+      "eligible_challenger_margins_CAL_only": [
+        0.03
+      ],
+      "cal_min_8_additional_correct_and_no_more_wrong_scenes": true
+    },
+    "006": {
+      "selected_margin_CAL_only": 0.04,
+      "baseline_margin": 0.04,
+      "eligible_challenger_margins_CAL_only": [],
+      "cal_min_8_additional_correct_and_no_more_wrong_scenes": true
+    }
+  },
+  "directions": {
+    "005": {
+      "pairwise_cutoff": 0.8443092691176276,
+      "margin_grid_CAL_only": {
+        "0.0": {
+          "scenes": 64,
+          "correct_selected": 144,
+          "wrong_selected": 26,
+          "any_wrong_scenes": 22,
+          "full_paths_selected": 49,
+          "solver_failed_scenes": 0,
+          "links_selected": 170
+        },
+        "0.01": {
+          "scenes": 64,
+          "correct_selected": 129,
+          "wrong_selected": 13,
+          "any_wrong_scenes": 11,
+          "full_paths_selected": 42,
+          "solver_failed_scenes": 0,
+          "links_selected": 142
+        },
+        "0.02": {
+          "scenes": 64,
+          "correct_selected": 110,
+          "wrong_selected": 8,
+          "any_wrong_scenes": 6,
+          "full_paths_selected": 34,
+          "solver_failed_scenes": 0,
+          "links_selected": 118
+        },
+        "0.03": {
+          "scenes": 64,
+          "correct_selected": 94,
+          "wrong_selected": 7,
+          "any_wrong_scenes": 5,
+          "full_paths_selected": 29,
+          "solver_failed_scenes": 0,
+          "links_selected": 101
+        },
+        "0.04": {
+          "scenes": 64,
+          "correct_selected": 71,
+          "wrong_selected": 7,
+          "any_wrong_scenes": 5,
+          "full_paths_selected": 22,
+          "solver_failed_scenes": 0,
+          "links_selected": 78
+        },
+        "0.06": {
+          "scenes": 64,
+          "correct_selected": 23,
+          "wrong_selected": 2,
+          "any_wrong_scenes": 2,
+          "full_paths_selected": 5,
+          "solver_failed_scenes": 0,
+          "links_selected": 25
+        },
+        "0.08": {
+          "scenes": 64,
+          "correct_selected": 0,
+          "wrong_selected": 0,
+          "any_wrong_scenes": 0,
+          "full_paths_selected": 0,
+          "solver_failed_scenes": 0,
+          "links_selected": 0
+        }
+      }
+    },
+    "006": {
+      "pairwise_cutoff": 0.8539211223090797,
+      "margin_grid_CAL_only": {
+        "0.0": {
+          "scenes": 64,
+          "correct_selected": 155,
+          "wrong_selected": 25,
+          "any_wrong_scenes": 19,
+          "full_paths_selected": 62,
+          "solver_failed_scenes": 0,
+          "links_selected": 180
+        },
+        "0.01": {
+          "scenes": 64,
+          "correct_selected": 141,
+          "wrong_selected": 15,
+          "any_wrong_scenes": 14,
+          "full_paths_selected": 55,
+          "solver_failed_scenes": 0,
+          "links_selected": 156
+        },
+        "0.02": {
+          "scenes": 64,
+          "correct_selected": 126,
+          "wrong_selected": 10,
+          "any_wrong_scenes": 9,
+          "full_paths_selected": 45,
+          "solver_failed_scenes": 0,
+          "links_selected": 136
+        },
+        "0.03": {
+          "scenes": 64,
+          "correct_selected": 93,
+          "wrong_selected": 5,
+          "any_wrong_scenes": 5,
+          "full_paths_selected": 33,
+          "solver_failed_scenes": 0,
+          "links_selected": 98
+        },
+        "0.04": {
+          "scenes": 64,
+          "correct_selected": 63,
+          "wrong_selected": 3,
+          "any_wrong_scenes": 3,
+          "full_paths_selected": 20,
+          "solver_failed_scenes": 0,
+          "links_selected": 66
+        },
+        "0.06": {
+          "scenes": 64,
+          "correct_selected": 17,
+          "wrong_selected": 1,
+          "any_wrong_scenes": 1,
+          "full_paths_selected": 2,
+          "solver_failed_scenes": 0,
+          "links_selected": 18
+        },
+        "0.08": {
+          "scenes": 64,
+          "correct_selected": 0,
+          "wrong_selected": 0,
+          "any_wrong_scenes": 0,
+          "full_paths_selected": 0,
+          "solver_failed_scenes": 0,
+          "links_selected": 0
+        }
+      }
+    }
+  }
+}

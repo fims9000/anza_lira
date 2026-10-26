@@ -1,0 +1,828 @@
+{
+  "schema": "s62_image_only_candidate_upper_bound_SYNTHETIC_ONLY_v1",
+  "protocol_sha256": "d4c5789f7b1d3ead4c32761bb86629c7105a70b8535cc7d8cd312797c01904af",
+  "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "visualmetro_070_source_complete_frames": 145,
+  "source_GT_only_SYNTHETIC_INJECTION": true,
+  "source_polylines_never_provided_to_pixel_detectors": true,
+  "native_H50Z_physical_track_GT_count": 0,
+  "native_photographs_one_physical_run": true,
+  "fixed_mask_activation_fraction": 0.035,
+  "smoke_only_NOT_confirmatory": false,
+  "arms": [
+    "multiscale_ridge",
+    "local_darkness",
+    "sobel_edge",
+    "image_only_ridge_polylines"
+  ],
+  "directions": {
+    "005_to_006": {
+      "photo_for_detection": "006",
+      "source_frame_set_used": "S37_TEST_ONLY_36_FRAMES",
+      "seeds": {
+        "20266203": {
+          "multiscale_ridge": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.5,
+              "scene_bootstrap_95pct": [
+                2.5833333333333335,
+                4.292708333333333
+              ],
+              "raw_total": 84
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.4166666666666667,
+                0.7916666666666666
+              ],
+              "raw_total": 15
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.9583333333333333,
+              "scene_bootstrap_95pct": [
+                1.3333333333333333,
+                2.5416666666666665
+              ],
+              "raw_total": 47
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.7916666666666666,
+              "scene_bootstrap_95pct": [
+                0.4583333333333333,
+                1.125
+              ],
+              "raw_total": 19
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "local_darkness": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.7083333333333335,
+              "scene_bootstrap_95pct": [
+                2.875,
+                4.459374999999999
+              ],
+              "raw_total": 89
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.4166666666666667,
+                0.7916666666666666
+              ],
+              "raw_total": 15
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 2.0416666666666665,
+              "scene_bootstrap_95pct": [
+                1.4583333333333333,
+                2.625
+              ],
+              "raw_total": 49
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.8333333333333334,
+              "scene_bootstrap_95pct": [
+                0.5416666666666666,
+                1.125
+              ],
+              "raw_total": 20
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "sobel_edge": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.7083333333333335,
+              "scene_bootstrap_95pct": [
+                2.915625,
+                4.458333333333333
+              ],
+              "raw_total": 89
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.5833333333333334,
+              "scene_bootstrap_95pct": [
+                0.375,
+                0.75
+              ],
+              "raw_total": 14
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 2.0,
+              "scene_bootstrap_95pct": [
+                1.4166666666666667,
+                2.5416666666666665
+              ],
+              "raw_total": 48
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.7916666666666666,
+              "scene_bootstrap_95pct": [
+                0.5,
+                1.0416666666666667
+              ],
+              "raw_total": 19
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "image_only_ridge_polylines": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 2.4166666666666665,
+              "scene_bootstrap_95pct": [
+                1.7916666666666667,
+                3.0833333333333335
+              ],
+              "raw_total": 58
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.16666666666666666,
+                0.5416666666666666
+              ],
+              "raw_total": 8
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 0.8333333333333334,
+              "scene_bootstrap_95pct": [
+                0.4572916666666667,
+                1.25
+              ],
+              "raw_total": 20
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.20833333333333334,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.375
+              ],
+              "raw_total": 5
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "scene_count": 24,
+            "image_only_proposals_mean": 5.708333333333333
+          }
+        },
+        "20266204": {
+          "multiscale_ridge": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 2.5833333333333335,
+              "scene_bootstrap_95pct": [
+                1.875,
+                3.2916666666666665
+              ],
+              "raw_total": 62
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.4583333333333333,
+              "scene_bootstrap_95pct": [
+                0.25,
+                0.6666666666666666
+              ],
+              "raw_total": 11
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 0.9583333333333334,
+              "scene_bootstrap_95pct": [
+                0.540625,
+                1.5
+              ],
+              "raw_total": 23
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.625
+              ],
+              "raw_total": 8
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "local_darkness": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.0416666666666665,
+              "scene_bootstrap_95pct": [
+                2.2916666666666665,
+                3.7510416666666657
+              ],
+              "raw_total": 73
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.6666666666666666,
+              "scene_bootstrap_95pct": [
+                0.4583333333333333,
+                0.875
+              ],
+              "raw_total": 16
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.2916666666666667,
+              "scene_bootstrap_95pct": [
+                0.8322916666666668,
+                1.875
+              ],
+              "raw_total": 31
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.16666666666666666,
+                0.75
+              ],
+              "raw_total": 10
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "sobel_edge": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.0,
+              "scene_bootstrap_95pct": [
+                2.125,
+                3.8333333333333335
+              ],
+              "raw_total": 72
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.375,
+              "scene_bootstrap_95pct": [
+                0.16666666666666666,
+                0.5833333333333334
+              ],
+              "raw_total": 9
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.375,
+              "scene_bootstrap_95pct": [
+                0.7916666666666666,
+                2.0
+              ],
+              "raw_total": 33
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.2916666666666667,
+                0.8333333333333334
+              ],
+              "raw_total": 13
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "image_only_ridge_polylines": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 1.5833333333333333,
+              "scene_bootstrap_95pct": [
+                1.0833333333333333,
+                2.125
+              ],
+              "raw_total": 38
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.20833333333333334,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.375
+              ],
+              "raw_total": 5
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 0.2916666666666667,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.5416666666666666
+              ],
+              "raw_total": 7
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.041666666666666664,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.125
+              ],
+              "raw_total": 1
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "scene_count": 24,
+            "image_only_proposals_mean": 4.416666666666667
+          }
+        }
+      }
+    },
+    "006_to_005": {
+      "photo_for_detection": "005",
+      "source_frame_set_used": "S37_TEST_ONLY_36_FRAMES",
+      "seeds": {
+        "20266213": {
+          "multiscale_ridge": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.3333333333333335,
+              "scene_bootstrap_95pct": [
+                2.6239583333333334,
+                4.125
+              ],
+              "raw_total": 80
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.3333333333333333,
+                0.75
+              ],
+              "raw_total": 13
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.8333333333333333,
+              "scene_bootstrap_95pct": [
+                1.25,
+                2.4166666666666665
+              ],
+              "raw_total": 44
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.6666666666666666,
+              "scene_bootstrap_95pct": [
+                0.375,
+                1.0
+              ],
+              "raw_total": 16
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "local_darkness": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 4.0,
+              "scene_bootstrap_95pct": [
+                3.2916666666666665,
+                4.666666666666667
+              ],
+              "raw_total": 96
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.4166666666666667,
+                0.8333333333333334
+              ],
+              "raw_total": 15
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 2.0833333333333335,
+              "scene_bootstrap_95pct": [
+                1.4583333333333333,
+                2.6666666666666665
+              ],
+              "raw_total": 50
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.7916666666666666,
+              "scene_bootstrap_95pct": [
+                0.5,
+                1.0833333333333333
+              ],
+              "raw_total": 19
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "sobel_edge": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.2916666666666665,
+              "scene_bootstrap_95pct": [
+                2.5833333333333335,
+                4.0
+              ],
+              "raw_total": 79
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.3333333333333333,
+                0.7083333333333334
+              ],
+              "raw_total": 13
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.7916666666666667,
+              "scene_bootstrap_95pct": [
+                1.2083333333333333,
+                2.375
+              ],
+              "raw_total": 43
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.7083333333333334,
+              "scene_bootstrap_95pct": [
+                0.4583333333333333,
+                1.0010416666666657
+              ],
+              "raw_total": 17
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "image_only_ridge_polylines": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 2.25,
+              "scene_bootstrap_95pct": [
+                1.5416666666666667,
+                2.959374999999999
+              ],
+              "raw_total": 54
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.25,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.4166666666666667
+              ],
+              "raw_total": 6
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 0.8333333333333334,
+              "scene_bootstrap_95pct": [
+                0.4166666666666667,
+                1.3333333333333333
+              ],
+              "raw_total": 20
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.20833333333333334,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.4166666666666667
+              ],
+              "raw_total": 5
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "scene_count": 24,
+            "image_only_proposals_mean": 5.083333333333333
+          }
+        },
+        "20266214": {
+          "multiscale_ridge": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 2.9583333333333335,
+              "scene_bootstrap_95pct": [
+                2.0416666666666665,
+                3.875
+              ],
+              "raw_total": 71
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.5,
+              "scene_bootstrap_95pct": [
+                0.2916666666666667,
+                0.7083333333333334
+              ],
+              "raw_total": 12
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.4583333333333333,
+              "scene_bootstrap_95pct": [
+                0.875,
+                2.1677083333333322
+              ],
+              "raw_total": 35
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.25,
+                0.875
+              ],
+              "raw_total": 13
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "local_darkness": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.2083333333333335,
+              "scene_bootstrap_95pct": [
+                2.4166666666666665,
+                4.0
+              ],
+              "raw_total": 77
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.6666666666666666,
+              "scene_bootstrap_95pct": [
+                0.5,
+                0.8333333333333334
+              ],
+              "raw_total": 16
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.6666666666666667,
+              "scene_bootstrap_95pct": [
+                1.125,
+                2.2916666666666665
+              ],
+              "raw_total": 40
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.3333333333333333,
+                0.9583333333333334
+              ],
+              "raw_total": 15
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "sobel_edge": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 3.1666666666666665,
+              "scene_bootstrap_95pct": [
+                2.4583333333333335,
+                3.9166666666666665
+              ],
+              "raw_total": 76
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.5833333333333334,
+              "scene_bootstrap_95pct": [
+                0.375,
+                0.7916666666666666
+              ],
+              "raw_total": 14
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.625,
+              "scene_bootstrap_95pct": [
+                1.0822916666666667,
+                2.25
+              ],
+              "raw_total": 39
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.2916666666666667,
+                0.9583333333333334
+              ],
+              "raw_total": 15
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "activated_pixels_fraction": {
+              "mean_per_synthetic_scene": 0.03502061631944445,
+              "scene_bootstrap_95pct": [
+                0.03502061631944445,
+                0.03502061631944445
+              ],
+              "raw_total": null
+            },
+            "scene_count": 24
+          },
+          "image_only_ridge_polylines": {
+            "proxy_true_fragments_usable": {
+              "mean_per_synthetic_scene": 2.2916666666666665,
+              "scene_bootstrap_95pct": [
+                1.4583333333333333,
+                3.125
+              ],
+              "raw_total": 55
+            },
+            "synthetic_decoy_fragment_usable": {
+              "mean_per_synthetic_scene": 0.16666666666666666,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.3333333333333333
+              ],
+              "raw_total": 4
+            },
+            "proxy_true_joins_upper_bound": {
+              "mean_per_synthetic_scene": 1.0833333333333333,
+              "scene_bootstrap_95pct": [
+                0.5416666666666666,
+                1.6666666666666667
+              ],
+              "raw_total": 26
+            },
+            "proxy_complete_three_piece_paths_upper_bound": {
+              "mean_per_synthetic_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.125,
+                0.5833333333333334
+              ],
+              "raw_total": 8
+            },
+            "no_native_physics_GT": {
+              "mean_per_synthetic_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                1.0,
+                1.0
+              ],
+              "raw_total": 24
+            },
+            "scene_count": 24,
+            "image_only_proposals_mean": 4.416666666666667
+          }
+        }
+      }
+    }
+  }
+}

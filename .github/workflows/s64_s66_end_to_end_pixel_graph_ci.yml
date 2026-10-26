@@ -1,0 +1,40 @@
+name: S64-S66 pixel-only full-path source QA (no private pixels)
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s64_*.py'
+      - 'bubble_chamber/s65_*.py'
+      - 'bubble_chamber/s66_*.py'
+      - 'scripts/research/bubble_chamber/s64_*.py'
+      - 'scripts/research/bubble_chamber/s65_*.py'
+      - 'scripts/research/bubble_chamber/s66_*.py'
+      - 'tests/test_s64_*.py'
+      - 'tests/test_s65_*.py'
+      - 'tests/test_s66_*.py'
+      - '.github/workflows/s64_s66_end_to_end_pixel_graph_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public_source_contracts_only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific test dependencies without downloading private datasets
+        run: python -m pip install numpy scipy scikit-image scikit-learn networkx opencv-python-headless pytest torch
+      - name: Reject private image/model formats in new S64-S66 tracked paths
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s6[4-6]*' 'scripts/research/bubble_chamber/s6[4-6]*' 'tests/test_s6[4-6]*' 'docs/bubble_chamber/S6[4-6]*' | grep -Ei '\.(png|jpe?g|bmp|tif|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'Private or non-source data must not be committed' >&2
+            exit 1
+          fi
+      - name: Run pixel-only blind inference, synthetic evaluation, CAL-only safety tests
+        run: python -m pytest -q tests/test_s64_pixel_to_path.py tests/test_s65_endpoint_guard.py tests/test_s65_calibration_protocol.py tests/test_s66_image_endpoint_tracing.py tests/test_s66_phase_protocol.py
+      - name: Syntax and import validation (without private image access)
+        run: python -m compileall -q bubble_chamber/s64_pixel_to_path.py bubble_chamber/s65_endpoint_guard.py bubble_chamber/s66_image_endpoint_tracing.py scripts/research/bubble_chamber/s64_benchmark_pixel_to_path.py scripts/research/bubble_chamber/s65_calibrate_endpoint_abstention.py scripts/research/bubble_chamber/s66_test_image_only_endpoint_extensions.py

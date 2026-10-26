@@ -1,0 +1,218 @@
+{
+  "schema": "s51_native_topology_uncertainty_and_synthetic_controls_v1",
+  "source_graph_schema": "s39_geometry_link_graph_proposals_v1",
+  "3d_reconstruction_performed": false,
+  "native_GT_available": false,
+  "2d_crossing_can_be_real_physical_tracks": true,
+  "bridges_with_warnings_NOT_false_join_truth": true,
+  "S51_radius_px_FROZEN": 3.0,
+  "native_machine_graph": {
+    "original_candidates": 511,
+    "original_edges": 182,
+    "old_S49_risky_edges": 58,
+    "S51_2d_third_line_warning": 31,
+    "new_S51_warning_outside_S49": 18,
+    "union_warning": 76,
+    "unflagged_UNVERIFIED": 106,
+    "auto_join_count": 0,
+    "expert_verified_track_count": 0
+  },
+  "new_synthetic_controls": {
+    "synthetic_scene_seeds": {
+      "006": [
+        20265101,
+        20265102
+      ],
+      "005": [
+        20265111,
+        20265112
+      ]
+    },
+    "synthetic_scenes_per_seed": 40,
+    "heldout_visualmetro_source_frames": 36,
+    "source_visualmetro_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+    "outcomes": {
+      "006_seed_20265101": {
+        "scenes": 40,
+        "counts": {
+          "all": {
+            "true": 80,
+            "true_warn": 16,
+            "wrong": 160,
+            "wrong_warn": 34,
+            "hard_decoy": 80,
+            "hard_decoy_warn": 19
+          },
+          "parallel": {
+            "true": 20,
+            "true_warn": 3,
+            "wrong": 40,
+            "wrong_warn": 7,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 4
+          },
+          "crossing": {
+            "true": 20,
+            "true_warn": 5,
+            "wrong": 40,
+            "wrong_warn": 12,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 7
+          },
+          "scratched": {
+            "true": 20,
+            "true_warn": 5,
+            "wrong": 40,
+            "wrong_warn": 9,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 5
+          },
+          "empty_gap": {
+            "true": 20,
+            "true_warn": 3,
+            "wrong": 40,
+            "wrong_warn": 6,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 3
+          }
+        }
+      },
+      "006_seed_20265102": {
+        "scenes": 40,
+        "counts": {
+          "all": {
+            "true": 80,
+            "true_warn": 20,
+            "wrong": 160,
+            "wrong_warn": 45,
+            "hard_decoy": 80,
+            "hard_decoy_warn": 24
+          },
+          "parallel": {
+            "true": 20,
+            "true_warn": 5,
+            "wrong": 40,
+            "wrong_warn": 13,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 5
+          },
+          "crossing": {
+            "true": 20,
+            "true_warn": 6,
+            "wrong": 40,
+            "wrong_warn": 16,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 9
+          },
+          "scratched": {
+            "true": 20,
+            "true_warn": 3,
+            "wrong": 40,
+            "wrong_warn": 6,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 3
+          },
+          "empty_gap": {
+            "true": 20,
+            "true_warn": 6,
+            "wrong": 40,
+            "wrong_warn": 10,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 7
+          }
+        }
+      },
+      "005_seed_20265111": {
+        "scenes": 40,
+        "counts": {
+          "all": {
+            "true": 80,
+            "true_warn": 16,
+            "wrong": 160,
+            "wrong_warn": 32,
+            "hard_decoy": 80,
+            "hard_decoy_warn": 15
+          },
+          "parallel": {
+            "true": 20,
+            "true_warn": 1,
+            "wrong": 40,
+            "wrong_warn": 3,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 1
+          },
+          "crossing": {
+            "true": 20,
+            "true_warn": 7,
+            "wrong": 40,
+            "wrong_warn": 12,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 4
+          },
+          "scratched": {
+            "true": 20,
+            "true_warn": 4,
+            "wrong": 40,
+            "wrong_warn": 7,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 4
+          },
+          "empty_gap": {
+            "true": 20,
+            "true_warn": 4,
+            "wrong": 40,
+            "wrong_warn": 10,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 6
+          }
+        }
+      },
+      "005_seed_20265112": {
+        "scenes": 40,
+        "counts": {
+          "all": {
+            "true": 80,
+            "true_warn": 18,
+            "wrong": 160,
+            "wrong_warn": 29,
+            "hard_decoy": 80,
+            "hard_decoy_warn": 12
+          },
+          "parallel": {
+            "true": 20,
+            "true_warn": 0,
+            "wrong": 40,
+            "wrong_warn": 1,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 1
+          },
+          "crossing": {
+            "true": 20,
+            "true_warn": 10,
+            "wrong": 40,
+            "wrong_warn": 12,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 2
+          },
+          "scratched": {
+            "true": 20,
+            "true_warn": 6,
+            "wrong": 40,
+            "wrong_warn": 8,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 4
+          },
+          "empty_gap": {
+            "true": 20,
+            "true_warn": 2,
+            "wrong": 40,
+            "wrong_warn": 8,
+            "hard_decoy": 20,
+            "hard_decoy_warn": 5
+          }
+        }
+      }
+    },
+    "physical_native_GT_count": 0
+  }
+}

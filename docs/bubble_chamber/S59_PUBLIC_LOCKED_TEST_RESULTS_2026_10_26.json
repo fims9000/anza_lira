@@ -1,0 +1,485 @@
+{
+  "schema": "s59_locked_candidate_retrieval_machine_only_v1",
+  "phase": "fresh_locked_test",
+  "calibration_SHA256": "65ef43b1cfffa9bb0f045111c39c62f60d3d0db47cd5daff4b9d2a7166c2a867",
+  "S37_frozen_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "all_truth_synthetic_only": true,
+  "real_H50Z_source_physical_runs": 1,
+  "native_verified_joins": 0,
+  "native_3D_physical_reconstruction": false,
+  "sources": {
+    "005": {
+      "heldout_test_photo": "006",
+      "test_seeds": {
+        "20265903": {
+          "n_synthetic_scenes": 64,
+          "candidate_and_joins": {
+            "strict_s39": {
+              "possible_true_joins": 256,
+              "available_true_joins": 239,
+              "false_candidates": 285,
+              "candidate_pairs": 524,
+              "full_path_available": 113,
+              "correct_selected": 77,
+              "wrong_selected": 3,
+              "any_wrong_scenes": 3,
+              "full_paths_selected": 22,
+              "selected_links": 80,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            },
+            "relaxed_s59": {
+              "possible_true_joins": 256,
+              "available_true_joins": 247,
+              "false_candidates": 337,
+              "candidate_pairs": 584,
+              "full_path_available": 119,
+              "correct_selected": 77,
+              "wrong_selected": 3,
+              "any_wrong_scenes": 3,
+              "full_paths_selected": 22,
+              "selected_links": 80,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            },
+            "all_pairs_oracle_upper_bound": {
+              "possible_true_joins": 256,
+              "available_true_joins": 256,
+              "false_candidates": 1088,
+              "candidate_pairs": 1344,
+              "full_path_available": 128,
+              "correct_selected": 77,
+              "wrong_selected": 3,
+              "any_wrong_scenes": 3,
+              "full_paths_selected": 22,
+              "selected_links": 80,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            }
+          },
+          "paired_relaxed_minus_strict": {
+            "correct": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "full_paths": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "paired_full_oracle_minus_strict": {
+            "correct": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "full_paths": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          }
+        },
+        "20265904": {
+          "n_synthetic_scenes": 64,
+          "candidate_and_joins": {
+            "strict_s39": {
+              "possible_true_joins": 256,
+              "available_true_joins": 239,
+              "false_candidates": 285,
+              "candidate_pairs": 524,
+              "full_path_available": 112,
+              "correct_selected": 61,
+              "wrong_selected": 1,
+              "any_wrong_scenes": 1,
+              "full_paths_selected": 13,
+              "selected_links": 62,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            },
+            "relaxed_s59": {
+              "possible_true_joins": 256,
+              "available_true_joins": 243,
+              "false_candidates": 325,
+              "candidate_pairs": 568,
+              "full_path_available": 115,
+              "correct_selected": 61,
+              "wrong_selected": 1,
+              "any_wrong_scenes": 1,
+              "full_paths_selected": 13,
+              "selected_links": 62,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            },
+            "all_pairs_oracle_upper_bound": {
+              "possible_true_joins": 256,
+              "available_true_joins": 256,
+              "false_candidates": 1088,
+              "candidate_pairs": 1344,
+              "full_path_available": 128,
+              "correct_selected": 61,
+              "wrong_selected": 1,
+              "any_wrong_scenes": 1,
+              "full_paths_selected": 13,
+              "selected_links": 62,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            }
+          },
+          "paired_relaxed_minus_strict": {
+            "correct": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "full_paths": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "paired_full_oracle_minus_strict": {
+            "correct": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "full_paths": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "006": {
+      "heldout_test_photo": "005",
+      "test_seeds": {
+        "20265913": {
+          "n_synthetic_scenes": 64,
+          "candidate_and_joins": {
+            "strict_s39": {
+              "possible_true_joins": 256,
+              "available_true_joins": 241,
+              "false_candidates": 292,
+              "candidate_pairs": 533,
+              "full_path_available": 113,
+              "correct_selected": 76,
+              "wrong_selected": 1,
+              "any_wrong_scenes": 1,
+              "full_paths_selected": 24,
+              "selected_links": 77,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            },
+            "relaxed_s59": {
+              "possible_true_joins": 256,
+              "available_true_joins": 251,
+              "false_candidates": 336,
+              "candidate_pairs": 587,
+              "full_path_available": 123,
+              "correct_selected": 76,
+              "wrong_selected": 1,
+              "any_wrong_scenes": 1,
+              "full_paths_selected": 24,
+              "selected_links": 77,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            },
+            "all_pairs_oracle_upper_bound": {
+              "possible_true_joins": 256,
+              "available_true_joins": 256,
+              "false_candidates": 1088,
+              "candidate_pairs": 1344,
+              "full_path_available": 128,
+              "correct_selected": 76,
+              "wrong_selected": 1,
+              "any_wrong_scenes": 1,
+              "full_paths_selected": 24,
+              "selected_links": 77,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            }
+          },
+          "paired_relaxed_minus_strict": {
+            "correct": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "full_paths": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "paired_full_oracle_minus_strict": {
+            "correct": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "full_paths": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          }
+        },
+        "20265914": {
+          "n_synthetic_scenes": 64,
+          "candidate_and_joins": {
+            "strict_s39": {
+              "possible_true_joins": 256,
+              "available_true_joins": 235,
+              "false_candidates": 265,
+              "candidate_pairs": 500,
+              "full_path_available": 110,
+              "correct_selected": 55,
+              "wrong_selected": 5,
+              "any_wrong_scenes": 5,
+              "full_paths_selected": 16,
+              "selected_links": 60,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            },
+            "relaxed_s59": {
+              "possible_true_joins": 256,
+              "available_true_joins": 246,
+              "false_candidates": 329,
+              "candidate_pairs": 575,
+              "full_path_available": 118,
+              "correct_selected": 55,
+              "wrong_selected": 5,
+              "any_wrong_scenes": 5,
+              "full_paths_selected": 16,
+              "selected_links": 60,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            },
+            "all_pairs_oracle_upper_bound": {
+              "possible_true_joins": 256,
+              "available_true_joins": 256,
+              "false_candidates": 1088,
+              "candidate_pairs": 1344,
+              "full_path_available": 128,
+              "correct_selected": 55,
+              "wrong_selected": 5,
+              "any_wrong_scenes": 5,
+              "full_paths_selected": 16,
+              "selected_links": 60,
+              "scenes": 64,
+              "native_physics_GT_links": 0
+            }
+          },
+          "paired_relaxed_minus_strict": {
+            "correct": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "full_paths": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "paired_full_oracle_minus_strict": {
+            "correct": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "full_paths": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "synthetic_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "calibration_only_deployment_policy": {
+    "005": {
+      "policy": "strict_s39",
+      "criteria_satisfied": {
+        "cal_true_recall_gain_at_least_10_percentage_points": false,
+        "cal_false_candidate_burden_at_most_4x": true,
+        "cal_scene_wrong_join_events_not_worse": true,
+        "cal_no_new_solver_failures": true
+      },
+      "selected_using": "CAL_ONLY_S59_FROZEN_GATE"
+    },
+    "006": {
+      "policy": "strict_s39",
+      "criteria_satisfied": {
+        "cal_true_recall_gain_at_least_10_percentage_points": false,
+        "cal_false_candidate_burden_at_most_4x": true,
+        "cal_scene_wrong_join_events_not_worse": true,
+        "cal_no_new_solver_failures": true
+      },
+      "selected_using": "CAL_ONLY_S59_FROZEN_GATE"
+    }
+  },
+  "native_machine_graph_diagnostic_ONLY": {
+    "native_photo_tiles": 39,
+    "native_machine_nodes": 511,
+    "strict_pairs": 182,
+    "relaxed_pairs": 247,
+    "candidate_pool_deployed": 182,
+    "native_s56_strict_link_suggestions": 37,
+    "native_s59_selected_link_suggestions": 37,
+    "new_native_s59_links_without_physics_GT": 0,
+    "dropped_previous_machine_link_hypotheses": 0,
+    "native_solver_fail_closed": 0,
+    "verified_physical_particle_joins": 0
+  }
+}

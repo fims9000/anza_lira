@@ -1,0 +1,549 @@
+{
+  "schema": "s56_frozen_global_three_piece_simulation_public_v1",
+  "machine_only": true,
+  "original_architectures_unchanged": true,
+  "native_verified_trajectories": 0,
+  "native_verified_joins": 0,
+  "operator_source_frames_complete": 145,
+  "source_abstract_manifest_SHA256": "bd8e28247c5d178ae4f2f5a86215cbf5626f3ad86560928f4521093ce9188dea",
+  "photo_native_backgrounds_one_physical_run": true,
+  "source_visualmetro_does_not_match_H50Z_images": true,
+  "S37_frozen_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "source_frame_split_counts": {
+    "train": 79,
+    "cal": 30,
+    "test": 36
+  },
+  "protocol": {
+    "train_scenes": 64,
+    "cal_scenes": 64,
+    "test_scenes_per_seed": 64,
+    "train_seeds": {
+      "005": 20265601,
+      "006": 20265611
+    },
+    "cal_seeds": {
+      "005": 20265602,
+      "006": 20265612
+    },
+    "test_seeds": {
+      "005": [
+        20265603,
+        20265604
+      ],
+      "006": [
+        20265613,
+        20265614
+      ]
+    },
+    "cal_negative_fpr": 0.05,
+    "port_or_node_margin": 0.04,
+    "global_objective_stability_margin": 0.04,
+    "bootstrap_scene_iterations": 1000,
+    "effective": {
+      "train": 64,
+      "cal": 64,
+      "test_per_seed": 64
+    },
+    "smoke_not_confirmatory": false
+  },
+  "synthetic_GT_not_native_physics": true,
+  "directions": {
+    "005_to_006": {
+      "train_photo_id": "005",
+      "heldout_test_photo_id": "006",
+      "cal_negative_fpr_policy_only_not_physics": 0.05,
+      "calibration_cutoff": 0.8443092691176276,
+      "tests": {
+        "20265603": {
+          "synthetic_pair_AUROC": 0.9503173828125,
+          "synthetic_pair_AUPRC": 0.792995174623139,
+          "arms": {
+            "node_mutual": {
+              "true": 19,
+              "wrong": 4,
+              "any_wrong": 4,
+              "suggestions": 23,
+              "full_trajectories": 0,
+              "exact_complete_scene": 0,
+              "components": 425,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.07421875,
+              "wrong_joins_per_100_simulated_scenes": 6.25,
+              "synthetic_link_precision": 0.8260869565217391,
+              "physically_verified_native_joins": 0
+            },
+            "port_greedy": {
+              "true": 128,
+              "wrong": 11,
+              "any_wrong": 10,
+              "suggestions": 139,
+              "full_trajectories": 42,
+              "exact_complete_scene": 10,
+              "components": 309,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.5,
+              "wrong_joins_per_100_simulated_scenes": 17.1875,
+              "synthetic_link_precision": 0.920863309352518,
+              "physically_verified_native_joins": 0
+            },
+            "global_forest": {
+              "true": 88,
+              "wrong": 6,
+              "any_wrong": 5,
+              "suggestions": 94,
+              "full_trajectories": 24,
+              "exact_complete_scene": 6,
+              "components": 354,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.34375,
+              "wrong_joins_per_100_simulated_scenes": 9.375,
+              "synthetic_link_precision": 0.9361702127659575,
+              "physically_verified_native_joins": 0
+            }
+          },
+          "paired_global_minus_node": {
+            "true": {
+              "mean_delta_per_simulated_scene": 1.078125,
+              "conditional_scene_bootstrap_95pct": [
+                0.6875,
+                1.453125
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.03125,
+              "conditional_scene_bootstrap_95pct": [
+                -0.0625,
+                0.140625
+              ]
+            },
+            "full_trajectories": {
+              "mean_delta_per_simulated_scene": 0.375,
+              "conditional_scene_bootstrap_95pct": [
+                0.21875,
+                0.546875
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.015625,
+              "conditional_scene_bootstrap_95pct": [
+                -0.0625,
+                0.09375
+              ]
+            }
+          },
+          "paired_global_minus_port": {
+            "true": {
+              "mean_delta_per_simulated_scene": -0.625,
+              "conditional_scene_bootstrap_95pct": [
+                -0.875,
+                -0.328125
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": -0.078125,
+              "conditional_scene_bootstrap_95pct": [
+                -0.140625,
+                -0.015625
+              ]
+            },
+            "full_trajectories": {
+              "mean_delta_per_simulated_scene": -0.28125,
+              "conditional_scene_bootstrap_95pct": [
+                -0.421875,
+                -0.125
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": -0.078125,
+              "conditional_scene_bootstrap_95pct": [
+                -0.140625,
+                -0.015625
+              ]
+            }
+          }
+        },
+        "20265604": {
+          "synthetic_pair_AUROC": 0.9454884248621324,
+          "synthetic_pair_AUPRC": 0.7600196159587304,
+          "arms": {
+            "node_mutual": {
+              "true": 27,
+              "wrong": 4,
+              "any_wrong": 4,
+              "suggestions": 31,
+              "full_trajectories": 0,
+              "exact_complete_scene": 0,
+              "components": 417,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.10546875,
+              "wrong_joins_per_100_simulated_scenes": 6.25,
+              "synthetic_link_precision": 0.8709677419354839,
+              "physically_verified_native_joins": 0
+            },
+            "port_greedy": {
+              "true": 105,
+              "wrong": 11,
+              "any_wrong": 11,
+              "suggestions": 116,
+              "full_trajectories": 27,
+              "exact_complete_scene": 7,
+              "components": 332,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.41015625,
+              "wrong_joins_per_100_simulated_scenes": 17.1875,
+              "synthetic_link_precision": 0.9051724137931034,
+              "physically_verified_native_joins": 0
+            },
+            "global_forest": {
+              "true": 61,
+              "wrong": 1,
+              "any_wrong": 1,
+              "suggestions": 62,
+              "full_trajectories": 16,
+              "exact_complete_scene": 4,
+              "components": 386,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.23828125,
+              "wrong_joins_per_100_simulated_scenes": 1.5625,
+              "synthetic_link_precision": 0.9838709677419355,
+              "physically_verified_native_joins": 0
+            }
+          },
+          "paired_global_minus_node": {
+            "true": {
+              "mean_delta_per_simulated_scene": 0.53125,
+              "conditional_scene_bootstrap_95pct": [
+                0.1875,
+                0.890625
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": -0.046875,
+              "conditional_scene_bootstrap_95pct": [
+                -0.125,
+                0.015625
+              ]
+            },
+            "full_trajectories": {
+              "mean_delta_per_simulated_scene": 0.25,
+              "conditional_scene_bootstrap_95pct": [
+                0.125,
+                0.39101562499999964
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": -0.046875,
+              "conditional_scene_bootstrap_95pct": [
+                -0.109375,
+                0.015625
+              ]
+            }
+          },
+          "paired_global_minus_port": {
+            "true": {
+              "mean_delta_per_simulated_scene": -0.6875,
+              "conditional_scene_bootstrap_95pct": [
+                -0.9375,
+                -0.46875
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": -0.15625,
+              "conditional_scene_bootstrap_95pct": [
+                -0.25,
+                -0.078125
+              ]
+            },
+            "full_trajectories": {
+              "mean_delta_per_simulated_scene": -0.171875,
+              "conditional_scene_bootstrap_95pct": [
+                -0.28125,
+                -0.07773437500000036
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": -0.15625,
+              "conditional_scene_bootstrap_95pct": [
+                -0.25,
+                -0.078125
+              ]
+            }
+          }
+        }
+      }
+    },
+    "006_to_005": {
+      "train_photo_id": "006",
+      "heldout_test_photo_id": "005",
+      "cal_negative_fpr_policy_only_not_physics": 0.05,
+      "calibration_cutoff": 0.8539211223090797,
+      "tests": {
+        "20265613": {
+          "synthetic_pair_AUROC": 0.944475959329044,
+          "synthetic_pair_AUPRC": 0.7371883333477474,
+          "arms": {
+            "node_mutual": {
+              "true": 17,
+              "wrong": 5,
+              "any_wrong": 5,
+              "suggestions": 22,
+              "full_trajectories": 0,
+              "exact_complete_scene": 0,
+              "components": 426,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.06640625,
+              "wrong_joins_per_100_simulated_scenes": 7.8125,
+              "synthetic_link_precision": 0.7727272727272727,
+              "physically_verified_native_joins": 0
+            },
+            "port_greedy": {
+              "true": 101,
+              "wrong": 9,
+              "any_wrong": 9,
+              "suggestions": 110,
+              "full_trajectories": 30,
+              "exact_complete_scene": 9,
+              "components": 338,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.39453125,
+              "wrong_joins_per_100_simulated_scenes": 14.0625,
+              "synthetic_link_precision": 0.9181818181818182,
+              "physically_verified_native_joins": 0
+            },
+            "global_forest": {
+              "true": 47,
+              "wrong": 4,
+              "any_wrong": 4,
+              "suggestions": 51,
+              "full_trajectories": 12,
+              "exact_complete_scene": 3,
+              "components": 397,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.18359375,
+              "wrong_joins_per_100_simulated_scenes": 6.25,
+              "synthetic_link_precision": 0.9215686274509803,
+              "physically_verified_native_joins": 0
+            }
+          },
+          "paired_global_minus_node": {
+            "true": {
+              "mean_delta_per_simulated_scene": 0.46875,
+              "conditional_scene_bootstrap_95pct": [
+                0.1875,
+                0.78125
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": -0.015625,
+              "conditional_scene_bootstrap_95pct": [
+                -0.078125,
+                0.046875
+              ]
+            },
+            "full_trajectories": {
+              "mean_delta_per_simulated_scene": 0.1875,
+              "conditional_scene_bootstrap_95pct": [
+                0.078125,
+                0.31289062499999964
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": -0.015625,
+              "conditional_scene_bootstrap_95pct": [
+                -0.09375,
+                0.046875
+              ]
+            }
+          },
+          "paired_global_minus_port": {
+            "true": {
+              "mean_delta_per_simulated_scene": -0.84375,
+              "conditional_scene_bootstrap_95pct": [
+                -1.15625,
+                -0.5625
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": -0.078125,
+              "conditional_scene_bootstrap_95pct": [
+                -0.140625,
+                -0.015625
+              ]
+            },
+            "full_trajectories": {
+              "mean_delta_per_simulated_scene": -0.28125,
+              "conditional_scene_bootstrap_95pct": [
+                -0.453125,
+                -0.109375
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": -0.078125,
+              "conditional_scene_bootstrap_95pct": [
+                -0.140625,
+                -0.015625
+              ]
+            }
+          }
+        },
+        "20265614": {
+          "synthetic_pair_AUROC": 0.9455745921415442,
+          "synthetic_pair_AUPRC": 0.7239034958175645,
+          "arms": {
+            "node_mutual": {
+              "true": 25,
+              "wrong": 2,
+              "any_wrong": 2,
+              "suggestions": 27,
+              "full_trajectories": 0,
+              "exact_complete_scene": 0,
+              "components": 421,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.09765625,
+              "wrong_joins_per_100_simulated_scenes": 3.125,
+              "synthetic_link_precision": 0.9259259259259259,
+              "physically_verified_native_joins": 0
+            },
+            "port_greedy": {
+              "true": 107,
+              "wrong": 5,
+              "any_wrong": 5,
+              "suggestions": 112,
+              "full_trajectories": 30,
+              "exact_complete_scene": 8,
+              "components": 336,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.41796875,
+              "wrong_joins_per_100_simulated_scenes": 7.8125,
+              "synthetic_link_precision": 0.9553571428571429,
+              "physically_verified_native_joins": 0
+            },
+            "global_forest": {
+              "true": 50,
+              "wrong": 2,
+              "any_wrong": 2,
+              "suggestions": 52,
+              "full_trajectories": 14,
+              "exact_complete_scene": 3,
+              "components": 396,
+              "solver_success": 64,
+              "n_synthetic_scenes": 64,
+              "synthetic_true_links_total": 256,
+              "synthetic_full_paths_total": 128,
+              "true_recovery": 0.1953125,
+              "wrong_joins_per_100_simulated_scenes": 3.125,
+              "synthetic_link_precision": 0.9615384615384616,
+              "physically_verified_native_joins": 0
+            }
+          },
+          "paired_global_minus_node": {
+            "true": {
+              "mean_delta_per_simulated_scene": 0.390625,
+              "conditional_scene_bootstrap_95pct": [
+                0.0625,
+                0.71875
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "conditional_scene_bootstrap_95pct": [
+                -0.046875,
+                0.046875
+              ]
+            },
+            "full_trajectories": {
+              "mean_delta_per_simulated_scene": 0.21875,
+              "conditional_scene_bootstrap_95pct": [
+                0.109375,
+                0.34414062499999964
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": 0.0,
+              "conditional_scene_bootstrap_95pct": [
+                -0.046875,
+                0.046875
+              ]
+            }
+          },
+          "paired_global_minus_port": {
+            "true": {
+              "mean_delta_per_simulated_scene": -0.890625,
+              "conditional_scene_bootstrap_95pct": [
+                -1.125,
+                -0.6558593750000004
+              ]
+            },
+            "wrong": {
+              "mean_delta_per_simulated_scene": -0.046875,
+              "conditional_scene_bootstrap_95pct": [
+                -0.09414062499999998,
+                0.0
+              ]
+            },
+            "full_trajectories": {
+              "mean_delta_per_simulated_scene": -0.25,
+              "conditional_scene_bootstrap_95pct": [
+                -0.375,
+                -0.14023437500000036
+              ]
+            },
+            "any_wrong": {
+              "mean_delta_per_simulated_scene": -0.046875,
+              "conditional_scene_bootstrap_95pct": [
+                -0.109375,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "native_machine_advisory": {
+    "counts": {
+      "advisory_selected_edges": 37,
+      "possible_edges_scored": 182,
+      "global_ambiguous_abstentions": 14,
+      "tiles": 39,
+      "source_nodes": 511
+    },
+    "all_native_labels_unknown": true,
+    "native_physical_auto_joins": 0,
+    "trained_graph_lira_relation_head": false
+  }
+}

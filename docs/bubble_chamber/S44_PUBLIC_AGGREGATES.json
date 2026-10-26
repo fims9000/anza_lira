@@ -1,0 +1,46 @@
+{
+  "schema": "s44_crossframe_2d_registration_machine_advisory_v1",
+  "source_photographs": 2,
+  "independent_physical_runs": 1,
+  "common_identifiers_f1_through_f6": 6,
+  "mean_calibration_residual_px": 1.5073,
+  "max_calibration_residual_px": 2.7072,
+  "label_f8_in_005_vs_f7_in_006_residual_px_NOT_PROVEN_SAME_MARK": 2.586,
+  "known_fiducial_control_arms": 12,
+  "known_fiducial_crossimage_support_mean": 0.9927,
+  "native_machine_candidates_total": 567,
+  "candidate_counters": {
+    "crop_sha_match": 39,
+    "candidate_shift_control_eligible": 567,
+    "candidate_shift_control_high_support": 46,
+    "direct_high_given_eligible": 132,
+    "nonfiducial_direct_high_given_eligible": 78,
+    "candidate_comparison": 567,
+    "source_strong_multiscale": 567,
+    "counterpart_strong_multiscale": 132,
+    "both_strong_multiscale_UNVERIFIED": 132,
+    "crop_both_covered": 39,
+    "source_known_fiducial_risk": 56,
+    "known_fiducial_arm_controls": 12
+  },
+  "by_source_photo": {
+    "005": {
+      "total": 321,
+      "high_corresponding_structure": 73
+    },
+    "006": {
+      "total": 246,
+      "high_corresponding_structure": 59
+    }
+  },
+  "registered_minus_shifted_high_support_fraction_scene_bootstrap_95pct_CI_EXPLORATORY": [
+    0.08196,
+    0.27053
+  ],
+  "high_correspondence_definition": "Both source and registered other-photo ridge maps: >=0.45 path support (95th percentile or nonzero fallback) with 2px tolerance. Uncalibrated exploratory statistic.",
+  "known_native_track_GT": 0,
+  "real_physical_auto_joins_performed": 0,
+  "native_candidates_erased": 0,
+  "no_run_independence_claim": true,
+  "repeating_structure_not_proof_of_scratch": true
+}

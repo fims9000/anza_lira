@@ -1,0 +1,40 @@
+name: S38 blinded H50Z double-review and provenance contract
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s38_*.py'
+      - 'scripts/research/bubble_chamber/s38_*'
+      - 'tests/test_s38_*.py'
+      - 'docs/bubble_chamber/S38_*.md'
+      - '.github/workflows/s38_blinded_review_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_double_review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only source-contract dependencies
+        run: python -m pip install pytest numpy opencv-python-headless
+      - name: Run double review and synthetic source integrity tests
+        run: python -m pytest -q tests/test_s38_blinded_double_review.py
+      - name: Source compilation
+        run: python -m compileall -q bubble_chamber/s38_review_protocol.py scripts/research/bubble_chamber/s38_build_private_workbench.py scripts/research/bubble_chamber/s38_adjudicate_reviews.py
+      - name: Check browser script syntax without exposing private imagery
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          text=Path('scripts/research/bubble_chamber/s38_review_workbench.html').read_text()
+          js=re.search(r'<script>\s*(.*?)\s*</script>',text,re.S)
+          assert js and '__PRIVATE_JSON__' not in js.group(1)
+          Path('/tmp/s38_reviewer.js').write_text(js.group(1))
+          PY
+          node --check /tmp/s38_reviewer.js

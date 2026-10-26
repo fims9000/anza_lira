@@ -1,0 +1,16 @@
+{
+  "schema": "machine_only_s45_s47_state_v1",
+  "branch": "research/bubble-chamber-graph-lira",
+  "objectives_verified": [
+    "S45 conservative registered-image uncertainty added to S42 geometry-only machine masks",
+    "S40/S45 graph warning union checked and all original 182 proposals preserved",
+    "S46 source-only and repeated-injection machine counterfactuals corrected for normal direction",
+    "S47 unretuned offset sensitivity on same synthetic geometry documented"
+  ],
+  "native_expert_ground_truth": false,
+  "native_physics_auto_join_enabled": false,
+  "independent_physical_runs": 1,
+  "images_heldout_from_S45_feature_computation": false,
+  "S45_output_allowed_for_photo_heldout_training": false,
+  "next_executable_action": "Investigate physical/optical nuisance separation without native GT: use purely source-photo teacher for model fitting, reserve counterpart photos only for transductive inference diagnostics. Acquire independent H50Z runs and third-view calibrated photos when authorized; do not synthesize native accuracy or particle truth."
+}

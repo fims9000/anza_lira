@@ -1,0 +1,15 @@
+# S62 frozen image-derived candidate upper-bound audit (before fresh TEST)
+
+**26 October 2026, branch research/bubble-chamber-graph-lira.** All scene identities and truth labels are generator-only. H50Z photographs have NO native verified particle labels.
+
+Scientific question: do existing S39 *image-only* ridge/contrast/Sobel detectors recover enough visible material from the S56 artificial three-piece scenes that a downstream whole-path graph could even be assembled? S56 provided the scorer with source-derived, independently jittered polylines; S62 must distinguish those coordinates from features obtained exclusively from image pixels.
+
+Data: same frozen S37 145 visualMetro 070 measured-source frame audit and 79/30/36 train/cal/test whole-frame split, only 36 test frames supply synthetic templates. Same two H50Z authentic photographs from ONE run, 39 private 512px crops as backgrounds. Generator `make_three_piece_scene` builds two three-piece artificial tracks and one artificial decoy; the seven noisy source-derived polylines are **accessible only to EVALUATION code** after image-only prediction. They are NOT native GT.
+
+Frozen scene seeds and sample sizes: 24 scenes each for source photo 005→test photo 006 seeds `20266203`/`20266204`, and source photo 006→test photo 005 seeds `20266213`/`20266214`, 96 synthetic scenes total. Scenario order locked by `SCENARIOS` cycling.
+
+Detector arms (NO fitted model, NO GT in detector call): S39 `ridge_evidence(gray)['score']`, `contrast_baseline(gray)`, `canny_score(gray)`, each with **same frozen 3.5% per-scene activated pixel budget** via `fixed_budget_mask`. Separate full `extract_ridges(ridge_evidence(gray))` returns image-derived polylines (max 32). No automatic neural weight retraining.
+
+Evaluation-only proxies: 7 generator-rendered artificially jittered source-node polylines; first 6 are true synthetic fragment identities, seventh is a deliberately drawn synthetic decoy (NOT a real scratch). Tolerant pixel support uses a fixed Chebyshev radius of 2 px (5x5 dilation); a fragment is *potentially usable* if at least 40% of its sampled points are near activated pixels AND both endpoints are supported. A true artificial bridge is *potentially recoverable* if both constituent fragments meet that criterion. Image-only ridge polylines are evaluated via distance-to-nearest-detected-point <=4 px on at least 40% of synthetic fragment points, also both endpoints within 4 px; no truth labels enter `extract_ridges`. The decoder cannot be called end-to-end unless it later receives these *estimated* polylines instead of source coordinates.
+
+Record candidate coverage for the six artificial positive fragments, decoy activation, the maximum number of four generator-known correct joins that could in principle be assembled given this evidence, total detector proposals, and fully supportable three-piece paths. Report all arms with scene-level uncertainty; do not pick a "winner" based on TEST alone. No native physical particle accuracy, no independent photographic-run confidence intervals, no physical auto joining.

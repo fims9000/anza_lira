@@ -1,0 +1,17 @@
+{
+  "schema": "s40_machine_fiducial_guard_state_v1",
+  "branch": "research/bubble-chamber-graph-lira",
+  "goal": "Prevent visualMetro calibration crosses from masquerading as native particle links in machine-only graph hypotheses",
+  "status": "PRIVATE_MACHINE_DEMO_COMPLETE_NO_NATIVE_GT",
+  "private_demo_sha256": "301804cdcbb1c0424a6edcdd798d66808033189298e5acda2fd512480fdc2ab2",
+  "known_fiducial_keypoints": 15,
+  "axes_X_detected": 15,
+  "machine_candidates_selected_total": 567,
+  "risk_selected_union": 56,
+  "graph_candidate_links": 182,
+  "graph_risk_edges": 43,
+  "previously_unambiguous_links_at_risk": 5,
+  "native_particle_ground_truth": 0,
+  "automatic_physical_merges": 0,
+  "next_machine_only_experiment": "photometric perturbation and scanner defect cross-validation with fixed source frames and relation abstention; no manual annotation prerequisite"
+}

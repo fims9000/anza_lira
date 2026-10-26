@@ -1,0 +1,27 @@
+name: S63 frozen CAL and pixel-curve extraction (public source only)
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s63_*.py'
+      - 'scripts/research/bubble_chamber/s63_*.py'
+      - 'tests/test_s63_*.py'
+      - '.github/workflows/s63_pixel_curve_calibration_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test-only scientific code dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn networkx opencv-python-headless pytest torch
+      - name: Verify CAL selection does not consume TEST and privacy boundaries
+        run: python -m pytest -q tests/test_s63_image_curve_variants.py tests/test_s63_calibration_protocol.py tests/test_s63_private_viewer_safety.py
+      - name: Validate source syntax
+        run: python -m compileall -q bubble_chamber/s63_image_curve_variants.py scripts/research/bubble_chamber/s63_calibrate_then_new_test_pixel_curves.py scripts/research/bubble_chamber/s63_package_private_demo.py

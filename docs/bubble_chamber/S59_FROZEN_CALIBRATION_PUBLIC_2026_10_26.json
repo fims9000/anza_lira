@@ -1,0 +1,121 @@
+{
+  "schema": "s59_locked_candidate_retrieval_machine_only_v1",
+  "phase": "frozen_calibration",
+  "locked_protocol_sha256": "30eaa43c02b298c8ac341c9d7d5e9e4df37d84a3f97086752c75aa9b72e352de",
+  "source_visualmetro_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "source_complete_frames": 145,
+  "train_cal_scene_counts": {
+    "train": 64,
+    "cal": 64
+  },
+  "all_metrics_synthetic_only": true,
+  "native_physics_verified": 0,
+  "decisions": {
+    "005": {
+      "policy": "strict_s39",
+      "criteria_satisfied": {
+        "cal_true_recall_gain_at_least_10_percentage_points": false,
+        "cal_false_candidate_burden_at_most_4x": true,
+        "cal_scene_wrong_join_events_not_worse": true,
+        "cal_no_new_solver_failures": true
+      },
+      "selected_using": "CAL_ONLY_S59_FROZEN_GATE"
+    },
+    "006": {
+      "policy": "strict_s39",
+      "criteria_satisfied": {
+        "cal_true_recall_gain_at_least_10_percentage_points": false,
+        "cal_false_candidate_burden_at_most_4x": true,
+        "cal_scene_wrong_join_events_not_worse": true,
+        "cal_no_new_solver_failures": true
+      },
+      "selected_using": "CAL_ONLY_S59_FROZEN_GATE"
+    }
+  },
+  "sources": {
+    "005": {
+      "calibration_pair_cutoff": 0.8443092691176276,
+      "policies": {
+        "strict_s39": {
+          "possible_true_joins": 256,
+          "available_true_joins": 243,
+          "false_candidates": 290,
+          "candidate_pairs": 533,
+          "full_path_available": 116,
+          "correct_selected": 71,
+          "wrong_selected": 7,
+          "any_wrong_scenes": 5,
+          "full_paths_selected": 22,
+          "selected_links": 78,
+          "scenes": 64,
+          "native_physics_GT_links": 0
+        },
+        "relaxed_s59": {
+          "possible_true_joins": 256,
+          "available_true_joins": 249,
+          "false_candidates": 323,
+          "candidate_pairs": 572,
+          "full_path_available": 121,
+          "correct_selected": 71,
+          "wrong_selected": 7,
+          "any_wrong_scenes": 5,
+          "full_paths_selected": 22,
+          "selected_links": 78,
+          "scenes": 64,
+          "native_physics_GT_links": 0
+        },
+        "all_pairs_oracle_upper_bound": {
+          "possible_true_joins": 256,
+          "available_true_joins": 256,
+          "false_candidates": 1088,
+          "candidate_pairs": 1344,
+          "full_path_available": 128,
+          "scenes": 64,
+          "native_physics_GT_links": 0
+        }
+      }
+    },
+    "006": {
+      "calibration_pair_cutoff": 0.8539211223090797,
+      "policies": {
+        "strict_s39": {
+          "possible_true_joins": 256,
+          "available_true_joins": 237,
+          "false_candidates": 298,
+          "candidate_pairs": 535,
+          "full_path_available": 112,
+          "correct_selected": 63,
+          "wrong_selected": 3,
+          "any_wrong_scenes": 3,
+          "full_paths_selected": 20,
+          "selected_links": 66,
+          "scenes": 64,
+          "native_physics_GT_links": 0
+        },
+        "relaxed_s59": {
+          "possible_true_joins": 256,
+          "available_true_joins": 244,
+          "false_candidates": 338,
+          "candidate_pairs": 582,
+          "full_path_available": 118,
+          "correct_selected": 63,
+          "wrong_selected": 3,
+          "any_wrong_scenes": 3,
+          "full_paths_selected": 20,
+          "selected_links": 66,
+          "scenes": 64,
+          "native_physics_GT_links": 0
+        },
+        "all_pairs_oracle_upper_bound": {
+          "possible_true_joins": 256,
+          "available_true_joins": 256,
+          "false_candidates": 1088,
+          "candidate_pairs": 1344,
+          "full_path_available": 128,
+          "scenes": 64,
+          "native_physics_GT_links": 0
+        }
+      }
+    }
+  }
+}

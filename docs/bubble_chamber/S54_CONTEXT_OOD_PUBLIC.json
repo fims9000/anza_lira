@@ -1,0 +1,71 @@
+{
+  "schema": "s54_context_aligned_machine_unknown_only_v1",
+  "context_diagnostic_is_posthoc_NOT_confirmatory": true,
+  "native_H50Z_physical_GT_count": 0,
+  "physical_auto_joins": 0,
+  "all_567_original_candidates_preserved": true,
+  "fresh_independent_physical_run_count": 0,
+  "real_photo_run_count": 1,
+  "source_calibration_synthetic_frames": 37,
+  "source_192_patch_size_and_12px_margin": true,
+  "simulator_calibrated_99pct_max_abs_z_is_not_real_OOD_guarantee": true,
+  "source_model_training_uses_only_opposite_photo": true,
+  "counts": {
+    "005": {
+      "all_native_machine_candidates": 321,
+      "cannot_fit_source_192_context_without_resampling": 91,
+      "scorable_candidates": 230,
+      "within_source_simulator_calibration_support_NOT_validated_tracks": 2,
+      "outside_source_simulator_calibration_support_NOT_artifact_truth": 228,
+      "S53_score_median_192_context_SIMULATOR_ONLY": 0.518729,
+      "S53_score_change_from_512_context_median_abs_NOT_accuracy": 0.0,
+      "S53_score_change_from_512_context_gt_0p2": 5,
+      "most_frequent_S53_outlier_features": [
+        [
+          "log_geodesic_length",
+          97
+        ],
+        [
+          "p90_local_turn_degrees",
+          89
+        ],
+        [
+          "sinuosity",
+          44
+        ]
+      ]
+    },
+    "006": {
+      "all_native_machine_candidates": 246,
+      "cannot_fit_source_192_context_without_resampling": 50,
+      "scorable_candidates": 196,
+      "within_source_simulator_calibration_support_NOT_validated_tracks": 2,
+      "outside_source_simulator_calibration_support_NOT_artifact_truth": 194,
+      "S53_score_median_192_context_SIMULATOR_ONLY": 0.998724,
+      "S53_score_change_from_512_context_median_abs_NOT_accuracy": 0.0,
+      "S53_score_change_from_512_context_gt_0p2": 2,
+      "most_frequent_S53_outlier_features": [
+        [
+          "p90_local_turn_degrees",
+          157
+        ],
+        [
+          "log_geodesic_length",
+          29
+        ],
+        [
+          "sinuosity",
+          7
+        ],
+        [
+          "contrast_highpass_to_total_rms",
+          2
+        ],
+        [
+          "near_to_far_contrast_ratio",
+          1
+        ]
+      ]
+    }
+  }
+}

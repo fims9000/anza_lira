@@ -1,0 +1,27 @@
+name: S62 image-only candidate QA (no private photos)
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s62_*.py'
+      - 'scripts/research/bubble_chamber/s62_*.py'
+      - 'tests/test_s62_*.py'
+      - '.github/workflows/s62_image_only_candidate_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen_source_only_tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install lightweight source dependencies (no image data)
+        run: python -m pip install numpy scipy scikit-image scikit-learn networkx opencv-python-headless pytest torch
+      - name: Verify image-only predictor interface, limits and evaluation
+        run: python -m pytest -q tests/test_s62_image_candidate_diagnostics.py tests/test_s62_image_benchmark_protocol.py
+      - name: Syntax check source without any private H50Z material
+        run: python -m compileall -q bubble_chamber/s62_image_candidate_diagnostics.py scripts/research/bubble_chamber/s62_benchmark_image_only_candidates.py

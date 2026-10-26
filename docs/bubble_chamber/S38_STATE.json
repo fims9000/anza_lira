@@ -1,0 +1,23 @@
+{
+  "schema": "s38_research_stage_state_v1",
+  "date": "2026-10-25",
+  "branch": "research/bubble-chamber-graph-lira",
+  "status": "SOURCE_REVIEW_WORKBENCH_VERIFIED_NO_HUMAN_PHYSICAL_GROUND_TRUTH",
+  "two_authentic_bmps_one_run": true,
+  "source_crops": 39,
+  "crops_without_machine_proposals": 17,
+  "machine_candidate_lines": 133,
+  "machine_candidate_pairs": 28,
+  "reviewer_rounds": ["A", "B"],
+  "independent_review_files_provided": 0,
+  "native_expert_verified_masks": 0,
+  "certified_same_track_pairs": 0,
+  "certified_different_track_pairs": 0,
+  "autonomous_real_particle_join": false,
+  "next_executable_action": "Obtain two independent review JSON exports on all 39 crops, 133 candidate lines and 28 proposed links; adjudicate disagreements; independently verify genuine missed tracks and source run before any real-photo supervised model evaluation.",
+  "public_sources": [
+    "docs/bubble_chamber/S38_PROTOCOL_AND_FINDINGS_2026_10_25.md",
+    "docs/bubble_chamber/S38_SOURCE_INVENTORY_PUBLIC.json"
+  ],
+  "private_material": "S38_PRIVATE_H50Z_DOUBLE_REVIEW.zip stored separately; never commit"
+}

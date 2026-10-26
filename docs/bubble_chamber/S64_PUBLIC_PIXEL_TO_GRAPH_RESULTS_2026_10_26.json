@@ -1,0 +1,1283 @@
+{
+  "schema": "s64_pixel_to_polyline_to_graph_SYNTHETIC_ONLY_v1",
+  "protocol_sha256": "38db3a19363e43b41cda10a9c231ac3f9b34a55fb7e9cb93c37e38b5dc121d2c",
+  "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "S56_reference_scorer_module_sha256": "088024077e5f86b5f4308c5d23e72643c8b261a355cfb12f2bbc8c1d3d87355b",
+  "s63_extractor_module_sha256": "a2b7a45ca5dff613c7942e99b00b56583a69f6fe39b59fd4690e2e2bf627d950",
+  "source_complete_visualmetro_frames": 145,
+  "whole_frame_split_counts": {
+    "train": 79,
+    "cal": 30,
+    "test": 36
+  },
+  "source_photo_banks_one_physical_run": true,
+  "source_visualmetro_070_not_matched_to_H50Z_photos": true,
+  "inference_never_receives_generator_polylines": true,
+  "S56_original_AZConv_UNet_code_unchanged": true,
+  "native_H50Z_physics_GT_count": 0,
+  "smoke_NOT_confirmatory": false,
+  "synthetic_only_metrics": true,
+  "directions": {
+    "005_to_006": {
+      "source_training_photo": "005",
+      "heldout_photo": "006",
+      "source_curve_scorer": "original_S56_geometry_logistic",
+      "threshold_from_SOURCE_CAL_negative_FPR_only": 0.8443092691176276,
+      "test_seeds": {
+        "20266403": {
+          "s39_original": {
+            "candidate_polylines": {
+              "total": 136,
+              "per_scene": 5.666666666666667,
+              "scene_bootstrap_95pct": [
+                5.083333333333333,
+                6.291666666666667
+              ]
+            },
+            "candidate_pairs_after_strict_gate": {
+              "total": 95,
+              "per_scene": 3.9583333333333335,
+              "scene_bootstrap_95pct": [
+                2.875,
+                5.041666666666667
+              ]
+            },
+            "source_node_matches": {
+              "total": 65,
+              "per_scene": 2.7083333333333335,
+              "scene_bootstrap_95pct": [
+                2.0833333333333335,
+                3.375
+              ]
+            },
+            "synthetic_decoy_matched": {
+              "total": 13,
+              "per_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.3333333333333333,
+                0.75
+              ]
+            },
+            "selected_provisional_links": {
+              "total": 27,
+              "per_scene": 1.125,
+              "scene_bootstrap_95pct": [
+                0.7083333333333334,
+                1.5833333333333333
+              ]
+            },
+            "selected_synthetic_correct_links": {
+              "total": 4,
+              "per_scene": 0.16666666666666666,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.375
+              ]
+            },
+            "selected_synthetic_wrong_identified": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "selected_synthetic_unmatched_or_ambiguous": {
+              "total": 8,
+              "per_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.125,
+                0.5416666666666666
+              ]
+            },
+            "selected_synthetic_wrong_endpoint": {
+              "total": 15,
+              "per_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.3322916666666667,
+                1.0
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "total": 23,
+              "per_scene": 0.9583333333333334,
+              "scene_bootstrap_95pct": [
+                0.5833333333333334,
+                1.375
+              ]
+            },
+            "scene_any_noncorrect": {
+              "total": 15,
+              "per_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.4572916666666667,
+                0.8333333333333334
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "solver_failure": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "union_proxy_fragments": {
+              "total": 61,
+              "per_scene": 2.5416666666666665,
+              "scene_bootstrap_95pct": [
+                1.875,
+                3.2916666666666665
+              ]
+            },
+            "union_proxy_links_upper": {
+              "total": 29,
+              "per_scene": 1.2083333333333333,
+              "scene_bootstrap_95pct": [
+                0.7916666666666666,
+                1.7083333333333333
+              ]
+            },
+            "union_proxy_paths_upper": {
+              "total": 7,
+              "per_scene": 0.2916666666666667,
+              "scene_bootstrap_95pct": [
+                0.125,
+                0.5
+              ]
+            },
+            "scene_count": 24,
+            "native_verified_particle_tracks": 0,
+            "synthetic_true_joins_total": 96,
+            "synthetic_three_piece_tracks_total": 48
+          },
+          "junction_less": {
+            "candidate_polylines": {
+              "total": 141,
+              "per_scene": 5.875,
+              "scene_bootstrap_95pct": [
+                5.25,
+                6.416666666666667
+              ]
+            },
+            "candidate_pairs_after_strict_gate": {
+              "total": 105,
+              "per_scene": 4.375,
+              "scene_bootstrap_95pct": [
+                3.290625,
+                5.416666666666667
+              ]
+            },
+            "source_node_matches": {
+              "total": 69,
+              "per_scene": 2.875,
+              "scene_bootstrap_95pct": [
+                2.2083333333333335,
+                3.5416666666666665
+              ]
+            },
+            "synthetic_decoy_matched": {
+              "total": 13,
+              "per_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.3333333333333333,
+                0.75
+              ]
+            },
+            "selected_provisional_links": {
+              "total": 32,
+              "per_scene": 1.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.9166666666666666,
+                1.7916666666666667
+              ]
+            },
+            "selected_synthetic_correct_links": {
+              "total": 5,
+              "per_scene": 0.20833333333333334,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.4166666666666667
+              ]
+            },
+            "selected_synthetic_wrong_identified": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "selected_synthetic_unmatched_or_ambiguous": {
+              "total": 11,
+              "per_scene": 0.4583333333333333,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.75
+              ]
+            },
+            "selected_synthetic_wrong_endpoint": {
+              "total": 16,
+              "per_scene": 0.6666666666666666,
+              "scene_bootstrap_95pct": [
+                0.3333333333333333,
+                1.0416666666666667
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "total": 27,
+              "per_scene": 1.125,
+              "scene_bootstrap_95pct": [
+                0.75,
+                1.5
+              ]
+            },
+            "scene_any_noncorrect": {
+              "total": 17,
+              "per_scene": 0.7083333333333334,
+              "scene_bootstrap_95pct": [
+                0.5,
+                0.875
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "solver_failure": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "union_proxy_fragments": {
+              "total": 65,
+              "per_scene": 2.7083333333333335,
+              "scene_bootstrap_95pct": [
+                2.0,
+                3.3343749999999943
+              ]
+            },
+            "union_proxy_links_upper": {
+              "total": 33,
+              "per_scene": 1.375,
+              "scene_bootstrap_95pct": [
+                0.9166666666666666,
+                1.8333333333333333
+              ]
+            },
+            "union_proxy_paths_upper": {
+              "total": 8,
+              "per_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.125,
+                0.5833333333333334
+              ]
+            },
+            "scene_count": 24,
+            "native_verified_particle_tracks": 0,
+            "synthetic_true_joins_total": 96,
+            "synthetic_three_piece_tracks_total": 48
+          },
+          "oracle_geometry_only": {
+            "selected_provisional_links": 33,
+            "selected_synthetic_correct_links": 32,
+            "synthetic_noncorrect_selected": 1,
+            "scene_any_noncorrect": 1,
+            "complete_three_piece_paths_synthetic": 11,
+            "solver_failure": 0
+          },
+          "junction_less_minus_original": {
+            "selected_synthetic_correct_links": {
+              "mean_delta_per_scene": 0.041666666666666664,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.125
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "mean_delta_per_scene": 0.16666666666666666,
+              "paired_scene_bootstrap_95pct": [
+                -0.041666666666666664,
+                0.4583333333333333
+              ]
+            },
+            "scene_any_noncorrect": {
+              "mean_delta_per_scene": 0.08333333333333333,
+              "paired_scene_bootstrap_95pct": [
+                -0.041666666666666664,
+                0.25
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          }
+        },
+        "20266404": {
+          "s39_original": {
+            "candidate_polylines": {
+              "total": 114,
+              "per_scene": 4.75,
+              "scene_bootstrap_95pct": [
+                4.0,
+                5.5
+              ]
+            },
+            "candidate_pairs_after_strict_gate": {
+              "total": 72,
+              "per_scene": 3.0,
+              "scene_bootstrap_95pct": [
+                1.9156250000000001,
+                4.208333333333333
+              ]
+            },
+            "source_node_matches": {
+              "total": 46,
+              "per_scene": 1.9166666666666667,
+              "scene_bootstrap_95pct": [
+                1.2916666666666667,
+                2.6666666666666665
+              ]
+            },
+            "synthetic_decoy_matched": {
+              "total": 10,
+              "per_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.625
+              ]
+            },
+            "selected_provisional_links": {
+              "total": 24,
+              "per_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                0.625,
+                1.4583333333333333
+              ]
+            },
+            "selected_synthetic_correct_links": {
+              "total": 3,
+              "per_scene": 0.125,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.3333333333333333
+              ]
+            },
+            "selected_synthetic_wrong_identified": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "selected_synthetic_unmatched_or_ambiguous": {
+              "total": 8,
+              "per_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.6666666666666666
+              ]
+            },
+            "selected_synthetic_wrong_endpoint": {
+              "total": 13,
+              "per_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.9166666666666666
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "total": 21,
+              "per_scene": 0.875,
+              "scene_bootstrap_95pct": [
+                0.5,
+                1.3333333333333333
+              ]
+            },
+            "scene_any_noncorrect": {
+              "total": 12,
+              "per_scene": 0.5,
+              "scene_bootstrap_95pct": [
+                0.3322916666666667,
+                0.7083333333333334
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "solver_failure": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "union_proxy_fragments": {
+              "total": 50,
+              "per_scene": 2.0833333333333335,
+              "scene_bootstrap_95pct": [
+                1.4166666666666667,
+                2.8333333333333335
+              ]
+            },
+            "union_proxy_links_upper": {
+              "total": 22,
+              "per_scene": 0.9166666666666666,
+              "scene_bootstrap_95pct": [
+                0.5,
+                1.375
+              ]
+            },
+            "union_proxy_paths_upper": {
+              "total": 9,
+              "per_scene": 0.375,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.5833333333333334
+              ]
+            },
+            "scene_count": 24,
+            "native_verified_particle_tracks": 0,
+            "synthetic_true_joins_total": 96,
+            "synthetic_three_piece_tracks_total": 48
+          },
+          "junction_less": {
+            "candidate_polylines": {
+              "total": 118,
+              "per_scene": 4.916666666666667,
+              "scene_bootstrap_95pct": [
+                4.166666666666667,
+                5.708333333333333
+              ]
+            },
+            "candidate_pairs_after_strict_gate": {
+              "total": 69,
+              "per_scene": 2.875,
+              "scene_bootstrap_95pct": [
+                1.875,
+                3.9583333333333335
+              ]
+            },
+            "source_node_matches": {
+              "total": 47,
+              "per_scene": 1.9583333333333333,
+              "scene_bootstrap_95pct": [
+                1.2916666666666667,
+                2.625
+              ]
+            },
+            "synthetic_decoy_matched": {
+              "total": 10,
+              "per_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.625
+              ]
+            },
+            "selected_provisional_links": {
+              "total": 24,
+              "per_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                0.5833333333333334,
+                1.4166666666666667
+              ]
+            },
+            "selected_synthetic_correct_links": {
+              "total": 3,
+              "per_scene": 0.125,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.3333333333333333
+              ]
+            },
+            "selected_synthetic_wrong_identified": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "selected_synthetic_unmatched_or_ambiguous": {
+              "total": 8,
+              "per_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.125,
+                0.5416666666666666
+              ]
+            },
+            "selected_synthetic_wrong_endpoint": {
+              "total": 13,
+              "per_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.875
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "total": 21,
+              "per_scene": 0.875,
+              "scene_bootstrap_95pct": [
+                0.5,
+                1.2916666666666667
+              ]
+            },
+            "scene_any_noncorrect": {
+              "total": 13,
+              "per_scene": 0.5416666666666666,
+              "scene_bootstrap_95pct": [
+                0.3333333333333333,
+                0.75
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "solver_failure": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "union_proxy_fragments": {
+              "total": 55,
+              "per_scene": 2.2916666666666665,
+              "scene_bootstrap_95pct": [
+                1.5416666666666667,
+                3.0416666666666665
+              ]
+            },
+            "union_proxy_links_upper": {
+              "total": 24,
+              "per_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                0.5833333333333334,
+                1.4583333333333333
+              ]
+            },
+            "union_proxy_paths_upper": {
+              "total": 9,
+              "per_scene": 0.375,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.5833333333333334
+              ]
+            },
+            "scene_count": 24,
+            "native_verified_particle_tracks": 0,
+            "synthetic_true_joins_total": 96,
+            "synthetic_three_piece_tracks_total": 48
+          },
+          "oracle_geometry_only": {
+            "selected_provisional_links": 29,
+            "selected_synthetic_correct_links": 28,
+            "synthetic_noncorrect_selected": 1,
+            "scene_any_noncorrect": 1,
+            "complete_three_piece_paths_synthetic": 9,
+            "solver_failure": 0
+          },
+          "junction_less_minus_original": {
+            "selected_synthetic_correct_links": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                -0.16666666666666666,
+                0.16666666666666666
+              ]
+            },
+            "scene_any_noncorrect": {
+              "mean_delta_per_scene": 0.041666666666666664,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.125
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      },
+      "safety_gate_test_only_not_promoted_to_physical": false
+    },
+    "006_to_005": {
+      "source_training_photo": "006",
+      "heldout_photo": "005",
+      "source_curve_scorer": "original_S56_geometry_logistic",
+      "threshold_from_SOURCE_CAL_negative_FPR_only": 0.8539211223090797,
+      "test_seeds": {
+        "20266413": {
+          "s39_original": {
+            "candidate_polylines": {
+              "total": 123,
+              "per_scene": 5.125,
+              "scene_bootstrap_95pct": [
+                4.375,
+                5.75
+              ]
+            },
+            "candidate_pairs_after_strict_gate": {
+              "total": 75,
+              "per_scene": 3.125,
+              "scene_bootstrap_95pct": [
+                2.2916666666666665,
+                3.9583333333333335
+              ]
+            },
+            "source_node_matches": {
+              "total": 47,
+              "per_scene": 1.9583333333333333,
+              "scene_bootstrap_95pct": [
+                1.2083333333333333,
+                2.75
+              ]
+            },
+            "synthetic_decoy_matched": {
+              "total": 6,
+              "per_scene": 0.25,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.4166666666666667
+              ]
+            },
+            "selected_provisional_links": {
+              "total": 22,
+              "per_scene": 0.9166666666666666,
+              "scene_bootstrap_95pct": [
+                0.4583333333333333,
+                1.4166666666666667
+              ]
+            },
+            "selected_synthetic_correct_links": {
+              "total": 2,
+              "per_scene": 0.08333333333333333,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.20833333333333334
+              ]
+            },
+            "selected_synthetic_wrong_identified": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "selected_synthetic_unmatched_or_ambiguous": {
+              "total": 10,
+              "per_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.16666666666666666,
+                0.75
+              ]
+            },
+            "selected_synthetic_wrong_endpoint": {
+              "total": 10,
+              "per_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.16562500000000005,
+                0.7093749999999943
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "total": 20,
+              "per_scene": 0.8333333333333334,
+              "scene_bootstrap_95pct": [
+                0.4166666666666667,
+                1.2916666666666667
+              ]
+            },
+            "scene_any_noncorrect": {
+              "total": 10,
+              "per_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.5833333333333334
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "solver_failure": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "union_proxy_fragments": {
+              "total": 42,
+              "per_scene": 1.75,
+              "scene_bootstrap_95pct": [
+                1.0416666666666667,
+                2.4583333333333335
+              ]
+            },
+            "union_proxy_links_upper": {
+              "total": 16,
+              "per_scene": 0.6666666666666666,
+              "scene_bootstrap_95pct": [
+                0.25,
+                1.125
+              ]
+            },
+            "union_proxy_paths_upper": {
+              "total": 6,
+              "per_scene": 0.25,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.4583333333333333
+              ]
+            },
+            "scene_count": 24,
+            "native_verified_particle_tracks": 0,
+            "synthetic_true_joins_total": 96,
+            "synthetic_three_piece_tracks_total": 48
+          },
+          "junction_less": {
+            "candidate_polylines": {
+              "total": 125,
+              "per_scene": 5.208333333333333,
+              "scene_bootstrap_95pct": [
+                4.5,
+                5.917708333333328
+              ]
+            },
+            "candidate_pairs_after_strict_gate": {
+              "total": 76,
+              "per_scene": 3.1666666666666665,
+              "scene_bootstrap_95pct": [
+                2.2916666666666665,
+                4.041666666666667
+              ]
+            },
+            "source_node_matches": {
+              "total": 47,
+              "per_scene": 1.9583333333333333,
+              "scene_bootstrap_95pct": [
+                1.1666666666666667,
+                2.7916666666666665
+              ]
+            },
+            "synthetic_decoy_matched": {
+              "total": 5,
+              "per_scene": 0.20833333333333334,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.375
+              ]
+            },
+            "selected_provisional_links": {
+              "total": 24,
+              "per_scene": 1.0,
+              "scene_bootstrap_95pct": [
+                0.4583333333333333,
+                1.5833333333333333
+              ]
+            },
+            "selected_synthetic_correct_links": {
+              "total": 2,
+              "per_scene": 0.08333333333333333,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.20833333333333334
+              ]
+            },
+            "selected_synthetic_wrong_identified": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "selected_synthetic_unmatched_or_ambiguous": {
+              "total": 11,
+              "per_scene": 0.4583333333333333,
+              "scene_bootstrap_95pct": [
+                0.16666666666666666,
+                0.7916666666666666
+              ]
+            },
+            "selected_synthetic_wrong_endpoint": {
+              "total": 11,
+              "per_scene": 0.4583333333333333,
+              "scene_bootstrap_95pct": [
+                0.125,
+                0.7916666666666666
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "total": 22,
+              "per_scene": 0.9166666666666666,
+              "scene_bootstrap_95pct": [
+                0.4583333333333333,
+                1.4583333333333333
+              ]
+            },
+            "scene_any_noncorrect": {
+              "total": 10,
+              "per_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.625
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "solver_failure": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "union_proxy_fragments": {
+              "total": 44,
+              "per_scene": 1.8333333333333333,
+              "scene_bootstrap_95pct": [
+                1.1656250000000001,
+                2.5833333333333335
+              ]
+            },
+            "union_proxy_links_upper": {
+              "total": 16,
+              "per_scene": 0.6666666666666666,
+              "scene_bootstrap_95pct": [
+                0.25,
+                1.126041666666661
+              ]
+            },
+            "union_proxy_paths_upper": {
+              "total": 6,
+              "per_scene": 0.25,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.5
+              ]
+            },
+            "scene_count": 24,
+            "native_verified_particle_tracks": 0,
+            "synthetic_true_joins_total": 96,
+            "synthetic_three_piece_tracks_total": 48
+          },
+          "oracle_geometry_only": {
+            "selected_provisional_links": 20,
+            "selected_synthetic_correct_links": 20,
+            "synthetic_noncorrect_selected": 0,
+            "scene_any_noncorrect": 0,
+            "complete_three_piece_paths_synthetic": 5,
+            "solver_failure": 0
+          },
+          "junction_less_minus_original": {
+            "selected_synthetic_correct_links": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "mean_delta_per_scene": 0.08333333333333333,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.20833333333333334
+              ]
+            },
+            "scene_any_noncorrect": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          }
+        },
+        "20266414": {
+          "s39_original": {
+            "candidate_polylines": {
+              "total": 110,
+              "per_scene": 4.583333333333333,
+              "scene_bootstrap_95pct": [
+                3.875,
+                5.375
+              ]
+            },
+            "candidate_pairs_after_strict_gate": {
+              "total": 66,
+              "per_scene": 2.75,
+              "scene_bootstrap_95pct": [
+                1.6666666666666667,
+                4.041666666666667
+              ]
+            },
+            "source_node_matches": {
+              "total": 39,
+              "per_scene": 1.625,
+              "scene_bootstrap_95pct": [
+                0.9166666666666666,
+                2.4583333333333335
+              ]
+            },
+            "synthetic_decoy_matched": {
+              "total": 10,
+              "per_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.20833333333333334,
+                0.625
+              ]
+            },
+            "selected_provisional_links": {
+              "total": 15,
+              "per_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.2916666666666667,
+                1.0
+              ]
+            },
+            "selected_synthetic_correct_links": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "selected_synthetic_wrong_identified": {
+              "total": 1,
+              "per_scene": 0.041666666666666664,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.125
+              ]
+            },
+            "selected_synthetic_unmatched_or_ambiguous": {
+              "total": 8,
+              "per_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.625
+              ]
+            },
+            "selected_synthetic_wrong_endpoint": {
+              "total": 6,
+              "per_scene": 0.25,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.5
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "total": 15,
+              "per_scene": 0.625,
+              "scene_bootstrap_95pct": [
+                0.2916666666666667,
+                1.0
+              ]
+            },
+            "scene_any_noncorrect": {
+              "total": 9,
+              "per_scene": 0.375,
+              "scene_bootstrap_95pct": [
+                0.16666666666666666,
+                0.5833333333333334
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "solver_failure": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "union_proxy_fragments": {
+              "total": 40,
+              "per_scene": 1.6666666666666667,
+              "scene_bootstrap_95pct": [
+                0.915625,
+                2.5
+              ]
+            },
+            "union_proxy_links_upper": {
+              "total": 16,
+              "per_scene": 0.6666666666666666,
+              "scene_bootstrap_95pct": [
+                0.25,
+                1.2083333333333333
+              ]
+            },
+            "union_proxy_paths_upper": {
+              "total": 6,
+              "per_scene": 0.25,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.5
+              ]
+            },
+            "scene_count": 24,
+            "native_verified_particle_tracks": 0,
+            "synthetic_true_joins_total": 96,
+            "synthetic_three_piece_tracks_total": 48
+          },
+          "junction_less": {
+            "candidate_polylines": {
+              "total": 109,
+              "per_scene": 4.541666666666667,
+              "scene_bootstrap_95pct": [
+                3.7083333333333335,
+                5.376041666666661
+              ]
+            },
+            "candidate_pairs_after_strict_gate": {
+              "total": 62,
+              "per_scene": 2.5833333333333335,
+              "scene_bootstrap_95pct": [
+                1.5,
+                3.75
+              ]
+            },
+            "source_node_matches": {
+              "total": 37,
+              "per_scene": 1.5416666666666667,
+              "scene_bootstrap_95pct": [
+                0.8322916666666668,
+                2.3333333333333335
+              ]
+            },
+            "synthetic_decoy_matched": {
+              "total": 10,
+              "per_scene": 0.4166666666666667,
+              "scene_bootstrap_95pct": [
+                0.2489583333333334,
+                0.625
+              ]
+            },
+            "selected_provisional_links": {
+              "total": 14,
+              "per_scene": 0.5833333333333334,
+              "scene_bootstrap_95pct": [
+                0.25,
+                0.9166666666666666
+              ]
+            },
+            "selected_synthetic_correct_links": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "selected_synthetic_wrong_identified": {
+              "total": 1,
+              "per_scene": 0.041666666666666664,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.125
+              ]
+            },
+            "selected_synthetic_unmatched_or_ambiguous": {
+              "total": 8,
+              "per_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.08333333333333333,
+                0.625
+              ]
+            },
+            "selected_synthetic_wrong_endpoint": {
+              "total": 5,
+              "per_scene": 0.20833333333333334,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.4583333333333333
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "total": 14,
+              "per_scene": 0.5833333333333334,
+              "scene_bootstrap_95pct": [
+                0.25,
+                0.9166666666666666
+              ]
+            },
+            "scene_any_noncorrect": {
+              "total": 8,
+              "per_scene": 0.3333333333333333,
+              "scene_bootstrap_95pct": [
+                0.16666666666666666,
+                0.5416666666666666
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "solver_failure": {
+              "total": 0,
+              "per_scene": 0.0,
+              "scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "union_proxy_fragments": {
+              "total": 42,
+              "per_scene": 1.75,
+              "scene_bootstrap_95pct": [
+                0.9166666666666666,
+                2.5833333333333335
+              ]
+            },
+            "union_proxy_links_upper": {
+              "total": 16,
+              "per_scene": 0.6666666666666666,
+              "scene_bootstrap_95pct": [
+                0.25,
+                1.125
+              ]
+            },
+            "union_proxy_paths_upper": {
+              "total": 6,
+              "per_scene": 0.25,
+              "scene_bootstrap_95pct": [
+                0.041666666666666664,
+                0.4583333333333333
+              ]
+            },
+            "scene_count": 24,
+            "native_verified_particle_tracks": 0,
+            "synthetic_true_joins_total": 96,
+            "synthetic_three_piece_tracks_total": 48
+          },
+          "oracle_geometry_only": {
+            "selected_provisional_links": 20,
+            "selected_synthetic_correct_links": 19,
+            "synthetic_noncorrect_selected": 1,
+            "scene_any_noncorrect": 1,
+            "complete_three_piece_paths_synthetic": 5,
+            "solver_failure": 0
+          },
+          "junction_less_minus_original": {
+            "selected_synthetic_correct_links": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            },
+            "synthetic_noncorrect_selected": {
+              "mean_delta_per_scene": -0.041666666666666664,
+              "paired_scene_bootstrap_95pct": [
+                -0.125,
+                0.0
+              ]
+            },
+            "scene_any_noncorrect": {
+              "mean_delta_per_scene": -0.041666666666666664,
+              "paired_scene_bootstrap_95pct": [
+                -0.125,
+                0.0
+              ]
+            },
+            "complete_three_piece_paths_synthetic": {
+              "mean_delta_per_scene": 0.0,
+              "paired_scene_bootstrap_95pct": [
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      },
+      "safety_gate_test_only_not_promoted_to_physical": false
+    }
+  },
+  "aggregate_prespecified_gate": {
+    "old_synthetic_correct_joins": 9,
+    "new_synthetic_correct_joins": 10,
+    "old_synthetic_noncorrect_joins": 79,
+    "new_synthetic_noncorrect_joins": 84,
+    "old_synthetic_complete_paths": 0,
+    "new_synthetic_complete_paths": 0,
+    "experimental_passes_synthetic_only": false,
+    "authorize_native_H50Z_physics_auto_joins": false,
+    "default_detector_unchanged": "s39_original"
+  }
+}

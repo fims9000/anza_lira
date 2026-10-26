@@ -1,0 +1,88 @@
+{
+  "schema": "s43b_posthoc_length_matched_counterfactual_v1",
+  "status": "POSTHOC_SENSITIVITY_NOT_INDEPENDENT_CONFIRMATION",
+  "frame_folds": {
+    "train": 72,
+    "calibration": 37,
+    "test": 36
+  },
+  "source_physical_runs": 1,
+  "native_GT_line_count": 0,
+  "native_physics_autojoin_allowed": false,
+  "experimental_scenes_per_direction": {
+    "train": 16,
+    "calibration": 8,
+    "test": 16
+  },
+  "results": {
+    "005_train_006_test": {
+      "all_features": {
+        "posthoc_synthetic_origin_AUROC": 0.939779,
+        "simulated_true_acceptance": 0.78125,
+        "simulated_false_origin_acceptance": 0.09375,
+        "scratch_by_family_acceptance": {
+          "counterfactual_geometry_clone": 0.0,
+          "length_matched_straight": 0.5625,
+          "original_s35_matched": 0.0
+        },
+        "test_scenes": 16,
+        "source_training_photo": "005",
+        "independent_physical_runs": 1
+      },
+      "without_length_and_sinuosity": {
+        "posthoc_synthetic_origin_AUROC": 0.82487,
+        "simulated_true_acceptance": 0.578125,
+        "simulated_false_origin_acceptance": 0.177083,
+        "scratch_by_family_acceptance": {
+          "counterfactual_geometry_clone": 0.0,
+          "length_matched_straight": 0.375,
+          "original_s35_matched": 0.6875
+        },
+        "test_scenes": 16,
+        "source_training_photo": "005",
+        "independent_physical_runs": 1
+      },
+      "confound_audit": {
+        "counterfactual_geometry_clone": 85.606,
+        "length_matched_straight": 54.458,
+        "measured_curve_simulation": 59.723,
+        "original_s35_matched": 32.653
+      }
+    },
+    "006_train_005_test": {
+      "all_features": {
+        "posthoc_synthetic_origin_AUROC": 0.937174,
+        "simulated_true_acceptance": 0.6875,
+        "simulated_false_origin_acceptance": 0.083333,
+        "scratch_by_family_acceptance": {
+          "counterfactual_geometry_clone": 0.0,
+          "length_matched_straight": 0.5,
+          "original_s35_matched": 0.0
+        },
+        "test_scenes": 16,
+        "source_training_photo": "006",
+        "independent_physical_runs": 1
+      },
+      "without_length_and_sinuosity": {
+        "posthoc_synthetic_origin_AUROC": 0.856771,
+        "simulated_true_acceptance": 0.171875,
+        "simulated_false_origin_acceptance": 0.010417,
+        "scratch_by_family_acceptance": {
+          "counterfactual_geometry_clone": 0.0,
+          "length_matched_straight": 0.0,
+          "original_s35_matched": 0.0625
+        },
+        "test_scenes": 16,
+        "source_training_photo": "006",
+        "independent_physical_runs": 1
+      },
+      "confound_audit": {
+        "counterfactual_geometry_clone": 84.891,
+        "length_matched_straight": 54.828,
+        "measured_curve_simulation": 58.564,
+        "original_s35_matched": 33.169
+      }
+    }
+  },
+  "warning": "Counterfactual origin is chosen by simulator. Equal-looking 2D traces can have arbitrary origin; this cannot validate native particle identity."
+}

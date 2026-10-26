@@ -1,0 +1,123 @@
+{
+  "schema": "s35_injected_fragment_link_reconstruction_public_report_v1",
+  "date": "2026-10-25",
+  "two_authentic_H50Z_source_photographs": [
+    "005",
+    "006"
+  ],
+  "independent_physical_run_count": 1,
+  "different_fill_or_B_field_test_available": false,
+  "real_native_H50Z_expert_track_segment_labels": 0,
+  "operator_visualMetro_frame_train_count": 108,
+  "operator_visualMetro_frame_test_count": 36,
+  "machine_detector_centerlines_are_simulated_noisy": true,
+  "source_3D_measurements_not_registered_to_H50Z_BMP": true,
+  "synthetic_scenes_total": 160,
+  "synthetic_true_candidate_pairs": 320,
+  "synthetic_wrong_candidate_pairs": 640,
+  "per_direction_source_train_scenes": 40,
+  "per_direction_source_calibration_scenes": 24,
+  "photo_and_visualMetro_frame_disjoint_holdout": true,
+  "photo_test_seeds_distinct_per_direction": [
+    20261121,
+    20261123,
+    20261122,
+    20261124
+  ],
+  "threshold_calibration_max_empirical_wrong_pair_fraction": 0.02,
+  "calibration_thresholds_not_real_world_safety_guarantees": true,
+  "automatic_physics_links_enabled": false,
+  "methods": {
+    "distance": {
+      "mean_test_AUROC_synthetic_only": 0.6618164062499999,
+      "individual_AUROCs": [
+        0.66359375,
+        0.684609375,
+        0.6421875,
+        0.656875
+      ],
+      "test_AUROC_std_across_4_synthetic_bundles": 0.015267529527914513,
+      "total_correct_provisional_links": 24,
+      "total_wrong_provisional_links": 14,
+      "true_link_recall_under_abstention": 0.075,
+      "wrong_proposed_links_per_100_scenes": 8.75,
+      "correct_and_wrong_not_physically_certified": true
+    },
+    "geometry": {
+      "mean_test_AUROC_synthetic_only": 0.8359179687500001,
+      "individual_AUROCs": [
+        0.8328906250000001,
+        0.8349218749999999,
+        0.8346875,
+        0.841171875
+      ],
+      "test_AUROC_std_across_4_synthetic_bundles": 0.0031334724016643394,
+      "total_correct_provisional_links": 44,
+      "total_wrong_provisional_links": 5,
+      "true_link_recall_under_abstention": 0.1375,
+      "wrong_proposed_links_per_100_scenes": 3.125,
+      "correct_and_wrong_not_physically_certified": true
+    },
+    "geometry+raw": {
+      "mean_test_AUROC_synthetic_only": 0.8417382812499999,
+      "individual_AUROCs": [
+        0.832578125,
+        0.8382812500000001,
+        0.8454687499999999,
+        0.850625
+      ],
+      "test_AUROC_std_across_4_synthetic_bundles": 0.006869310278772855,
+      "total_correct_provisional_links": 43,
+      "total_wrong_provisional_links": 2,
+      "true_link_recall_under_abstention": 0.134375,
+      "wrong_proposed_links_per_100_scenes": 1.25,
+      "correct_and_wrong_not_physically_certified": true
+    },
+    "geometry+local": {
+      "mean_test_AUROC_synthetic_only": 0.8415234375,
+      "individual_AUROCs": [
+        0.8359375,
+        0.839765625,
+        0.8404687500000001,
+        0.8499218749999999
+      ],
+      "test_AUROC_std_across_4_synthetic_bundles": 0.005146326862508927,
+      "total_correct_provisional_links": 46,
+      "total_wrong_provisional_links": 4,
+      "true_link_recall_under_abstention": 0.14375,
+      "wrong_proposed_links_per_100_scenes": 2.5,
+      "correct_and_wrong_not_physically_certified": true
+    },
+    "geometry+AZUNet": {
+      "mean_test_AUROC_synthetic_only": 0.8469921875,
+      "individual_AUROCs": [
+        0.835,
+        0.8497656250000001,
+        0.850859375,
+        0.8523437500000001
+      ],
+      "test_AUROC_std_across_4_synthetic_bundles": 0.0069838899789645675,
+      "total_correct_provisional_links": 56,
+      "total_wrong_provisional_links": 7,
+      "true_link_recall_under_abstention": 0.175,
+      "wrong_proposed_links_per_100_scenes": 4.375,
+      "correct_and_wrong_not_physically_certified": true
+    }
+  },
+  "geometry_AND_ANZA_consensus": {
+    "correct": 37,
+    "wrong": 3,
+    "review_only": true
+  },
+  "real_source_H50Z_S31_relations_scored": 28,
+  "real_H50Z_relations_certified_as_same_or_different": 0,
+  "preferred_for_manual_triage": "geometry+raw or geometry+local, compare ANZA disagreements; none are physics-authorized",
+  "ANZA_experimental_effect": "S35 geometry+AZUNet improves synthetic recall but increases wrong proposals relative to geometric+raw; do NOT deploy automatic join",
+  "limits": [
+    "All true/false labels artificial; original photo has unknown native tracks.",
+    "Two photos are from ONE run, no medium or field generalization measured.",
+    "Scene-level resampling not independent physical event statistics.",
+    "Source candidate centerline noise is synthetically injected, not measured detector error.",
+    "Empirical calibration FPR on synthetic source photo is not a bound on genuine physics errors."
+  ]
+}

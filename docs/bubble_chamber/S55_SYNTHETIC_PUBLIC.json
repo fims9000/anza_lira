@@ -1,0 +1,321 @@
+{
+  "schema": "s55_machine_candidate_geometry_simulator_v1",
+  "synthetic_positive_truth": "rendered_bead_stroke_only",
+  "native_H50Z_expert_track_GT_count": 0,
+  "native_physical_auto_joins": 0,
+  "unlabeled_machine_geometries_are_not_particles": true,
+  "test_photo_disjoint_from_all_model_fit_geometries": true,
+  "same_physical_run": true,
+  "frozen_protocol": {
+    "train_scene_count": 40,
+    "cal_scene_count": 20,
+    "test_scene_count_per_seed": 40,
+    "seeds_train": {
+      "005": 20265501,
+      "006": 20265511
+    },
+    "seeds_cal": {
+      "005": 20265502,
+      "006": 20265512
+    },
+    "seeds_test": {
+      "005": [
+        20265503,
+        20265504
+      ],
+      "006": [
+        20265513,
+        20265514
+      ]
+    },
+    "test_source_photo_heldout_for_model_fit": true,
+    "machine_source_cropped_and_translated_NOT_resized": true,
+    "native_particle_truth_count": 0
+  },
+  "source_unlabeled_geometry_counts": {
+    "005": {
+      "train": 256,
+      "cal": 65,
+      "test": 321
+    },
+    "006": {
+      "train": 196,
+      "cal": 50,
+      "test": 246
+    }
+  },
+  "directions": {
+    "005_to_006": {
+      "train_photo": "005",
+      "test_photo": "006",
+      "tests": {
+        "20265503": {
+          "arms": {
+            "raw_flank_contrast": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.507,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.5340625,
+              "calibration_only_cutoff_q90_negative": 78.3337890625,
+              "test_synthetic_bead_acceptance": 0.0,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.025,
+                "periodic_dashes": 0.15,
+                "scattered_grains": 0.0,
+                "same_bead_renderer_scratch": 0.0,
+                "unseen_bead_clusters": 0.0
+              }
+            },
+            "existing_S43": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.7718750000000001,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.4921875,
+              "calibration_only_cutoff_q90_negative": 0.5410262855078943,
+              "test_synthetic_bead_acceptance": 0.825,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.2,
+                "periodic_dashes": 0.05,
+                "scattered_grains": 0.25,
+                "same_bead_renderer_scratch": 0.775,
+                "unseen_bead_clusters": 0.625
+              }
+            },
+            "S43_plus_bead_texture_S53": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.797375,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.4728125,
+              "calibration_only_cutoff_q90_negative": 0.43895104229241105,
+              "test_synthetic_bead_acceptance": 0.925,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.175,
+                "periodic_dashes": 0.125,
+                "scattered_grains": 0.2,
+                "same_bead_renderer_scratch": 0.875,
+                "unseen_bead_clusters": 0.675
+              },
+              "paired_scene_bootstrap_delta_vs_S43": {
+                "delta_AUROC_S53_minus_S43_SYNTHETIC": 0.025499999999999856,
+                "simulator_scene_bootstrap_CI_95pct": [
+                  -0.01515625,
+                  0.07029999999999993
+                ],
+                "physical_run_disjoint_CI": false
+              },
+              "paired_scene_bootstrap_delta_vs_old_S53": {
+                "delta_AUROC_S53_minus_S43_SYNTHETIC": 0.23949999999999994,
+                "simulator_scene_bootstrap_CI_95pct": [
+                  0.19160625000000003,
+                  0.286578125
+                ],
+                "physical_run_disjoint_CI": false
+              }
+            },
+            "frozen_old_S53_no_refit": {
+              "overall_AUROC_FROZEN_S53_on_NEW_TEST_simulator_only": 0.557875,
+              "clone_only_AUROC_SYNTHETIC": 0.49406249999999996
+            }
+          },
+          "test_scenes": 40
+        },
+        "20265504": {
+          "arms": {
+            "raw_flank_contrast": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.49731249999999994,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.496875,
+              "calibration_only_cutoff_q90_negative": 78.3337890625,
+              "test_synthetic_bead_acceptance": 0.0,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.1,
+                "periodic_dashes": 0.15,
+                "scattered_grains": 0.0,
+                "same_bead_renderer_scratch": 0.0,
+                "unseen_bead_clusters": 0.0
+              }
+            },
+            "existing_S43": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.7592500000000001,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.5299999999999999,
+              "calibration_only_cutoff_q90_negative": 0.5410262855078943,
+              "test_synthetic_bead_acceptance": 0.7,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.25,
+                "periodic_dashes": 0.075,
+                "scattered_grains": 0.025,
+                "same_bead_renderer_scratch": 0.65,
+                "unseen_bead_clusters": 0.575
+              }
+            },
+            "S43_plus_bead_texture_S53": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.78975,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.48125,
+              "calibration_only_cutoff_q90_negative": 0.43895104229241105,
+              "test_synthetic_bead_acceptance": 0.825,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.3,
+                "periodic_dashes": 0.125,
+                "scattered_grains": 0.125,
+                "same_bead_renderer_scratch": 0.85,
+                "unseen_bead_clusters": 0.625
+              },
+              "paired_scene_bootstrap_delta_vs_S43": {
+                "delta_AUROC_S53_minus_S43_SYNTHETIC": 0.03049999999999986,
+                "simulator_scene_bootstrap_CI_95pct": [
+                  0.0017125000000000883,
+                  0.06403124999999991
+                ],
+                "physical_run_disjoint_CI": false
+              },
+              "paired_scene_bootstrap_delta_vs_old_S53": {
+                "delta_AUROC_S53_minus_S43_SYNTHETIC": 0.19243749999999993,
+                "simulator_scene_bootstrap_CI_95pct": [
+                  0.14588906249999997,
+                  0.2299656250000001
+                ],
+                "physical_run_disjoint_CI": false
+              }
+            },
+            "frozen_old_S53_no_refit": {
+              "overall_AUROC_FROZEN_S53_on_NEW_TEST_simulator_only": 0.5973125,
+              "clone_only_AUROC_SYNTHETIC": 0.5071875
+            }
+          },
+          "test_scenes": 40
+        }
+      },
+      "machine_source_training_shapes": 256,
+      "machine_source_calibration_shapes": 65
+    },
+    "006_to_005": {
+      "train_photo": "006",
+      "test_photo": "005",
+      "tests": {
+        "20265513": {
+          "arms": {
+            "raw_flank_contrast": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.5075000000000001,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.49625,
+              "calibration_only_cutoff_q90_negative": 71.5705322265625,
+              "test_synthetic_bead_acceptance": 0.0,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.2,
+                "periodic_dashes": 0.225,
+                "scattered_grains": 0.0,
+                "same_bead_renderer_scratch": 0.0,
+                "unseen_bead_clusters": 0.0
+              }
+            },
+            "existing_S43": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.811,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.500625,
+              "calibration_only_cutoff_q90_negative": 0.6726928743747513,
+              "test_synthetic_bead_acceptance": 0.675,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.15,
+                "periodic_dashes": 0.025,
+                "scattered_grains": 0.1,
+                "same_bead_renderer_scratch": 0.75,
+                "unseen_bead_clusters": 0.25
+              }
+            },
+            "S43_plus_bead_texture_S53": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.804,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.490625,
+              "calibration_only_cutoff_q90_negative": 0.4856244320382214,
+              "test_synthetic_bead_acceptance": 0.85,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.175,
+                "periodic_dashes": 0.1,
+                "scattered_grains": 0.075,
+                "same_bead_renderer_scratch": 0.8,
+                "unseen_bead_clusters": 0.375
+              },
+              "paired_scene_bootstrap_delta_vs_S43": {
+                "delta_AUROC_S53_minus_S43_SYNTHETIC": -0.007000000000000006,
+                "simulator_scene_bootstrap_CI_95pct": [
+                  -0.04200625000000009,
+                  0.028381249999999976
+                ],
+                "physical_run_disjoint_CI": false
+              },
+              "paired_scene_bootstrap_delta_vs_old_S53": {
+                "delta_AUROC_S53_minus_S43_SYNTHETIC": 0.31925000000000003,
+                "simulator_scene_bootstrap_CI_95pct": [
+                  0.2522718749999999,
+                  0.3989718749999999
+                ],
+                "physical_run_disjoint_CI": false
+              }
+            },
+            "frozen_old_S53_no_refit": {
+              "overall_AUROC_FROZEN_S53_on_NEW_TEST_simulator_only": 0.48475,
+              "clone_only_AUROC_SYNTHETIC": 0.5193749999999999
+            }
+          },
+          "test_scenes": 40
+        },
+        "20265514": {
+          "arms": {
+            "raw_flank_contrast": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.512,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.550625,
+              "calibration_only_cutoff_q90_negative": 71.5705322265625,
+              "test_synthetic_bead_acceptance": 0.0,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.175,
+                "periodic_dashes": 0.375,
+                "scattered_grains": 0.0,
+                "same_bead_renderer_scratch": 0.025,
+                "unseen_bead_clusters": 0.0
+              }
+            },
+            "existing_S43": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.72825,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.443125,
+              "calibration_only_cutoff_q90_negative": 0.6726928743747513,
+              "test_synthetic_bead_acceptance": 0.575,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.075,
+                "periodic_dashes": 0.075,
+                "scattered_grains": 0.15,
+                "same_bead_renderer_scratch": 0.65,
+                "unseen_bead_clusters": 0.4
+              }
+            },
+            "S43_plus_bead_texture_S53": {
+              "overall_AUROC_SYNTHETIC_RENDERER_ONLY": 0.7513749999999999,
+              "matched_bead_clone_only_AUROC_SYNTHETIC_RENDERER_ONLY": 0.46125000000000005,
+              "calibration_only_cutoff_q90_negative": 0.4856244320382214,
+              "test_synthetic_bead_acceptance": 0.75,
+              "false_acceptance_by_synthetic_negative_renderer": {
+                "continuous_hairline": 0.1,
+                "periodic_dashes": 0.075,
+                "scattered_grains": 0.25,
+                "same_bead_renderer_scratch": 0.8,
+                "unseen_bead_clusters": 0.5
+              },
+              "paired_scene_bootstrap_delta_vs_S43": {
+                "delta_AUROC_S53_minus_S43_SYNTHETIC": 0.02312499999999995,
+                "simulator_scene_bootstrap_CI_95pct": [
+                  -0.000624999999999934,
+                  0.05156562500000006
+                ],
+                "physical_run_disjoint_CI": false
+              },
+              "paired_scene_bootstrap_delta_vs_old_S53": {
+                "delta_AUROC_S53_minus_S43_SYNTHETIC": 0.31174999999999986,
+                "simulator_scene_bootstrap_CI_95pct": [
+                  0.23662812499999997,
+                  0.403775
+                ],
+                "physical_run_disjoint_CI": false
+              }
+            },
+            "frozen_old_S53_no_refit": {
+              "overall_AUROC_FROZEN_S53_on_NEW_TEST_simulator_only": 0.43962500000000004,
+              "clone_only_AUROC_SYNTHETIC": 0.505625
+            }
+          },
+          "test_scenes": 40
+        }
+      },
+      "machine_source_training_shapes": 196,
+      "machine_source_calibration_shapes": 50
+    }
+  }
+}

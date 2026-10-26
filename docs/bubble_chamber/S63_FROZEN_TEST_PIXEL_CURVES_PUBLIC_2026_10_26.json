@@ -1,0 +1,455 @@
+{
+  "schema": "s63_machine_only_curves_CAL_then_fresh_TEST_SYNTHETIC_ONLY_v1",
+  "phase": "test",
+  "protocol_sha256": "32de219e0159b5f4154b695e243e1c9ce1b7ec28e932ca2010f302f36e28361e",
+  "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "native_H50Z_physics_GT": 0,
+  "image_inference_never_receives_simulator_polylines": true,
+  "synthetic_source_frame_count": 36,
+  "photographic_runs_count": 1,
+  "no_physical_auto_joins": true,
+  "smoke_ONLY": false,
+  "methods": [
+    "s39_original",
+    "junction_less",
+    "darkness_skeleton",
+    "ridge_dark_fusion"
+  ],
+  "directions": {
+    "005_to_006": {
+      "target_H50Z_photo": "006",
+      "source_shapes_fold": "TEST",
+      "scene_count": 48,
+      "per_seed": {
+        "20266303": {
+          "s39_original": {
+            "true_fragments": 63,
+            "decoy_supported": 8,
+            "true_links": 24,
+            "full_paths": 6,
+            "proposals": 124,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.5833333333333334,
+              1.4583333333333333
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.125,
+              0.5416666666666666
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "junction_less": {
+            "true_fragments": 70,
+            "decoy_supported": 10,
+            "true_links": 31,
+            "full_paths": 11,
+            "proposals": 131,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.75,
+              1.8333333333333333
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.20833333333333334,
+              0.625
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.041666666666666664,
+              0.6666666666666666
+            ]
+          },
+          "darkness_skeleton": {
+            "true_fragments": 54,
+            "decoy_supported": 8,
+            "true_links": 16,
+            "full_paths": 4,
+            "proposals": 107,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.2916666666666667,
+              1.1666666666666667
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.16666666666666666,
+              0.5416666666666666
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              -0.625,
+              -0.08333333333333333
+            ]
+          },
+          "ridge_dark_fusion": {
+            "true_fragments": 68,
+            "decoy_supported": 11,
+            "true_links": 27,
+            "full_paths": 8,
+            "proposals": 128,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.5833333333333334,
+              1.6666666666666667
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.25,
+              0.6666666666666666
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              -0.25,
+              0.5427083333333323
+            ]
+          }
+        },
+        "20266304": {
+          "s39_original": {
+            "true_fragments": 57,
+            "decoy_supported": 7,
+            "true_links": 27,
+            "full_paths": 9,
+            "proposals": 108,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.7083333333333334,
+              1.5833333333333333
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.125,
+              0.4583333333333333
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "junction_less": {
+            "true_fragments": 57,
+            "decoy_supported": 9,
+            "true_links": 27,
+            "full_paths": 8,
+            "proposals": 108,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.6666666666666666,
+              1.625
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.20833333333333334,
+              0.5416666666666666
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              -0.125,
+              0.125
+            ]
+          },
+          "darkness_skeleton": {
+            "true_fragments": 46,
+            "decoy_supported": 8,
+            "true_links": 19,
+            "full_paths": 6,
+            "proposals": 89,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.3333333333333333,
+              1.25
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.16666666666666666,
+              0.5
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              -0.7083333333333334,
+              0.0
+            ]
+          },
+          "ridge_dark_fusion": {
+            "true_fragments": 56,
+            "decoy_supported": 8,
+            "true_links": 25,
+            "full_paths": 8,
+            "proposals": 107,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.5416666666666666,
+              1.5833333333333333
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.16666666666666666,
+              0.5
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              -0.2916666666666667,
+              0.16666666666666666
+            ]
+          }
+        }
+      }
+    },
+    "006_to_005": {
+      "target_H50Z_photo": "005",
+      "source_shapes_fold": "TEST",
+      "scene_count": 48,
+      "per_seed": {
+        "20266313": {
+          "s39_original": {
+            "true_fragments": 30,
+            "decoy_supported": 6,
+            "true_links": 6,
+            "full_paths": 2,
+            "proposals": 101,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.0,
+              0.5833333333333334
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.08333333333333333,
+              0.4166666666666667
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "junction_less": {
+            "true_fragments": 31,
+            "decoy_supported": 7,
+            "true_links": 6,
+            "full_paths": 2,
+            "proposals": 103,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.0,
+              0.5833333333333334
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.125,
+              0.4583333333333333
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "darkness_skeleton": {
+            "true_fragments": 27,
+            "decoy_supported": 7,
+            "true_links": 7,
+            "full_paths": 2,
+            "proposals": 91,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.041666666666666664,
+              0.625
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.125,
+              0.4583333333333333
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.0,
+              0.125
+            ]
+          },
+          "ridge_dark_fusion": {
+            "true_fragments": 28,
+            "decoy_supported": 8,
+            "true_links": 6,
+            "full_paths": 2,
+            "proposals": 93,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.0,
+              0.5833333333333334
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.16666666666666666,
+              0.5
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "20266314": {
+          "s39_original": {
+            "true_fragments": 48,
+            "decoy_supported": 7,
+            "true_links": 19,
+            "full_paths": 5,
+            "proposals": 114,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.4166666666666667,
+              1.2083333333333333
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.125,
+              0.4583333333333333
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "junction_less": {
+            "true_fragments": 50,
+            "decoy_supported": 8,
+            "true_links": 21,
+            "full_paths": 7,
+            "proposals": 113,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.5,
+              1.2916666666666667
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.16666666666666666,
+              0.5416666666666666
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              0.0,
+              0.20833333333333334
+            ]
+          },
+          "darkness_skeleton": {
+            "true_fragments": 36,
+            "decoy_supported": 5,
+            "true_links": 13,
+            "full_paths": 3,
+            "proposals": 88,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.2906250000000001,
+              0.7916666666666666
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.041666666666666664,
+              0.375
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              -0.625,
+              0.041666666666666664
+            ]
+          },
+          "ridge_dark_fusion": {
+            "true_fragments": 51,
+            "decoy_supported": 7,
+            "true_links": 22,
+            "full_paths": 7,
+            "proposals": 109,
+            "scenes": 24,
+            "scene_bootstrap_true_links_per_scene_95pct": [
+              0.5,
+              1.3333333333333333
+            ],
+            "scene_bootstrap_decoy_support_per_scene_95pct": [
+              0.125,
+              0.45937499999999903
+            ],
+            "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+              -0.041666666666666664,
+              0.3333333333333333
+            ]
+          }
+        }
+      }
+    }
+  },
+  "frozen_selected_before_test": {
+    "chosen_on_CAL_only": "junction_less",
+    "min_required_true_join_gain": 5,
+    "eligible_methods": [
+      "junction_less"
+    ],
+    "synthetic_only": true
+  },
+  "calibration_sha256": "bd9052588dc8c66af858dc0b1cb3a8a60756d21bb482d0a2dacc4dbe3d82adb8",
+  "total": {
+    "s39_original": {
+      "true_fragments": 198,
+      "decoy_supported": 28,
+      "true_links": 76,
+      "full_paths": 22,
+      "proposals": 447,
+      "scenes": 96,
+      "scene_bootstrap_true_links_per_scene_95pct": [
+        0.5833333333333334,
+        0.9898437499999998
+      ],
+      "scene_bootstrap_decoy_support_per_scene_95pct": [
+        0.19791666666666666,
+        0.3958333333333333
+      ],
+      "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+        0.0,
+        0.0
+      ]
+    },
+    "junction_less": {
+      "true_fragments": 208,
+      "decoy_supported": 34,
+      "true_links": 85,
+      "full_paths": 28,
+      "proposals": 455,
+      "scenes": 96,
+      "scene_bootstrap_true_links_per_scene_95pct": [
+        0.66640625,
+        1.1041666666666667
+      ],
+      "scene_bootstrap_decoy_support_per_scene_95pct": [
+        0.2604166666666667,
+        0.4583333333333333
+      ],
+      "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+        0.010416666666666666,
+        0.19791666666666666
+      ]
+    },
+    "darkness_skeleton": {
+      "true_fragments": 163,
+      "decoy_supported": 28,
+      "true_links": 55,
+      "full_paths": 15,
+      "proposals": 375,
+      "scenes": 96,
+      "scene_bootstrap_true_links_per_scene_95pct": [
+        0.375,
+        0.7708333333333334
+      ],
+      "scene_bootstrap_decoy_support_per_scene_95pct": [
+        0.19791666666666666,
+        0.3854166666666667
+      ],
+      "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+        -0.3645833333333333,
+        -0.0830729166666669
+      ]
+    },
+    "ridge_dark_fusion": {
+      "true_fragments": 203,
+      "decoy_supported": 34,
+      "true_links": 80,
+      "full_paths": 25,
+      "proposals": 437,
+      "scenes": 96,
+      "scene_bootstrap_true_links_per_scene_95pct": [
+        0.60390625,
+        1.0523437499999997
+      ],
+      "scene_bootstrap_decoy_support_per_scene_95pct": [
+        0.25,
+        0.4583333333333333
+      ],
+      "scene_bootstrap_paired_delta_links_per_scene_95pct": [
+        -0.07291666666666667,
+        0.17708333333333334
+      ]
+    }
+  },
+  "TEST_used_frozen_CAL_selection_only": true,
+  "selected_method": "junction_less"
+}

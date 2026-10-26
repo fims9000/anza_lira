@@ -1,0 +1,1008 @@
+{
+  "schema": "s50_frozen_length_matched_2d_continuation_public_v1",
+  "scientific_scope": "2D image-plane prior tested only with artificial gaps on genuine H50Z backgrounds",
+  "native_verified_track_count": 0,
+  "native_verified_join_count": 0,
+  "independent_physical_runs": 0,
+  "source_operator_measurements_are_not_H50Z_photo_GT": true,
+  "photo_background_runs": 1,
+  "source_visualmetro_complete_frames": 145,
+  "source_sha256": "bd8e28247c5d178ae4f2f5a86215cbf5626f3ad86560928f4521093ce9188dea",
+  "S37_frame_split_sha256_UNCHANGED": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "template_source_groups_frame_disjoint": {
+    "train": 79,
+    "cal": 30,
+    "test": 36
+  },
+  "template_counts": {
+    "train": 476,
+    "cal": 201,
+    "test": 230
+  },
+  "all_compared_candidate_centerlines_fixed_to_31_points": true,
+  "calibration_uses_only_cal_scenes": true,
+  "synthetic_scene_bootstrap_NOT_physical_CI": true,
+  "protocol": {
+    "train_n": 80,
+    "calibration_n": 100,
+    "test_n_per_seed": 100,
+    "minimum_margin": 0.04,
+    "calibration_pair_fpr_budget": 0.02,
+    "train_seeds": {
+      "005": 20265001,
+      "006": 20265011
+    },
+    "cal_seeds": {
+      "005": 20265002,
+      "006": 20265012
+    },
+    "test_seeds": {
+      "005": [
+        20265003,
+        20265004
+      ],
+      "006": [
+        20265013,
+        20265014
+      ]
+    },
+    "scenarios": [
+      "parallel",
+      "crossing",
+      "scratched",
+      "empty_gap"
+    ]
+  },
+  "directions": {
+    "005_to_006": {
+      "photo_train_and_cal": "005",
+      "photo_heldout": "006",
+      "calibration": {
+        "geometry": {
+          "calibration_cutoff": 0.7275739055182173,
+          "empirical_cal_scene_counts": {
+            "scenes": 100,
+            "true_links_recovered_SYNTHETIC_ONLY": 6,
+            "synthetic_wrong_joins": 1,
+            "scenes_with_any_wrong_join": 1,
+            "suggestions": 7,
+            "recoverable_true_links": 200,
+            "synthetic_true_link_recall": 0.03,
+            "precision_if_suggested_SYNTHETIC_ONLY": 0.8571428571428571,
+            "native_physics_automatic_links": 0,
+            "scene_risk_certified": false
+          }
+        },
+        "geometry+curvature": {
+          "calibration_cutoff": 0.7651020075530675,
+          "empirical_cal_scene_counts": {
+            "scenes": 100,
+            "true_links_recovered_SYNTHETIC_ONLY": 7,
+            "synthetic_wrong_joins": 3,
+            "scenes_with_any_wrong_join": 3,
+            "suggestions": 10,
+            "recoverable_true_links": 200,
+            "synthetic_true_link_recall": 0.035,
+            "precision_if_suggested_SYNTHETIC_ONLY": 0.7,
+            "native_physics_automatic_links": 0,
+            "scene_risk_certified": false
+          }
+        },
+        "geometry+shuffled_curvature_NEGATIVE_CONTROL": {
+          "calibration_cutoff": 0.7339955027809161,
+          "empirical_cal_scene_counts": {
+            "scenes": 100,
+            "true_links_recovered_SYNTHETIC_ONLY": 6,
+            "synthetic_wrong_joins": 0,
+            "scenes_with_any_wrong_join": 0,
+            "suggestions": 6,
+            "recoverable_true_links": 200,
+            "synthetic_true_link_recall": 0.03,
+            "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+            "native_physics_automatic_links": 0,
+            "scene_risk_certified": false
+          }
+        }
+      },
+      "tests": {
+        "20265003": {
+          "arms": {
+            "geometry": {
+              "AUROC_SYNTHETIC": 0.6950624999999999,
+              "AUPRC_SYNTHETIC": 0.5487567512757379,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 14,
+                "synthetic_wrong_joins": 1,
+                "scenes_with_any_wrong_join": 1,
+                "suggestions": 15,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.07,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.9333333333333333,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 7,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 8,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.14,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.875,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 1,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 4,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 4,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.08,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            },
+            "geometry+curvature": {
+              "AUROC_SYNTHETIC": 0.7147125,
+              "AUPRC_SYNTHETIC": 0.5170388280477626,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 13,
+                "synthetic_wrong_joins": 5,
+                "scenes_with_any_wrong_join": 5,
+                "suggestions": 18,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.065,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.7222222222222222,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 4,
+                  "synthetic_wrong_joins": 3,
+                  "scenes_with_any_wrong_join": 3,
+                  "suggestions": 7,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.08,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.5714285714285714,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 3,
+                  "synthetic_wrong_joins": 2,
+                  "scenes_with_any_wrong_join": 2,
+                  "suggestions": 5,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.06,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.6,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 4,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 4,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.08,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            },
+            "geometry+shuffled_curvature_NEGATIVE_CONTROL": {
+              "AUROC_SYNTHETIC": 0.6910375,
+              "AUPRC_SYNTHETIC": 0.5381239519708637,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 15,
+                "synthetic_wrong_joins": 1,
+                "scenes_with_any_wrong_join": 1,
+                "suggestions": 16,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.075,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.9375,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 5,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 6,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.1,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.8333333333333334,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 3,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.06,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 5,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 5,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.1,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            }
+          },
+          "paired_curvature_vs_geometry": {
+            "delta_AUROC_curvature_minus_geometry": 0.019650000000000056,
+            "conditional_synthetic_scene_bootstrap_95pct_percentile": [
+              0.0018246874999999691,
+              0.03640156249999999
+            ],
+            "bootstrap_count": 1000,
+            "independent_real_physical_run_confidence_interval": false
+          }
+        },
+        "20265004": {
+          "arms": {
+            "geometry": {
+              "AUROC_SYNTHETIC": 0.6900499999999999,
+              "AUPRC_SYNTHETIC": 0.49740854800933376,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 7,
+                "synthetic_wrong_joins": 2,
+                "scenes_with_any_wrong_join": 2,
+                "suggestions": 9,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.035,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.7777777777777778,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.5,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 3,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.06,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.5,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            },
+            "geometry+curvature": {
+              "AUROC_SYNTHETIC": 0.686975,
+              "AUPRC_SYNTHETIC": 0.47859432049615985,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 6,
+                "synthetic_wrong_joins": 6,
+                "scenes_with_any_wrong_join": 5,
+                "suggestions": 12,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.03,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.5,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 2,
+                  "scenes_with_any_wrong_join": 2,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.3333333333333333,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.6666666666666666,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 3,
+                  "scenes_with_any_wrong_join": 2,
+                  "suggestions": 4,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.25,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            },
+            "geometry+shuffled_curvature_NEGATIVE_CONTROL": {
+              "AUROC_SYNTHETIC": 0.6883375,
+              "AUPRC_SYNTHETIC": 0.4934336693957289,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 7,
+                "synthetic_wrong_joins": 2,
+                "scenes_with_any_wrong_join": 2,
+                "suggestions": 9,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.035,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.7777777777777778,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.6666666666666666,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 1,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.6666666666666666,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            }
+          },
+          "paired_curvature_vs_geometry": {
+            "delta_AUROC_curvature_minus_geometry": -0.003074999999999939,
+            "conditional_synthetic_scene_bootstrap_95pct_percentile": [
+              -0.02018781250000002,
+              0.012939999999999936
+            ],
+            "bootstrap_count": 1000,
+            "independent_real_physical_run_confidence_interval": false
+          }
+        }
+      }
+    },
+    "006_to_005": {
+      "photo_train_and_cal": "006",
+      "photo_heldout": "005",
+      "calibration": {
+        "geometry": {
+          "calibration_cutoff": 0.7056293160710004,
+          "empirical_cal_scene_counts": {
+            "scenes": 100,
+            "true_links_recovered_SYNTHETIC_ONLY": 21,
+            "synthetic_wrong_joins": 3,
+            "scenes_with_any_wrong_join": 3,
+            "suggestions": 24,
+            "recoverable_true_links": 200,
+            "synthetic_true_link_recall": 0.105,
+            "precision_if_suggested_SYNTHETIC_ONLY": 0.875,
+            "native_physics_automatic_links": 0,
+            "scene_risk_certified": false
+          }
+        },
+        "geometry+curvature": {
+          "calibration_cutoff": 0.7762545877709447,
+          "empirical_cal_scene_counts": {
+            "scenes": 100,
+            "true_links_recovered_SYNTHETIC_ONLY": 6,
+            "synthetic_wrong_joins": 7,
+            "scenes_with_any_wrong_join": 7,
+            "suggestions": 13,
+            "recoverable_true_links": 200,
+            "synthetic_true_link_recall": 0.03,
+            "precision_if_suggested_SYNTHETIC_ONLY": 0.46153846153846156,
+            "native_physics_automatic_links": 0,
+            "scene_risk_certified": false
+          }
+        },
+        "geometry+shuffled_curvature_NEGATIVE_CONTROL": {
+          "calibration_cutoff": 0.7385878390154454,
+          "empirical_cal_scene_counts": {
+            "scenes": 100,
+            "true_links_recovered_SYNTHETIC_ONLY": 11,
+            "synthetic_wrong_joins": 4,
+            "scenes_with_any_wrong_join": 4,
+            "suggestions": 15,
+            "recoverable_true_links": 200,
+            "synthetic_true_link_recall": 0.055,
+            "precision_if_suggested_SYNTHETIC_ONLY": 0.7333333333333333,
+            "native_physics_automatic_links": 0,
+            "scene_risk_certified": false
+          }
+        }
+      },
+      "tests": {
+        "20265013": {
+          "arms": {
+            "geometry": {
+              "AUROC_SYNTHETIC": 0.6873999999999999,
+              "AUPRC_SYNTHETIC": 0.5424216246696447,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 24,
+                "synthetic_wrong_joins": 3,
+                "scenes_with_any_wrong_join": 3,
+                "suggestions": 27,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.12,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.8888888888888888,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 5,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 6,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.1,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.8333333333333334,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 8,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 8,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.16,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 10,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 10,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.2,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 2,
+                  "scenes_with_any_wrong_join": 2,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.3333333333333333,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            },
+            "geometry+curvature": {
+              "AUROC_SYNTHETIC": 0.7000875,
+              "AUPRC_SYNTHETIC": 0.528948703619587,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 13,
+                "synthetic_wrong_joins": 3,
+                "scenes_with_any_wrong_join": 3,
+                "suggestions": 16,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.065,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.8125,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 3,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.06,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 4,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 4,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.08,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 6,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 7,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.12,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.8571428571428571,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 0,
+                  "synthetic_wrong_joins": 2,
+                  "scenes_with_any_wrong_join": 2,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.0,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            },
+            "geometry+shuffled_curvature_NEGATIVE_CONTROL": {
+              "AUROC_SYNTHETIC": 0.6802250000000001,
+              "AUPRC_SYNTHETIC": 0.5013160998624651,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 14,
+                "synthetic_wrong_joins": 5,
+                "scenes_with_any_wrong_join": 5,
+                "suggestions": 19,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.07,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.7368421052631579,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 3,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 4,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.06,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.75,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 4,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 5,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.08,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.8,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 5,
+                  "synthetic_wrong_joins": 2,
+                  "scenes_with_any_wrong_join": 2,
+                  "suggestions": 7,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.1,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.7142857142857143,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.6666666666666666,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            }
+          },
+          "paired_curvature_vs_geometry": {
+            "delta_AUROC_curvature_minus_geometry": 0.012687500000000074,
+            "conditional_synthetic_scene_bootstrap_95pct_percentile": [
+              -0.005476250000000116,
+              0.029250624999999995
+            ],
+            "bootstrap_count": 1000,
+            "independent_real_physical_run_confidence_interval": false
+          }
+        },
+        "20265014": {
+          "arms": {
+            "geometry": {
+              "AUROC_SYNTHETIC": 0.7247125,
+              "AUPRC_SYNTHETIC": 0.5271003030612749,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 17,
+                "synthetic_wrong_joins": 3,
+                "scenes_with_any_wrong_join": 3,
+                "suggestions": 20,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.085,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.85,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 5,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 6,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.1,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.8333333333333334,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 2,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 6,
+                  "synthetic_wrong_joins": 2,
+                  "scenes_with_any_wrong_join": 2,
+                  "suggestions": 8,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.12,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.75,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 4,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 4,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.08,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            },
+            "geometry+curvature": {
+              "AUROC_SYNTHETIC": 0.7368125,
+              "AUPRC_SYNTHETIC": 0.5388181947777226,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 11,
+                "synthetic_wrong_joins": 4,
+                "scenes_with_any_wrong_join": 4,
+                "suggestions": 15,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.055,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.7333333333333333,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 1,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 2,
+                  "synthetic_wrong_joins": 1,
+                  "scenes_with_any_wrong_join": 1,
+                  "suggestions": 3,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.04,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.6666666666666666,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 3,
+                  "synthetic_wrong_joins": 3,
+                  "scenes_with_any_wrong_join": 3,
+                  "suggestions": 6,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.06,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.5,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 5,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 5,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.1,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            },
+            "geometry+shuffled_curvature_NEGATIVE_CONTROL": {
+              "AUROC_SYNTHETIC": 0.7158749999999999,
+              "AUPRC_SYNTHETIC": 0.5312553646353733,
+              "cal_only_empirical_2pct_pair_FPR_policy": {
+                "scenes": 100,
+                "true_links_recovered_SYNTHETIC_ONLY": 15,
+                "synthetic_wrong_joins": 3,
+                "scenes_with_any_wrong_join": 3,
+                "suggestions": 18,
+                "recoverable_true_links": 200,
+                "synthetic_true_link_recall": 0.075,
+                "precision_if_suggested_SYNTHETIC_ONLY": 0.8333333333333334,
+                "native_physics_automatic_links": 0,
+                "scene_risk_certified": false
+              },
+              "by_synthetic_scenario": {
+                "parallel": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 4,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 4,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.08,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "crossing": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 1,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 1,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.02,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "scratched": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 5,
+                  "synthetic_wrong_joins": 3,
+                  "scenes_with_any_wrong_join": 3,
+                  "suggestions": 8,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.1,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 0.625,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                },
+                "empty_gap": {
+                  "scenes": 25,
+                  "true_links_recovered_SYNTHETIC_ONLY": 5,
+                  "synthetic_wrong_joins": 0,
+                  "scenes_with_any_wrong_join": 0,
+                  "suggestions": 5,
+                  "recoverable_true_links": 50,
+                  "synthetic_true_link_recall": 0.1,
+                  "precision_if_suggested_SYNTHETIC_ONLY": 1.0,
+                  "native_physics_automatic_links": 0,
+                  "scene_risk_certified": false
+                }
+              }
+            }
+          },
+          "paired_curvature_vs_geometry": {
+            "delta_AUROC_curvature_minus_geometry": 0.0121,
+            "conditional_synthetic_scene_bootstrap_95pct_percentile": [
+              -0.00419593750000004,
+              0.02700218749999991
+            ],
+            "bootstrap_count": 1000,
+            "independent_real_physical_run_confidence_interval": false
+          }
+        }
+      }
+    }
+  }
+}

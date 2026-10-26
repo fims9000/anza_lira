@@ -1,0 +1,240 @@
+{
+  "schema": "s39_machine_only_combined_results_v1",
+  "date": "2026-10-25",
+  "source_branch": "research/bubble-chamber-graph-lira",
+  "real_H50Z_selected_machine_candidates": {
+    "schema": "s39_machine_only_public_aggregate_v1",
+    "source": "39 authentic 512x512 H50Z crops, 2 BMP same run",
+    "genuine_H50Z_photos": 2,
+    "independent_physical_runs": 1,
+    "original_empty_crops": 17,
+    "original_empty_crops_with_new_ridge_proposals": 17,
+    "original_line_proposals": 133,
+    "additional_new_ridge_proposals": 434,
+    "all_machine_proposals": 567,
+    "machine_consensus_positive_lines_not_gt": 516,
+    "pseudo_positive_pixels_not_gt": 101051,
+    "assumed_offset_negative_pixels_not_gt": 371223,
+    "unknown_pixels": 9751342,
+    "model_training_photo_always_different_from_inference_photo": true,
+    "source_and_models_SHA_verified": true,
+    "native_physics_GT_labels": 0,
+    "auto_particle_identity_claim": false,
+    "automatic_physical_joins_authorized": false,
+    "pixel_labels_in_private_manifest_not_public": true,
+    "important_note": "Ridge candidates may include scratches, fiducials or scanner artefacts; consensus is not independent physics truth."
+  },
+  "synthetic_injection_study": {
+    "schema": "s39_injected_mask_detection_public_v1",
+    "date": "2026-10-25",
+    "true_masks": "injected dark strokes only, unrelated to real H50Z tracks",
+    "native_photo_track_GT_count": 0,
+    "source_visualMetro_complete_frames": 145,
+    "source_heldout_visualMetro_frame_count": 36,
+    "source_visualMetro_train_frame_count": 109,
+    "source_photo_count": 2,
+    "independent_physical_runs": 1,
+    "photo_disjoint_AZ_checkpoint_to_test_photo": true,
+    "shared_activation_budget": 0.035,
+    "predeclared_test_seeds": {
+      "005": 20261127,
+      "006": 20261128
+    },
+    "synthetic_scenes_per_photo": 40,
+    "comparators": [
+      "local_darkness",
+      "multiscale_ridge",
+      "original_AZUNet_cross_photo",
+      "ridge_plus_AZUNet_rank_fusion",
+      "ridge_plus_local_contrast_rank_fusion",
+      "sobel_edge"
+    ],
+    "CI_warning": "Scene bootstrap describes simulator variability, not physical run-disjoint uncertainty.",
+    "no_real_physics_precision_or_recall_can_be_claimed": true,
+    "results": {
+      "005_test_photo": {
+        "local_darkness": {
+          "injected_track_hit_tolerance_2px": 0.7980748579854405,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.7200889363920936,
+            0.8686167281625321
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.882682310267465,
+          "activated_pixel_fraction": 0.03502061631944445,
+          "n_synthetic_scenes": 40
+        },
+        "multiscale_ridge": {
+          "injected_track_hit_tolerance_2px": 0.778723196523124,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.6895937124162397,
+            0.8658975877479874
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.8054043232122705,
+          "activated_pixel_fraction": 0.03502061631944445,
+          "n_synthetic_scenes": 40
+        },
+        "original_AZUNet_cross_photo": {
+          "injected_track_hit_tolerance_2px": 0.38707973838543286,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.3253839602427282,
+            0.45469469640083476
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.3411795829333193,
+          "activated_pixel_fraction": 0.03502061631944445,
+          "n_synthetic_scenes": 40
+        },
+        "ridge_plus_AZUNet_rank_fusion": {
+          "injected_track_hit_tolerance_2px": 0.5504029687589134,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.4627931347749846,
+            0.6316283886618922
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.4916966298903066,
+          "activated_pixel_fraction": 0.035027398003472224,
+          "n_synthetic_scenes": 40
+        },
+        "ridge_plus_local_contrast_rank_fusion": {
+          "injected_track_hit_tolerance_2px": 0.790324882551495,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.7045370211375525,
+            0.8655138438249509
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.8456480656902479,
+          "activated_pixel_fraction": 0.03502332899305556,
+          "n_synthetic_scenes": 40
+        },
+        "sobel_edge": {
+          "injected_track_hit_tolerance_2px": 0.6738848544695359,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.5900706376586071,
+            0.7551018878144327
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.7135441376130668,
+          "activated_pixel_fraction": 0.03502061631944445,
+          "n_synthetic_scenes": 40
+        }
+      },
+      "006_test_photo": {
+        "local_darkness": {
+          "injected_track_hit_tolerance_2px": 0.8187776633251594,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.7390534193110437,
+            0.894899305832008
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.8551361120005702,
+          "activated_pixel_fraction": 0.03502061631944445,
+          "n_synthetic_scenes": 40
+        },
+        "multiscale_ridge": {
+          "injected_track_hit_tolerance_2px": 0.7975194719136216,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.6975091021359264,
+            0.8881154736243769
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.7995802282264513,
+          "activated_pixel_fraction": 0.03502061631944445,
+          "n_synthetic_scenes": 40
+        },
+        "original_AZUNet_cross_photo": {
+          "injected_track_hit_tolerance_2px": 0.562594078059949,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.47276863211656805,
+            0.6460806051950214
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.5316962630571868,
+          "activated_pixel_fraction": 0.03502129448784722,
+          "n_synthetic_scenes": 40
+        },
+        "ridge_plus_AZUNet_rank_fusion": {
+          "injected_track_hit_tolerance_2px": 0.7007463331471065,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.6127344002929626,
+            0.7813457918918494
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.6763658747078792,
+          "activated_pixel_fraction": 0.03502468532986112,
+          "n_synthetic_scenes": 40
+        },
+        "ridge_plus_local_contrast_rank_fusion": {
+          "injected_track_hit_tolerance_2px": 0.8051148112344958,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.7090846382760099,
+            0.895088054228799
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.8216023472120423,
+          "activated_pixel_fraction": 0.03502671983506944,
+          "n_synthetic_scenes": 40
+        },
+        "sobel_edge": {
+          "injected_track_hit_tolerance_2px": 0.6524674797434666,
+          "scene_bootstrap_95pct_CI_SYNTHETIC_ONLY": [
+            0.5639079917610778,
+            0.7397876691575812
+          ],
+          "injected_scratch_activation_tolerance_2px": 0.6711396214605758,
+          "activated_pixel_fraction": 0.03502061631944445,
+          "n_synthetic_scenes": 40
+        }
+      }
+    }
+  },
+  "unbiased_full_BMP_machine_audit": {
+    "schema": "s39_full_bmp_spatial_machine_only_audit_v1",
+    "date": "2026-10-25",
+    "original_BMP_photos": 2,
+    "real_physical_runs": 1,
+    "original_BMP_dimensions": {
+      "005": [
+        9020,
+        26151
+      ],
+      "006": [
+        9268,
+        25324
+      ]
+    },
+    "sample_protocol": "Precommitted uniformly chosen non-overlapping 512px grid tiles per photo, balanced over 8 vertical octiles; no model-score-based tile selection",
+    "sample_seed": 20261025,
+    "sampled_crops_per_photo": 64,
+    "cross_photo_AZ_evidence_sampled_crops_per_photo": 12,
+    "results": {
+      "tiles": 128,
+      "novel_proposals": 1166,
+      "tiles_with_any_proposal": 127,
+      "tiles_with_cross_photo_AZ": 24,
+      "photo_005_unbiased_tiles": 64,
+      "photo_005_with_candidates": 63,
+      "photo_005_proposals": 563,
+      "photo_005_saturation_rate_mean": 0.0059,
+      "photo_006_unbiased_tiles": 64,
+      "photo_006_with_candidates": 64,
+      "photo_006_proposals": 603,
+      "photo_006_saturation_rate_mean": 0.00599
+    },
+    "native_expert_masks": 0,
+    "native_particle_identity_labels": 0,
+    "estimated_physical_track_recall_or_precision": null,
+    "machine_artefacts_not_excluded": true,
+    "source_private_coordinates_not_published": true,
+    "source_full_bmp_sha256_private_only": true
+  },
+  "native_graph_hypothesis_ranking": {
+    "schema": "s39_graph_lira_candidate_audit_public_v1",
+    "algorithm": "local geometry link graph only; not CT28 trained Graph-LIRA head",
+    "native_verified_joins": 0,
+    "automatic_physics_join_count": 0,
+    "original_S31_pairs_remaining_unverified": 28,
+    "all_links_status": "REVERSIBLE_HYPOTHESES_NOT_SAME_PARTICLE_LABELS",
+    "totals": {
+      "tiles": 39,
+      "graph_nodes": 511,
+      "possible_endpoint_links": 182,
+      "unambiguous_machine_suggestions": 70,
+      "competing_ambiguous_links": 112,
+      "conflicting_links_abstained": 0
+    }
+  },
+  "test_receipt": "45 local source-only tests passed; chromium offline HTML image switching passed",
+  "native_physics_truth_status": "UNAVAILABLE_NO_GT",
+  "requires_user_manual_labeling_for_current_work": false
+}

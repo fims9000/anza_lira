@@ -1,0 +1,306 @@
+{
+  "schema": "s37_public_compact_synthetic_only_v1",
+  "date": "2026-10-25",
+  "branch": "research/bubble-chamber-graph-lira",
+  "source_commit": "d2d1d101a3a11a0c758d2edf815a89bdea0ae52b",
+  "original_model_source_sha": {
+    "azconv": "f4217ada00024927506fa8ebe520aa1f68ae5854",
+    "segmentation": "0b971c117f3d56cc588ebade6991c65faceb8a2a"
+  },
+  "research_data": {
+    "source_visualmetro_complete_frames": 145,
+    "source_visualmetro_tracks": 1073,
+    "independent_BMP_photos": 2,
+    "independent_physical_runs": 1,
+    "native_H50Z_pixel_truth_masks": 0,
+    "native_same_different_confirmed_relations": 0
+  },
+  "protocol": {
+    "source_frames_train": 79,
+    "source_frames_cal": 30,
+    "source_frames_test": 36,
+    "simulation_scenes_train_per_direction": 160,
+    "simulation_scenes_cal_per_direction": 450,
+    "simulation_scenes_test_per_direction": 160,
+    "total_simulation_test_scenes": 320,
+    "synthetic_true_pairs_test_total": 640,
+    "synthetic_false_pairs_test_total": 1280,
+    "simultaneous_alpha": 0.05,
+    "candidate_cutoffs_per_arm": 13,
+    "methods": 7,
+    "directions": 2,
+    "conditional_simulation_scene_false_event_target": 0.02,
+    "test_photos_from_same_physical_run": true,
+    "test_data_not_used_to_calibrate": true
+  },
+  "results": {
+    "distance": {
+      "005->006": {
+        "synthetic_AUROC_mean_two_seeds": 0.63046875,
+        "synthetic_AUROC_test_seed_range": [
+          0.62669921875,
+          0.63423828125
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.43665676936525755,
+        "empirical_correct_review_suggestions": 9,
+        "empirical_false_review_suggestions": 7,
+        "empirical_false_scenes": 7,
+        "strict_correct_review_suggestions": 0,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 0,
+        "both_directions_one_physical_run": true
+      },
+      "006->005": {
+        "synthetic_AUROC_mean_two_seeds": 0.63720703125,
+        "synthetic_AUROC_test_seed_range": [
+          0.635546875,
+          0.6388671875
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.44036624885156694,
+        "empirical_correct_review_suggestions": 6,
+        "empirical_false_review_suggestions": 7,
+        "empirical_false_scenes": 6,
+        "strict_correct_review_suggestions": 0,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 0,
+        "both_directions_one_physical_run": true
+      }
+    },
+    "geometry": {
+      "005->006": {
+        "synthetic_AUROC_mean_two_seeds": 0.8344042968750001,
+        "synthetic_AUROC_test_seed_range": [
+          0.83146484375,
+          0.83734375
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.6317827844492452,
+        "empirical_correct_review_suggestions": 16,
+        "empirical_false_review_suggestions": 1,
+        "empirical_false_scenes": 1,
+        "strict_correct_review_suggestions": 1,
+        "strict_false_review_suggestions": 1,
+        "strict_false_scenes": 1,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      },
+      "006->005": {
+        "synthetic_AUROC_mean_two_seeds": 0.833525390625,
+        "synthetic_AUROC_test_seed_range": [
+          0.8206640625,
+          0.84638671875
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.6535207089875741,
+        "empirical_correct_review_suggestions": 29,
+        "empirical_false_review_suggestions": 3,
+        "empirical_false_scenes": 3,
+        "strict_correct_review_suggestions": 2,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      }
+    },
+    "geometry+raw": {
+      "005->006": {
+        "synthetic_AUROC_mean_two_seeds": 0.84201171875,
+        "synthetic_AUROC_test_seed_range": [
+          0.83755859375,
+          0.84646484375
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.653560612962866,
+        "empirical_correct_review_suggestions": 20,
+        "empirical_false_review_suggestions": 2,
+        "empirical_false_scenes": 2,
+        "strict_correct_review_suggestions": 0,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 0,
+        "both_directions_one_physical_run": true
+      },
+      "006->005": {
+        "synthetic_AUROC_mean_two_seeds": 0.842275390625,
+        "synthetic_AUROC_test_seed_range": [
+          0.8302343750000001,
+          0.8543164062499999
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.673644513738778,
+        "empirical_correct_review_suggestions": 30,
+        "empirical_false_review_suggestions": 4,
+        "empirical_false_scenes": 4,
+        "strict_correct_review_suggestions": 2,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      }
+    },
+    "geometry+local": {
+      "005->006": {
+        "synthetic_AUROC_mean_two_seeds": 0.8404492187500001,
+        "synthetic_AUROC_test_seed_range": [
+          0.8358398437500001,
+          0.84505859375
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.6430599560102431,
+        "empirical_correct_review_suggestions": 16,
+        "empirical_false_review_suggestions": 2,
+        "empirical_false_scenes": 2,
+        "strict_correct_review_suggestions": 0,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 0,
+        "both_directions_one_physical_run": true
+      },
+      "006->005": {
+        "synthetic_AUROC_mean_two_seeds": 0.8425390625,
+        "synthetic_AUROC_test_seed_range": [
+          0.8305078124999999,
+          0.8545703124999999
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.670957155416953,
+        "empirical_correct_review_suggestions": 29,
+        "empirical_false_review_suggestions": 4,
+        "empirical_false_scenes": 4,
+        "strict_correct_review_suggestions": 2,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      }
+    },
+    "geometry+AZUNet": {
+      "005->006": {
+        "synthetic_AUROC_mean_two_seeds": 0.8395117187500001,
+        "synthetic_AUROC_test_seed_range": [
+          0.8342578125000001,
+          0.844765625
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.6404512816099495,
+        "empirical_correct_review_suggestions": 15,
+        "empirical_false_review_suggestions": 1,
+        "empirical_false_scenes": 1,
+        "strict_correct_review_suggestions": 0,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      },
+      "006->005": {
+        "synthetic_AUROC_mean_two_seeds": 0.844677734375,
+        "synthetic_AUROC_test_seed_range": [
+          0.83263671875,
+          0.85671875
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.6754724473916544,
+        "empirical_correct_review_suggestions": 33,
+        "empirical_false_review_suggestions": 5,
+        "empirical_false_scenes": 5,
+        "strict_correct_review_suggestions": 2,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      }
+    },
+    "geometry+UNet": {
+      "005->006": {
+        "synthetic_AUROC_mean_two_seeds": 0.8394042968750001,
+        "synthetic_AUROC_test_seed_range": [
+          0.8370703125000001,
+          0.84173828125
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.6353150057660074,
+        "empirical_correct_review_suggestions": 18,
+        "empirical_false_review_suggestions": 4,
+        "empirical_false_scenes": 4,
+        "strict_correct_review_suggestions": 0,
+        "strict_false_review_suggestions": 1,
+        "strict_false_scenes": 1,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      },
+      "006->005": {
+        "synthetic_AUROC_mean_two_seeds": 0.84650390625,
+        "synthetic_AUROC_test_seed_range": [
+          0.835546875,
+          0.8574609375000001
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.6770404960638524,
+        "empirical_correct_review_suggestions": 41,
+        "empirical_false_review_suggestions": 4,
+        "empirical_false_scenes": 4,
+        "strict_correct_review_suggestions": 1,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      }
+    },
+    "geometry+both": {
+      "005->006": {
+        "synthetic_AUROC_mean_two_seeds": 0.8394824218749999,
+        "synthetic_AUROC_test_seed_range": [
+          0.83513671875,
+          0.8438281249999999
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.638257434081861,
+        "empirical_correct_review_suggestions": 16,
+        "empirical_false_review_suggestions": 2,
+        "empirical_false_scenes": 2,
+        "strict_correct_review_suggestions": 0,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      },
+      "006->005": {
+        "synthetic_AUROC_mean_two_seeds": 0.84767578125,
+        "synthetic_AUROC_test_seed_range": [
+          0.8367382812499999,
+          0.85861328125
+        ],
+        "synthetic_AUPRC_mean_two_seeds": 0.6793348246894242,
+        "empirical_correct_review_suggestions": 41,
+        "empirical_false_review_suggestions": 5,
+        "empirical_false_scenes": 5,
+        "strict_correct_review_suggestions": 1,
+        "strict_false_review_suggestions": 0,
+        "strict_false_scenes": 0,
+        "strict_calibration_scenes": 450,
+        "strict_calibration_one_sided_simulated_false_scene_UCB": 0.018056631786900826,
+        "strict_safe_cutoffs_count_including_zero_accept": 1,
+        "both_directions_one_physical_run": true
+      }
+    }
+  },
+  "conclusion": "No reproducible AZUNet advantage over conventional geometry or matched U-Net; strict scene-level calibration permits near-zero review coverage and can still fail on held-out simulated test; absolutely NO physical automatic joins.",
+  "physics_auto_join_authorized": false
+}

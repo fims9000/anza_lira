@@ -1,0 +1,48 @@
+{
+  "schema": "s41_unverified_machine_stability_and_unknown_v1",
+  "source_photographs": 2,
+  "independent_physical_runs": 1,
+  "native_particle_GT_line_count": 0,
+  "validated_native_particle_links": 0,
+  "pseudo_labels_remain_machine_hypotheses": true,
+  "original_machines_unchanged": true,
+  "photos_annotated": 39,
+  "candidate_quality_totals": {
+    "tiles": 39,
+    "lines": 567,
+    "stable_lines": 567,
+    "fiducial_risk_lines": 56,
+    "uncertain_lines": 56,
+    "unstable_lines": 0,
+    "protected_pixel_positions": 184124,
+    "positive_demoted_to_unknown": 20251,
+    "negative_demoted_to_unknown": 15441
+  },
+  "old_pseudo_pixel_counts": {
+    "positive": 101051,
+    "assumed_negative": 371223,
+    "unknown": 9751342
+  },
+  "new_pseudo_pixel_counts": {
+    "positive": 80800,
+    "assumed_negative": 355782,
+    "unknown": 9787034
+  },
+  "graph_guard_totals": {
+    "total_edges": 182,
+    "fiducial_risk": 43,
+    "unstable_node_edges": 0,
+    "stability_warning_advisory_only": 0,
+    "eligible_machine_only_edges_not_physics_gt": 139,
+    "preselected_machine_edge_abstained": 5
+  },
+  "fixed_perturbations": [
+    "identity",
+    "gamma_0p78",
+    "gamma_1p30",
+    "blur_sigma_1p1"
+  ],
+  "stability_gate": "baseline >=0.35 and min of all 4 supports >=0.25, 3.5 percent ridge activation, 2px tolerance",
+  "no_physics_accuracy_claim": true,
+  "limitation": "Stability rejects exposure sensitivity, NOT necessarily scratches or scanner artifacts."
+}

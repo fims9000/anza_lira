@@ -1,0 +1,71 @@
+{
+  "schema": "s46_corrected_normal_offset_registered_control_v2",
+  "source_photos": 2,
+  "independent_physics_runs": 1,
+  "native_physics_GT_count": 0,
+  "simulated_original_native_background_tiles": 39,
+  "synthetic_cases_per_tile": 3,
+  "synthetic_cases_total": 117,
+  "random_seed_frozen": 20261046,
+  "line_geometry_identical_between_single_and_repeat_conditions": true,
+  "normal_offset_corrects_prior_incorrect_x_axis_shift": true,
+  "line_identity": "ARTIFICIALLY_INJECTED_STROKE_NOT_PHYSICAL_TRACK",
+  "comparisons_by_photo": {
+    "005": {
+      "single_view_only": {
+        "tested_synthetic_scenes": 21,
+        "registered_repeat_trigger_fraction": 0.0,
+        "crop_resample_95pct_CI_not_run_independence": [
+          0.0,
+          0.0
+        ]
+      },
+      "identical_registered_repeat": {
+        "tested_synthetic_scenes": 21,
+        "registered_repeat_trigger_fraction": 0.95238,
+        "crop_resample_95pct_CI_not_run_independence": [
+          0.85714,
+          1.0
+        ]
+      },
+      "normal_shifted_eight_px_repeat": {
+        "tested_synthetic_scenes": 21,
+        "registered_repeat_trigger_fraction": 0.0,
+        "crop_resample_95pct_CI_not_run_independence": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "006": {
+      "single_view_only": {
+        "tested_synthetic_scenes": 18,
+        "registered_repeat_trigger_fraction": 0.0,
+        "crop_resample_95pct_CI_not_run_independence": [
+          0.0,
+          0.0
+        ]
+      },
+      "identical_registered_repeat": {
+        "tested_synthetic_scenes": 18,
+        "registered_repeat_trigger_fraction": 0.94444,
+        "crop_resample_95pct_CI_not_run_independence": [
+          0.83333,
+          1.0
+        ]
+      },
+      "normal_shifted_eight_px_repeat": {
+        "tested_synthetic_scenes": 18,
+        "registered_repeat_trigger_fraction": 0.0,
+        "crop_resample_95pct_CI_not_run_independence": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "S45_fixed_threshold_not_refit_on_this_trial": true,
+  "this_test_does_not_identify_native_scratch_or_particle": true,
+  "native_machine_candidates_removed": 0,
+  "manual_labels_needed": 0
+}

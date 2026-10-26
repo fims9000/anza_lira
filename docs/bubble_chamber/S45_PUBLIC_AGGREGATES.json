@@ -1,0 +1,76 @@
+{
+  "schema": "s45_registered_repeat_uncertainty_transductive_v1",
+  "source_photographs": 2,
+  "independent_physical_runs": 1,
+  "source_crops": 39,
+  "candidate_total_preserved": 567,
+  "graph_proposals_total_preserved": 182,
+  "new_repeat_edges_beyond_S40_fiducial_guard": 11,
+  "combined_S40_S45_ambiguous_graph_edges": 54,
+  "other_graph_edges_still_native_unknown": 128,
+  "fixed_heuristic_not_physics_calibrated": {
+    "min_both_registered_ridge_coverage": 0.7,
+    "min_vs_displaced_control_margin": 0.2
+  },
+  "counts": {
+    "crops": 39,
+    "source_proposals": 567,
+    "registered_repeat_risk_proposals": 36,
+    "risk_pixels": 14190,
+    "source_pseudo_positives": 64331,
+    "source_pseudo_assumed_negatives": 339071,
+    "source_pseudo_unknown": 9820214,
+    "pseudo_pos_downgraded": 4112,
+    "pseudo_neg_downgraded": 0,
+    "original_graph_edges": 182,
+    "repeat_advisory_edges": 18,
+    "original_graph_nodes": 511,
+    "repeat_advisory_nodes": 36,
+    "combined_risk_union_edges": 54,
+    "new_repeat_edges_not_already_fiducial_risk": 11,
+    "preliminary_unambiguous_union_risk": 7
+  },
+  "by_photo": {
+    "005": {
+      "crops": 21,
+      "proposals": 321,
+      "repeat_risk_proposals": 20,
+      "pseudo_pos_downgraded": 2501,
+      "pseudo_neg_downgraded": 0,
+      "graph_edges": 99,
+      "repeat_risk_edges": 11
+    },
+    "006": {
+      "crops": 18,
+      "proposals": 246,
+      "repeat_risk_proposals": 16,
+      "pseudo_pos_downgraded": 1611,
+      "pseudo_neg_downgraded": 0,
+      "graph_edges": 83,
+      "repeat_risk_edges": 7
+    }
+  },
+  "crop_bootstrap_95pct_CI_exploratory_not_independent_runs": {
+    "fraction_of_original_machine_pos_downgraded": [
+      0.04128,
+      0.14895
+    ],
+    "fraction_candidate_repeat_risk": [
+      0.0372,
+      0.10294
+    ],
+    "fraction_graph_edges_repeat_advisory": [
+      0.02593,
+      0.10358
+    ]
+  },
+  "source_only_geometry_mask": "S42 frozen photo-only Hessian pseudo, not S39 AZ teacher",
+  "crossframe_risk_used_for_training": false,
+  "S45_both_photos_seen_for_inference_transductive": true,
+  "leave_one_photo_out_or_independent_photo_accuracy_claim": false,
+  "native_GT_count": 0,
+  "native_particle_classification_performed": false,
+  "native_candidates_removed": 0,
+  "physical_graph_joins_performed": 0,
+  "machine_repeat_cue_is_not_evidence_of_scratch_identity": true
+}

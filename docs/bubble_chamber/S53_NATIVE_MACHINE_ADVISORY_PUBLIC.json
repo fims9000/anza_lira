@@ -1,0 +1,28 @@
+{
+  "schema": "s53_synthetic_renderer_texture_advisory_v1",
+  "native_H50Z_GT_count": 0,
+  "independent_physical_runs": 1,
+  "all_native_candidates_preserved": 567,
+  "source_crops_verified_SHA256": 39,
+  "native_physical_auto_joins": 0,
+  "new_native_track_labels": 0,
+  "scores_are_simulator_origin_similarity_NOT_particle_probability": true,
+  "both_photo_synthetic_training_oracle_label_leakage": false,
+  "summary": {
+    "005": {
+      "native_machine_candidate_count": 321,
+      "S43_simulator_response_median": 0.009925,
+      "S53_simulator_response_median": 0.21707,
+      "absolute_S53_minus_S43_difference_median": 0.267042,
+      "raw_score_disagreement_gt_0p2_SIMULATOR_ONLY": 170
+    },
+    "006": {
+      "native_machine_candidate_count": 246,
+      "S43_simulator_response_median": 0.0025729999999999998,
+      "S53_simulator_response_median": 0.9990330000000001,
+      "absolute_S53_minus_S43_difference_median": 0.9649665000000001,
+      "raw_score_disagreement_gt_0p2_SIMULATOR_ONLY": 190
+    }
+  },
+  "private_preview_count": 39
+}

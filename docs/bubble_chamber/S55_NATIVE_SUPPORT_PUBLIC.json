@@ -1,0 +1,29 @@
+{
+  "schema": "s55_machine_candidate_geometry_simulator_v1",
+  "scientific_status": "posthoc simulator coverage comparison NOT native particle validation",
+  "same_physical_H50Z_run": true,
+  "native_particle_ground_truth": 0,
+  "physical_auto_joins": 0,
+  "all_567_original_machine_candidates_preserved": true,
+  "target_photo_never_used_for_model_training_or_calibration": true,
+  "source_native_geometry_was_unlabelled": true,
+  "source_simulator_calibrated_q99_not_validated_native_coverage": true,
+  "counts": {
+    "005": {
+      "total": 321,
+      "unscorable_192px_context": 91,
+      "S54_previous_outside_simulator_support": 228,
+      "S55_new_outside_simulator_support": 6,
+      "S55_new_within_simulator_support_NOT_true_physics": 224,
+      "S55_simulator_score_median_NOT_NATIVE_PROB": 0.003276200602778983
+    },
+    "006": {
+      "total": 246,
+      "unscorable_192px_context": 50,
+      "S54_previous_outside_simulator_support": 194,
+      "S55_new_outside_simulator_support": 8,
+      "S55_new_within_simulator_support_NOT_true_physics": 188,
+      "S55_simulator_score_median_NOT_NATIVE_PROB": 0.19126646733700664
+    }
+  }
+}

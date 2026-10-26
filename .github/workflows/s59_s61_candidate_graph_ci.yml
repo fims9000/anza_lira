@@ -1,0 +1,36 @@
+name: S59-S61 machine-only graph risk calibration (source tests only)
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s59_*.py'
+      - 'bubble_chamber/s60_*.py'
+      - 'scripts/research/bubble_chamber/s59_*.py'
+      - 'scripts/research/bubble_chamber/s60_*.py'
+      - 'scripts/research/bubble_chamber/s61_*.py'
+      - 'tests/test_s59_*.py'
+      - 'tests/test_s60_*.py'
+      - 'tests/test_s61_*.py'
+      - 'docs/bubble_chamber/S59_*.md'
+      - 'docs/bubble_chamber/S60_*.md'
+      - 'docs/bubble_chamber/S59_S61_*.md'
+      - '.github/workflows/s59_s61_candidate_graph_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install bounded source-only dependencies
+        run: python -m pip install numpy scipy scikit-learn networkx opencv-python-headless pytest torch
+      - name: Verify frozen candidate retrieval, margin calibration and offline viewer safety
+        run: python -m pytest -q tests/test_s59_candidate_retrieval.py tests/test_s60_margin_calibration.py tests/test_s61_private_viewer_comparison.py
+      - name: Compile source, never require private BMP or 7z data
+        run: python -m compileall -q bubble_chamber/s59_candidate_retrieval.py bubble_chamber/s60_margin_calibration.py scripts/research/bubble_chamber/s59_benchmark_candidate_retrieval.py scripts/research/bubble_chamber/s60_benchmark_risk_limited_paths.py scripts/research/bubble_chamber/s61_build_calibrated_private_showcase.py

@@ -1,0 +1,21 @@
+{
+  "schema": "s49_offline_physics_demonstrator_public_summary_v1",
+  "machine_only_no_GT": true,
+  "independent_physics_runs": 1,
+  "private_image_count": 78,
+  "private_image_size": 512,
+  "image_integrity_verified_source_sha": 39,
+  "offline_assets_no_external_network": true,
+  "browser_uses_inline_json_no_fetch_calls": true,
+  "direct_file_URL_QA_not_permitted_in_runtime": true,
+  "manual_labels_requested": 0,
+  "native_physical_auto_join_performed": 0,
+  "summary": {
+    "crops": 39,
+    "machine_candidates": 567,
+    "graph_edges": 182,
+    "risky_edges": 58
+  },
+  "transductive_photo_heldout_training_forbidden": true,
+  "output_PRIVATE_does_not_belong_in_public_Git": true
+}

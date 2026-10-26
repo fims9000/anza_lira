@@ -1,0 +1,172 @@
+{
+  "schema": "s42_original_AZ_vs_U_source_pure_teacher_ablation_v1",
+  "methods": "Original source-locked AZUNet/UNet, equal settings; pure Hessian teacher only",
+  "source_photo_count": 2,
+  "independent_physical_runs": 1,
+  "training_photo_crops": {
+    "005": {
+      "source_photo": "005",
+      "source_crops": 21,
+      "teacher_positive": 37307,
+      "teacher_assumed_negative": 193478,
+      "teacher_unknown": 5274239,
+      "teacher_hessian_paths": 269
+    },
+    "006": {
+      "source_photo": "006",
+      "source_crops": 18,
+      "teacher_positive": 27024,
+      "teacher_assumed_negative": 145593,
+      "teacher_unknown": 4545975,
+      "teacher_hessian_paths": 212
+    }
+  },
+  "excluded_cross_photo_AZ_pseudo_teacher": true,
+  "no_native_physics_GT": true,
+  "no_human_labels_required": true,
+  "source_visualMetro_frames": 145,
+  "heldout_geometry_frames": 36,
+  "training": {
+    "005_unet": {
+      "train_photo": "005",
+      "model": "unet",
+      "epochs": 3,
+      "steps_per_epoch": 32,
+      "batch": 8,
+      "checkpoint_resumed": true,
+      "model_checkpoint_private_sha256": "67f7d11963b0edbc7f144a6040f6ea0c504f6a1feeeaef9fa1816f45eb912936"
+    },
+    "005_azunet": {
+      "train_photo": "005",
+      "model": "azunet",
+      "epochs": 3,
+      "steps_per_epoch": 32,
+      "batch": 8,
+      "checkpoint_resumed": true,
+      "model_checkpoint_private_sha256": "94af458a5a6ca47a3b25bff8d0b844791d4d00cf512d04ba028e49e376cec98f"
+    },
+    "006_unet": {
+      "train_photo": "006",
+      "model": "unet",
+      "epochs": 3,
+      "steps_per_epoch": 32,
+      "batch": 8,
+      "checkpoint_resumed": true,
+      "model_checkpoint_private_sha256": "5d1eef2310f4cdb9f535ed882818ef002e2f1cff5196fe66ecb98a58ad6d2039"
+    },
+    "006_azunet": {
+      "train_photo": "006",
+      "model": "azunet",
+      "epochs": 3,
+      "steps_per_epoch": 32,
+      "batch": 8,
+      "training_pseudo_balanced_bce_loss_by_epoch": [
+        0.63701,
+        0.54565,
+        0.49835
+      ],
+      "model_checkpoint_private_sha256": "b909a08b1a8b8214ded8b99a35e5331c45e1ca683eca01541e5bd1b11805680d"
+    }
+  },
+  "test_seeds": {
+    "005": 20261129,
+    "006": 20261130
+  },
+  "tested_synthetic_scenes_per_direction": 24,
+  "track_and_decoy_injections_are_synthetic": true,
+  "activation_budget": 0.035,
+  "comparators": [
+    "unet",
+    "azunet",
+    "multiscale_hessian",
+    "local_darkness"
+  ],
+  "results": {
+    "005_to_006": {
+      "azunet": {
+        "injected_track_coverage_tolerance_2px": 0.42458,
+        "injected_decoy_scratch_activation_tolerance_2px": 0.46845,
+        "track_coverage_minus_scratch_activation": -0.04387,
+        "scene_bootstrap_95pct_CI_TRACK_COVERAGE_SYNTHETIC": [
+          0.31393,
+          0.53826
+        ],
+        "scenes": 24
+      },
+      "local_darkness": {
+        "injected_track_coverage_tolerance_2px": 0.80004,
+        "injected_decoy_scratch_activation_tolerance_2px": 0.90109,
+        "track_coverage_minus_scratch_activation": -0.10106,
+        "scene_bootstrap_95pct_CI_TRACK_COVERAGE_SYNTHETIC": [
+          0.68338,
+          0.902
+        ],
+        "scenes": 24
+      },
+      "multiscale_hessian": {
+        "injected_track_coverage_tolerance_2px": 0.81671,
+        "injected_decoy_scratch_activation_tolerance_2px": 0.83062,
+        "track_coverage_minus_scratch_activation": -0.01391,
+        "scene_bootstrap_95pct_CI_TRACK_COVERAGE_SYNTHETIC": [
+          0.68885,
+          0.92496
+        ],
+        "scenes": 24
+      },
+      "unet": {
+        "injected_track_coverage_tolerance_2px": 0.46085,
+        "injected_decoy_scratch_activation_tolerance_2px": 0.43365,
+        "track_coverage_minus_scratch_activation": 0.0272,
+        "scene_bootstrap_95pct_CI_TRACK_COVERAGE_SYNTHETIC": [
+          0.34705,
+          0.5714
+        ],
+        "scenes": 24
+      }
+    },
+    "006_to_005": {
+      "azunet": {
+        "injected_track_coverage_tolerance_2px": 0.37389,
+        "injected_decoy_scratch_activation_tolerance_2px": 0.52153,
+        "track_coverage_minus_scratch_activation": -0.14764,
+        "scene_bootstrap_95pct_CI_TRACK_COVERAGE_SYNTHETIC": [
+          0.29778,
+          0.45499
+        ],
+        "scenes": 24
+      },
+      "local_darkness": {
+        "injected_track_coverage_tolerance_2px": 0.841,
+        "injected_decoy_scratch_activation_tolerance_2px": 0.90914,
+        "track_coverage_minus_scratch_activation": -0.06813,
+        "scene_bootstrap_95pct_CI_TRACK_COVERAGE_SYNTHETIC": [
+          0.75042,
+          0.91332
+        ],
+        "scenes": 24
+      },
+      "multiscale_hessian": {
+        "injected_track_coverage_tolerance_2px": 0.82231,
+        "injected_decoy_scratch_activation_tolerance_2px": 0.89122,
+        "track_coverage_minus_scratch_activation": -0.06891,
+        "scene_bootstrap_95pct_CI_TRACK_COVERAGE_SYNTHETIC": [
+          0.73101,
+          0.9076
+        ],
+        "scenes": 24
+      },
+      "unet": {
+        "injected_track_coverage_tolerance_2px": 0.42036,
+        "injected_decoy_scratch_activation_tolerance_2px": 0.47039,
+        "track_coverage_minus_scratch_activation": -0.05003,
+        "scene_bootstrap_95pct_CI_TRACK_COVERAGE_SYNTHETIC": [
+          0.33074,
+          0.52031
+        ],
+        "scenes": 24
+      }
+    }
+  },
+  "uncertainty": "Scene bootstrap only, not independent run uncertainty",
+  "no_real_physics_accuracy_or_particle_ID_claim": true
+}

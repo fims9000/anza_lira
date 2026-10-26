@@ -1,0 +1,59 @@
+{
+  "schema": "s41_scratch_origin_control_v1",
+  "source_visualMetro_frame_count": 145,
+  "heldout_source_frames": 36,
+  "source_photo_count": 2,
+  "independent_physical_runs": 1,
+  "real_physics_track_GT_labels": 0,
+  "simulator_note": "The synthetic decoy is drawn with the same stroke generator as the measured-curve injections, and therefore looks like a track by design; scratch class is synthetic origin only.",
+  "no_human_labels_used": true,
+  "seeds": {
+    "005": 2026102605,
+    "006": 2026102606
+  },
+  "scenarios": [
+    "parallel",
+    "crossing",
+    "scratched",
+    "empty_gap"
+  ],
+  "photo_results": {
+    "005": {
+      "n_scenes": 28,
+      "simulated_true_line_sources": 112,
+      "simulated_scratch_sources": 28,
+      "original_detector_object_AUC_SIMULATED": 0.37054,
+      "worst_view_object_AUC_SIMULATED": 0.33929,
+      "worst_minus_original_AUC": -0.03125,
+      "delta_95pct_scene_bootstrap_CI_SIMULATOR_ONLY": [
+        -0.08929,
+        0.03125
+      ],
+      "original_ridge_track_centerline_support": 0.69973,
+      "original_ridge_scratch_centerline_support": 0.8053,
+      "min_view_track_centerline_support": 0.56793,
+      "min_view_scratch_centerline_support": 0.76381,
+      "track_acceptance_heuristic_fraction": 0.65179,
+      "scratch_acceptance_heuristic_fraction": 0.82143
+    },
+    "006": {
+      "n_scenes": 28,
+      "simulated_true_line_sources": 112,
+      "simulated_scratch_sources": 28,
+      "original_detector_object_AUC_SIMULATED": 0.40179,
+      "worst_view_object_AUC_SIMULATED": 0.35268,
+      "worst_minus_original_AUC": -0.04911,
+      "delta_95pct_scene_bootstrap_CI_SIMULATOR_ONLY": [
+        -0.1385,
+        0.04018
+      ],
+      "original_ridge_track_centerline_support": 0.83525,
+      "original_ridge_scratch_centerline_support": 0.89516,
+      "min_view_track_centerline_support": 0.69182,
+      "min_view_scratch_centerline_support": 0.81566,
+      "track_acceptance_heuristic_fraction": 0.83036,
+      "scratch_acceptance_heuristic_fraction": 0.89286
+    }
+  },
+  "no_native_precision_or_recall_claim": true
+}

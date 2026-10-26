@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANZA–Graph-LIRA | S55 machine-only research</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1421;--panel:#17253a;--edge:#34455c;--text:#eef4fb;--sub:#b5c5d8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,Arial,sans-serif}
+header{background:#13243a;padding:22px max(18px,calc((100vw - 1460px)/2));border-bottom:1px solid var(--edge)}
+h1{margin:0 0 7px;font-size:25px;letter-spacing:-.025em}h2{font-size:17px;margin:6px 0 10px}
+main{max-width:1460px;margin:auto;padding:20px}.muted{color:var(--sub)}.notice{background:#24261f;border-left:3px solid #e2b953;padding:12px 16px;margin:12px 0}
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:15px 0}
+.metric,.frame,.actions,#details,.report{background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:13px}
+.metric b{font-size:25px;display:block}.metric small{color:var(--sub)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.actions label{display:inline-flex;align-items:center;gap:7px}
+select,button{border:1px solid #537291;border-radius:6px;background:#203950;padding:8px 10px;color:var(--text);font:inherit}
+button{cursor:pointer}button:hover{background:#2d526e}input{accent-color:#68afd1}
+.photos{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:14px 0}.frame{padding:0;overflow:hidden}.frame h2{padding:12px 14px}
+canvas{display:block;width:100%;aspect-ratio:1;background:#16283d}.frame small{display:block;padding:9px 14px;color:var(--sub)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0;color:var(--sub)}.legend span::before{content:'';display:inline-block;width:17px;height:3px;vertical-align:middle;margin-right:7px;background:var(--c)}
+#details table{width:100%;border-collapse:collapse;font-size:12px}td,th{padding:5px 8px;border-bottom:1px solid #32445b;text-align:left}td.num{font-variant-numeric:tabular-nums;text-align:right}
+img.synthetic{max-width:100%;border-radius:8px}a{color:#98d8ff}.report{margin:14px 0}footer{margin:20px 0;color:var(--sub)}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.photos{grid-template-columns:1fr}}
+</style></head><body>
+<header><h1>ANZA–Graph-LIRA · S53–S55</h1><div class="muted">Автоматические линии H50Z · геометрия · граф связности · исследование пузырьковой текстуры · контроль выхода за пределы обучающей симуляции</div>
+<p class="notice"><strong>ВСЕ ФИЗИЧЕСКИЕ ТРЕКИ И СОЕДИНЕНИЯ НЕ ПОДТВЕРЖДЕНЫ.</strong> Цвет обозначает только машинную диагностическую характеристику. Ни одна линия не размечалась физиком; масса, PID и 3D не определялись.</p></header>
+<main>
+<section id="metrics" class="metrics"></section>
+<section class="actions">
+ <label>Фото <select id="photo"><option value="all">Обе</option><option value="005">005</option><option value="006">006</option></select></label>
+ <label>Участок <select id="tile"></select></label>
+ <label>Окраска <select id="color"><option value="support">Поддержка симуляции S55</option><option value="prior">Предыдущие предупреждения S40–S52</option><option value="score">Машинная оценка искусственного рисунка</option></select></label>
+ <label><input id="lines" type="checkbox" checked>Линии</label>
+ <label><input id="onlyUncertain" type="checkbox">Только вне диапазона / без оценки</label>
+ <label><input id="graph" type="checkbox" checked>Кандидатные связи</label>
+ <label><input id="graphRisks" type="checkbox">Только рискованные связи</label>
+ <button id="prev">Назад</button><button id="next">Вперёд</button><button id="export">Экспорт машинных гипотез JSON</button>
+</section>
+<div class="legend"><span style="--c:#77b7fb">В пределах СИМУЛЯЦИИ — не достоверный трек</span><span style="--c:#ff8d8d">Вне распределения</span><span style="--c:#adacb5">Не помещается в исходное окно</span><span style="--c:#fa6b8a">Связь с геометрическим предупреждением</span><span style="--c:#82daec">Неподтверждённая связь</span></div>
+<section class="photos"><div class="frame"><h2>H50Z · исходные пиксели и машинные гипотезы</h2><canvas id="source" width="512" height="512"></canvas><small>Контуры предложены алгоритмом. Не маски реальных частиц и не ручная разметка.</small></div><div class="frame"><h2>Другая фотография · предварительное 2D-совмещение</h2><canvas id="other" width="512" height="512"></canvas><small>Сопоставление по реперам, не 3D-стереореконструкция.</small></div></section>
+<section id="details" aria-live="polite"></section>
+<section class="report"><h2>Контрольные искусственные изображения</h2><p>Это фоны H50Z с <em>нарисованными</em> штрихами. Объекты со статусом «same renderer» генерируются тем же алгоритмом, что и положительные, — отличать их по физической природе из таких изображений нельзя. Это намеренно сложный отрицательный контроль.</p><img class="synthetic" src="S55_SYNTHETIC_CONTROLS.jpg" alt="Контрольные искусственные линии, не реальные физические треки"><p><a href="S53_S55_RESEARCH_REPORT_RU.md">Полный научный отчёт</a> · <a href="S53_SYNTHETIC_PUBLIC.json">S53 результаты JSON</a> · <a href="S55_SYNTHETIC_PUBLIC.json">S55 результаты JSON</a></p></section>
+<footer>Только локальный приватный просмотр. Нет сетевых запросов, нет ручной разметки, нет автоматических физических соединений. Данные H50Z не публиковать в открытом репозитории.</footer>
+</main>
+<script id="machine-data" type="application/json">__INLINE_PAYLOAD__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('machine-data').textContent);
+const el=id=>document.getElementById(id);
+let current=0, generation=0;
+const count=status=>data.tiles.flatMap(t=>t.candidates).filter(x=>x.s55_status===status).length;
+const stats=[['Участки H50Z',data.summary.crops],['Линии без GT',data.summary.machine_candidates],['Связи без GT',data.summary.graph_edges],['Старые риски',data.summary.risky_edges],['Вне симуляции S55',count('UNKNOWN_OUTSIDE_SOURCE_SIMULATOR_SUPPORT')]];
+el('metrics').innerHTML=stats.map(([label,n])=>`<div class="metric"><b>${n}</b><small>${label}</small></div>`).join('');
+function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function visible(){return data.tiles.map((t,i)=>({t,i})).filter(x=>el('photo').value==='all'||el('photo').value===x.t.photo)}
+function nav(step){const arr=visible().map(x=>x.i);const old=arr.indexOf(current);current=arr[(old+step+arr.length)%arr.length];el('tile').value=current;render()}
+function select(){const rows=visible();if(!rows.some(x=>x.i===current))current=rows[0]?.i||0;el('tile').innerHTML='';for(const {t,i} of rows){const option=document.createElement('option');option.value=i;option.textContent=t.crop_id;el('tile').appendChild(option)}el('tile').value=current;render()}
+function line(ctx,points,color,width=2,dash=[]){if(!points||points.length<2)return;ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.stroke();ctx.setLineDash([])}
+function lineColor(c){if(el('color').value==='prior'){if(c.status==='FIDUCIAL_GUARD_IS_SEPARATE')return '#ff7c84';if(c.status==='BASELINE_REPEAT_STABLE_ACROSS_POSES')return '#f8b768';if(c.status==='POSE_ONLY_POSSIBLE_REPEAT_AMBIGUOUS')return '#d59cff';return '#77b7fb'}
+if(el('color').value==='score'){const v=c.s55_simulator_score;return v==null?'#adacb5':`hsl(${Math.round(25+180*v)},75%,70%)`}
+return c.s55_status==='UNKNOWN_OUTSIDE_SOURCE_SIMULATOR_SUPPORT'?'#ff8d8d':c.s55_status==='UNKNOWN_UNSCORABLE_SOURCE_CONTEXT'?'#adacb5':'#77b7fb'}
+function paint(canvas,url,t,overlay,stamp){const img=new Image();img.onload=()=>{if(stamp!==generation)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,512,512);ctx.drawImage(img,0,0,512,512);if(overlay){if(el('lines').checked){for(const c of t.candidates){if(el('onlyUncertain').checked&&c.s55_status==='UNKNOWN_WITHIN_SIMULATOR_SUPPORT_NOT_PHYSICS_TRUTH')continue;line(ctx,c.points,lineColor(c),1.9)}}if(el('graph').checked){for(const e of t.graph_edges){if(el('graphRisks').checked&&!e.risky)continue;line(ctx,e.bridge,e.risky?'#fa6b8a':'#82daec',2,[5,4])}}}};img.onerror=()=>{if(stamp===generation){const c=canvas.getContext('2d');c.fillStyle='#ff8d8d';c.fillText('Файл отсутствует: '+url,12,30)}};img.src=url}
+function render(){const t=data.tiles[current];if(!t)return;const status={};for(const c of t.candidates)status[c.s55_status]=(status[c.s55_status]||0)+1;
+const rows=[...t.candidates].sort((a,b)=>(b.s55_simulator_score??-1)-(a.s55_simulator_score??-1)).slice(0,10);
+el('details').innerHTML=`<h2>${safe(t.crop_id)} · ${t.photo}</h2><p>Линий: <strong>${t.candidates.length}</strong> · Соединений: <strong>${t.graph_edges.length}</strong> · С предупреждениями S40–S52: <strong>${t.graph_edges.filter(x=>x.risky).length}</strong> · S55 вне симуляции: <strong>${t.candidates.filter(x=>x.s55_status==='UNKNOWN_OUTSIDE_SOURCE_SIMULATOR_SUPPORT').length}</strong> · Без корректного окна: <strong>${t.candidates.filter(x=>x.s55_status==='UNKNOWN_UNSCORABLE_SOURCE_CONTEXT').length}</strong>.</p><p class="muted">Все статусы имеют префикс UNKNOWN. Перечень первых десяти линий отсортирован по <em>искусственному</em> отклику, не по вероятности физического трека.</p><table><thead><tr><th>ID гипотезы</th><th>Старый тип предупреждения</th><th>Поддержка новой симуляции</th><th>Отклик модели (не физика)</th></tr></thead><tbody>${rows.map(c=>`<tr><td>${safe(c.draft_id)}</td><td>${safe(c.status)}</td><td>${safe(c.s55_status)}</td><td class="num">${c.s55_simulator_score==null?'—':Number(c.s55_simulator_score).toFixed(3)}</td></tr>`).join('')}</tbody></table>`;
+const stamp=++generation;paint(el('source'),t.source_image,t,true,stamp);paint(el('other'),t.other_image,t,false,stamp)}
+el('photo').addEventListener('change',select);el('tile').addEventListener('change',()=>{current=Number(el('tile').value);render()});
+for(const id of ['color','lines','onlyUncertain','graph','graphRisks'])el(id).addEventListener('change',render);
+el('next').addEventListener('click',()=>nav(1));el('prev').addEventListener('click',()=>nav(-1));
+el('export').addEventListener('click',()=>{const payload=JSON.stringify({schema:'s55_private_machine_export_NOT_GT',native_physical_GT_count:0,native_auto_joins:0,source:'H50Z machine only',data},null,2);const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='S55_MACHINE_UNVERIFIED_HYPOTHESES.json';a.click();URL.revokeObjectURL(url)});
+select();
+</script></body></html>

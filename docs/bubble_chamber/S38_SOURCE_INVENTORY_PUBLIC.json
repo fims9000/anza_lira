@@ -1,0 +1,38 @@
+{
+  "schema": "s38_machine_source_inventory_no_gt_v1",
+  "source_photos": 2,
+  "physical_runs": 1,
+  "cropped_images": 39,
+  "machine_lines": 133,
+  "machine_pairs": 28,
+  "crops_without_machine_line_proposals": 17,
+  "crops_by_photo": {
+    "005": 21,
+    "006": 18
+  },
+  "line_methods": {
+    "LSD_line_piece": 61,
+    "classical": 36,
+    "original_AZUNet_assisted": 36
+  },
+  "pairs_by_photo": {
+    "005": 11,
+    "006": 17
+  },
+  "blinded_staggered_queues": {
+    "A": {
+      "line_count": 133,
+      "pair_count": 28,
+      "crop_count": 39
+    },
+    "B": {
+      "line_count": 133,
+      "pair_count": 28,
+      "crop_count": 39
+    }
+  },
+  "expert_certified_real_track_masks": 0,
+  "expert_certified_real_links": 0,
+  "native_pixel_accuracy_measurable": false,
+  "note": "Source inventory only; machine proposals and reviewer votes are not physical GT"
+}

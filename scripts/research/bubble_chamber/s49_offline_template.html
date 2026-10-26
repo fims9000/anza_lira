@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ANZA-LIRA | Machine-only H50Z</title>
+<style>
+:root{color-scheme:dark;--bg:#0a111d;--panel:#122033;--outline:#2b4058;--muted:#a1b7cb;--text:#edf3fa}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,Arial,sans-serif;margin:0}
+header{padding:23px max(18px,calc((100vw - 1450px)/2));background:#0d1b2d;border-bottom:1px solid var(--outline)}
+h1{font-size:25px;letter-spacing:-.025em;margin:0 0 7px}h2{font-size:17px;margin:0 0 13px}
+p{margin:6px 0 12px;line-height:1.5}.muted{color:var(--muted)}main{max-width:1450px;margin:auto;padding:19px}
+header .pill{display:inline-block;border:1px solid #846d34;color:#ffe4a8;background:#2c271a;border-radius:8px;padding:5px 10px;font-size:12px;margin-top:5px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:12px;margin:14px 0 18px}
+.metric{background:var(--panel);border:1px solid var(--outline);padding:13px 15px;border-radius:11px}
+.metric .num{font-size:27px;font-weight:700;letter-spacing:-.025em}.metric .sub{color:var(--muted);font-size:12px}
+.actions{background:var(--panel);border:1px solid var(--outline);border-radius:12px;display:flex;flex-wrap:wrap;gap:13px;align-items:center;padding:15px}
+label{display:inline-flex;align-items:center;gap:7px;color:var(--text);font-size:14px}
+select,button{background:#20364e;color:white;border:1px solid #45617a;border-radius:7px;padding:8px 10px;font:inherit;cursor:pointer}
+button:hover{background:#2b4b68}input{accent-color:#7cbbf8}select{max-width:min(400px,90vw)}
+.photo{margin:15px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.frame{background:var(--panel);border:1px solid var(--outline);border-radius:12px;overflow:hidden}
+.frame h2{margin:0;padding:12px 14px;border-bottom:1px solid var(--outline)}
+canvas{display:block;width:100%;aspect-ratio:1/1;background:#172434;image-rendering:auto}
+.frame small{display:block;color:var(--muted);padding:10px 12px}
+.legend{display:flex;flex-wrap:wrap;gap:15px;margin:13px 0;color:var(--muted);font-size:13px}
+.legend span:before{content:'';display:inline-block;width:17px;height:3px;vertical-align:middle;margin-right:7px;background:var(--c)}
+#details{background:var(--panel);border:1px solid var(--outline);border-radius:12px;padding:16px;margin-top:12px}
+footer{color:var(--muted);font-size:13px;padding:20px 0}.notice{border-left:3px solid #d6a044;padding:7px 12px;background:#242316;margin:12px 0}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(2,1fr)}.photo{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>ANZA-LIRA / машинный анализ пузырьковой камеры</h1>
+<p class="muted">S35-S49 · исходные H50Z · выделение фрагментов · граф связности · контроль реперов · устойчивость регистрации</p>
+<div class="pill">НЕ ПОДТВЕРЖДЁННАЯ ФИЗИЧЕСКАЯ РАЗМЕТКА · АВТОМАТИЧЕСКИЕ ГИПОТЕЗЫ</div>
+</header>
+<main>
+<section class="metrics" id="overall"></section>
+<section class="actions">
+  <label>Фотография <select id="photo"><option value="all">Все</option><option value="005">005</option><option value="006">006</option></select></label>
+  <label>Участок <select id="tile"></select></label>
+  <label><input id="showCandidates" type="checkbox" checked> Машинные линии</label>
+  <label><input id="onlyWarnings" type="checkbox"> Только с предупреждениями</label>
+  <label><input id="showGraph" type="checkbox" checked> Возможные связи</label>
+  <label><input id="showGraphRiskOnly" type="checkbox"> Только рискованные связи</label>
+  <button id="previous" type="button">Назад</button><button id="next" type="button">Далее</button>
+  <button id="export" type="button">Экспорт машинных гипотез</button>
+</section>
+<div class="legend">
+<span style="--c:#58e0a8">Не подтверждено</span>
+<span style="--c:#ffa654">Повторяющаяся структура S45</span>
+<span style="--c:#d885ff">Чувствительно к регистрации S48</span>
+<span style="--c:#f06f73">Известный риск репера</span>
+<span style="--c:#85bdff">Предлагаемая связь, не физический трек</span>
+</div>
+<section class="photo">
+  <div class="frame"><h2>Реальная фотография · исходный участок</h2><canvas id="sourceCanvas" width="512" height="512"></canvas><small>JPEG-копия фрагмента H50Z. Алгоритм анализировал исходный BMP; линии показаны поверх.</small></div>
+  <div class="frame"><h2>Вторая фотография · геометрическое совмещение</h2><canvas id="otherCanvas" width="512" height="512"></canvas><small>Двумерное совмещение по шести реперам. Не является 3D-реконструкцией.</small></div>
+</section>
+<section id="details" aria-live="polite"></section>
+<div class="notice">Повторяемость на двух фотографиях не доказывает наличие царапины. Отсутствие предупреждения не доказывает, что это трек частицы. 3D-геометрия, масса и идентичность частиц здесь не подтверждены. Нет автоматического соединения физических треков.</div>
+<footer>Полностью автономный офлайн-просмотрщик. Без запросов к интернету и без ручной разметки. Хранить как приватный научный материал.</footer>
+</main>
+<script id="private-data" type="application/json">__INLINE_PAYLOAD__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('private-data').textContent);
+let current=0, token=0;
+const el=id=>document.getElementById(id);
+function metric(label,value){return `<div class="metric"><div class="num">${value}</div><div class="sub">${label}</div></div>`}
+el('overall').innerHTML=[metric('Реальных участков',data.summary.crops),metric('Машинных линий',data.summary.machine_candidates),metric('Предложенных соединений',data.summary.graph_edges),metric('Соединений с предупреждением',data.summary.risky_edges)].join('');
+function filtered(){const p=el('photo').value;return data.tiles.map((t,i)=>({t,i})).filter(x=>p==='all'||x.t.photo===p)}
+function updateSelect(){const rows=filtered();if(!rows.some(x=>x.i===current))current=rows[0]?.i??0;el('tile').innerHTML='';for(const {t,i} of rows){const opt=document.createElement('option');opt.value=i;opt.textContent=`${t.crop_id} (${t.photo})`;el('tile').appendChild(opt)}el('tile').value=current;render()}
+function drawPolyline(ctx,pts,color,width,dash){if(!pts||pts.length<2)return;ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash||[]);ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.stroke();ctx.setLineDash([])}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function lineColor(c){const s=c.status;return s==='FIDUCIAL_GUARD_IS_SEPARATE'?'#f06f73':s.startsWith('BASELINE_REPEAT')?'#ffa654':s==='POSE_ONLY_POSSIBLE_REPEAT_AMBIGUOUS'?'#d885ff':'#58e0a8'}
+function lineWarn(c){return c.status!=='NO_STRONG_IMAGE_REPEAT_EVIDENCE_NOT_PARTICLE_TRUTH'}
+function renderCanvas(canvas,imgSrc,t,localToken){const img=new Image();img.onload=()=>{if(localToken!==token)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,512,512);ctx.drawImage(img,0,0,512,512);if(el('showCandidates').checked){for(const c of t.candidates){if(el('onlyWarnings').checked&&!lineWarn(c))continue;drawPolyline(ctx,c.points,lineColor(c),1.6,[])}}if(el('showGraph').checked){for(const e of t.graph_edges){if(el('showGraphRiskOnly').checked&&!e.risky)continue;drawPolyline(ctx,e.bridge,e.risky?'#ff6b90':'#85bdff',2.0,[5,4])}}};img.onerror=()=>{if(localToken===token){const ctx=canvas.getContext('2d');ctx.fillStyle='#aa5670';ctx.font='17px sans-serif';ctx.fillText('Изображение не найдено',20,40)}};img.src=imgSrc}
+function render(){const t=data.tiles[current];if(!t)return;const cnt={};for(const c of t.candidates)cnt[c.status]=(cnt[c.status]||0)+1;el('details').innerHTML=`<h2>${escapeHtml(t.crop_id)} / H50Z ${escapeHtml(t.photo)}</h2><p>Машинных фрагментов: <b>${t.candidates.length}</b>; возможных соединений: <b>${t.graph_edges.length}</b>; новых S48 предупреждений: <b>${t.candidates.filter(x=>x.status==='POSE_ONLY_POSSIBLE_REPEAT_AMBIGUOUS').length}</b>; рискованных соединений: <b>${t.graph_edges.filter(x=>x.risky).length}</b>.</p><p class="muted">${Object.entries(cnt).map(([k,v])=>`${escapeHtml(k)}: ${v}`).join(' · ')}</p>`;const localToken=++token;renderCanvas(el('sourceCanvas'),t.source_image,t,localToken);renderCanvas(el('otherCanvas'),t.other_image,t,localToken)}
+el('photo').addEventListener('change',updateSelect);el('tile').addEventListener('change',()=>{current=Number(el('tile').value);render()});
+for(const id of ['showCandidates','onlyWarnings','showGraph','showGraphRiskOnly'])el(id).addEventListener('change',render);
+function navigate(step){const arr=filtered().map(x=>x.i);const pos=arr.indexOf(current);current=arr[(pos+step+arr.length)%arr.length];el('tile').value=current;render()}
+el('next').addEventListener('click',()=>navigate(1));el('previous').addEventListener('click',()=>navigate(-1));
+el('export').addEventListener('click',()=>{const payload=JSON.stringify({schema:'s49_machine_unverified_export',native_GT_count:0,physical_auto_links:0,warning:'Machine hypotheses only, NOT native physical truth',data},null,2);const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='S49_MACHINE_HYPOTHESES_NOT_PHYSICS_GT.json';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
+updateSelect();
+</script>
+</body>
+</html>

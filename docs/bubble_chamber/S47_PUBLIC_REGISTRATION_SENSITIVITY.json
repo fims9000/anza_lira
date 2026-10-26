@@ -1,0 +1,162 @@
+{
+  "schema": "s47_posthoc_normal_registration_sensitivity_v1",
+  "normal_shift_pixels": [
+    0,
+    2,
+    4,
+    6,
+    8
+  ],
+  "known_calibration_fiducial_mean_residual_px": 1.507,
+  "known_calibration_fiducial_max_residual_px": 2.707,
+  "native_physics_GT_count": 0,
+  "independent_physical_runs": 1,
+  "images_native_original_2": true,
+  "all_lines_programmatic_not_native_particles": true,
+  "reuses_S46_seeds_and_geometry_not_independent_confirmation": true,
+  "fixed_S45_thresholds_not_tuned": true,
+  "results": {
+    "005": {
+      "0": {
+        "n": 21,
+        "flagged": 20,
+        "fraction": 0.95238,
+        "crop_resample_CI_exploratory": [
+          0.85714,
+          1.0
+        ]
+      },
+      "2": {
+        "n": 21,
+        "flagged": 20,
+        "fraction": 0.95238,
+        "crop_resample_CI_exploratory": [
+          0.85714,
+          1.0
+        ]
+      },
+      "4": {
+        "n": 21,
+        "flagged": 20,
+        "fraction": 0.95238,
+        "crop_resample_CI_exploratory": [
+          0.85714,
+          1.0
+        ]
+      },
+      "6": {
+        "n": 21,
+        "flagged": 0,
+        "fraction": 0.0,
+        "crop_resample_CI_exploratory": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 21,
+        "flagged": 0,
+        "fraction": 0.0,
+        "crop_resample_CI_exploratory": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "006": {
+      "0": {
+        "n": 18,
+        "flagged": 17,
+        "fraction": 0.94444,
+        "crop_resample_CI_exploratory": [
+          0.83333,
+          1.0
+        ]
+      },
+      "2": {
+        "n": 18,
+        "flagged": 17,
+        "fraction": 0.94444,
+        "crop_resample_CI_exploratory": [
+          0.83333,
+          1.0
+        ]
+      },
+      "4": {
+        "n": 18,
+        "flagged": 15,
+        "fraction": 0.83333,
+        "crop_resample_CI_exploratory": [
+          0.66667,
+          1.0
+        ]
+      },
+      "6": {
+        "n": 18,
+        "flagged": 0,
+        "fraction": 0.0,
+        "crop_resample_CI_exploratory": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 18,
+        "flagged": 0,
+        "fraction": 0.0,
+        "crop_resample_CI_exploratory": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "all": {
+      "0": {
+        "n": 39,
+        "flagged": 37,
+        "fraction": 0.94872,
+        "crop_resample_CI_exploratory": [
+          0.87179,
+          1.0
+        ]
+      },
+      "2": {
+        "n": 39,
+        "flagged": 37,
+        "fraction": 0.94872,
+        "crop_resample_CI_exploratory": [
+          0.87179,
+          1.0
+        ]
+      },
+      "4": {
+        "n": 39,
+        "flagged": 35,
+        "fraction": 0.89744,
+        "crop_resample_CI_exploratory": [
+          0.79487,
+          0.97436
+        ]
+      },
+      "6": {
+        "n": 39,
+        "flagged": 0,
+        "fraction": 0.0,
+        "crop_resample_CI_exploratory": [
+          0.0,
+          0.0
+        ]
+      },
+      "8": {
+        "n": 39,
+        "flagged": 0,
+        "fraction": 0.0,
+        "crop_resample_CI_exploratory": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "use_only_for_robustness_not_particle_scratch_classification": true
+}

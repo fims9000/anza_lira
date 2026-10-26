@@ -1,0 +1,16 @@
+{
+  "schema": "s58_aggregate_machine_only_open_paths_public_v1",
+  "input_machine_lines": 567,
+  "input_graph_nodes_after_nms": 511,
+  "input_unverified_join_candidates": 182,
+  "S56_selected_machine_only_joins": 37,
+  "connected_machine_path_hypotheses": 35,
+  "component_counts_by_fragment_count": {
+    "2": 34,
+    "4": 1
+  },
+  "confirmed_native_physical_tracks": 0,
+  "confirmed_native_physical_joins": 0,
+  "predicted_bridge_pixels_not_observed": true,
+  "physics_identity_of_all_candidates": "UNKNOWN"
+}

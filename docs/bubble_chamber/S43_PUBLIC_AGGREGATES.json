@@ -1,0 +1,158 @@
+{
+  "schema": "s43_simulator_trained_artifact_similarity_advisory_v1",
+  "experiment_date": "2026-10-25",
+  "source_145_measured_frames": 145,
+  "measured_frame_disjoint_splits": {
+    "train": 72,
+    "calibration": 37,
+    "test": 36
+  },
+  "real_H50Z_photo_count": 2,
+  "independent_physical_runs": 1,
+  "physical_track_ground_truth_labels": 0,
+  "injection_scenes_per_direction": {
+    "train": 24,
+    "calibration": 12,
+    "test": 24
+  },
+  "simulated_scratch_types_in_train": [
+    "matched_same_renderer",
+    "straight_hairline",
+    "double_rail",
+    "broken_streak",
+    "wobbly_streak"
+  ],
+  "heldout_unseen_scratch_type": "unseen_broad_patchy_streak",
+  "methods": [
+    "raw_contrast",
+    "raw_hessian_support",
+    "geometry_plus_profile_linear"
+  ],
+  "test": {
+    "005_train_006_test": {
+      "raw_contrast": {
+        "synthetic_origin_pooled_AUROC": 0.481192,
+        "calibration_scratch_acceptance": 0.1,
+        "test_simulated_track_acceptance": 0.114583,
+        "test_simulated_scratch_acceptance": 0.041667,
+        "test_simulated_scratch_acceptance_by_origin": {
+          "broken_streak": 0.0,
+          "double_rail": 0.0,
+          "matched_same_renderer": 0.08333,
+          "straight_hairline": 0.04167,
+          "unseen_broad_patchy_streak": 0.04167,
+          "wobbly_streak": 0.08333
+        },
+        "calibrated_threshold_SIMULATOR_ONLY": 66.642896
+      },
+      "raw_hessian_support": {
+        "synthetic_origin_pooled_AUROC": 0.536097,
+        "calibration_scratch_acceptance": 0.066667,
+        "test_simulated_track_acceptance": 0.083333,
+        "test_simulated_scratch_acceptance": 0.055556,
+        "test_simulated_scratch_acceptance_by_origin": {
+          "broken_streak": 0.0,
+          "double_rail": 0.0,
+          "matched_same_renderer": 0.125,
+          "straight_hairline": 0.04167,
+          "unseen_broad_patchy_streak": 0.0,
+          "wobbly_streak": 0.16667
+        },
+        "calibrated_threshold_SIMULATOR_ONLY": 0.9875
+      },
+      "geometry_plus_profile_linear": {
+        "synthetic_origin_pooled_AUROC": 0.981192,
+        "calibration_scratch_acceptance": 0.1,
+        "test_simulated_track_acceptance": 0.96875,
+        "test_simulated_scratch_acceptance": 0.083333,
+        "test_simulated_scratch_acceptance_by_origin": {
+          "broken_streak": 0.0,
+          "double_rail": 0.0,
+          "matched_same_renderer": 0.5,
+          "straight_hairline": 0.0,
+          "unseen_broad_patchy_streak": 0.0,
+          "wobbly_streak": 0.0
+        },
+        "calibrated_threshold_SIMULATOR_ONLY": 0.401816,
+        "paired_scene_bootstrap_AUROC_difference_vs_contrast_CI_SIMULATION_ONLY": [
+          0.403765,
+          0.597237
+        ],
+        "paired_scene_bootstrap_AUROC_difference_vs_hessian_CI_SIMULATION_ONLY": [
+          0.343411,
+          0.548869
+        ]
+      }
+    },
+    "006_train_005_test": {
+      "raw_contrast": {
+        "synthetic_origin_pooled_AUROC": 0.461806,
+        "calibration_scratch_acceptance": 0.1,
+        "test_simulated_track_acceptance": 0.104167,
+        "test_simulated_scratch_acceptance": 0.069444,
+        "test_simulated_scratch_acceptance_by_origin": {
+          "broken_streak": 0.0,
+          "double_rail": 0.0,
+          "matched_same_renderer": 0.08333,
+          "straight_hairline": 0.20833,
+          "unseen_broad_patchy_streak": 0.0,
+          "wobbly_streak": 0.125
+        },
+        "calibrated_threshold_SIMULATOR_ONLY": 68.032324
+      },
+      "raw_hessian_support": {
+        "synthetic_origin_pooled_AUROC": 0.520327,
+        "calibration_scratch_acceptance": 0.1,
+        "test_simulated_track_acceptance": 0.0625,
+        "test_simulated_scratch_acceptance": 0.034722,
+        "test_simulated_scratch_acceptance_by_origin": {
+          "broken_streak": 0.0,
+          "double_rail": 0.0,
+          "matched_same_renderer": 0.04167,
+          "straight_hairline": 0.125,
+          "unseen_broad_patchy_streak": 0.0,
+          "wobbly_streak": 0.04167
+        },
+        "calibrated_threshold_SIMULATOR_ONLY": 0.96375
+      },
+      "geometry_plus_profile_linear": {
+        "synthetic_origin_pooled_AUROC": 0.977792,
+        "calibration_scratch_acceptance": 0.1,
+        "test_simulated_track_acceptance": 0.979167,
+        "test_simulated_scratch_acceptance": 0.097222,
+        "test_simulated_scratch_acceptance_by_origin": {
+          "broken_streak": 0.0,
+          "double_rail": 0.0,
+          "matched_same_renderer": 0.58333,
+          "straight_hairline": 0.0,
+          "unseen_broad_patchy_streak": 0.0,
+          "wobbly_streak": 0.0
+        },
+        "calibrated_threshold_SIMULATOR_ONLY": 0.306767,
+        "paired_scene_bootstrap_AUROC_difference_vs_contrast_CI_SIMULATION_ONLY": [
+          0.425116,
+          0.60614
+        ],
+        "paired_scene_bootstrap_AUROC_difference_vs_hessian_CI_SIMULATION_ONLY": [
+          0.380979,
+          0.538992
+        ]
+      }
+    }
+  },
+  "native_machine_advisory_aggregate": {
+    "tiles": 39,
+    "candidate_proposals_preserved": 567,
+    "synthetic_model_score_below_0p5_NOT_ARTIFACT_GT": 185,
+    "graph_proposals_preserved": 182,
+    "known_fiducial_risk_graph_edges": 43
+  },
+  "native_scratch_classification_proven": false,
+  "native_particle_identity_proven": false,
+  "native_auto_join_permitted": false,
+  "automatic_native_candidates_removed": 0,
+  "automatic_native_pseudo_labels_created": 0,
+  "hard_matched_decoy_failure_both_or_either_direction": true,
+  "deployment_decision": "ADVISORY_ONLY_NO_SCRATCH_GATE",
+  "uncertainty_warning": "Scene bootstrap is conditional on this simulator and 1 physical H50Z run, not native-domain confidence."
+}

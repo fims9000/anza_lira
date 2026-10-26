@@ -1,0 +1,29 @@
+name: S35 source-locked fragment link and review-only contracts
+on:
+  push:
+    branches: [research/bubble-chamber-graph-lira]
+    paths:
+      - 'bubble_chamber/s35_*.py'
+      - 'scripts/research/bubble_chamber/s35_*.py'
+      - 'tests/test_s35_*.py'
+      - '.github/workflows/s35_fragment_links_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  safe_fragment_review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install source-only dependencies
+        run: python -m pip install numpy scipy scikit-learn scikit-image opencv-python-headless pytest torch matplotlib
+      - name: Confirm original AZConv/AZUNet source SHA
+        run: python -c "from scripts.research.bubble_chamber.s14_train_sparse_anza import verify_model_source;verify_model_source()"
+      - name: Test S35 geometry, calibration, abstention, synthetic truth isolation and review overlay
+        run: python -m pytest -q tests/test_s35_fragment_link.py tests/test_s35_review_overlay.py
+      - name: Compile S35 without private images
+        run: python -m compileall -q bubble_chamber/s35_*.py scripts/research/bubble_chamber/s35_*.py

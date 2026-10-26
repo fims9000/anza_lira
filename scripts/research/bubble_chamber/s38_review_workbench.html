@@ -1,0 +1,192 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S38 | Проверка реальных треков H50Z — частный режим</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color-scheme:dark}*{box-sizing:border-box}
+body{margin:0;background:#10151c;color:#ecf3fc;font-size:14px}
+header{padding:15px 20px;background:#1b2939;border-bottom:1px solid #33475d}
+h1{font-size:20px;margin:0 0 7px}p{line-height:1.4}small,.muted{color:#b9c9d8}
+.notice{background:#2d2a22;border-left:3px solid #e5b866;padding:9px 12px;margin:10px 0}
+main{display:grid;grid-template-columns:minmax(380px,600px) minmax(360px,1fr);gap:18px;max-width:1390px;margin:auto;padding:18px}
+@media(max-width:950px){main{grid-template-columns:1fr}}
+.canvas{position:relative;width:100%;max-width:650px;aspect-ratio:1;background:#303b46;overflow:hidden}
+.canvas img,.canvas svg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.canvas img{image-rendering:auto}.canvas svg{pointer-events:none}
+.panel{background:#1b2735;border:1px solid #33485f;border-radius:7px;padding:14px;margin-bottom:12px}
+button,select,input[type=text]{background:#293c50;border:1px solid #617991;border-radius:5px;color:#fff;padding:9px 11px;margin:3px;font:inherit}
+button{cursor:pointer}button:hover{background:#3c536a}button:disabled{opacity:.5;cursor:default}
+button.primary{background:#21624b}button.danger{background:#72353d}button.warn{background:#67552f}
+.flex{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+label{display:inline-flex;align-items:center;gap:7px;margin:4px 5px 6px 0}
+input[type=checkbox]{width:17px;height:17px}input[type=text]{width:180px}
+pre{max-height:110px;overflow:auto;white-space:pre-wrap;color:#cfe5ef}
+.help{font-size:12px;color:#a8c2d2}#message{min-height:24px;white-space:pre-wrap}
+.hidden{display:none}kbd{background:#334554;border:1px solid #627688;border-radius:3px;padding:1px 5px}
+</style></head><body><header>
+<h1>ANZA / Graph-LIRA — независимая проверка фрагментов H50Z (S38)</h1>
+<small>2 подлинные фотографии одного запуска · 39 вырезок · 133 машинных контура · 28 гипотез связи</small>
+<div class="notice"><b>Все изображения настоящие, но все линии/связи предложены машиной.</b> Здесь нет проверенной физической истины. «Принять» означает только предварительное мнение оператора. Автоматические физические стыки запрещены. Храните изображения и JSON в частном хранилище.</div>
+<div class="flex"><label>Код проверяющего (2–40 символов): <input id="reviewer" type="text" placeholder="например, expert_A" maxlength="40"></label>
+<label>Независимый раунд: <select id="round"><option value="A">A</option><option value="B">B</option></select></label>
+<small>Для второго проверяющего используйте отдельный код, другой раунд и новый пустой сеанс.</small></div>
+</header>
+<main><section>
+<div class="canvas"><img id="photo" alt="Исходный частный PNG H50Z"><svg id="overlay" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="panel"><b id="photoTitle"></b><p id="imgStatus" class="muted"></p>
+<label><input id="showAll" type="checkbox"> Показать остальные машинные варианты</label>
+<label><input id="showEvidence" type="checkbox"> Показать оценки моделей (отменяет слепую проверку)</label>
+<pre id="evidence" class="hidden"></pre></div>
+<div class="panel"><b>Ручная коррекция линии</b><p class="help">Для исправления существующей линии в разделе «Линии» нажмите «Исправить выбранную линию». Чтобы не пропустить настоящие треки в 17 участках без машинных предложений, перейдите в «Все участки» и нажмите «Новая линия». В каждом случае укажите точки центра следа на исходном снимке. Нужны минимум две точки, не менее 2 пикселей длины. «Сохранить контур» также предварительно принимает линию. Оригинальная линия остаётся видимой тонким штрихом.</p>
+<div class="flex"><button id="drawBegin">Исправить выбранную линию</button><button id="drawMissing">Новая линия (пропущенная машиной)</button><button id="undoPoint">Отменить точку</button><button id="saveCurve" class="primary">Сохранить контур</button><button id="cancelCurve">Отмена</button></div><p id="editStatus" class="muted"></p><p id="manualCount" class="muted"></p><button id="deleteManual">Удалить последний вручную нарисованный след на этом участке</button></div>
+</section><section>
+<div class="panel"><div class="flex"><button id="linesTab">Линии (133)</button><button id="pairsTab">Связи (28)</button><button id="cropsTab">Все участки (39)</button><button id="blankTab">Без кандидатов (17)</button></div>
+<p id="progress" class="muted"></p><div class="flex"><button id="prev">← Предыдущий</button><button id="next">Следующий →</button><button id="nextEmpty">Следующий без ответа</button></div>
+<h3 id="itemTitle"></h3><p id="itemDetails" class="muted"></p>
+<div class="flex" id="lineButtons"><button class="primary" id="acceptLine">1 — Принять линию</button><button class="danger" id="rejectLine">2 — Отклонить</button><button class="warn" id="unsureLine">3 — Не уверен</button><button id="clearLine">Очистить</button></div>
+<div class="flex hidden" id="cropButtons"><button class="primary" id="cropReviewed">Просмотрен, есть/могут быть дополнительные линии</button><button class="warn" id="cropNoExtra">Дополнительных линий не вижу</button><button id="cropUnsure">Не уверен</button><button id="cropClear">Очистить</button></div>
+<div class="flex hidden" id="pairButtons"><button class="primary" id="same">1 — Тот же трек</button><button class="danger" id="different">2 — Другой трек</button><button class="warn" id="unsurePair">3 — Не уверен</button><button id="clearPair">Очистить</button></div>
+<p class="help">Решение «тот же/другой» принимается только после проверки видимости обеих линий. <kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> — ответы; ←/→ — навигация.</p>
+<p id="itemStatus"></p></div>
+<div class="panel"><b>Приватный экспорт и импорт</b>
+<p class="help">Не закрывайте вкладку без экспорта. Ничего не передаётся на сервер. JSON содержит исходные идентификаторы, редактуру и ответы; его нельзя публиковать.</p>
+<div class="flex"><button id="export" class="primary">Скачать JSON этого раунда</button><label>Загрузить прежний JSON: <input id="importFile" type="file" accept=".json,application/json"></label></div>
+<p id="message" role="status" class="muted"></p></div></section></main>
+<script type="application/json" id="privateData">__PRIVATE_JSON__</script>
+<script>
+'use strict';
+const B=JSON.parse(document.getElementById('privateData').textContent), $=id=>document.getElementById(id);
+const photos=new Map(B.photos.map(p=>[p.crop_id,p])), lines=new Map(), lineToCrop=new Map(), pairs=new Map(B.relations.map(p=>[p.relation_id,p]));
+for(const photo of B.photos)for(const d of photo.drafts){lines.set(d.draft_id,d);lineToCrop.set(d.draft_id,photo.crop_id)}
+const LINE={accept:'USER_ACCEPTED_PROVISIONAL',reject:'USER_REJECTED_PROVISIONAL',unsure:'USER_UNCERTAIN'};
+const CROP={review:'REVIEWED_FOR_MISSED_TRACKS_LOCAL',noExtra:'NO_ADDITIONAL_LOCAL',unsure:'UNSURE_LOCAL'};
+const PAIR={same:'LOCAL_SAME_PROVISIONAL',different:'LOCAL_DIFFERENT_PROVISIONAL',unsure:'LOCAL_UNSURE'};
+let mode='line',position=0,decisionLines={},decisionPairs={},cropAssessments={},manualLines=[],drawing=false,sketch=[],drawTarget='edit',scoreEverRevealed=false;
+const queue=()=>mode==='blank'?B.queues[$('round').value].crops.filter(cid=>photos.get(cid).drafts.length===0):B.queues[$('round').value][mode==='line'?'lines':mode==='pair'?'pairs':'crops'];
+const itemId=()=>queue()[position];const item=()=>mode==='line'?lines.get(itemId()):mode==='pair'?pairs.get(itemId()):photos.get(itemId());
+function alertMsg(v){$('message').textContent=v}
+function nonEmptyAnswers(){return Object.keys(decisionLines).length+Object.keys(decisionPairs).length+Object.keys(cropAssessments).length+manualLines.length}
+function roundChange(){if(nonEmptyAnswers()){alertMsg('Раунд нельзя менять после первых ответов. Экспортируйте JSON и откройте чистую вкладку.');$('round').value=window.fixedRound||'A';return}window.fixedRound=$('round').value;position=0;render()}
+$('round').onchange=roundChange;window.fixedRound='A';
+function pathToSvg(points,color,width,alpha,dashed){
+ if(!Array.isArray(points)||points.length<2)return;
+ const el=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+ el.setAttribute('points',points.map(p=>p[0]+','+p[1]).join(' '));
+ el.setAttribute('fill','none');el.setAttribute('stroke',color);el.setAttribute('stroke-width',width);
+ el.setAttribute('stroke-opacity',alpha);if(dashed)el.setAttribute('stroke-dasharray','4 3');$('overlay').appendChild(el);
+}
+function render(){
+ const id=itemId(),now=item();if(!id||!now)throw Error('Source queue is empty');
+ const cropId=mode==='line'?lineToCrop.get(id):mode==='pair'?now.crop_id:id,photo=photos.get(cropId);
+ $('photo').src='crops/'+encodeURIComponent(cropId)+'.png';
+ $('photoTitle').textContent=cropId+' · '+photo.photo_id;
+ $('photo').onload=()=>{$('imgStatus').textContent=$('photo').naturalWidth===512&&$('photo').naturalHeight===512?'Исходный PNG загружен · 512×512':'Неправильный размер исходного PNG!'};
+ $('photo').onerror=()=>{$('imgStatus').textContent='ОШИБКА: PNG не найден. Распакуйте ZIP целиком.'};
+ $('linesTab').disabled=mode==='line';$('pairsTab').disabled=mode==='pair';$('cropsTab').disabled=mode==='crop';$('blankTab').disabled=mode==='blank';
+ $('lineButtons').classList.toggle('hidden',mode!=='line');$('pairButtons').classList.toggle('hidden',mode!=='pair');$('cropButtons').classList.toggle('hidden',mode!=='crop'&&mode!=='blank');
+ $('drawBegin').disabled=mode!=='line';$('drawMissing').disabled=false;$('undoPoint').disabled=!drawing||!sketch.length;
+ $('saveCurve').disabled=!drawing||sketch.length<2;$('cancelCurve').disabled=!drawing;
+ const n=queue().length;
+ $('itemTitle').textContent=(mode==='line'?'Линия ':mode==='pair'?'Связь ':mode==='blank'?'Без машинной линии ':'Участок ')+(position+1)+' / '+n;
+ const answer=mode==='line'?decisionLines[id]:mode==='pair'?decisionPairs[id]:cropAssessments[id];$('itemStatus').textContent='Статус: '+(answer?.status||'НЕ ПРОВЕРЕНО');
+ if(mode==='line'){
+   const d=now;$('itemDetails').textContent='Машинная гипотеза · '+d.points_xy.length+' точек · всего '+photo.drafts.length+' вариантов в этом фрагменте. Метод скрыт до показа оценок.';
+ } else if(mode==='pair'){
+   const d1=lines.get(now.candidate_a),d2=lines.get(now.candidate_b);
+   const s1=decisionLines[now.candidate_a]?.status||'НЕ ПРОВЕРЕНО',s2=decisionLines[now.candidate_b]?.status||'НЕ ПРОВЕРЕНО';
+   $('itemDetails').textContent='Расстояние между концами: '+Number(now.measured_endpoint_gap_px).toFixed(1)+' px · Линия A: ('+s1+') · Линия B: ('+s2+')';
+ } else {
+   $('itemDetails').textContent='Первичный просмотр всех 39 участков; предложений машины: '+photo.drafts.length+'. Отсутствие предложений не означает отсутствие настоящих треков. Отметьте дополнительные вручную.';
+ }
+ $('evidence').textContent=mode==='line'?JSON.stringify({source_method:now.source_method,model_score_UNCALIBRATED:now.model_score_UNCALIBRATED},null,2):mode==='pair'?JSON.stringify(now.provisional_scores_NOT_PHYSICAL_PROBABILITIES,null,2):JSON.stringify({crop_stratum:photo.stratum,machine_methods:photo.drafts.map(d=>d.source_method)},null,2);
+ $('evidence').classList.toggle('hidden',!$('showEvidence').checked);
+ const nLines=Object.keys(decisionLines).length,nPairs=Object.keys(decisionPairs).length;
+ $('progress').textContent='Линии: '+nLines+'/133, связи: '+nPairs+'/28, просмотрены участки: '+Object.keys(cropAssessments).length+'/39 · добавлено вручную: '+manualLines.length+' · порядок '+$('round').value+' · оценка сети '+(scoreEverRevealed?'ПОКАЗАНА (не слепой раунд)':'СКРЫТА');
+ const svg=$('overlay');svg.replaceChildren();svg.style.pointerEvents=drawing?'auto':'none';svg.style.cursor=drawing?'crosshair':'default';
+ for(const d of photo.drafts){
+   if(mode==='line'){
+     const selected=d.draft_id===id;
+     if(!selected&&!$('showAll').checked)continue;
+     pathToSvg(d.points_xy,selected?'#f9d658':'#bdc6d1',selected?2.8:1,selected?1:.32,selected);
+     if(selected&&Array.isArray(answer?.edited_points_xy))pathToSvg(answer.edited_points_xy,'#36e7b5',3.2,1,false);
+   } else if(mode==='pair'){
+     const a=d.draft_id===now.candidate_a,b=d.draft_id===now.candidate_b;
+     if(!a&&!b&&!$('showAll').checked)continue;
+     const saved=decisionLines[d.draft_id],points=saved?.edited_points_xy||d.points_xy;
+     pathToSvg(points,a?'#40ff9e':b?'#ff9860':'#bbc5d1',a||b?3:1,a||b?1:.26,false);
+   } else if($('showAll').checked)pathToSvg(d.points_xy,'#bbc5d1',1,.4,false);
+ }
+ for(const m of manualLines.filter(m=>m.crop_id===cropId))pathToSvg(m.points_xy,'#3ee9ba',2.7,1,false);
+ $('manualCount').textContent='На этом участке дорисовано вручную: '+manualLines.filter(m=>m.crop_id===cropId).length;
+ $('deleteManual').disabled=!manualLines.some(m=>m.crop_id===cropId);
+ if(drawing&&sketch.length){
+   const p=sketch.length===1?[sketch[0],sketch[0]]:sketch;
+   pathToSvg(p,'#00ddf6',2.7,1,false);
+   for(const v of sketch){const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');circle.setAttribute('cx',v[0]);circle.setAttribute('cy',v[1]);circle.setAttribute('r',3);circle.setAttribute('fill','#00ecff');svg.appendChild(circle)}
+ }
+ $('editStatus').textContent=drawing?(drawTarget==='extra'?'Новый трек (ручной): ':'Исправление машинной линии: ')+sketch.length+' точек.':'Рисование выключено. Выберите исправление или добавление новой линии.';
+}
+function jumpMode(v){drawing=false;sketch=[];mode=v;position=0;render()}
+$('linesTab').onclick=()=>jumpMode('line');$('pairsTab').onclick=()=>jumpMode('pair');$('cropsTab').onclick=()=>jumpMode('crop');$('blankTab').onclick=()=>jumpMode('blank');
+function move(inc){drawing=false;sketch=[];position=(position+inc+queue().length)%queue().length;render()}
+$('next').onclick=()=>move(1);$('prev').onclick=()=>move(-1);
+$('nextEmpty').onclick=()=>{const n=queue().length,saved=mode==='line'?decisionLines:mode==='pair'?decisionPairs:cropAssessments;for(let i=1;i<=n;i++){const p=(position+i)%n;if(!(queue()[p] in saved)){position=p;drawing=false;sketch=[];render();return}}alertMsg('Все вопросы этого раунда получили ответ. Экспортируйте JSON.')};
+function setLine(status, points){const id=itemId();if(mode!=='line')return;
+ if(status==='clear')delete decisionLines[id];else decisionLines[id]={status:LINE[status],edited_points_xy:status==='accept'?points||decisionLines[id]?.edited_points_xy||null:null,review_origin:'LOCAL_USER_PROVISIONAL_NOT_PHYSICIST_CERTIFIED'};
+ drawing=false;sketch=[];render()}
+$('acceptLine').onclick=()=>setLine('accept');$('rejectLine').onclick=()=>setLine('reject');$('unsureLine').onclick=()=>setLine('unsure');$('clearLine').onclick=()=>setLine('clear');
+function setPair(status){if(mode!=='pair')return;const id=itemId();const r=pairs.get(id);
+ if(status==='same'||status==='different'){
+  for(const d of [r.candidate_a,r.candidate_b])if(decisionLines[d]?.status!=='USER_ACCEPTED_PROVISIONAL'){
+    alertMsg('Сначала примите обе линии отдельно в режиме «Линии». Пока связь остаётся UNKNOWN.');return;
+  }
+ }
+ if(status==='clear')delete decisionPairs[id];else decisionPairs[id]={status:PAIR[status],review_origin:'LOCAL_USER_NOT_PHYSICIST_CERTIFIED'};
+ render();}
+$('same').onclick=()=>setPair('same');$('different').onclick=()=>setPair('different');$('unsurePair').onclick=()=>setPair('unsure');$('clearPair').onclick=()=>setPair('clear');
+function setCrop(action){if(mode!=='crop'&&mode!=='blank')return;const id=itemId();
+ if(action==='noExtra'&&manualLines.some(m=>m.crop_id===id)){alertMsg('На этом участке уже добавлен пропущенный машиной трек. Нельзя одновременно отметить отсутствие дополнительных.');return}
+ if(action==='clear')delete cropAssessments[id];else cropAssessments[id]={status:CROP[action],review_origin:'LOCAL_VISUAL_REVIEW_NOT_EXPERT_CERTIFIED'};render()}
+ $('cropReviewed').onclick=()=>setCrop('review');$('cropNoExtra').onclick=()=>setCrop('noExtra');$('cropUnsure').onclick=()=>setCrop('unsure');$('cropClear').onclick=()=>setCrop('clear');
+$('showAll').onchange=render;$('showEvidence').onchange=()=>{if($('showEvidence').checked)scoreEverRevealed=true;render()};
+$('drawBegin').onclick=()=>{if(mode!=='line')return;drawTarget='edit';drawing=true;sketch=[];render()};
+$('drawMissing').onclick=()=>{drawTarget='extra';drawing=true;sketch=[];render()};
+$('cancelCurve').onclick=()=>{drawing=false;sketch=[];render()};
+$('undoPoint').onclick=()=>{if(drawing&&sketch.length){sketch.pop();render()}};
+$('overlay').onclick=e=>{if(!drawing||sketch.length>=128)return;
+ const rect=$('overlay').getBoundingClientRect();const x=(e.clientX-rect.left)/rect.width*512,y=(e.clientY-rect.top)/rect.height*512;
+ if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||x>511||y<0||y>511)return;
+ sketch.push([Math.round(x*100)/100,Math.round(y*100)/100]);render()};
+$('saveCurve').onclick=()=>{if(!drawing||sketch.length<2)return;let length=0;for(let i=1;i<sketch.length;i++)length+=Math.hypot(sketch[i][0]-sketch[i-1][0],sketch[i][1]-sketch[i-1][1]);
+ if(length<2){alertMsg('Контур короче 2 пикселей, проверьте точки.');return}
+ if(drawTarget==='edit'){setLine('accept',sketch.slice());alertMsg('Исправленный контур сохранён как предварительный ответ.')}else{
+  const cropId=mode==='line'?lineToCrop.get(itemId()):mode==='pair'?item().crop_id:itemId();
+  let next=1;for(const m of manualLines){const n=Number(m.manual_id.split('_')[1]);if(Number.isFinite(n))next=Math.max(next,n+1)}
+  if(next>9999){alertMsg('Слишком много новых линий');return}
+  manualLines.push({manual_id:'manual_'+String(next).padStart(4,'0'),crop_id:cropId,points_xy:sketch.slice(),status:'USER_DRAWN_PROVISIONAL'});
+  if(cropAssessments[cropId]?.status==='NO_ADDITIONAL_LOCAL')cropAssessments[cropId]={status:'REVIEWED_FOR_MISSED_TRACKS_LOCAL',review_origin:'LOCAL_VISUAL_REVIEW_NOT_EXPERT_CERTIFIED'};
+  drawing=false;sketch=[];render();alertMsg('Новый пропущенный машиной трек сохранён только как локальная предварительная гипотеза.')}};
+$('deleteManual').onclick=()=>{const cropId=mode==='line'?lineToCrop.get(itemId()):mode==='pair'?item().crop_id:itemId();for(let i=manualLines.length-1;i>=0;i--)if(manualLines[i].crop_id===cropId){manualLines.splice(i,1);render();return}};
+function exportState(){const reviewer=$('reviewer').value.trim();if(!/^[a-zA-Z0-9_-]{2,40}$/.test(reviewer))throw Error('Нужен код проверяющего: 2–40 символов, латинские буквы/цифры/_/-');
+ return {...B.template,provenance:'S38_LOCAL_INDEPENDENT_NOT_PHYSICS_CERTIFIED',
+  decisions:structuredClone(decisionLines),relation_decisions:structuredClone(decisionPairs),
+  s38_crop_assessments:structuredClone(cropAssessments),s38_manual_lines:structuredClone(manualLines),
+  s38_review_session:{protocol:'s38_independent_blind_v1',reviewer_id:reviewer,round:$('round').value,
+  scores_revealed:scoreEverRevealed,physical_gt_certified:false}};}
+$('export').onclick=()=>{try{const s=exportState();for(const r of B.relations){const a=s.relation_decisions[r.relation_id];if(a&&a.status!=='LOCAL_UNSURE')for(const did of [r.candidate_a,r.candidate_b])if(s.decisions[did]?.status!=='USER_ACCEPTED_PROVISIONAL')throw Error('Связь требует принять обе линии: '+r.relation_id)}
+ const raw=JSON.stringify(s,null,2),url=URL.createObjectURL(new Blob([raw],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='S38_private_review_round_'+$('round').value+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);alertMsg('JSON экспортирован. Приватно храните файл отдельно от публичного репозитория.');
+ }catch(e){alertMsg('Ошибка экспорта: '+e.message)}};
+$('importFile').onchange=async e=>{try{if(nonEmptyAnswers())throw Error('Импорт разрешён только в пустой сеанс (не смешивать ответы разных людей).');const file=e.target.files?.[0];if(!file)return;const o=JSON.parse(await file.text());
+ for(const key of ['schema','machine_source_s28_sha256','machine_source_s29_sha256','all_unreviewed_stay_unknown','physical_joins_authorized','crops'])if(JSON.stringify(o[key])!==JSON.stringify(B.template[key]))throw Error('Изменён источник или защитная политика: '+key);
+ const m=o.s38_review_session;if(!m||m.protocol!=='s38_independent_blind_v1'||m.physical_gt_certified!==false||!/^[a-zA-Z0-9_-]{2,40}$/.test(m.reviewer_id)||!['A','B'].includes(m.round)||typeof m.scores_revealed!=='boolean')throw Error('Неверные данные сессии');
+ if(typeof o.decisions!=='object'||Array.isArray(o.decisions)||!o.decisions||typeof o.relation_decisions!=='object'||Array.isArray(o.relation_decisions)||!o.relation_decisions)throw Error('Некорректные карты ответов');
+ for(const [id,v]of Object.entries(o.decisions)){if(!lines.has(id)||!Object.values(LINE).includes(v.status))throw Error('Неизвестная линия или ответ');if(v.edited_points_xy!=null){let a=v.edited_points_xy;if(v.status!==LINE.accept||!Array.isArray(a)||a.length<2||a.length>128||a.some(p=>!Array.isArray(p)||p.length!==2||p.some(x=>!Number.isFinite(x)||x<0||x>511)))throw Error('Недопустимая редактура')}}
+ for(const [id,v]of Object.entries(o.relation_decisions)){const r=pairs.get(id);if(!r||!Object.values(PAIR).includes(v.status))throw Error('Неизвестная связь/ответ');if(v.status!==PAIR.unsure)for(const did of [r.candidate_a,r.candidate_b])if(o.decisions[did]?.status!==LINE.accept)throw Error('Связь с непроверенной линией')}
+ if(o.s38_crop_assessments==null||typeof o.s38_crop_assessments!=='object'||Array.isArray(o.s38_crop_assessments)||!Array.isArray(o.s38_manual_lines))throw Error('Некорректная проверка пустых участков / добавленные линии');
+ for(const [id,v]of Object.entries(o.s38_crop_assessments)){if(!photos.has(id)||!Object.values(CROP).includes(v.status))throw Error('Неизвестный участок/статус')}
+ const mids=new Set();for(const m of o.s38_manual_lines){if(!photos.has(m.crop_id)||!/^(manual_[0-9]{4})$/.test(m.manual_id)||mids.has(m.manual_id)||m.status!=='USER_DRAWN_PROVISIONAL'||!Array.isArray(m.points_xy)||m.points_xy.length<2||m.points_xy.length>128||m.points_xy.some(p=>!Array.isArray(p)||p.length!==2||p.some(x=>!Number.isFinite(x)||x<0||x>511)))throw Error('Некорректная вручную добавленная линия');mids.add(m.manual_id);if(o.s38_crop_assessments[m.crop_id]?.status===CROP.noExtra)throw Error('Противоречие: есть новый трек при отметке отсутствия дополнительных')}
+ decisionLines=o.decisions;decisionPairs=o.relation_decisions;cropAssessments=o.s38_crop_assessments;manualLines=o.s38_manual_lines;$('reviewer').value=m.reviewer_id;$('round').value=m.round;window.fixedRound=m.round;scoreEverRevealed=m.scores_revealed;
+ $('showEvidence').checked=false;mode='line';position=0;drawing=false;sketch=[];render();alertMsg('Сессия импортирована, источник и статусы проверены.');
+ }catch(e){alertMsg('Импорт заблокирован: '+e.message)}};
+window.onkeydown=e=>{if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement||drawing)return;
+ if(e.key==='ArrowRight')move(1);else if(e.key==='ArrowLeft')move(-1);else if(e.key==='1')mode==='line'?setLine('accept'):mode==='pair'?setPair('same'):setCrop('review');else if(e.key==='2')mode==='line'?setLine('reject'):mode==='pair'?setPair('different'):setCrop('noExtra');else if(e.key==='3')mode==='line'?setLine('unsure'):mode==='pair'?setPair('unsure'):setCrop('unsure');};
+render();
+</script></body></html>

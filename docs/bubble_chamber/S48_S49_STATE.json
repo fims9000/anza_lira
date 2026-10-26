@@ -1,0 +1,15 @@
+{
+  "schema": "machine_only_s48_s49_state_v1",
+  "branch": "research/bubble-chamber-graph-lira",
+  "native_expert_dense_gt_count": 0,
+  "native_physics_auto_joins": 0,
+  "independent_physical_runs": 1,
+  "source_photos": 2,
+  "original_candidates_preserved": 567,
+  "original_graph_edges_preserved": 182,
+  "S48_warning_union_edges": 58,
+  "S48_additional_pose_warning_edges": 4,
+  "S49_private_offline_machine_demo_ready": true,
+  "transductive_output_allowed_for_heldout_photo_training": false,
+  "next_executable_action": "Independent image-run/third-view acquisition; otherwise evaluate source-photo-only geometric pseudo-teacher vs independent synthetic hard defect generators without using S48 transductive outputs as training targets."
+}

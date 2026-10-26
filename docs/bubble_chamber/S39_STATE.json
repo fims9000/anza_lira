@@ -1,0 +1,41 @@
+{
+  "schema": "s39_machine_only_research_state_v1",
+  "branch": "research/bubble-chamber-graph-lira",
+  "goal": "Autonomous photo-disjoint pseudo-annotation and falsifiable synthetic-injection analysis; physicist-facing demo without requiring user's manual labels",
+  "status": "SOURCE_TESTS_PASSED_PRIVATE_DEMO_VERIFIED_NO_NATIVE_GT",
+  "expected_files": [
+    "bubble_chamber/s39_machine_auto.py",
+    "bubble_chamber/s39_graph_proposals.py",
+    "scripts/research/bubble_chamber/s39_run_machine_only.py",
+    "scripts/research/bubble_chamber/s39_benchmark_machine_segmentation.py",
+    "scripts/research/bubble_chamber/s39_full_frame_audit.py",
+    "scripts/research/bubble_chamber/s39_extract_sources.py",
+    "scripts/research/bubble_chamber/s39_build_graph_demo.py",
+    "scripts/research/bubble_chamber/s39_make_physicist_demo.py",
+    "tests/test_s39_machine_only.py",
+    "docs/bubble_chamber/S39_MACHINE_ONLY_RESEARCH_2026_10_25.md",
+    "docs/bubble_chamber/S39_PUBLIC_RESULTS.json"
+  ],
+  "reuse": [
+    "S31 machine draft JSON",
+    "S33 original AZUNet cross-photo checkpoints",
+    "S35 synthetic-injection generator",
+    "visualMetro film-070 measured geometry"
+  ],
+  "verification": "45 focused S35-S39 tests passed and Chromium private offline demo QA passed; synthetic frame-disjoint injection plus sampled whole-BMP source audit; no real native-trace GT",
+  "rollback": "Commit S39 additions separately; existing AZUNet/U-Net source and S35-S38 remain unchanged",
+  "no_expert_gt": true,
+  "native_physics_accuracy_claim": false,
+  "actual_test_results": "45 passed",
+  "source_photo_count": 2,
+  "targeted_tiles": 39,
+  "additional_spatial_sample_tiles": 128,
+  "machine_proposal_lines_selected": 567,
+  "machine_candidates_unbiased_grid": 1166,
+  "provisional_geometry_graph_nodes": 511,
+  "provisional_geometry_link_edges": 182,
+  "auto_physical_joins": 0,
+  "native_expert_gt_labels": 0,
+  "private_demo_zip_sha256": "d173452d5adfc976ba58ab58d006f0c92a30b5a1a242278f21428c9447804494",
+  "next_executable_action": "Continue machine-only scanner-artifact and fiducial suppression + pseudo-label quality gates on 2 genuine BMPs. Assess on film-070 frame held-out synthetic perturbations and background-only controls. No user labeling required; future physicist feedback separate."
+}

@@ -1,0 +1,29 @@
+name: S37 safe scene-level calibration and private-review contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s37_*.py'
+      - 'scripts/research/bubble_chamber/s37_*.py'
+      - 'tests/test_s37_*.py'
+      - 'docs/bubble_chamber/S37_*.md'
+      - '.github/workflows/s37_safe_review_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only_validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Dependencies for data-free source contracts
+        run: python -m pip install numpy scipy scikit-learn scikit-image opencv-python-headless pytest torch matplotlib
+      - name: Verify immutable original ANZA sources and S37 contracts
+        run: python -m pytest -q tests/test_s35_fragment_link.py tests/test_s35_review_overlay.py tests/test_s37_risk_calibration.py tests/test_s37_data_and_review.py
+      - name: Source compilation
+        run: python -m compileall -q bubble_chamber/s35_fragment_link.py bubble_chamber/s35_simulated_gaps.py bubble_chamber/s37_risk_calibration.py bubble_chamber/s37_source_model.py scripts/research/bubble_chamber/s37_benchmark_review_risk.py scripts/research/bubble_chamber/s37_build_light_reviewer.py scripts/research/bubble_chamber/s37_validate_local_corrections.py
