@@ -1,0 +1,22 @@
+{
+  "registry_schema": "bubble_chamber_experiment_registry_v1",
+  "branch": "research/bubble-chamber-graph-lira",
+  "public_only": true,
+  "no_native_particle_id_claim": true,
+  "experiments": [
+    {
+      "id": "ANZA-LIRA-BC-S67-20261026",
+      "phase": "S67",
+      "status": "negative_no_promotion",
+      "protocol": "docs/bubble_chamber/S67_FROZEN_CROSSING_INSTANCE_PROTOCOL_2026_10_26.md",
+      "results": "docs/bubble_chamber/S67_PUBLIC_SYNTHETIC_RESULTS_2026_10_26.json",
+      "report": "docs/bubble_chamber/S67_INSTANCE_CONTINUITY_NEGATIVE_2026_10_26.md",
+      "protocol_sha256": "2f7ba84836250868538789afdfa7393c6a497133a561ed955b17541323de5bf7",
+      "algorithm_sha256": "aca349bc6094bd80c33810ee86918dcaceb06d047462c1c286e3ae4b8f6d3773",
+      "calibration_sha256": "a641a5c6edc22a82435f59417e597022171f40548ff0d1f649a3830464d44670",
+      "source_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "git_base_sha": "d2d1d101a3a11a0c758d2edf815a89bdea0ae52b",
+      "privacy": "no private images/raw geometry/weights committed"
+    }
+  ]
+}

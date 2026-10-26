@@ -1,0 +1,244 @@
+{
+  "algorithm_sha256": "aca349bc6094bd80c33810ee86918dcaceb06d047462c1c286e3ae4b8f6d3773",
+  "all_labels_and_errors_synthetic_only": true,
+  "base_branch": "research/bubble-chamber-graph-lira",
+  "base_commit": "d2d1d101a3a11a0c758d2edf815a89bdea0ae52b",
+  "calibration_scenes_per_direction": 16,
+  "directions": {
+    "005_to_006": {
+      "calibration_aggregates": {
+        "s39_original": {
+          "candidate_polylines": 71,
+          "complete_three_piece_paths_synthetic": 0,
+          "scene_any_noncorrect": 8,
+          "selected_provisional_links": 13,
+          "selected_synthetic_correct_links": 0,
+          "solver_failure": 0,
+          "source_node_matches": 28,
+          "synthetic_noncorrect_selected": 13
+        },
+        "s67_crossing_orientation_v1": {
+          "candidate_polylines": 71,
+          "complete_three_piece_paths_synthetic": 0,
+          "scene_any_noncorrect": 8,
+          "selected_provisional_links": 13,
+          "selected_synthetic_correct_links": 0,
+          "solver_failure": 0,
+          "source_node_matches": 28,
+          "synthetic_noncorrect_selected": 13
+        }
+      },
+      "calibration_selected": "s39_original",
+      "per_seed_paired_CI95": {
+        "20266703": {
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": -0.08333333333333333,
+            "paired_scene_bootstrap_95pct": [
+              -0.20833333333333334,
+              0.0
+            ]
+          }
+        },
+        "20266704": {
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": -0.08333333333333333,
+            "paired_scene_bootstrap_95pct": [
+              -0.20833333333333334,
+              0.0
+            ]
+          },
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": -0.08333333333333333,
+            "paired_scene_bootstrap_95pct": [
+              -0.20833333333333334,
+              0.0
+            ]
+          }
+        }
+      },
+      "test_aggregates": {
+        "s39_original": {
+          "candidate_polylines": 226,
+          "complete_three_piece_paths_synthetic": 2,
+          "scene_any_noncorrect": 26,
+          "selected_provisional_links": 51,
+          "selected_synthetic_correct_links": 5,
+          "solver_failure": 0,
+          "source_node_matches": 84,
+          "synthetic_noncorrect_selected": 46
+        },
+        "s67_crossing_orientation_v1": {
+          "candidate_polylines": 222,
+          "complete_three_piece_paths_synthetic": 2,
+          "scene_any_noncorrect": 24,
+          "selected_provisional_links": 47,
+          "selected_synthetic_correct_links": 5,
+          "solver_failure": 0,
+          "source_node_matches": 81,
+          "synthetic_noncorrect_selected": 42
+        }
+      }
+    },
+    "006_to_005": {
+      "calibration_aggregates": {
+        "s39_original": {
+          "candidate_polylines": 83,
+          "complete_three_piece_paths_synthetic": 3,
+          "scene_any_noncorrect": 6,
+          "selected_provisional_links": 19,
+          "selected_synthetic_correct_links": 7,
+          "solver_failure": 0,
+          "source_node_matches": 34,
+          "synthetic_noncorrect_selected": 12
+        },
+        "s67_crossing_orientation_v1": {
+          "candidate_polylines": 83,
+          "complete_three_piece_paths_synthetic": 3,
+          "scene_any_noncorrect": 6,
+          "selected_provisional_links": 19,
+          "selected_synthetic_correct_links": 7,
+          "solver_failure": 0,
+          "source_node_matches": 34,
+          "synthetic_noncorrect_selected": 12
+        }
+      },
+      "calibration_selected": "s39_original",
+      "per_seed_paired_CI95": {
+        "20266713": {
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": -0.041666666666666664,
+            "paired_scene_bootstrap_95pct": [
+              -0.125,
+              0.0
+            ]
+          },
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": -0.041666666666666664,
+            "paired_scene_bootstrap_95pct": [
+              -0.125,
+              0.0
+            ]
+          }
+        },
+        "20266714": {
+          "complete_three_piece_paths_synthetic": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "scene_any_noncorrect": {
+            "mean_delta_per_scene": -0.041666666666666664,
+            "paired_scene_bootstrap_95pct": [
+              -0.125,
+              0.0
+            ]
+          },
+          "selected_synthetic_correct_links": {
+            "mean_delta_per_scene": 0.0,
+            "paired_scene_bootstrap_95pct": [
+              0.0,
+              0.0
+            ]
+          },
+          "synthetic_noncorrect_selected": {
+            "mean_delta_per_scene": -0.041666666666666664,
+            "paired_scene_bootstrap_95pct": [
+              -0.125,
+              0.0
+            ]
+          }
+        }
+      },
+      "test_aggregates": {
+        "s39_original": {
+          "candidate_polylines": 245,
+          "complete_three_piece_paths_synthetic": 0,
+          "scene_any_noncorrect": 19,
+          "selected_provisional_links": 35,
+          "selected_synthetic_correct_links": 3,
+          "solver_failure": 0,
+          "source_node_matches": 80,
+          "synthetic_noncorrect_selected": 32
+        },
+        "s67_crossing_orientation_v1": {
+          "candidate_polylines": 241,
+          "complete_three_piece_paths_synthetic": 0,
+          "scene_any_noncorrect": 17,
+          "selected_provisional_links": 33,
+          "selected_synthetic_correct_links": 3,
+          "solver_failure": 0,
+          "source_node_matches": 78,
+          "synthetic_noncorrect_selected": 30
+        }
+      }
+    }
+  },
+  "experiment_id": "ANZA-LIRA-BC-S67-20261026",
+  "frozen_CAL_file_sha256": "a641a5c6edc22a82435f59417e597022171f40548ff0d1f649a3830464d44670",
+  "frozen_S56_scorer_sha256": "088024077e5f86b5f4308c5d23e72643c8b261a355cfb12f2bbc8c1d3d87355b",
+  "frozen_protocol_sha256": "2f7ba84836250868538789afdfa7393c6a497133a561ed955b17541323de5bf7",
+  "native_H50Z_GT": 0,
+  "physical_joins_authorized": false,
+  "same_run_backgrounds": true,
+  "schema": "S67_PUBLIC_MACHINE_ONLY_AGGREGATE_v1",
+  "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "test_run_sha256": "b8fefad353a7f1fe5a0975f9d11b2d5d263f67c863a7fcbb8843e683f4d43c04",
+  "test_scene_total": 96,
+  "test_scenes_per_seed": 24,
+  "whole_frame_split": {
+    "cal": 30,
+    "test": 36,
+    "train": 79
+  }
+}
