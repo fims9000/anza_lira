@@ -1,0 +1,39 @@
+name: S77 frozen short-gap instance study - source-only contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s77_*.py'
+      - 'scripts/research/bubble_chamber/s77_*.py'
+      - 'tests/test_s77_*.py'
+      - 'docs/bubble_chamber/S77_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s77_short_gap_instance_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen_source_contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install source-only scientific test dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: CPU torch for original frozen research imports
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify corrected S69 evaluator, shape diagnostics, frozen CAL and public results
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s76_shape_endpoint_diagnostics.py tests/test_s77_short_gap_instances.py tests/test_s77_phase_and_source_integrity.py tests/test_s77_native_machine_only.py tests/test_s77_public_reproducibility.py
+      - name: Compile image-only S77 predictor, research benchmark and native unlabelled audit
+        run: python -m compileall -q bubble_chamber/s77_short_gap_instances.py scripts/research/bubble_chamber/s77_calibrate_then_test_short_gaps.py scripts/research/bubble_chamber/s77_native_unlabeled_centre_audit.py
+      - name: Reject private media and weights from S77 tracked files
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s77*' 'scripts/research/bubble_chamber/s77*' 'docs/bubble_chamber/S77*' 'tests/test_s77*' | grep -Ei '\.(bmp|png|jpe?g|tiff?|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'Real H50Z pixels and weights must NOT enter public branch' >&2
+            exit 1
+          fi

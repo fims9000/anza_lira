@@ -260,6 +260,59 @@
       "report_sha256": "83d2aa822b44ab79e3b23447f45ca05063256a1863d3eba533efde89c61fcd99",
       "results": "docs/bubble_chamber/S76_PUBLIC_FRESH_SHAPE_ENDPOINT_DIAGNOSTIC_2026_10_26.json",
       "results_sha256": "cf2479f4134284b9705459c5ec3381deabcf8af768ac0117b0335c9e6b711bcc"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S77-20261026",
+      "phase": "S77",
+      "status": "negative_no_promotion_cal_and_fresh_test",
+      "research_slice": "image_only_short_gap_instance_repair",
+      "baseline": "frozen_S72_direction_CAL_selected",
+      "original_S72_calibration_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+      "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+      "cal_seeds": [
+        20267701,
+        20267711
+      ],
+      "test_seeds": [
+        20267703,
+        20267704,
+        20267713,
+        20267714
+      ],
+      "cal_scenes": 32,
+      "independent_synthetic_test_scenes": 96,
+      "image_conditions": [
+        "clean",
+        "blur_sigma_11",
+        "blur_sigma_16"
+      ],
+      "protocol": "docs/bubble_chamber/S77_FROZEN_SHORT_GAP_INSTANCE_RECOVERY_2026_10_26.md",
+      "predictor": "bubble_chamber/s77_short_gap_instances.py",
+      "benchmark": "scripts/research/bubble_chamber/s77_calibrate_then_test_short_gaps.py",
+      "native_smoke": "scripts/research/bubble_chamber/s77_native_unlabeled_centre_audit.py",
+      "tests": [
+        "tests/test_s77_short_gap_instances.py",
+        "tests/test_s77_phase_and_source_integrity.py",
+        "tests/test_s77_native_machine_only.py",
+        "tests/test_s77_public_reproducibility.py"
+      ],
+      "report": "docs/bubble_chamber/S77_SHORT_GAP_INSTANCE_RECOVERY_NEGATIVE_2026_10_26.md",
+      "calibration": "docs/bubble_chamber/S77_PUBLIC_FROZEN_CAL_2026_10_26.json",
+      "test": "docs/bubble_chamber/S77_PUBLIC_FRESH_TEST_2026_10_26.json",
+      "native_machine_only": "docs/bubble_chamber/S77_PUBLIC_NATIVE_UNLABELED_SMOKE_2026_10_26.json",
+      "native_GT_count": 0,
+      "physical_auto_join_authorized": false,
+      "photos_independent_physical_runs": false,
+      "calibration_immutable_SHA256": "0bf63181125fc26b766389f5647e2db08fea04459b0ec44d9c891dc54dbbd655",
+      "replayed_TEST_byte_identical": true,
+      "test_sha256": "d60fd6775d59e5f772085b0c6cf9441992c2d462203d265bbefd323fa3447b3c",
+      "code_sha256": "c6209487a1a04cc3b4385d4235089fdcbead4c8fa53039f3dceff51fc851271b",
+      "benchmark_sha256": "8183b9222ceed771adb95826c38e71b887c29d21c48f473902a4ea3696171a57",
+      "native_smoke_code_sha256": "e925a128f916d5de098af242dc7ddd9e720ba014f1d0a55af1de9fb947b9dbba",
+      "protocol_sha256": "51bd05713a9bdbbc814a5e6cc88f3fe146990ce25a69defba992672a3f4fd9fc",
+      "report_sha256": "15b9158226386c16f9c19c2a74aa3fab428a90585c4f7f94138fad400e7bcf34",
+      "native_smoke_aggregate_sha256": "a1b5e0a82ec3387bf42fcb8524b5f4f31f68f293a05d33e35ebfca005d56f5d5",
+      "privacy": "source-only public; genuine H50Z pixels and original measured source coordinates remain private"
     }
   ]
 }

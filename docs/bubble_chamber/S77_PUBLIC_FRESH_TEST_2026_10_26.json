@@ -1,0 +1,1844 @@
+{
+  "schema": "S77_FROZEN_SHORT_GAP_PIXEL_INSTANCES_SYNTHETIC_ONLY_V1",
+  "experiment_id": "ANZA-LIRA-BC-S77-20261026",
+  "phase": "test",
+  "smoke_NON_CONFIRMATORY": false,
+  "protocol_sha256": "51bd05713a9bdbbc814a5e6cc88f3fe146990ce25a69defba992672a3f4fd9fc",
+  "operator_sha256": "c6209487a1a04cc3b4385d4235089fdcbead4c8fa53039f3dceff51fc851271b",
+  "source_CAL_sha256": "1ed7e58667aaab1a7d5ba91252db64b38bf8d3da517396b9e18e9e6bb484a952",
+  "source_frame_split_sha256": "448f21ca3a709010ed972a596ed046cadff0643112905fd1d029c91f8b14faef",
+  "source_training_model_locks": {
+    "bubble_chamber/s68_branch_preserving_instances.py": "dc16718c9bcac613eacc38771b2fa9a840266d9f7da377cc7538ae136bc4a91a",
+    "scripts/research/bubble_chamber/s68_benchmark_branch_preservation.py": "f8a841eb7c6fc8e5074e7d88c667891a36f95be67d5a7eb86d145cc9c3fc3e71",
+    "bubble_chamber/s69_orientation_invariant_audit.py": "3e4ad80c0fc544b7b231b6a7b7dcdc3501484830a98d6d19c133dc0eb1c5b495",
+    "scripts/research/bubble_chamber/s56_benchmark_global_paths.py": "088024077e5f86b5f4308c5d23e72643c8b261a355cfb12f2bbc8c1d3d87355b"
+  },
+  "native_GT_track_count": 0,
+  "physical_joins_authorized": false,
+  "source_photographs_one_run": true,
+  "visualmetro_070_not_H50Z_GT": true,
+  "phase_scene_count_per_seed": 24,
+  "reserved_test_scenes_per_seed": 24,
+  "synthetic_only": true,
+  "arms": [
+    "baseline",
+    "short_gap_strict",
+    "short_gap_relaxed"
+  ],
+  "directions": {
+    "005_to_006": {
+      "source_photo": "005",
+      "test_photo": "006",
+      "frozen_graph_arm": "s68_branch_endpoint_refine",
+      "frozen_S56_CAL_cutoff": 0.8443092691176276,
+      "CAL_selected": "baseline",
+      "TEST_seeds": {
+        "20267703": {
+          "clean": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 15,
+                "synthetic_noncorrect_selected": 15,
+                "complete_three_piece_paths_synthetic": 5,
+                "scene_any_noncorrect": 12,
+                "selected_provisional_links": 30,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 73,
+                "shape_true_both_endpoints_close": 61,
+                "shape_true_one_or_both_endpoints_far": 12,
+                "shape_only_true_pair_availability": 36,
+                "shape_only_complete_chain_availability": 16,
+                "shape_endpoint_separated_complete_chains": 6,
+                "candidate_polylines": 115,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 13,
+                "synthetic_noncorrect_selected": 15,
+                "complete_three_piece_paths_synthetic": 4,
+                "scene_any_noncorrect": 12,
+                "selected_provisional_links": 28,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 70,
+                "shape_true_both_endpoints_close": 58,
+                "shape_true_one_or_both_endpoints_far": 12,
+                "shape_only_true_pair_availability": 34,
+                "shape_only_complete_chain_availability": 15,
+                "shape_endpoint_separated_complete_chains": 5,
+                "candidate_polylines": 113,
+                "attempted_short_gap_merged_pairs": 2,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 11,
+                "synthetic_noncorrect_selected": 10,
+                "complete_three_piece_paths_synthetic": 3,
+                "scene_any_noncorrect": 9,
+                "selected_provisional_links": 21,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 60,
+                "shape_true_both_endpoints_close": 51,
+                "shape_true_one_or_both_endpoints_far": 9,
+                "shape_only_true_pair_availability": 26,
+                "shape_only_complete_chain_availability": 11,
+                "shape_endpoint_separated_complete_chains": 4,
+                "candidate_polylines": 107,
+                "attempted_short_gap_merged_pairs": 8,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.25,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.125
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.2927083333333333,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.16666666666666666,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.4166666666666667,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.20833333333333334,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.4166666666666667,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.5416666666666666,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.875,
+                    -0.25
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.25,
+                    0.0
+                  ]
+                }
+              }
+            }
+          },
+          "blur_sigma_11": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 3,
+                "synthetic_noncorrect_selected": 11,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 9,
+                "selected_provisional_links": 14,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 39,
+                "shape_true_both_endpoints_close": 28,
+                "shape_true_one_or_both_endpoints_far": 11,
+                "shape_only_true_pair_availability": 19,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 82,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 3,
+                "synthetic_noncorrect_selected": 11,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 9,
+                "selected_provisional_links": 14,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 39,
+                "shape_true_both_endpoints_close": 28,
+                "shape_true_one_or_both_endpoints_far": 11,
+                "shape_only_true_pair_availability": 19,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 82,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 3,
+                "synthetic_noncorrect_selected": 10,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 8,
+                "selected_provisional_links": 13,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 38,
+                "shape_true_both_endpoints_close": 27,
+                "shape_true_one_or_both_endpoints_far": 11,
+                "shape_only_true_pair_availability": 19,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 81,
+                "attempted_short_gap_merged_pairs": 1,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            }
+          },
+          "blur_sigma_16": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 5,
+                "synthetic_noncorrect_selected": 5,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 5,
+                "selected_provisional_links": 10,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 32,
+                "shape_true_both_endpoints_close": 27,
+                "shape_true_one_or_both_endpoints_far": 5,
+                "shape_only_true_pair_availability": 14,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 74,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 5,
+                "synthetic_noncorrect_selected": 5,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 5,
+                "selected_provisional_links": 10,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 32,
+                "shape_true_both_endpoints_close": 27,
+                "shape_true_one_or_both_endpoints_far": 5,
+                "shape_only_true_pair_availability": 14,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 74,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 5,
+                "synthetic_noncorrect_selected": 5,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 5,
+                "selected_provisional_links": 10,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 32,
+                "shape_true_both_endpoints_close": 27,
+                "shape_true_one_or_both_endpoints_far": 5,
+                "shape_only_true_pair_availability": 14,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 74,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "20267704": {
+          "clean": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 24,
+                "synthetic_noncorrect_selected": 10,
+                "complete_three_piece_paths_synthetic": 6,
+                "scene_any_noncorrect": 9,
+                "selected_provisional_links": 34,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 94,
+                "shape_true_both_endpoints_close": 75,
+                "shape_true_one_or_both_endpoints_far": 19,
+                "shape_only_true_pair_availability": 49,
+                "shape_only_complete_chain_availability": 18,
+                "shape_endpoint_separated_complete_chains": 8,
+                "candidate_polylines": 134,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 20,
+                "synthetic_noncorrect_selected": 10,
+                "complete_three_piece_paths_synthetic": 5,
+                "scene_any_noncorrect": 9,
+                "selected_provisional_links": 30,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 88,
+                "shape_true_both_endpoints_close": 70,
+                "shape_true_one_or_both_endpoints_far": 18,
+                "shape_only_true_pair_availability": 44,
+                "shape_only_complete_chain_availability": 16,
+                "shape_endpoint_separated_complete_chains": 6,
+                "candidate_polylines": 131,
+                "attempted_short_gap_merged_pairs": 3,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 15,
+                "synthetic_noncorrect_selected": 8,
+                "complete_three_piece_paths_synthetic": 3,
+                "scene_any_noncorrect": 7,
+                "selected_provisional_links": 23,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 78,
+                "shape_true_both_endpoints_close": 64,
+                "shape_true_one_or_both_endpoints_far": 14,
+                "shape_only_true_pair_availability": 37,
+                "shape_only_complete_chain_availability": 13,
+                "shape_endpoint_separated_complete_chains": 3,
+                "candidate_polylines": 125,
+                "attempted_short_gap_merged_pairs": 9,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.16666666666666666,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.375,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.25,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.5,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.375,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.6666666666666666,
+                    -0.125
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.25,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.6666666666666666,
+                  "paired_scene_bootstrap_95pct": [
+                    -1.0833333333333333,
+                    -0.2916666666666667
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.20833333333333334,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.4583333333333333,
+                    -0.041666666666666664
+                  ]
+                }
+              }
+            }
+          },
+          "blur_sigma_11": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 6,
+                "synthetic_noncorrect_selected": 10,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 8,
+                "selected_provisional_links": 16,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 42,
+                "shape_true_both_endpoints_close": 30,
+                "shape_true_one_or_both_endpoints_far": 12,
+                "shape_only_true_pair_availability": 17,
+                "shape_only_complete_chain_availability": 7,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 94,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 5,
+                "synthetic_noncorrect_selected": 8,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 7,
+                "selected_provisional_links": 13,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 38,
+                "shape_true_both_endpoints_close": 28,
+                "shape_true_one_or_both_endpoints_far": 10,
+                "shape_only_true_pair_availability": 15,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 90,
+                "attempted_short_gap_merged_pairs": 4,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 3,
+                "synthetic_noncorrect_selected": 7,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 7,
+                "selected_provisional_links": 10,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 34,
+                "shape_true_both_endpoints_close": 25,
+                "shape_true_one_or_both_endpoints_far": 9,
+                "shape_only_true_pair_availability": 12,
+                "shape_only_complete_chain_availability": 5,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 87,
+                "attempted_short_gap_merged_pairs": 7,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.16666666666666666,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.16666666666666666,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.375,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3343749999999999,
+                    0.08333333333333333
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.3333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.6666666666666666,
+                    -0.08333333333333333
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                }
+              }
+            }
+          },
+          "blur_sigma_16": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 3,
+                "synthetic_noncorrect_selected": 9,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 9,
+                "selected_provisional_links": 12,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 32,
+                "shape_true_both_endpoints_close": 24,
+                "shape_true_one_or_both_endpoints_far": 8,
+                "shape_only_true_pair_availability": 10,
+                "shape_only_complete_chain_availability": 3,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 86,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 3,
+                "synthetic_noncorrect_selected": 8,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 8,
+                "selected_provisional_links": 11,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 32,
+                "shape_true_both_endpoints_close": 24,
+                "shape_true_one_or_both_endpoints_far": 8,
+                "shape_only_true_pair_availability": 10,
+                "shape_only_complete_chain_availability": 3,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 85,
+                "attempted_short_gap_merged_pairs": 1,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 2,
+                "synthetic_noncorrect_selected": 7,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 7,
+                "selected_provisional_links": 9,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 29,
+                "shape_true_both_endpoints_close": 22,
+                "shape_true_one_or_both_endpoints_far": 7,
+                "shape_only_true_pair_availability": 8,
+                "shape_only_complete_chain_availability": 2,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 83,
+                "attempted_short_gap_merged_pairs": 3,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "006_to_005": {
+      "source_photo": "006",
+      "test_photo": "005",
+      "frozen_graph_arm": "s39_original",
+      "frozen_S56_CAL_cutoff": 0.8539211223090797,
+      "CAL_selected": "baseline",
+      "TEST_seeds": {
+        "20267713": {
+          "clean": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 8,
+                "synthetic_noncorrect_selected": 3,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 3,
+                "selected_provisional_links": 11,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 48,
+                "shape_true_both_endpoints_close": 34,
+                "shape_true_one_or_both_endpoints_far": 14,
+                "shape_only_true_pair_availability": 18,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 110,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 8,
+                "synthetic_noncorrect_selected": 3,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 3,
+                "selected_provisional_links": 11,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 48,
+                "shape_true_both_endpoints_close": 34,
+                "shape_true_one_or_both_endpoints_far": 14,
+                "shape_only_true_pair_availability": 18,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 109,
+                "attempted_short_gap_merged_pairs": 1,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 7,
+                "synthetic_noncorrect_selected": 1,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 1,
+                "selected_provisional_links": 8,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 42,
+                "shape_true_both_endpoints_close": 31,
+                "shape_true_one_or_both_endpoints_far": 11,
+                "shape_only_true_pair_availability": 14,
+                "shape_only_complete_chain_availability": 5,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 105,
+                "attempted_short_gap_merged_pairs": 5,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.25,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.5833333333333334,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                }
+              }
+            }
+          },
+          "blur_sigma_11": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 4,
+                "synthetic_noncorrect_selected": 1,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 1,
+                "selected_provisional_links": 5,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 29,
+                "shape_true_both_endpoints_close": 22,
+                "shape_true_one_or_both_endpoints_far": 7,
+                "shape_only_true_pair_availability": 10,
+                "shape_only_complete_chain_availability": 4,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 94,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 2,
+                "synthetic_noncorrect_selected": 1,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 1,
+                "selected_provisional_links": 3,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 26,
+                "shape_true_both_endpoints_close": 20,
+                "shape_true_one_or_both_endpoints_far": 6,
+                "shape_only_true_pair_availability": 8,
+                "shape_only_complete_chain_availability": 3,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 91,
+                "attempted_short_gap_merged_pairs": 3,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 2,
+                "synthetic_noncorrect_selected": 0,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 0,
+                "selected_provisional_links": 2,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 26,
+                "shape_true_both_endpoints_close": 20,
+                "shape_true_one_or_both_endpoints_far": 6,
+                "shape_only_true_pair_availability": 8,
+                "shape_only_complete_chain_availability": 3,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 89,
+                "attempted_short_gap_merged_pairs": 5,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.25,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.25,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              }
+            }
+          },
+          "blur_sigma_16": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 2,
+                "synthetic_noncorrect_selected": 2,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 2,
+                "selected_provisional_links": 4,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 25,
+                "shape_true_both_endpoints_close": 19,
+                "shape_true_one_or_both_endpoints_far": 6,
+                "shape_only_true_pair_availability": 9,
+                "shape_only_complete_chain_availability": 2,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 90,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 2,
+                "synthetic_noncorrect_selected": 1,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 1,
+                "selected_provisional_links": 3,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 24,
+                "shape_true_both_endpoints_close": 18,
+                "shape_true_one_or_both_endpoints_far": 6,
+                "shape_only_true_pair_availability": 9,
+                "shape_only_complete_chain_availability": 2,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 87,
+                "attempted_short_gap_merged_pairs": 3,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 0,
+                "synthetic_noncorrect_selected": 1,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 1,
+                "selected_provisional_links": 1,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 19,
+                "shape_true_both_endpoints_close": 14,
+                "shape_true_one_or_both_endpoints_far": 5,
+                "shape_only_true_pair_availability": 6,
+                "shape_only_complete_chain_availability": 1,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 84,
+                "attempted_short_gap_merged_pairs": 6,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.25,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.5,
+                    -0.041666666666666664
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "20267714": {
+          "clean": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 7,
+                "synthetic_noncorrect_selected": 5,
+                "complete_three_piece_paths_synthetic": 2,
+                "scene_any_noncorrect": 5,
+                "selected_provisional_links": 12,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 45,
+                "shape_true_both_endpoints_close": 35,
+                "shape_true_one_or_both_endpoints_far": 10,
+                "shape_only_true_pair_availability": 20,
+                "shape_only_complete_chain_availability": 6,
+                "shape_endpoint_separated_complete_chains": 3,
+                "candidate_polylines": 99,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 6,
+                "synthetic_noncorrect_selected": 3,
+                "complete_three_piece_paths_synthetic": 2,
+                "scene_any_noncorrect": 3,
+                "selected_provisional_links": 9,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 40,
+                "shape_true_both_endpoints_close": 31,
+                "shape_true_one_or_both_endpoints_far": 9,
+                "shape_only_true_pair_availability": 17,
+                "shape_only_complete_chain_availability": 5,
+                "shape_endpoint_separated_complete_chains": 2,
+                "candidate_polylines": 95,
+                "attempted_short_gap_merged_pairs": 4,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 4,
+                "synthetic_noncorrect_selected": 2,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 2,
+                "selected_provisional_links": 6,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 34,
+                "shape_true_both_endpoints_close": 26,
+                "shape_true_one_or_both_endpoints_far": 8,
+                "shape_only_true_pair_availability": 14,
+                "shape_only_complete_chain_availability": 4,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 90,
+                "attempted_short_gap_merged_pairs": 9,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.20833333333333334,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.4583333333333333,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.25,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.4583333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.8333333333333334,
+                    -0.16562500000000568
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                }
+              }
+            }
+          },
+          "blur_sigma_11": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 2,
+                "synthetic_noncorrect_selected": 2,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 2,
+                "selected_provisional_links": 4,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 23,
+                "shape_true_both_endpoints_close": 18,
+                "shape_true_one_or_both_endpoints_far": 5,
+                "shape_only_true_pair_availability": 8,
+                "shape_only_complete_chain_availability": 3,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 81,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 2,
+                "synthetic_noncorrect_selected": 1,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 1,
+                "selected_provisional_links": 3,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 21,
+                "shape_true_both_endpoints_close": 17,
+                "shape_true_one_or_both_endpoints_far": 4,
+                "shape_only_true_pair_availability": 6,
+                "shape_only_complete_chain_availability": 2,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 80,
+                "attempted_short_gap_merged_pairs": 1,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 2,
+                "synthetic_noncorrect_selected": 1,
+                "complete_three_piece_paths_synthetic": 1,
+                "scene_any_noncorrect": 1,
+                "selected_provisional_links": 3,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 20,
+                "shape_true_both_endpoints_close": 16,
+                "shape_true_one_or_both_endpoints_far": 4,
+                "shape_only_true_pair_availability": 6,
+                "shape_only_complete_chain_availability": 2,
+                "shape_endpoint_separated_complete_chains": 1,
+                "candidate_polylines": 78,
+                "attempted_short_gap_merged_pairs": 3,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.25,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                }
+              }
+            }
+          },
+          "blur_sigma_16": {
+            "arms": {
+              "baseline": {
+                "selected_synthetic_correct_links": 1,
+                "synthetic_noncorrect_selected": 2,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 2,
+                "selected_provisional_links": 3,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 24,
+                "shape_true_both_endpoints_close": 17,
+                "shape_true_one_or_both_endpoints_far": 7,
+                "shape_only_true_pair_availability": 9,
+                "shape_only_complete_chain_availability": 3,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 81,
+                "attempted_short_gap_merged_pairs": 0,
+                "scenes": 24
+              },
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": 1,
+                "synthetic_noncorrect_selected": 2,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 2,
+                "selected_provisional_links": 3,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 24,
+                "shape_true_both_endpoints_close": 17,
+                "shape_true_one_or_both_endpoints_far": 7,
+                "shape_only_true_pair_availability": 9,
+                "shape_only_complete_chain_availability": 3,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 80,
+                "attempted_short_gap_merged_pairs": 1,
+                "scenes": 24
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": 1,
+                "synthetic_noncorrect_selected": 1,
+                "complete_three_piece_paths_synthetic": 0,
+                "scene_any_noncorrect": 1,
+                "selected_provisional_links": 2,
+                "solver_failure": 0,
+                "shape_true_fragments_matched": 21,
+                "shape_true_both_endpoints_close": 16,
+                "shape_true_one_or_both_endpoints_far": 5,
+                "shape_only_true_pair_availability": 8,
+                "shape_only_complete_chain_availability": 3,
+                "shape_endpoint_separated_complete_chains": 0,
+                "candidate_polylines": 77,
+                "attempted_short_gap_merged_pairs": 4,
+                "scenes": 24
+              }
+            },
+            "paired_vs_baseline": {
+              "short_gap_strict": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                }
+              },
+              "short_gap_relaxed": {
+                "selected_synthetic_correct_links": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "synthetic_noncorrect_selected": {
+                  "mean_difference_per_scene": -0.041666666666666664,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.125,
+                    0.0
+                  ]
+                },
+                "complete_three_piece_paths_synthetic": {
+                  "mean_difference_per_scene": 0.0,
+                  "paired_scene_bootstrap_95pct": [
+                    0.0,
+                    0.0
+                  ]
+                },
+                "shape_true_fragments_matched": {
+                  "mean_difference_per_scene": -0.125,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.3333333333333333,
+                    0.0
+                  ]
+                },
+                "shape_true_one_or_both_endpoints_far": {
+                  "mean_difference_per_scene": -0.08333333333333333,
+                  "paired_scene_bootstrap_95pct": [
+                    -0.20833333333333334,
+                    0.0
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "frozen_S77_CAL_SHA256": "0bf63181125fc26b766389f5647e2db08fea04459b0ec44d9c891dc54dbbd655",
+  "all_TEST_aggregates": {
+    "clean": {
+      "baseline": {
+        "selected_synthetic_correct_links": 54,
+        "synthetic_noncorrect_selected": 33,
+        "complete_three_piece_paths_synthetic": 14,
+        "scene_any_noncorrect": 29,
+        "selected_provisional_links": 87,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 260,
+        "shape_true_both_endpoints_close": 205,
+        "shape_true_one_or_both_endpoints_far": 55,
+        "shape_only_true_pair_availability": 123,
+        "shape_only_complete_chain_availability": 46,
+        "shape_endpoint_separated_complete_chains": 18,
+        "candidate_polylines": 458,
+        "attempted_short_gap_merged_pairs": 0,
+        "scenes": 96
+      },
+      "short_gap_strict": {
+        "selected_synthetic_correct_links": 47,
+        "synthetic_noncorrect_selected": 31,
+        "complete_three_piece_paths_synthetic": 12,
+        "scene_any_noncorrect": 27,
+        "selected_provisional_links": 78,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 246,
+        "shape_true_both_endpoints_close": 193,
+        "shape_true_one_or_both_endpoints_far": 53,
+        "shape_only_true_pair_availability": 113,
+        "shape_only_complete_chain_availability": 42,
+        "shape_endpoint_separated_complete_chains": 14,
+        "candidate_polylines": 448,
+        "attempted_short_gap_merged_pairs": 10,
+        "scenes": 96
+      },
+      "short_gap_relaxed": {
+        "selected_synthetic_correct_links": 37,
+        "synthetic_noncorrect_selected": 21,
+        "complete_three_piece_paths_synthetic": 8,
+        "scene_any_noncorrect": 19,
+        "selected_provisional_links": 58,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 214,
+        "shape_true_both_endpoints_close": 172,
+        "shape_true_one_or_both_endpoints_far": 42,
+        "shape_only_true_pair_availability": 91,
+        "shape_only_complete_chain_availability": 33,
+        "shape_endpoint_separated_complete_chains": 9,
+        "candidate_polylines": 427,
+        "attempted_short_gap_merged_pairs": 31,
+        "scenes": 96
+      }
+    },
+    "blur_sigma_11": {
+      "baseline": {
+        "selected_synthetic_correct_links": 15,
+        "synthetic_noncorrect_selected": 24,
+        "complete_three_piece_paths_synthetic": 4,
+        "scene_any_noncorrect": 20,
+        "selected_provisional_links": 39,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 133,
+        "shape_true_both_endpoints_close": 98,
+        "shape_true_one_or_both_endpoints_far": 35,
+        "shape_only_true_pair_availability": 54,
+        "shape_only_complete_chain_availability": 20,
+        "shape_endpoint_separated_complete_chains": 4,
+        "candidate_polylines": 351,
+        "attempted_short_gap_merged_pairs": 0,
+        "scenes": 96
+      },
+      "short_gap_strict": {
+        "selected_synthetic_correct_links": 12,
+        "synthetic_noncorrect_selected": 21,
+        "complete_three_piece_paths_synthetic": 3,
+        "scene_any_noncorrect": 18,
+        "selected_provisional_links": 33,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 124,
+        "shape_true_both_endpoints_close": 93,
+        "shape_true_one_or_both_endpoints_far": 31,
+        "shape_only_true_pair_availability": 48,
+        "shape_only_complete_chain_availability": 17,
+        "shape_endpoint_separated_complete_chains": 3,
+        "candidate_polylines": 343,
+        "attempted_short_gap_merged_pairs": 8,
+        "scenes": 96
+      },
+      "short_gap_relaxed": {
+        "selected_synthetic_correct_links": 10,
+        "synthetic_noncorrect_selected": 18,
+        "complete_three_piece_paths_synthetic": 2,
+        "scene_any_noncorrect": 16,
+        "selected_provisional_links": 28,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 118,
+        "shape_true_both_endpoints_close": 88,
+        "shape_true_one_or_both_endpoints_far": 30,
+        "shape_only_true_pair_availability": 45,
+        "shape_only_complete_chain_availability": 16,
+        "shape_endpoint_separated_complete_chains": 2,
+        "candidate_polylines": 335,
+        "attempted_short_gap_merged_pairs": 16,
+        "scenes": 96
+      }
+    },
+    "blur_sigma_16": {
+      "baseline": {
+        "selected_synthetic_correct_links": 11,
+        "synthetic_noncorrect_selected": 18,
+        "complete_three_piece_paths_synthetic": 1,
+        "scene_any_noncorrect": 18,
+        "selected_provisional_links": 29,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 113,
+        "shape_true_both_endpoints_close": 87,
+        "shape_true_one_or_both_endpoints_far": 26,
+        "shape_only_true_pair_availability": 42,
+        "shape_only_complete_chain_availability": 14,
+        "shape_endpoint_separated_complete_chains": 1,
+        "candidate_polylines": 331,
+        "attempted_short_gap_merged_pairs": 0,
+        "scenes": 96
+      },
+      "short_gap_strict": {
+        "selected_synthetic_correct_links": 11,
+        "synthetic_noncorrect_selected": 16,
+        "complete_three_piece_paths_synthetic": 1,
+        "scene_any_noncorrect": 16,
+        "selected_provisional_links": 27,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 112,
+        "shape_true_both_endpoints_close": 86,
+        "shape_true_one_or_both_endpoints_far": 26,
+        "shape_only_true_pair_availability": 42,
+        "shape_only_complete_chain_availability": 14,
+        "shape_endpoint_separated_complete_chains": 1,
+        "candidate_polylines": 326,
+        "attempted_short_gap_merged_pairs": 5,
+        "scenes": 96
+      },
+      "short_gap_relaxed": {
+        "selected_synthetic_correct_links": 8,
+        "synthetic_noncorrect_selected": 14,
+        "complete_three_piece_paths_synthetic": 1,
+        "scene_any_noncorrect": 14,
+        "selected_provisional_links": 22,
+        "solver_failure": 0,
+        "shape_true_fragments_matched": 101,
+        "shape_true_both_endpoints_close": 79,
+        "shape_true_one_or_both_endpoints_far": 22,
+        "shape_only_true_pair_availability": 36,
+        "shape_only_complete_chain_availability": 12,
+        "shape_endpoint_separated_complete_chains": 1,
+        "candidate_polylines": 318,
+        "attempted_short_gap_merged_pairs": 13,
+        "scenes": 96
+      }
+    }
+  },
+  "CAL_selected_TEST_aggregate": {
+    "clean": {
+      "selected_synthetic_correct_links": 54,
+      "synthetic_noncorrect_selected": 33,
+      "complete_three_piece_paths_synthetic": 14,
+      "scene_any_noncorrect": 29,
+      "selected_provisional_links": 87,
+      "solver_failure": 0,
+      "shape_true_fragments_matched": 260,
+      "shape_true_both_endpoints_close": 205,
+      "shape_true_one_or_both_endpoints_far": 55,
+      "shape_only_true_pair_availability": 123,
+      "shape_only_complete_chain_availability": 46,
+      "shape_endpoint_separated_complete_chains": 18,
+      "candidate_polylines": 458,
+      "attempted_short_gap_merged_pairs": 0,
+      "scenes": 96
+    },
+    "blur_sigma_11": {
+      "selected_synthetic_correct_links": 15,
+      "synthetic_noncorrect_selected": 24,
+      "complete_three_piece_paths_synthetic": 4,
+      "scene_any_noncorrect": 20,
+      "selected_provisional_links": 39,
+      "solver_failure": 0,
+      "shape_true_fragments_matched": 133,
+      "shape_true_both_endpoints_close": 98,
+      "shape_true_one_or_both_endpoints_far": 35,
+      "shape_only_true_pair_availability": 54,
+      "shape_only_complete_chain_availability": 20,
+      "shape_endpoint_separated_complete_chains": 4,
+      "candidate_polylines": 351,
+      "attempted_short_gap_merged_pairs": 0,
+      "scenes": 96
+    },
+    "blur_sigma_16": {
+      "selected_synthetic_correct_links": 11,
+      "synthetic_noncorrect_selected": 18,
+      "complete_three_piece_paths_synthetic": 1,
+      "scene_any_noncorrect": 18,
+      "selected_provisional_links": 29,
+      "solver_failure": 0,
+      "shape_true_fragments_matched": 113,
+      "shape_true_both_endpoints_close": 87,
+      "shape_true_one_or_both_endpoints_far": 26,
+      "shape_only_true_pair_availability": 42,
+      "shape_only_complete_chain_availability": 14,
+      "shape_endpoint_separated_complete_chains": 1,
+      "candidate_polylines": 331,
+      "attempted_short_gap_merged_pairs": 0,
+      "scenes": 96
+    }
+  },
+  "physical_auto_join_authorized": false
+}
