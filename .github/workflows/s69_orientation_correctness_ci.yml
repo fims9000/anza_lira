@@ -1,0 +1,28 @@
+name: S68-S69 instance and orientation-corrected evaluator contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s68_branch_preserving_instances.py'
+      - 'bubble_chamber/s69_orientation_invariant_audit.py'
+      - 'tests/test_s69_orientation_invariant_audit.py'
+      - 'tests/test_s68_branch_instances.py'
+      - '.github/workflows/s69_orientation_correctness_ci.yml'
+  workflow_dispatch:
+jobs:
+  correctness:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install public source dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: Verify orientation-invariant synthetic evaluation without private data
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s64_pixel_to_path.py
+      - name: Compile corrected modules
+        run: python -m compileall -q bubble_chamber/s68_branch_preserving_instances.py bubble_chamber/s69_orientation_invariant_audit.py
