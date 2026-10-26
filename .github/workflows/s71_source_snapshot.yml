@@ -22,7 +22,7 @@ jobs:
           import hashlib,json,subprocess,zipfile
           files=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
           roots=('bubble_chamber/','scripts/research/bubble_chamber/','tests/','docs/bubble_chamber/','models/')
-          extensions={'.py','.md','.json','.yaml','.yml','.txt'}
+          extensions={'.py','.md','.json','.yaml','.yml','.txt','.html'}
           manifest={}
           with zipfile.ZipFile('s71_source_only.zip','w',zipfile.ZIP_DEFLATED,compresslevel=7) as z:
               for name in sorted(files):
