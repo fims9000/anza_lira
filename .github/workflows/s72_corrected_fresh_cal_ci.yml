@@ -1,0 +1,31 @@
+name: S72 fresh synthetic orientation-correct CAL and TEST contracts
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'scripts/research/bubble_chamber/s72_*.py'
+      - 'docs/bubble_chamber/S72_*'
+      - 'tests/test_s72_*.py'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s72_corrected_fresh_cal_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source_only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Source dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: CPU-only torch for frozen S56 scorer imports
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify original S69 evaluator and new S72 CAL/TEST provenance with no private data
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s71_reaudit_immutability.py tests/test_s71_public_replay_registry.py tests/test_s72_fresh_protocol.py tests/test_s72_public_aggregate.py
+      - name: Compile reproducible S72 pixel-only benchmark
+        run: python -m compileall -q scripts/research/bubble_chamber/s72_fresh_corrected_branch_benchmark.py
