@@ -23,6 +23,6 @@ jobs:
       - name: Install public source dependencies
         run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
       - name: Verify orientation-invariant synthetic evaluation without private data
-        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s64_pixel_to_path.py
+        run: python -m pytest -q tests/test_s68_branch_instances.py tests/test_s69_orientation_invariant_audit.py tests/test_s64_pixel_to_path.py
       - name: Compile corrected modules
         run: python -m compileall -q bubble_chamber/s68_branch_preserving_instances.py bubble_chamber/s69_orientation_invariant_audit.py
