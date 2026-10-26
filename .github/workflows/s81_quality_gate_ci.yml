@@ -1,0 +1,39 @@
+name: S81 image-quality-gated multiscale candidates source-only QA
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s81_*.py'
+      - 'scripts/research/bubble_chamber/s81_*.py'
+      - 'tests/test_s81_*.py'
+      - 'docs/bubble_chamber/S81_*'
+      - 'docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json'
+      - '.github/workflows/s81_quality_gate_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent_cal_and_test_contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific dependencies
+        run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: Install torch CPU for frozen S56 scorer imports
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Validate image-only gate, locked source CAL, S69 corrected evaluator, and public receipts
+        run: python -m pytest -q tests/test_s69_orientation_invariant_audit.py tests/test_s80_*.py tests/test_s81_*.py
+      - name: Compile S81 source-only benchmark and native UNKNOWN audit
+        run: python -m compileall -q bubble_chamber/s81_quality_gated_instances.py scripts/research/bubble_chamber/s81_calibrate_quality_gate.py scripts/research/bubble_chamber/s81_native_quality_gate_readonly.py
+      - name: Block private images and weights in public S81 study files
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s81*' 'scripts/research/bubble_chamber/s81*' 'docs/bubble_chamber/S81*' 'tests/test_s81*' | grep -Ei '\.(bmp|png|jpe?g|tif|7z|zip|pt|pth|ckpt|npy|npz)$'; then
+            echo 'Private imaging data or neural weights cannot be committed' >&2
+            exit 1
+          fi
