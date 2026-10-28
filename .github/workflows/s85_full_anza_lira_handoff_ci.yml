@@ -5,6 +5,9 @@ on:
       - research/bubble-chamber-graph-lira
     paths:
       - 'bubble_chamber/interop_anza_frontend.py'
+      - 'bubble_chamber/interop_cv_compat.py'
+      - 'tests/test_interop_cvshape_v2.py'
+      - 'scripts/research/bubble_chamber/example_cv_compatible_detector.py'
       - 'scripts/research/bubble_chamber/example_anza_to_graph_lira.py'
       - 'tests/test_interop_anza_full_path.py'
       - 'README_FULL_ANZA_LIRA_HANDOFF.md'
@@ -24,6 +27,8 @@ jobs:
           python-version: '3.11'
       - name: Install all source-only runtime and test requirements
         run: python -m pip install numpy scipy scikit-image scikit-learn opencv-python-headless networkx pytest
+      - name: Preserve exact historical v1 OpenCV runtime on source-only CI
+        run: python -m pip install opencv-python-headless==4.13.0.92
       - name: Install original AZUNet CPU runtime
         run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Regression contracts for original ANZA and Graph-LIRA interoperability
@@ -31,13 +36,15 @@ jobs:
           python -m pytest -q tests/test_interop_anza_full_path.py
           tests/test_s14_anza_frontend.py tests/test_anza_segmentation_adapter.py
           tests/test_interop_public_api.py tests/test_interop_verified_runtime.py
-          tests/test_interop_coordinates.py
+          tests/test_interop_coordinates.py tests/test_interop_cvshape_v2.py
       - name: Exercise the ORIGINAL randomly initialized AZUNet architecture and graph handoff
         run: python scripts/research/bubble_chamber/example_anza_to_graph_lira.py
+      - name: Exercise the versioned OpenCV detector independent of v1 weights/CAL
+        run: python scripts/research/bubble_chamber/example_cv_compatible_detector.py
       - name: Source syntax and privacy controls
         shell: bash
         run: |
-          python -m compileall -q bubble_chamber/interop_anza_frontend.py scripts/research/bubble_chamber/example_anza_to_graph_lira.py
+          python -m compileall -q bubble_chamber/interop_anza_frontend.py bubble_chamber/interop_cv_compat.py scripts/research/bubble_chamber/example_anza_to_graph_lira.py scripts/research/bubble_chamber/example_cv_compatible_detector.py
           if git ls-files 'bubble_chamber/interop_anza*' 'scripts/research/bubble_chamber/example_anza*' 'docs/bubble_chamber/FULL_ANZA_LIRA*' | grep -Ei '\.(bmp|png|jpe?g|7z|zip|pt|pth|ckpt|pkl|npy|npz)$'; then
             echo 'Private images/weights must not be committed with ANZA-LIRA integration' >&2
             exit 1

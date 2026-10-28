@@ -15,6 +15,7 @@ on:
       - 'README_INTEROP.md'
       - 'docs/bubble_chamber/DEVELOPER_INTEGRATION_ADDENDUM_2026_10_28.md'
       - 'scripts/research/bubble_chamber/example_verified_external_detector.py'
+      - 'scripts/research/bubble_chamber/example_cv_compatible_detector.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,8 +28,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install small research interface dependencies
-        run: python -m pip install -r requirements-interop.txt
+      - name: Install frozen legacy S85 interop runtime dependencies
+        run: |
+          python -m pip install -r requirements-interop.txt
+          # Old v1 generated benchmark receipts use the 4.13 OpenCV line layout.
+          python -m pip install opencv-python-headless==4.13.0.92
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Verify public detector/score/graph contracts and synthetic code paths
         env:
           OMP_NUM_THREADS: '1'
@@ -38,10 +43,11 @@ jobs:
         run: |
           python scripts/research/bubble_chamber/example_external_detector.py
           python scripts/research/bubble_chamber/example_verified_external_detector.py
+          python scripts/research/bubble_chamber/example_cv_compatible_detector.py
       - name: Compile source and verify no private materials tracked
         shell: bash
         run: |
-          python -m compileall -q bubble_chamber/interop_api.py bubble_chamber/interop_calibration.py bubble_chamber/interop_detectors.py bubble_chamber/interop_coordinates.py bubble_chamber/interop_verified_runtime.py scripts/research/bubble_chamber/interop_comparison.py scripts/research/bubble_chamber/interop_calibrated_benchmark.py
+          python -m compileall -q bubble_chamber/interop_api.py bubble_chamber/interop_calibration.py bubble_chamber/interop_detectors.py bubble_chamber/interop_cv_compat.py bubble_chamber/interop_coordinates.py bubble_chamber/interop_verified_runtime.py scripts/research/bubble_chamber/interop_comparison.py scripts/research/bubble_chamber/interop_calibrated_benchmark.py
           if git ls-files 'bubble_chamber/interop*' 'scripts/research/bubble_chamber/interop*' 'docs/bubble_chamber/S85_INTEROP*' | grep -Ei '\.(bmp|png|jpe?g|7z|zip|pt|pth|npy|npz|pkl|joblib)$'; then
             echo 'Private data/model weights in integration sources' >&2
             exit 1

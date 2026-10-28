@@ -69,6 +69,15 @@ public_counts = result.as_public_dict()  # NO raw pixels or coordinates
 
 **Ограничение:** `CalibrationReceipt.validation_level` — декларация происхождения, а не независимый сертификат эксперта; для физического использования требуется внешняя валидация.
 
+## OpenCV-совместимость и научная воспроизводимость
+
+Исторические сравнения LSD/Hough зафиксированы с исходным `interop_detectors.py` (v1). В разных версиях OpenCV вывод может иметь форму `(N,1,4)` или `(N,4)`. Для нового кода используйте `bubble_chamber.interop_cv_compat.OpenCVLSDCompatibleDetector` или `OpenCVHoughCompatibleDetector` (v2), они поддерживают обе формы без изменения геометрии. **Эти v2 детекторы требуют нового TRAIN/CAL**; старые результаты и пороги v1 не считаются проверенными для v2. Подробности: `docs/bubble_chamber/OPENCV_INTEROP_COMPATIBILITY_2026_10_28.md`.
+
+```bash
+python scripts/research/bubble_chamber/example_cv_compatible_detector.py
+python -m pytest -q tests/test_interop_cvshape_v2.py
+```
+
 ## 4. Как сравнивать с альтернативами
 
 Сравнивайте на одинаковых сценах, сплитах и правилах оценки:

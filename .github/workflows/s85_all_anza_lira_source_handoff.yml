@@ -7,6 +7,9 @@ on:
     paths:
       - '.github/workflows/s85_all_anza_lira_source_handoff.yml'
       - 'bubble_chamber/interop_anza_frontend.py'
+      - 'bubble_chamber/interop_cv_compat.py'
+      - 'tests/test_interop_cvshape_v2.py'
+      - 'scripts/research/bubble_chamber/example_cv_compatible_detector.py'
       - 'scripts/research/bubble_chamber/example_anza_to_graph_lira.py'
       - 'tests/test_interop_anza_full_path.py'
       - 'README_FULL_ANZA_LIRA_HANDOFF.md'
@@ -63,6 +66,7 @@ jobs:
             "bubble_chamber/s14_anza_frontend.py",
             "bubble_chamber/interop_api.py",
             "bubble_chamber/interop_anza_frontend.py",
+            "bubble_chamber/interop_cv_compat.py",
             "bubble_chamber/s56_global_path_assembly.py",
             "bubble_chamber/s85_fragment_ranker.py",
             "docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json",
