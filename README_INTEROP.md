@@ -10,6 +10,10 @@
 
 **Not recommended by default:** automatically welding original tracks, transferring ANZA scores to another detector, applying S80/S85 added-line gates without detector-specific TRAIN/CAL, or claiming physical improvement from synthetic proxies.
 
+## Оригинальная ANZA — полный комплект
+
+В корне текущей ветки см. [`README_FULL_ANZA_LIRA_HANDOFF.md`](README_FULL_ANZA_LIRA_HANDOFF.md). Там описаны оригинальные `models/azconv.py` и `models/segmentation.py`, экспериментальные пакеты `anza_*` и `lira_*` и новая цепочка **оригинальный AZUNet → сегментация → полилинии → Graph-LIRA**. Пример `scripts/research/bubble_chamber/example_anza_to_graph_lira.py` работает без закрытых данных с **необученной оригинальной архитектурой** и намеренно не предлагает физических соединений. Для настоящего checkpoint используйте `OriginalAZUNetDetector.from_private_checkpoint()` и отдельные TRAIN/CAL для входного детектора; старый S72 scorer не переносится.
+
 ## Quick start
 
 ```bash
