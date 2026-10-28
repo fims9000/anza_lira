@@ -1,0 +1,111 @@
+name: S85 full ANZA-LIRA text-only developer source handoff
+
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - '.github/workflows/s85_all_anza_lira_source_handoff.yml'
+      - 'bubble_chamber/interop_anza_frontend.py'
+      - 'scripts/research/bubble_chamber/example_anza_to_graph_lira.py'
+      - 'tests/test_interop_anza_full_path.py'
+      - 'README_FULL_ANZA_LIRA_HANDOFF.md'
+      - 'docs/bubble_chamber/FULL_ANZA_LIRA_HANDOFF_2026_10_28.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-analyze-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build complete model/source/research text-only archive
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, subprocess, zipfile
+          files = [p for p in subprocess.check_output(
+            ["git", "ls-files", "-z"]).decode("utf8").split("\0") if p]
+          banned_prefixes = (
+            "artifacts/", "datasets/", "results/", "docs/varvara/",
+            ".agents/", ".codex/", ".git/",
+          )
+          banned_files = {".env", ".env.local", "credentials.json", "secrets.json"}
+          allowed_ext = {
+            ".py", ".md", ".json", ".yaml", ".yml", ".txt", ".toml", ".ini",
+            ".cfg", ".sh", ".bat", ".rst", ".gitignore", ".gitattributes",
+          }
+          included = {}
+          excluded = {"banned_location":0, "unsupported_extension":0,
+                      "binary_or_oversize":0}
+          for p in sorted(files):
+            x = Path(p)
+            if p.startswith(banned_prefixes) or x.name.lower() in banned_files:
+              excluded["banned_location"] += 1
+              continue
+            if x.suffix.lower() not in allowed_ext and x.name not in {
+              "LICENSE", "Dockerfile", ".gitignore", ".gitattributes"}:
+              excluded["unsupported_extension"] += 1
+              continue
+            raw = x.read_bytes()
+            if len(raw) > 2_000_000 or b"\0" in raw:
+              excluded["binary_or_oversize"] += 1
+              continue
+            raw.decode("utf8")
+            included[p] = raw
+          essentials = [
+            "README.md", "README_INTEROP.md",
+            "models/azconv.py", "models/segmentation.py",
+            "bubble_chamber/s14_anza_frontend.py",
+            "bubble_chamber/interop_api.py",
+            "bubble_chamber/interop_anza_frontend.py",
+            "bubble_chamber/s56_global_path_assembly.py",
+            "bubble_chamber/s85_fragment_ranker.py",
+            "docs/bubble_chamber/EXPERIMENT_IDS_MACHINE_ONLY.json",
+          ]
+          for name in essentials:
+            if name not in included:
+              raise RuntimeError(f"Critical ANZA/LIRA file missing: {name}")
+          for prefix in (
+            "anza_tracegraph/", "anza_ks/", "lira_final/", "lira_graph_cut_v2/",
+            "bubble_chamber/", "models/", "scripts/", "tests/",
+            "docs/bubble_chamber/",
+          ):
+            if not any(p.startswith(prefix) for p in included):
+              raise RuntimeError("Entire module missing: " + prefix)
+          if len(included) < 1500:
+            raise RuntimeError(f"Incomplete source snapshot: {len(included)} files")
+          ref = subprocess.check_output(["git", "rev-parse", "HEAD"],text=True).strip()
+          manifest = {
+            "repository": "fims9000/anza_lira",
+            "branch": "research/bubble-chamber-graph-lira",
+            "git_commit": ref,
+            "source_only": True,
+            "private_data_or_model_weights_included": False,
+            "file_count": len(included),
+            "excluded_file_count_by_policy": excluded,
+            "sha256": {
+              p: hashlib.sha256(raw).hexdigest()
+              for p,raw in included.items()
+            },
+          }
+          out = "ANZA_LIRA_ALL_CODE_AND_RESEARCH_SOURCE.zip"
+          with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=7) as z:
+            for p,raw in included.items():
+              z.writestr(p,raw)
+            z.writestr("COMPLETE_SOURCE_SHA256_MANIFEST.json",
+              json.dumps(manifest,indent=2,ensure_ascii=False))
+          with zipfile.ZipFile(out) as z:
+            assert z.testzip() is None
+          print("Verified source snapshot:",len(included),"files at",ref,excluded)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anza-lira-all-source-code-and-research
+          path: ANZA_LIRA_ALL_CODE_AND_RESEARCH_SOURCE.zip
+          retention-days: 7
+          if-no-files-found: error
