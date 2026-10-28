@@ -1,0 +1,9 @@
+# Minimal install for the detector-agnostic 2D research API + source-only QA.
+# Does not install model weights, private H50Z photographs, or source geometry.
+numpy>=1.24
+scipy>=1.10
+scikit-image>=0.21
+opencv-python-headless>=4.8
+networkx>=3.0
+scikit-learn>=1.3
+pytest>=7.0

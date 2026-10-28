@@ -1,0 +1,617 @@
+{
+  "CAL_selected": {
+    "hessian-ridge-v1": "none",
+    "opencv-hough-p-v1": "none",
+    "opencv-lsd-v1": "none"
+  },
+  "CAL_strategies": {
+    "hessian-ridge-v1": {
+      "global_milp": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      },
+      "node_mutual": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      },
+      "port_greedy": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      }
+    },
+    "opencv-hough-p-v1": {
+      "global_milp": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      },
+      "node_mutual": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      },
+      "port_greedy": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      }
+    },
+    "opencv-lsd-v1": {
+      "global_milp": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      },
+      "node_mutual": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      },
+      "port_greedy": {
+        "cal": null,
+        "eligible": false,
+        "threshold": 1.0
+      }
+    }
+  },
+  "H50Z_native_physics_improvement_demonstrated": false,
+  "TEST_aggregates": {
+    "hessian-ridge-v1": {
+      "blur_sigma_11": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 59,
+          "candidate_polylines": 92,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 49,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 59,
+          "candidate_polylines": 92,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 49,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 59,
+          "candidate_polylines": 92,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 49,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 59,
+          "candidate_polylines": 92,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 49,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      },
+      "clean": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 113,
+          "candidate_polylines": 123,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 92,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 113,
+          "candidate_polylines": 123,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 92,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 113,
+          "candidate_polylines": 123,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 92,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 113,
+          "candidate_polylines": 123,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 92,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      },
+      "scratch_grain": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 118,
+          "candidate_polylines": 152,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 86,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 118,
+          "candidate_polylines": 152,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 86,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 118,
+          "candidate_polylines": 152,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 86,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 118,
+          "candidate_polylines": 152,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 86,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      }
+    },
+    "opencv-hough-p-v1": {
+      "blur_sigma_11": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 136,
+          "candidate_polylines": 130,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 48,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 136,
+          "candidate_polylines": 130,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 48,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 136,
+          "candidate_polylines": 130,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 48,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 136,
+          "candidate_polylines": 130,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 48,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      },
+      "clean": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 442,
+          "candidate_polylines": 273,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 112,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 442,
+          "candidate_polylines": 273,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 112,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 442,
+          "candidate_polylines": 273,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 112,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 442,
+          "candidate_polylines": 273,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 112,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      },
+      "scratch_grain": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 158,
+          "candidate_polylines": 288,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 42,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 158,
+          "candidate_polylines": 288,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 42,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 158,
+          "candidate_polylines": 288,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 42,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 158,
+          "candidate_polylines": 288,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 42,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      }
+    },
+    "opencv-lsd-v1": {
+      "blur_sigma_11": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 383,
+          "candidate_polylines": 228,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 110,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 383,
+          "candidate_polylines": 228,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 110,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 383,
+          "candidate_polylines": 228,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 110,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 383,
+          "candidate_polylines": 228,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 110,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      },
+      "clean": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 413,
+          "candidate_polylines": 234,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 126,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 413,
+          "candidate_polylines": 234,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 126,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 413,
+          "candidate_polylines": 234,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 126,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 413,
+          "candidate_polylines": 234,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 126,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      },
+      "scratch_grain": {
+        "global_milp": {
+          "candidate_pairs_after_strict_gate": 228,
+          "candidate_polylines": 227,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 91,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "node_mutual": {
+          "candidate_pairs_after_strict_gate": 228,
+          "candidate_polylines": 227,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 91,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "none": {
+          "candidate_pairs_after_strict_gate": 228,
+          "candidate_polylines": 227,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 91,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        },
+        "port_greedy": {
+          "candidate_pairs_after_strict_gate": 228,
+          "candidate_polylines": 227,
+          "complete_three_piece_paths_synthetic": 0,
+          "scenes": 24,
+          "selected_synthetic_correct_links": 0,
+          "shape_true_fragments_matched": 91,
+          "solver_failure": 0,
+          "synthetic_noncorrect_selected": 0
+        }
+      }
+    }
+  },
+  "cal_frozen_before_test": true,
+  "cal_scenes": 16,
+  "detectors": [
+    "hessian-ridge-v1",
+    "opencv-lsd-v1",
+    "opencv-hough-p-v1"
+  ],
+  "experiment_id": "ANZA-LIRA-BC-S85-INTEROP-CAL-20261028",
+  "frozen_design_budgets": {
+    "cal": 16,
+    "test": 24,
+    "train": 24
+  },
+  "learned_models_are_generated_proxy_only": true,
+  "mode": "GENERATED_ONLY_NOT_H50Z",
+  "models": {
+    "hessian-ridge-v1": {
+      "feature_fields": [
+        "endpoint_gap_px",
+        "outgoing_tangent_A_to_gap",
+        "outgoing_tangent_B_to_gap",
+        "outgoing_tangent_mutual",
+        "path_length_ratio",
+        "chord_curvature_consistency"
+      ],
+      "frozen_private_parameters_sha256": "53b5d8ca34f702bfadfd7afd0547e95e38c3ecd94b3555d7d338b656711713ca",
+      "independent_positive_source_scenes": 20,
+      "model_type": "StandardScaler + regularized LogisticRegression",
+      "negative": 245,
+      "pairs": 328,
+      "positive": 83,
+      "trained": true
+    },
+    "opencv-hough-p-v1": {
+      "feature_fields": [
+        "endpoint_gap_px",
+        "outgoing_tangent_A_to_gap",
+        "outgoing_tangent_B_to_gap",
+        "outgoing_tangent_mutual",
+        "path_length_ratio",
+        "chord_curvature_consistency"
+      ],
+      "frozen_private_parameters_sha256": "45c246f131823705f77578e05c92424f3b5657a084a44e3bb42821d40c77bd99",
+      "independent_positive_source_scenes": 11,
+      "model_type": "StandardScaler + regularized LogisticRegression",
+      "negative": 649,
+      "pairs": 672,
+      "positive": 23,
+      "trained": true
+    },
+    "opencv-lsd-v1": {
+      "feature_fields": [
+        "endpoint_gap_px",
+        "outgoing_tangent_A_to_gap",
+        "outgoing_tangent_B_to_gap",
+        "outgoing_tangent_mutual",
+        "path_length_ratio",
+        "chord_curvature_consistency"
+      ],
+      "frozen_private_parameters_sha256": "8f246b20089b390f7fe9f7045e594faf1fb01c405a3c681b84909edf6b949a00",
+      "independent_positive_source_scenes": 20,
+      "model_type": "StandardScaler + regularized LogisticRegression",
+      "negative": 842,
+      "pairs": 951,
+      "positive": 109,
+      "trained": true
+    }
+  },
+  "paired_global_minus_greedy_TEST": {
+    "hessian-ridge-v1": {
+      "blur_sigma_11": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      },
+      "clean": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      },
+      "scratch_grain": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "opencv-hough-p-v1": {
+      "blur_sigma_11": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      },
+      "clean": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      },
+      "scratch_grain": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "opencv-lsd-v1": {
+      "blur_sigma_11": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      },
+      "clean": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      },
+      "scratch_grain": {
+        "delta_total": 0,
+        "mean_delta_per_scene": 0.0,
+        "paired_scene_bootstrap_95pct": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "physical_GT_count": 0,
+  "physical_auto_joins_authorized": false,
+  "schema": "S85_INTEROP_DETECTOR_SPECIFIC_TRAIN_CAL_FRESH_TEST_V1",
+  "smoke_NOT_CONFIRMATORY": false,
+  "source_locks": {
+    "bubble_chamber/interop_api.py": "dfd150b32459de71b4e4cc4135d57033055091a255135f65b6916d3f98d5ef75",
+    "bubble_chamber/interop_detectors.py": "656bf257407b99254ffabcc4a54aa428e337d99105ac5a06effacc84a9e819f0",
+    "docs/bubble_chamber/S85_INTEROP_CALIBRATED_TOY_PROTOCOL_2026_10_28.md": "9a2c40b37d2c32d7b40666ecb86410c18f1fe10f901b4536475c9b730391c2c3",
+    "scripts/research/bubble_chamber/interop_calibrated_benchmark.py": "6bec7f8442d207ac77fcde68af52d1a95a17a58f6b9f5d52c3b7c90b0fd2dc44"
+  },
+  "test_scenes": 24,
+  "three_conditions": [
+    "clean",
+    "blur_sigma_11",
+    "scratch_grain"
+  ],
+  "train_scenes": 24,
+  "training_source_seeds": {
+    "cal": 20268611,
+    "test": 20268612,
+    "train": 20268610
+  }
+}

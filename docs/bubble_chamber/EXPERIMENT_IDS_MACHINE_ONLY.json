@@ -706,6 +706,77 @@
       "physical_auto_join_authorized": false,
       "source_only_smoke_is_not_scientific_H50Z": true,
       "privacy": "No private H50Z pixels, film070 measured points, model coefficients, weights, or private overlay images in public source"
+    },
+    {
+      "id": "ANZA-LIRA-BC-S85-INTEROP-20261028",
+      "phase": "S85_INTEROP_TOY_DIAGNOSTIC",
+      "status": "COMPONENT_REUSABLE_TOY_RESULTS_NO_REAL_H50Z_CLAIMS",
+      "protocol": "docs/bubble_chamber/S85_INTEROP_COMPARISON_PROTOCOL_2026_10_28.md",
+      "predictor": "bubble_chamber/interop_api.py",
+      "detectors": "bubble_chamber/interop_detectors.py",
+      "calibration": "bubble_chamber/interop_calibration.py",
+      "benchmark": "scripts/research/bubble_chamber/interop_comparison.py",
+      "result": "docs/bubble_chamber/S85_INTEROP_PUBLIC_TOY_AGGREGATES_2026_10_28.json",
+      "readme": "docs/bubble_chamber/DEVELOPER_INTEGRATION_2026_10_28.md",
+      "results_report": "docs/bubble_chamber/S85_INTEROP_COMPARISON_RESULTS_2026_10_28.md",
+      "protocol_sha256": "3a946be96706fdb64361e1d1fbdd17bfdec5decfe8810d2d2dc096250ef3cca8",
+      "predictor_sha256": "dfd150b32459de71b4e4cc4135d57033055091a255135f65b6916d3f98d5ef75",
+      "detectors_sha256": "656bf257407b99254ffabcc4a54aa428e337d99105ac5a06effacc84a9e819f0",
+      "calibration_sha256": "e97b69801da2e4ad550f045d145eb7c15bb3c534513ee79292d89ff18dc869c4",
+      "benchmark_sha256": "7472401ff5df0aa1c90d5f7182ae2d25f04e8c5b5bfa87539faaecb1283859fd",
+      "result_sha256": "6c46f3c4bcbbac1d1bc72d996953d2cb0894737587388a20fbce63171828e601",
+      "readme_sha256": "d516f80586ca5bd8a8a70d9923aba71db7f192739e0d4d360c4b140e00a77c56",
+      "results_report_sha256": "41616ce7de7f34a7ab714d8a090a541bc8ad6b9d7a582b414d6dc6a1ecc5ae4e",
+      "toy_scenes_per_condition": 20,
+      "toy_conditions": [
+        "clean",
+        "blur_sigma_11",
+        "scratch_grain"
+      ],
+      "source_model": "FIXED_UNCALIBRATED_TOY_HEURISTIC",
+      "source_historical_S72_default_unchanged": true,
+      "real_H50Z_test_executed": false,
+      "detector_specific_calibration_proven": false,
+      "native_GT_count": 0,
+      "physical_auto_join_authorized": false,
+      "no_private_data_in_release": true
+    },
+    {
+      "id": "ANZA-LIRA-BC-S85-INTEROP-CAL-20261028",
+      "phase": "S85_interop_calibrated_toy",
+      "status": "NEGATIVE_CAL_NO_SAFE_JOIN_STRATEGY__ONLY_GENERATED_TOY",
+      "protocol": "docs/bubble_chamber/S85_INTEROP_CALIBRATED_TOY_PROTOCOL_2026_10_28.md",
+      "benchmark": "scripts/research/bubble_chamber/interop_calibrated_benchmark.py",
+      "result": "docs/bubble_chamber/S85_INTEROP_CALIBRATED_GENERATED_TOY_RESULTS_2026_10_28.json",
+      "report": "docs/bubble_chamber/S85_INTEROP_CALIBRATED_RESULT_2026_10_28.md",
+      "coords": "bubble_chamber/interop_coordinates.py",
+      "verified_runtime": "bubble_chamber/interop_verified_runtime.py",
+      "readme": "README_INTEROP.md",
+      "protocol_sha256": "9a2c40b37d2c32d7b40666ecb86410c18f1fe10f901b4536475c9b730391c2c3",
+      "benchmark_sha256": "6bec7f8442d207ac77fcde68af52d1a95a17a58f6b9f5d52c3b7c90b0fd2dc44",
+      "result_sha256": "5ac96b1e47461783beec605f0b321c6ab9a726739055a0e726f58a476476b374",
+      "report_sha256": "bf0aec6abf5e3f7d287e8ead6b46a1b00dd9dc569cf1b0f68d292999ba3e27b7",
+      "coords_sha256": "27905cfff8100312a90d94ee6f53f5c3a16b227dc34e01babf32df744a4044be",
+      "verified_runtime_sha256": "6d8f711007da366b0be36341aa96771f1ac6a7c8d6dc0e1af1c2583716ffbb3e",
+      "readme_sha256": "232f587fabcd7411df831c1c27bd0a55dbf4637b0e3c220af84830beabeb5c83",
+      "source_only_frozen_SEEDS": {
+        "train": 20268610,
+        "cal": 20268611,
+        "test": 20268612
+      },
+      "independent_synthetic_scenes": {
+        "TRAIN": 24,
+        "CAL": 16,
+        "TEST": 24
+      },
+      "CAL_selected_all_detectors": "none",
+      "all_three_models_trained": true,
+      "real_H50Z_test_executed": false,
+      "native_GT_count": 0,
+      "physical_auto_join_authorized": false,
+      "ready_for_developer_shadow_integration": true,
+      "ready_for_real_physics_auto_join": false,
+      "privacy": "Synthetic aggregate-only; no H50Z, visualMetro point coordinates or model weights"
     }
   ]
 }

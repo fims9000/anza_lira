@@ -1,0 +1,87 @@
+name: S85 integration interfaces, detector swaps and synthetic-only benchmark
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/interop_*.py'
+      - 'scripts/research/bubble_chamber/interop_*.py'
+      - 'scripts/research/bubble_chamber/example_external_detector.py'
+      - 'tests/test_interop_*.py'
+      - 'docs/bubble_chamber/S85_INTEROP_*'
+      - 'docs/bubble_chamber/DEVELOPER_INTEGRATION_2026_10_28.md'
+      - '.github/workflows/s85_interop_developer_ci.yml'
+      - 'requirements-interop.txt'
+      - 'README_INTEROP.md'
+      - 'docs/bubble_chamber/DEVELOPER_INTEGRATION_ADDENDUM_2026_10_28.md'
+      - 'scripts/research/bubble_chamber/example_verified_external_detector.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install small research interface dependencies
+        run: python -m pip install -r requirements-interop.txt
+      - name: Verify public detector/score/graph contracts and synthetic code paths
+        env:
+          OMP_NUM_THREADS: '1'
+          OPENBLAS_NUM_THREADS: '1'
+        run: python -m pytest -q tests/test_interop_*.py
+      - name: Run both generated toy-only demos (not H50Z)
+        run: |
+          python scripts/research/bubble_chamber/example_external_detector.py
+          python scripts/research/bubble_chamber/example_verified_external_detector.py
+      - name: Compile source and verify no private materials tracked
+        shell: bash
+        run: |
+          python -m compileall -q bubble_chamber/interop_api.py bubble_chamber/interop_calibration.py bubble_chamber/interop_detectors.py bubble_chamber/interop_coordinates.py bubble_chamber/interop_verified_runtime.py scripts/research/bubble_chamber/interop_comparison.py scripts/research/bubble_chamber/interop_calibrated_benchmark.py
+          if git ls-files 'bubble_chamber/interop*' 'scripts/research/bubble_chamber/interop*' 'docs/bubble_chamber/S85_INTEROP*' | grep -Ei '\.(bmp|png|jpe?g|7z|zip|pt|pth|npy|npz|pkl|joblib)$'; then
+            echo 'Private data/model weights in integration sources' >&2
+            exit 1
+          fi
+      - name: Build complete source-only branch bundle with manifest
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json, subprocess, zipfile
+          from pathlib import Path
+          roots=('bubble_chamber/','scripts/research/bubble_chamber/', 'tests/',
+                 'docs/bubble_chamber/', 'models/', '.github/workflows/')
+          extras={'requirements.txt','requirements-interop.txt','README_INTEROP.md'}
+          allow={'.py','.md','.json','.yaml','.yml','.txt','.html','.toml','.ini','.cfg'}
+          tracked=subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          artifacts={}
+          for name in sorted(filter(None,tracked)):
+              if not (name.startswith(roots) or name in extras) or Path(name).suffix not in allow:
+                  continue
+              content=Path(name).read_bytes()
+              if b'\0' in content or len(content)>2_000_000:
+                  raise RuntimeError('Unsafe public source: '+name)
+              content.decode('utf8')
+              artifacts[name]=content
+          if len(artifacts)<990:
+              raise AssertionError('Unexpectedly incomplete source tree')
+          manifest={'git_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+                    'native_physics_GT_count':0,'private_pixels_included':False,
+                    'files':{k:hashlib.sha256(v).hexdigest() for k,v in artifacts.items()}}
+          with zipfile.ZipFile('ANZA_LIRA_INTEROP_COMPLETE_SOURCE.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name,content in artifacts.items():z.writestr(name,content)
+              z.writestr('SOURCE_SHA256_MANIFEST.json',json.dumps(manifest,indent=2,sort_keys=True))
+          with zipfile.ZipFile('ANZA_LIRA_INTEROP_COMPLETE_SOURCE.zip') as z:
+              assert z.testzip() is None
+              assert len(manifest['files'])>=990
+          print('Packaged source entries:',len(artifacts))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: s85-interoperability-complete-public-source
+          path: ANZA_LIRA_INTEROP_COMPLETE_SOURCE.zip
+          if-no-files-found: error
+          retention-days: 7
