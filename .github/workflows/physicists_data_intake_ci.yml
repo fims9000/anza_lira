@@ -1,0 +1,60 @@
+name: Physicists BMP inventory, crosses and sparse stereo semantics
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'README.md'
+      - 'docs/bubble_chamber/physicists/INPUT_DATA_AND_INTEGRATION.md'
+      - 'bubble_chamber/physicists_intake.py'
+      - 'scripts/research/bubble_chamber/physicists_data_intake.py'
+      - 'scripts/research/bubble_chamber/physicists_batch_preview.py'
+      - 'tests/test_physicists_data_intake.py'
+      - 'tests/test_physicists_batch_preview.py'
+      - '.github/workflows/physicists_data_intake_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validated-source-only-intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install minimal public-source image and graph dependencies
+        run: python -m pip install numpy scipy scikit-image networkx opencv-python-headless pytest
+      - name: Test both annotation sources with GENERATED pixels only
+        run: >-
+          python -m pytest -q
+          tests/test_physicists_data_intake.py
+          tests/test_physicists_batch_preview.py
+          tests/test_physicists_handoff.py
+          tests/test_h50z_seed_analysis.py
+          tests/test_visualmetro_import.py
+          tests/test_large_visualmetro_audit.py
+      - name: Check docs and CLI entrypoints
+        run: |
+          python -m compileall -q bubble_chamber/physicists_intake.py scripts/research/bubble_chamber/physicists_data_intake.py scripts/research/bubble_chamber/physicists_batch_preview.py
+          python scripts/research/bubble_chamber/physicists_data_intake.py --help
+          python scripts/research/bubble_chamber/physicists_batch_preview.py --help
+          python scripts/research/bubble_chamber/build_physicists_handoff.py --check
+          python - <<'PY'
+          from pathlib import Path
+          readme=Path('README.md').read_text()
+          for filename in ('docs/bubble_chamber/physicists/INPUT_DATA_AND_INTEGRATION.md',
+                           'scripts/research/bubble_chamber/physicists_data_intake.py',
+                           'scripts/research/bubble_chamber/physicists_batch_preview.py'):
+              assert filename in readme and Path(filename).is_file(),filename
+          guide=Path('docs/bubble_chamber/physicists/INPUT_DATA_AND_INTEGRATION.md').read_text()
+          assert 'visualMetro' in guide and 'labels.json' in guide
+          assert 'UNKNOWN' in guide and 'не' in guide
+          PY
+      - name: Enforce public source-only privacy boundary
+        run: |
+          if git ls-files 'bubble_chamber/physicists_intake*' 'scripts/research/bubble_chamber/physicists_*' 'tests/test_physicists_*' | grep -Ei '\.(bmp|png|jpg|tif|tiff|7z|zip|pt|pth|ckpt|npy|npz|pkl|joblib)$'; then
+            echo 'PRIVATE physical imagery/weights cannot be pushed to GitHub' >&2
+            exit 1
+          fi
