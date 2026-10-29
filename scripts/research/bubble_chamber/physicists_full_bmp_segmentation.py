@@ -17,16 +17,19 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--bmp', required=True, type=Path)
     parser.add_argument('--private-out-dir', required=True, type=Path)
-    parser.add_argument('--method', choices=('contrast', 'frangi', 'azunet'), default='frangi')
+    parser.add_argument('--method', choices=('contrast', 'frangi', 'azunet', 's88-steerable'), default='frangi')
     parser.add_argument('--checkpoint', type=Path, help='trusted source-locked AZUNet .pt (PRIVATE)')
     parser.add_argument('--core', type=int, default=384)
     parser.add_argument('--halo', type=int, default=48)
+    parser.add_argument('--s88-low-snr', type=float, default=1.7)
+    parser.add_argument('--s88-high-snr', type=float, default=3.4)
     parser.add_argument('--min-length', type=float, default=12.0)
     parser.add_argument('--preview-limit', type=int, default=16)
     parser.add_argument('--full-mask-npy', action='store_true')
     parser.add_argument('--resume', action='store_true')
     args = parser.parse_args(argv)
     cfg = FullBMPConfig(method=args.method, core_size=args.core, halo=args.halo,
+                        s88_low_snr=args.s88_low_snr, s88_high_snr=args.s88_high_snr,
                         min_segment_length_px=args.min_length,
                         preview_limit=args.preview_limit, full_mask_npy=args.full_mask_npy)
     result = run_full_bmp(args.bmp, args.private_out_dir, cfg,

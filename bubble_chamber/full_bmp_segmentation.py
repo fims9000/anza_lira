@@ -23,7 +23,7 @@ from .pilot import arc_sample, extract_skeleton_segments, fit_quadratic
 from .ridges import frangi_dark_ridges
 
 SCHEMA = 'ANZA_LIRA_PRIVATE_TILED_SEGMENTATION_V1'
-METHODS = ('contrast', 'frangi', 'azunet')
+METHODS = ('contrast', 'frangi', 'azunet', 's88-steerable')
 
 
 @dataclass(frozen=True)
@@ -34,6 +34,8 @@ class FullBMPConfig:
     contrast_threshold: float = 18.0
     ridge_response_fraction: float = 0.12
     az_threshold: float = 0.5
+    s88_low_snr: float = 1.7
+    s88_high_snr: float = 3.4
     min_component_area: int = 15
     min_segment_length_px: float = 12.0
     max_skeleton_pixels: int = 30000
@@ -55,6 +57,9 @@ class FullBMPConfig:
             raise ValueError('contrast threshold must be positive')
         if not 0 < self.ridge_response_fraction < 1 or not 0.05 <= self.az_threshold <= 0.95:
             raise ValueError('invalid segmentation threshold')
+        if self.method == 's88-steerable':
+            from .s88_weak_ridges import WeakRidgeConfig
+            WeakRidgeConfig(low_snr=self.s88_low_snr, high_snr=self.s88_high_snr).validate()
         if self.min_component_area < 1 or self.min_segment_length_px < 4:
             raise ValueError('invalid component or fragment minimum')
         if self.max_skeleton_pixels < 100 or self.max_fragments_per_tile < 1 or self.sample_points < 5:
@@ -100,6 +105,12 @@ def predict_mask(gray: np.ndarray, cfg: FullBMPConfig, *, az_model=None) -> np.n
         mask, _ = frangi_dark_ridges(gray, response_fraction=cfg.ridge_response_fraction,
                                      min_area=cfg.min_component_area)
         return mask
+    if cfg.method == 's88-steerable':
+        from .s88_weak_ridges import WeakRidgeConfig, dark_ridge_candidates
+        mask, _ = dark_ridge_candidates(gray, WeakRidgeConfig(
+            low_snr=cfg.s88_low_snr, high_snr=cfg.s88_high_snr,
+            min_component_pixels=cfg.min_component_area))
+        return mask
     if az_model is None:
         raise ValueError('azunet requires a source-locked private checkpoint')
     # Same original AZUNet input convention as s14_anza_frontend; do not create
@@ -127,7 +138,7 @@ def _edge_point(xy: list[int], core: tuple[int, int, int, int]) -> bool:
 
 
 def _fragments(core_skeleton: np.ndarray, core: tuple[int, int, int, int],
-               cfg: FullBMPConfig):
+               cfg: FullBMPConfig, *, s88_evidence=None, window=None):
     skeleton_count = int(np.count_nonzero(core_skeleton))
     if skeleton_count > cfg.max_skeleton_pixels:
         return [], 'skeleton_pixel_budget', skeleton_count
@@ -141,7 +152,7 @@ def _fragments(core_skeleton: np.ndarray, core: tuple[int, int, int, int],
         xy = (points[:, ::-1] + np.array([core[0], core[1]])).astype(np.int32)
         sampled = arc_sample(points + np.array([core[1], core[0]]), cfg.sample_points)
         length = float(np.linalg.norm(np.diff(points, axis=0), axis=1).sum())
-        fragments.append({
+        item = {
             'fragment_id': f'{_tile_id(core)}_f{len(fragments):04d}',
             'centerline_xy_source_px': xy.tolist(),
             'sampled_xy_source_px': np.round(sampled[:, ::-1], 3).tolist(),
@@ -150,7 +161,26 @@ def _fragments(core_skeleton: np.ndarray, core: tuple[int, int, int, int],
             'touches_tile_boundary': bool(_edge_point(xy[0].tolist(), core)
                                           or _edge_point(xy[-1].tolist(), core)),
             'status': 'UNKNOWN',
-        })
+        }
+        if s88_evidence is not None:
+            if window is None:
+                raise ValueError('S88 evidence requires original window coordinates')
+            # Path pixels are integer skeleton positions within the *core*.
+            # The Hessian offset remains in original-pixel units, even though
+            # S86's canonical observed binary skeleton is integer-valued.
+            y = points[:, 0].astype(np.int64) + core[1] - window[1]
+            x = points[:, 1].astype(np.int64) + core[0] - window[0]
+            subpixel = s88_evidence['subpixel_xy_px'][y, x].astype(np.float64)
+            subpixel += np.array([window[0], window[1]])
+            strength = s88_evidence['score_snr_proxy'][y, x]
+            item.update({
+                'subpixel_centerline_xy_source_px': np.round(subpixel, 4).tolist(),
+                's88_ridge_score_proxy_median': round(float(np.median(strength)), 5),
+                's88_selected_sigma_px_median': round(float(np.median(
+                    s88_evidence['selected_sigma_px'][y, x])), 5),
+                'subpixel_semantics': 'LOCAL_IMAGE_GEOMETRY_ONLY_NOT_CALIBRATED_PARTICLE_TRACK',
+            })
+        fragments.append(item)
     return fragments, None, skeleton_count
 
 
@@ -173,12 +203,20 @@ def _save_png_atomic(path: Path, image: np.ndarray) -> None:
 def _process_tile(bmp: GrayBMP8, core, cfg: FullBMPConfig, out: Path,
                   preview: bool, az_model=None) -> dict[str, Any]:
     pixels, win = _window(bmp, core, cfg.halo)
-    foreground = predict_mask(pixels, cfg, az_model=az_model)
+    s88_evidence = None
+    if cfg.method == 's88-steerable':
+        from .s88_weak_ridges import WeakRidgeConfig, dark_ridge_candidates
+        foreground, s88_evidence = dark_ridge_candidates(pixels, WeakRidgeConfig(
+            low_snr=cfg.s88_low_snr, high_snr=cfg.s88_high_snr,
+            min_component_pixels=cfg.min_component_area))
+    else:
+        foreground = predict_mask(pixels, cfg, az_model=az_model)
     a, b = core[1] - win[1], core[0] - win[0]
     h, w = core[3] - core[1], core[2] - core[0]
     core_mask = foreground[a:a + h, b:b + w]
     skeleton = skeletonize(foreground)[a:a + h, b:b + w]
-    fragments, skip, count = _fragments(skeleton, core, cfg)
+    fragments, skip, count = _fragments(skeleton, core, cfg,
+                                      s88_evidence=s88_evidence, window=win)
     tid = _tile_id(core)
     mask_rel = f'masks/{tid}.png'
     _save_png_atomic(out / mask_rel, (core_mask.astype(np.uint8) * 255))

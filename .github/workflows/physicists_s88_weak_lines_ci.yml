@@ -1,0 +1,66 @@
+name: Bubble-chamber S88 weak-ridge candidate evaluation (generated-only)
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/full_bmp_segmentation.py'
+      - 'bubble_chamber/s88_weak_ridges.py'
+      - 'bubble_chamber/s88_generated_benchmark.py'
+      - 'scripts/research/bubble_chamber/physicists_full_bmp_segmentation.py'
+      - 'scripts/research/bubble_chamber/s88_benchmark_weak_lines.py'
+      - 'tests/test_s88_weak_ridges.py'
+      - 'docs/bubble_chamber/S88_*'
+      - '.github/workflows/physicists_s88_weak_lines_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generated-only-study:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install source-only numerical environment
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless pytest
+      - name: Regression S86, S87 and S88 on artificial pixels
+        run: >-
+          python -m pytest -q
+          tests/test_full_bmp_segmentation.py
+          tests/test_s87_seam_continuity.py
+          tests/test_s88_weak_ridges.py
+      - name: Reproduce public synthetic-only CAL and independent generated TEST
+        run: >-
+          python scripts/research/bubble_chamber/s88_benchmark_weak_lines.py
+          --output /tmp/S88_GENERATED_ONLY.json --cal-count 8 --test-count 12
+      - name: Validate source hashes, methodology and numeric reproducibility
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from hashlib import sha256
+          recorded=json.loads(Path('docs/bubble_chamber/S88_GENERATED_ONLY_CAL_TEST_METRICS_2026_10_29.json').read_text())
+          current=json.loads(Path('/tmp/S88_GENERATED_ONLY.json').read_text())
+          assert recorded['schema']==current['schema']
+          assert recorded['research_code_sha256']==current['research_code_sha256']
+          assert recorded['selected_using_CAL_only']==current['selected_using_CAL_only']
+          assert current['native_physics_ground_truth_count']==0
+          assert current['native_physical_track_recall_measured'] is False
+          assert current['physical_auto_joins_authorized'] is False
+          for method in ('contrast','frangi','s88-steerable'):
+              for metric,value in recorded['independent_generated_TEST'][method]['summary'].items():
+                  observed=current['independent_generated_TEST'][method]['summary'][metric]
+                  assert abs(value-observed)<0.005,(method,metric,value,observed)
+          PY
+      - name: Check CLI and no private image or weight payloads
+        run: |
+          python -m compileall -q bubble_chamber/s88_weak_ridges.py bubble_chamber/s88_generated_benchmark.py scripts/research/bubble_chamber/s88_benchmark_weak_lines.py
+          python scripts/research/bubble_chamber/physicists_full_bmp_segmentation.py --help
+          python scripts/research/bubble_chamber/s88_benchmark_weak_lines.py --help
+          if git ls-files 'bubble_chamber/s88_*' 'scripts/research/bubble_chamber/s88_*' 'tests/test_s88_*' 'docs/bubble_chamber/S88_*' | grep -Ei '\.(bmp|png|jpe?g|tiff|7z|zip|pt|pth|ckpt|npy|npz|pkl)$'; then
+            echo 'PRIVATE photo, weight, or measurement leaked to research branch' >&2
+            exit 1
+          fi
