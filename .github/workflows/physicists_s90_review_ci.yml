@@ -1,0 +1,50 @@
+name: Bubble-chamber S90 private blinded physicist review
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s90_physicist_review.py'
+      - 'scripts/research/bubble_chamber/physicists_s90_review.py'
+      - 'tests/test_s90_physicist_review.py'
+      - 'docs/bubble_chamber/S90_PRIVATE_BLINDED_PHYSICIST_REVIEW_2026_10_29.md'
+      - '.github/workflows/physicists_s90_review_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generated-only-private-review-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install source-only image dependencies
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless pytest
+      - name: Test S86/S87/S88/S89/S90 chain with GENERATED images only
+        run: >-
+          python -m pytest -q
+          tests/test_full_bmp_segmentation.py
+          tests/test_s87_seam_continuity.py
+          tests/test_s88_weak_ridges.py
+          tests/test_s89_private_candidate_audit.py
+          tests/test_s90_physicist_review.py
+      - name: Compile S90 and verify both local CLI commands
+        run: |
+          python -m compileall -q bubble_chamber/s90_physicist_review.py scripts/research/bubble_chamber/physicists_s90_review.py
+          python scripts/research/bubble_chamber/physicists_s90_review.py --help
+          python scripts/research/bubble_chamber/physicists_s90_review.py build --help
+          python scripts/research/bubble_chamber/physicists_s90_review.py verify --help
+      - name: Public repository must have no private physics media, human votes or model weights
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s90_*' 'scripts/research/bubble_chamber/physicists_s90_*' 'tests/test_s90_*' 'docs/bubble_chamber/S90_*' | grep -Ei '\.(bmp|jpe?g|png|tif|tiff|7z|zip|pt|pth|ckpt|pkl|joblib|npy|npz|csv|ndjson)$'; then
+            echo 'PRIVATE bubble-chamber material is forbidden in public repository' >&2
+            exit 1
+          fi
+          if grep -R -n -E 'data:image/(png|jpeg);base64,' docs/bubble_chamber/S90_PRIVATE_BLINDED_PHYSICIST_REVIEW_2026_10_29.md; then
+            echo 'Embedded private pixels forbidden' >&2
+            exit 1
+          fi
