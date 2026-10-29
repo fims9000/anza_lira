@@ -1,0 +1,163 @@
+{
+  "H50Z_selected_512px_crops": 39,
+  "H50Z_selected_crops_photo_005": 21,
+  "H50Z_selected_crops_photo_006": 18,
+  "allowed_use": "read-only machine hypotheses / private expert review, no auto joins",
+  "expert_verified_H50Z_line_masks": 0,
+  "expert_verified_H50Z_particle_ids": 0,
+  "expert_verified_H50Z_same_track_pairs": 0,
+  "native_GT_count": 0,
+  "original_photographs": 2,
+  "physical_auto_joins_authorized": false,
+  "physical_runs": 1,
+  "private_original_BMP_or_measured_point_coordinates_in_repo": false,
+  "real_H50Z_machine_only": {
+    "additional_ridge_proposals": 434,
+    "after_NMS_graph_nodes": 511,
+    "components_of_four_lines": 1,
+    "components_of_two_lines": 34,
+    "full_frame_line_proposals": 1166,
+    "full_frame_tiles_with_machine_proposals": 127,
+    "machine_connected_components": 35,
+    "machine_pseudo_negative_neighbor_pixels_not_GT": 371223,
+    "machine_pseudo_positive_centerline_pixels_not_GT": 101051,
+    "machine_unknown_pixels": 9751342,
+    "native_machine_draft_start_hypotheses": 72,
+    "native_real_operator_starts": 9,
+    "old_line_proposals": 133,
+    "possible_join_proposals": 182,
+    "sampled_nonselect_full_frame_tiles": 128,
+    "selected_crops_filled_with_new_candidates": 17,
+    "selected_join_hypotheses_UNKNOWN": 37,
+    "total_line_proposals_not_tracks": 567
+  },
+  "real_native_accuracy_precision_recall_available": false,
+  "schema": "ANZA_LIRA_PHYSICISTS_PUBLIC_EVIDENCE_V1",
+  "source_branch": "research/bubble-chamber-graph-lira",
+  "source_file_sha256": {
+    "S39_PUBLIC_RESULTS.json": "c15db5df30d1bf07dbee8ecd9d81d154dea0c887979079328d0d3f48845e2412",
+    "S56_PUBLIC_GLOBAL_PATH_RESULTS.json": "597966608d8c6aa9c00db0617ab54ff411c98b12903bea7a9dd4052780bd9e14",
+    "S58_PUBLIC_MACHINE_PATH_COMPONENTS.json": "435482908c64ca2298291c91e2b41d03108521451bcb7a75debc12f33f1601d6",
+    "S72_PUBLIC_FRESH_TEST_2026_10_26.json": "9b50be77791d8b8dcfa2948554b9e19cc6eafac1b70a0f8f2b746841433f8ad3",
+    "S84_PUBLIC_FRESH_TEST_2026_10_26.json": "c0ac1a3dc6c99a780b57786d15b3e4ab40069673aae85df9c90935380307665a",
+    "S85_INTEROP_CALIBRATED_GENERATED_TOY_RESULTS_2026_10_28.json": "5ac96b1e47461783beec605f0b321c6ab9a726739055a0e726f58a476476b374",
+    "s27_s29_public_metrics.json": "8584ca1dd4d572966d0cfaccb6685544349fbe6bebb73483c44a68b256c52273",
+    "s33_s34_public_metrics.json": "d8d1d1c727eaa8faa1a5b6cf7192dd7c58ab143a7b243c2e13610bcb88b5d1c5"
+  },
+  "synthetic_injection_only": {
+    "S28_known_anchor_curve_coverage": {
+      "curvature_constrained_evidence": {
+        "fraction": 0.96666667,
+        "samples": 16,
+        "successes": 16
+      },
+      "original_AZ_plus_curvature": {
+        "fraction": 0.90897436,
+        "samples": 16,
+        "successes": 15
+      },
+      "straight_evidence": {
+        "fraction": 0.22660256,
+        "samples": 16,
+        "successes": 0
+      }
+    },
+    "S29_one_erased_gap_0px_anchor": {
+      "fraction": 0.83782051,
+      "n": 8,
+      "successes": 7
+    },
+    "S33_photo_disjoint_AUROC_of_injected_trace_vs_scratch": {
+      "005_train_006_test": {
+        "azunet_quantile": 0.653498,
+        "azunet_raw": 0.614273,
+        "unet_local": 0.650324
+      },
+      "006_train_005_test": {
+        "azunet_quantile": 0.616402,
+        "azunet_raw": 0.530245,
+        "unet_local": 0.637459
+      }
+    },
+    "S56_oracle_geometry_not_pixel_end_to_end": {
+      "arms": {
+        "global_forest": {
+          "correct": 246,
+          "full_chains": 66,
+          "other": 13
+        },
+        "node_mutual": {
+          "correct": 88,
+          "full_chains": 0,
+          "other": 15
+        },
+        "port_greedy": {
+          "correct": 441,
+          "full_chains": 129,
+          "other": 36
+        }
+      },
+      "potential_full_paths": 512,
+      "potential_true_joins": 1024,
+      "scene_count": 256
+    },
+    "S72_pixel_to_graph_synthetic_TEST": {
+      "S39_original": {
+        "correct": 56,
+        "full_chains": 12,
+        "other": 52
+      },
+      "frozen_CAL_selected": {
+        "correct": 56,
+        "full_chains": 13,
+        "other": 41
+      },
+      "possible_three_piece_chains": 192,
+      "scene_count": 96
+    },
+    "S84_additional_candidate_CAL_selected_failed_safety": {
+      "blur_sigma_11": {
+        "baseline_complete": 3,
+        "baseline_correct": 14,
+        "baseline_other": 19,
+        "selected_complete": 3,
+        "selected_correct": 15,
+        "selected_other": 24
+      },
+      "blur_sigma_16": {
+        "baseline_complete": 2,
+        "baseline_correct": 10,
+        "baseline_other": 13,
+        "selected_complete": 2,
+        "selected_correct": 10,
+        "selected_other": 12
+      },
+      "clean": {
+        "baseline_complete": 10,
+        "baseline_correct": 43,
+        "baseline_other": 35,
+        "selected_complete": 11,
+        "selected_correct": 45,
+        "selected_other": 42
+      }
+    },
+    "S85_detector_swaps_generated_only": {
+      "CAL_selected_per_detector": {
+        "hessian-ridge-v1": "none",
+        "opencv-hough-p-v1": "none",
+        "opencv-lsd-v1": "none"
+      },
+      "safe_improvement_proven": false,
+      "trained_detectors": 3
+    }
+  },
+  "updated_on": "2026-10-29",
+  "viewer_examples_are": "GENERATED SCHEMATICS, NEVER REAL H50Z OUTPUT",
+  "visualMetro_film_070_frames": 145,
+  "visualMetro_is_NOT_H50Z_photo_GT": true,
+  "visualMetro_train_cal_test_whole_frames": {
+    "cal": 30,
+    "test": 36,
+    "train": 79
+  }
+}

@@ -1,0 +1,71 @@
+name: Physicists handoff - frozen-source audit and offline gallery
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'PHYSICISTS_HANDOFF.md'
+      - 'docs/bubble_chamber/PHYSICISTS_RESULTS_2026_10_29.md'
+      - 'docs/bubble_chamber/physicists/**'
+      - 'scripts/research/bubble_chamber/build_physicists_handoff.py'
+      - 'tests/test_physicists_handoff.py'
+      - '.github/workflows/physicists_handoff_ci.yml'
+      - 'docs/bubble_chamber/S39_PUBLIC_RESULTS.json'
+      - 'docs/bubble_chamber/S56_PUBLIC_GLOBAL_PATH_RESULTS.json'
+      - 'docs/bubble_chamber/S58_PUBLIC_MACHINE_PATH_COMPONENTS.json'
+      - 'docs/bubble_chamber/S72_PUBLIC_FRESH_TEST_2026_10_26.json'
+      - 'docs/bubble_chamber/S84_PUBLIC_FRESH_TEST_2026_10_26.json'
+      - 'docs/bubble_chamber/s27_s29_public_metrics.json'
+      - 'docs/bubble_chamber/s33_s34_public_metrics.json'
+      - 'docs/bubble_chamber/S85_INTEROP_CALIBRATED_GENERATED_TOY_RESULTS_2026_10_28.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-provenance-and-gallery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify frozen source records match published report and figures
+        run: python scripts/research/bubble_chamber/build_physicists_handoff.py --check
+      - name: Source-only public handoff regression and no-GT safety checks
+        run: |
+          python -m pip install pytest
+          python -m pytest -q tests/test_physicists_handoff.py
+      - name: Ensure new handoff artifacts contain no private media or weights
+        shell: bash
+        run: |
+          if git ls-files 'docs/bubble_chamber/physicists/**' 'docs/bubble_chamber/PHYSICISTS_RESULTS_2026_10_29.md' 'PHYSICISTS_HANDOFF.md' | grep -Ei '\.(bmp|jpe?g|png|tif|tiff|7z|zip|pt|pth|ckpt|pkl|joblib|npy|npz)$'; then
+            echo 'Private photo or model checkpoint in public handoff' >&2
+            exit 1
+          fi
+          if grep -R -E -n 'data:image/(png|jpeg);base64,' docs/bubble_chamber/physicists ; then
+            echo 'Embedded photo pixel data disallowed' >&2
+            exit 1
+          fi
+      - name: Package public-only offline physics handoff
+        run: |
+          python - <<'PY'
+          from zipfile import ZipFile,ZIP_DEFLATED
+          from pathlib import Path
+          p=Path('ANZA_LIRA_PHYSICISTS_PUBLIC_HANDOFF.zip')
+          sources=['PHYSICISTS_HANDOFF.md','docs/bubble_chamber/PHYSICISTS_RESULTS_2026_10_29.md']
+          sources+=sorted(str(x) for x in Path('docs/bubble_chamber/physicists').rglob('*') if x.is_file())
+          with ZipFile(p,'w',ZIP_DEFLATED,compresslevel=7) as z:
+              for f in sources:
+                  assert Path(f).suffix in ('.md','.json','.svg','.html')
+                  z.write(f)
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+          print('Packed',len(sources),'strictly public synthetic-safe artifacts')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: anza-lira-physicists-handoff-public-safe
+          path: ANZA_LIRA_PHYSICISTS_PUBLIC_HANDOFF.zip
+          retention-days: 7
+          if-no-files-found: error
