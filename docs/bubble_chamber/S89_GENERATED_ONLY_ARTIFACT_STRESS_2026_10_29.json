@@ -1,0 +1,177 @@
+{
+  "all_generated_original": {
+    "candidate_pixel_fraction": 0.010965,
+    "off_injected_line_candidate_pixel_fraction": 0.008247,
+    "synthetic_injected_line_coverage_tolerance_2px": 0.468809
+  },
+  "all_generated_posthoc_consensus": {
+    "candidate_pixel_fraction": 0.007382,
+    "off_injected_line_candidate_pixel_fraction": 0.006171,
+    "synthetic_injected_line_coverage_tolerance_2px": 0.204214
+  },
+  "label_semantics": "SYNTHETIC_INJECTED_LINES_ONLY_NOT_PHYSICAL_PARTICLE_TRACKS",
+  "native_physics_ground_truth_count": 0,
+  "per_variant": {
+    "blurred_faint_curves": {
+      "generated_has_injected_lines": true,
+      "original_s88_candidates": {
+        "candidate_pixel_fraction": 0.015488,
+        "off_injected_line_candidate_pixel_fraction": 0.007345,
+        "synthetic_injected_line_coverage_tolerance_2px": 0.89548
+      },
+      "paired_generated_scene_coverage_delta": {
+        "95pct_paired_bootstrap_generated_scene_CI": [
+          -0.67161,
+          -0.438206
+        ],
+        "independent_generated_scene_count": 6,
+        "post_minus_original_mean": -0.557204
+      },
+      "paired_generated_scene_offline_candidate_delta": {
+        "95pct_paired_bootstrap_generated_scene_CI": [
+          -0.005005,
+          -0.003255
+        ],
+        "independent_generated_scene_count": 6,
+        "post_minus_original_mean": -0.00402
+      },
+      "posthoc_consensus_diagnostic_only": {
+        "candidate_pixel_fraction": 0.006374,
+        "off_injected_line_candidate_pixel_fraction": 0.003325,
+        "synthetic_injected_line_coverage_tolerance_2px": 0.338276
+      }
+    },
+    "crossing_scratches_and_curves": {
+      "generated_has_injected_lines": true,
+      "original_s88_candidates": {
+        "candidate_pixel_fraction": 0.013329,
+        "off_injected_line_candidate_pixel_fraction": 0.008434,
+        "synthetic_injected_line_coverage_tolerance_2px": 0.465042
+      },
+      "paired_generated_scene_coverage_delta": {
+        "95pct_paired_bootstrap_generated_scene_CI": [
+          -0.368997,
+          -0.104167
+        ],
+        "independent_generated_scene_count": 6,
+        "post_minus_original_mean": -0.226342
+      },
+      "paired_generated_scene_offline_candidate_delta": {
+        "95pct_paired_bootstrap_generated_scene_CI": [
+          -0.001782,
+          -0.000916
+        ],
+        "independent_generated_scene_count": 6,
+        "post_minus_original_mean": -0.001264
+      },
+      "posthoc_consensus_diagnostic_only": {
+        "candidate_pixel_fraction": 0.009719,
+        "off_injected_line_candidate_pixel_fraction": 0.00717,
+        "synthetic_injected_line_coverage_tolerance_2px": 0.238701
+      }
+    },
+    "faint_curves": {
+      "generated_has_injected_lines": true,
+      "original_s88_candidates": {
+        "candidate_pixel_fraction": 0.004711,
+        "off_injected_line_candidate_pixel_fraction": 0.004159,
+        "synthetic_injected_line_coverage_tolerance_2px": 0.045904
+      },
+      "paired_generated_scene_coverage_delta": {
+        "95pct_paired_bootstrap_generated_scene_CI": [
+          -0.019421,
+          -0.002825
+        ],
+        "independent_generated_scene_count": 6,
+        "post_minus_original_mean": -0.01024
+      },
+      "paired_generated_scene_offline_candidate_delta": {
+        "95pct_paired_bootstrap_generated_scene_CI": [
+          -0.000846,
+          -0.000473
+        ],
+        "independent_generated_scene_count": 6,
+        "post_minus_original_mean": -0.000657
+      },
+      "posthoc_consensus_diagnostic_only": {
+        "candidate_pixel_fraction": 0.003955,
+        "off_injected_line_candidate_pixel_fraction": 0.003502,
+        "synthetic_injected_line_coverage_tolerance_2px": 0.035664
+      }
+    },
+    "fiducials_only": {
+      "generated_has_injected_lines": false,
+      "original_s88_candidates": {
+        "candidate_pixel_fraction": 0.004627,
+        "off_injected_line_candidate_pixel_fraction": 0.004627,
+        "synthetic_injected_line_coverage_tolerance_2px": null
+      },
+      "paired_generated_scene_coverage_delta": null,
+      "paired_generated_scene_offline_candidate_delta": {
+        "95pct_paired_bootstrap_generated_scene_CI": [
+          -0.002596,
+          -0.000953
+        ],
+        "independent_generated_scene_count": 6,
+        "post_minus_original_mean": -0.001692
+      },
+      "posthoc_consensus_diagnostic_only": {
+        "candidate_pixel_fraction": 0.002935,
+        "off_injected_line_candidate_pixel_fraction": 0.002935,
+        "synthetic_injected_line_coverage_tolerance_2px": null
+      }
+    },
+    "scratches_only": {
+      "generated_has_injected_lines": false,
+      "original_s88_candidates": {
+        "candidate_pixel_fraction": 0.016668,
+        "off_injected_line_candidate_pixel_fraction": 0.016668,
+        "synthetic_injected_line_coverage_tolerance_2px": null
+      },
+      "paired_generated_scene_coverage_delta": null,
+      "paired_generated_scene_offline_candidate_delta": {
+        "95pct_paired_bootstrap_generated_scene_CI": [
+          -0.003697,
+          -0.001575
+        ],
+        "independent_generated_scene_count": 6,
+        "post_minus_original_mean": -0.002743
+      },
+      "posthoc_consensus_diagnostic_only": {
+        "candidate_pixel_fraction": 0.013925,
+        "off_injected_line_candidate_pixel_fraction": 0.013925,
+        "synthetic_injected_line_coverage_tolerance_2px": null
+      }
+    }
+  },
+  "physical_auto_accept_or_reject_authorized": false,
+  "physical_auto_joins_authorized": false,
+  "physical_track_recall_or_precision_measured": false,
+  "protocol": {
+    "diagnostic_consensus_is_NOT_deployed_filter": true,
+    "independent_scenes_per_variant": 6,
+    "off_centerline_distance_px": 3,
+    "positive_tolerance_px": 2,
+    "s88_frozen_CAL_thresholds": {
+      "high": 1.7,
+      "low": 0.816
+    },
+    "s89_reuses_thresholds_without_TEST_tuning": true,
+    "seed_start_by_variant": {
+      "blurred_faint_curves": 9300,
+      "crossing_scratches_and_curves": 10200,
+      "faint_curves": 9000,
+      "fiducials_only": 9900,
+      "scratches_only": 9600
+    },
+    "unit_of_bootstrap": "INDEPENDENT_GENERATED_SCENE"
+  },
+  "s89_changes_original_S86_detector_masks": false,
+  "schema": "S89_GENERATED_ONLY_ARTIFACT_STRESS_LOCKED_S88_V1",
+  "scientific_limitation": "Stable camera scratches and fiducials can resemble stable lines. Image consistency alone is NOT particle identity.",
+  "source_code_sha256": {
+    "s88_weak_ridges.py": "999c140aef9d7470a362a2e83fb3d702adb4f228087b8c114aa8a6ca1b7fb1a9",
+    "s89_generated_stress.py": "da1b01d580ea5c65de87173b40fbc592ba11e3f751f5af4c101a59cabafe0ffe",
+    "s89_private_candidate_audit.py": "74d31fccd1bc6d8487cfaf956ebb7bab3789ab35d2f0f15be01b2664a814d47b"
+  }
+}

@@ -1,0 +1,64 @@
+name: Bubble-chamber S89 hard negatives and private candidate audit
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/s89_*'
+      - 'scripts/research/bubble_chamber/physicists_s89_audit.py'
+      - 'scripts/research/bubble_chamber/s89_generated_stress.py'
+      - 'tests/test_s89_private_candidate_audit.py'
+      - 'docs/bubble_chamber/S89_*'
+      - '.github/workflows/physicists_s89_artifact_audit_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  new-stress-and-private-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install source-only numerical environment
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless pytest
+      - name: Verify synthetic-only S86 to S89 integration
+        run: >-
+          python -m pytest -q
+          tests/test_full_bmp_segmentation.py
+          tests/test_s87_seam_continuity.py
+          tests/test_s88_weak_ridges.py
+          tests/test_s89_private_candidate_audit.py
+      - name: Repeat frozen S88 thresholds on unseen generated S89 stress
+        run: >-
+          python scripts/research/bubble_chamber/s89_generated_stress.py
+          --output /tmp/S89_GENERATED_ONLY.json --n-per-variant 6
+      - name: Check tracked hashes and per-scene generator reproducibility
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          frozen = json.loads(Path('docs/bubble_chamber/S88_GENERATED_ONLY_CAL_TEST_METRICS_2026_10_29.json').read_text())
+          selected = frozen['selected_using_CAL_only']['s88-steerable']
+          recorded = json.loads(Path('docs/bubble_chamber/S89_GENERATED_ONLY_ARTIFACT_STRESS_2026_10_29.json').read_text())
+          reproduced = json.loads(Path('/tmp/S89_GENERATED_ONLY.json').read_text())
+          assert selected['high_or_threshold'] == recorded['protocol']['s88_frozen_CAL_thresholds']['high'] == 1.7
+          assert selected['s88_low_if_applicable'] == recorded['protocol']['s88_frozen_CAL_thresholds']['low'] == 0.816
+          assert recorded['source_code_sha256'] == reproduced['source_code_sha256']
+          assert recorded['protocol'] == reproduced['protocol']
+          assert recorded['per_variant'] == reproduced['per_variant']
+          assert not reproduced['physical_track_recall_or_precision_measured']
+          assert not reproduced['physical_auto_accept_or_reject_authorized']
+          assert not reproduced['s89_changes_original_S86_detector_masks']
+          PY
+      - name: Validate both CLI entrypoints and private-asset exclusion
+        run: |
+          python scripts/research/bubble_chamber/physicists_s89_audit.py --help
+          python scripts/research/bubble_chamber/s89_generated_stress.py --help
+          python -m compileall -q bubble_chamber/s89_private_candidate_audit.py bubble_chamber/s89_generated_stress.py
+          if git ls-files 'bubble_chamber/s89_*' 'scripts/research/bubble_chamber/s89_*' 'tests/test_s89_*' 'docs/bubble_chamber/S89_*' | grep -Ei '\.(bmp|png|jpe?g|tif|tiff|7z|zip|pt|pth|ckpt|npy|npz|pkl|csv)$'; then
+            echo 'No private images/measurements/weights permitted in public branch' >&2
+            exit 1
+          fi
