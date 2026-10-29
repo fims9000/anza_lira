@@ -1,0 +1,44 @@
+name: Bubble-chamber S86/S87 full-BMP and seam continuity
+on:
+  push:
+    branches:
+      - research/bubble-chamber-graph-lira
+    paths:
+      - 'bubble_chamber/full_bmp_segmentation.py'
+      - 'bubble_chamber/s87_seam_continuity.py'
+      - 'scripts/research/bubble_chamber/physicists_full_bmp_segmentation.py'
+      - 'scripts/research/bubble_chamber/physicists_s87_seam_continuity.py'
+      - 'tests/test_full_bmp_segmentation.py'
+      - 'tests/test_s87_seam_continuity.py'
+      - 'docs/bubble_chamber/S87_SEAM_CONTINUITY_AND_PRIVATE_REVIEW_2026_10_29.md'
+      - '.github/workflows/physicists_full_bmp_seams_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install source-only image stack
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless pytest
+      - name: Validate full BMP and image-only seams on synthetic inputs
+        run: >-
+          python -m pytest -q
+          tests/test_full_bmp_segmentation.py
+          tests/test_s87_seam_continuity.py
+      - name: Check CLI and source imports
+        run: |
+          python -m compileall -q bubble_chamber/full_bmp_segmentation.py bubble_chamber/s87_seam_continuity.py scripts/research/bubble_chamber/physicists_s87_seam_continuity.py
+          python scripts/research/bubble_chamber/physicists_s87_seam_continuity.py --help
+      - name: Ensure no raw physical images or weights enter Git
+        shell: bash
+        run: |
+          if git ls-files 'bubble_chamber/s87_*' 'scripts/research/bubble_chamber/physicists_s87_*' 'tests/test_s87_*' 'docs/bubble_chamber/S87_*' | grep -Ei '\.(bmp|png|jpg|jpeg|tiff|7z|zip|pt|pth|ckpt|npy|npz|pkl)$'; then
+            echo 'Private photo or checkpoint detected in tracked S87 source' >&2
+            exit 1
+          fi
