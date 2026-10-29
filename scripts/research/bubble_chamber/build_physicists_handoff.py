@@ -258,7 +258,7 @@ def _html_view(ledger):
         return (f'<div class="barentry"><span>{html.escape(name)}</span><div class="track"><div class="fill {klass}" style="width:{value:.1f}%"></div></div><b>{value:.1f}{suffix}</b></div>')
     bars=''.join((bar('Прямая',straight['fraction']*100,'%','muted'),bar('Кривизна + фотометрия',base['fraction']*100,'%','cyan'),bar('ANZA + кривизна',anza['fraction']*100,'%','violet')))
     images=''.join(f'<button class="tab" data-panel="{k}" type="button" aria-selected="{str(i==0).lower()}">{x}</button>' for i,(k,x) in enumerate([('raw','Искусственный фон'),('candidates','Кандидаты'),('graph','Стыки UNKNOWN'),('mask','Псевдомаска')]))
-    panels=''.join(f'<img id="panel-{k}" class="stage" src="figures/{k}.svg" alt="{x}: схематический рисунок, НЕ реальные H50Z" {'hidden' if k!='raw' else ''}/>' for k,x in [('raw','Исходное изображение'),('candidates','Кандидаты тонких линий'),('graph','Графовые мостики'),('mask','Машинная псевдомаска')])
+    panels=''.join('<img id="panel-{}" class="stage" src="figures/{}.svg" alt="{}: схематический рисунок, НЕ реальные H50Z"{}/>'.format(k,k,x,' hidden' if k!='raw' else '') for k,x in [('raw','Исходное изображение'),('candidates','Кандидаты тонких линий'),('graph','Графовые мостики'),('mask','Машинная псевдомаска')])
     return f'''<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} · исходники и ограничения</title><style>
 :root{{color-scheme:dark}}*{{box-sizing:border-box}}body{{font:16px/1.6 system-ui,-apple-system,sans-serif;background:#0c1422;color:#e7eef7;margin:0}}
