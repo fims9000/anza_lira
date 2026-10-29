@@ -20,7 +20,8 @@ import numpy as np
 from bubble_chamber.bitmap_tiles import GrayBMP8
 from bubble_chamber.physicists_intake import inventory_bmps,make_mark_preview
 from bubble_chamber.interop_api import validate_lines
-from bubble_chamber.interop_detectors import HessianRidgeDetector,OpenCVLSDDetector
+from bubble_chamber.interop_detectors import HessianRidgeDetector
+from bubble_chamber.interop_detectors_cv5 import OpenCVLSDDetectorCompat
 
 
 def _safe_output(out:Path):
@@ -67,7 +68,7 @@ def run(*,bmp_root:Path,crosses:Path|None,out_dir:Path,
         raise ValueError('Bounded max-images and per-image counts required')
     public,private=inventory_bmps(bmp_root,labels_json=crosses)
     detectors={'RIDGE':HessianRidgeDetector(max_lines=12),
-               'LSD':OpenCVLSDDetector(max_lines=12)}
+               'LSD':OpenCVLSDDetectorCompat(max_lines=12)}
     scenes=[]
     for row in private['bmp_records'][:max_images]:
         bitmap=GrayBMP8(bmp_root/row['relative_path'])
