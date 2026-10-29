@@ -1,0 +1,18 @@
+{
+  "schema": "ANZA_LIRA_OPERATOR_STEREO_IMAGE_BINDINGS_V1",
+  "purpose": "PRIVATE_EXPLICIT_OPERATOR_BINDING_NOT_GROUND_TRUTH",
+  "note": "EXAMPLE ONLY. Replace all fields; no automatic H50Z/070 image matching. Set declaration true ONLY after operator verified film/frame/view provenance.",
+  "bindings": [
+    {
+      "frame_id": "070_008",
+      "physical_run_id": "REPLACE_WITH_REAL_PHYSICAL_RUN_ID",
+      "verified_by": "REPLACE_WITH_INTERNAL_OPERATOR_EVIDENCE_ID",
+      "operator_declares_same_physical_frame_and_view": false,
+      "views": {
+        "1": "REPLACE_VIEW1.bmp",
+        "2": "REPLACE_VIEW2.bmp",
+        "3": "REPLACE_VIEW3.bmp"
+      }
+    }
+  ]
+}
