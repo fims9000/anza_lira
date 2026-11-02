@@ -333,13 +333,13 @@ def run_volume(
             ))
         except (ValueError, RuntimeError, KeyError, StopIteration) as exc:
             invalid_global[scene.scene_id] = str(exc)[:250]
-    selection = choose_global_repairs(global_candidates)
+    global_selection = choose_global_repairs(global_candidates)
     report["global_selection"] = {
-        "algorithm": selection.algorithm,
-        "optimality_proven": selection.optimality_proven,
-        "eligible_K10_proposals": selection.candidate_proposals,
-        "selected_endpoint_disjoint_proposals": selection.selected_proposals,
-        "selection_objective": selection.objective,
+        "algorithm": global_selection.algorithm,
+        "optimality_proven": global_selection.optimality_proven,
+        "eligible_K10_proposals": global_selection.candidate_proposals,
+        "selected_endpoint_disjoint_proposals": global_selection.selected_proposals,
+        "selection_objective": global_selection.objective,
         "objective_note": "heuristic sum(confidence*consistency), not calibrated clinical risk",
         "path_vetoes_may_reduce_final_acceptance": True,
     }
@@ -368,7 +368,7 @@ def run_volume(
             item["reason"] = "invalid_global_proposal:" + invalid_global[scene.scene_id]
             report["decisions"].append(item)
             continue
-        if scene.scene_id not in selection.scene_ids:
+        if scene.scene_id not in global_selection.scene_ids:
             item["reason"] = "globally_conflicting_endpoint_proposal"
             report["decisions"].append(item)
             continue
