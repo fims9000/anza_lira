@@ -77,6 +77,7 @@ def run_cli(
     path_protocol: Path = DEFAULT_PATH,
     output_additions: Path | None = None,
     strict_count_support: bool = False,
+    engine_override: object | None = None,
 ) -> dict:
     if mode not in {"candidates", "k10"}:
         raise ValueError("Mode must be candidates or k10")
@@ -110,7 +111,12 @@ def run_cli(
     tic = time.perf_counter()
     ct, mask, mask_nii = load_pair(ct_path, mask_path, threshold)
     path_config, slack = frozen_path_protocol(path_protocol)
-    engine = K10Inference.from_file(model_pack) if mode == "k10" else None
+    if engine_override is not None and mode != "k10":
+        raise ValueError("Experimental engine override requires k10-style inference mode")
+    engine = (
+        engine_override if engine_override is not None else
+        K10Inference.from_file(model_pack) if mode == "k10" else None
+    )
     result, report = run_volume(
         ct, mask, mask_nii.affine,
         patient_label=patient_id, engine=engine,
@@ -134,6 +140,10 @@ def run_cli(
         "mask_affine": mask_nii.affine.tolist(),
     }
     report["elapsed_seconds"] = round(time.perf_counter() - tic, 3)
+    if engine_override is not None:
+        report["experimental_encoder_variant"] = getattr(
+            engine_override, "variant", "unknown_experimental_encoder"
+        )
     out_nii = nib.Nifti1Image(
         result.astype(np.uint8), mask_nii.affine,
         header=mask_nii.header.copy(),
