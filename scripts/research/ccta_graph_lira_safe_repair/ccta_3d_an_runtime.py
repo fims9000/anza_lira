@@ -111,7 +111,9 @@ class NeuralCCTA3dInference(K10Inference):
             if cfg!=meta["validation_patch_sources"][0]["patch_protocol"]:
                 raise ValueError("Train and validation candidate-patch protocols differ")
             patch_configs.append(cfg)
-            neural=Candidate3dEncoder(variant)
+            neural=Candidate3dEncoder(
+                variant,voxel_mm=float(cfg["voxel_mm"])
+            )
             state=torch.load(weights,map_location="cpu",weights_only=True)
             neural.load_state_dict(state,strict=True)
             full_models[kind]=neural
