@@ -221,6 +221,30 @@ def run_volume(
         "endpoint_count": len(endpoints),
         "scene_count": len(scenes),
         "candidate_count": sum(len(scene.candidates) for scene in scenes),
+        "endpoints": [
+            {
+                "endpoint_id": endpoint.endpoint_id,
+                "original_component_id": endpoint.component,
+                "voxel": list(endpoint.voxel),
+                "position_lps_mm": list(endpoint.position_lps),
+                "outward_tangent_lps": list(endpoint.tangent_lps),
+            }
+            for endpoint in endpoints
+        ],
+        "scenes": [
+            {
+                "scene_id": scene.scene_id,
+                "endpoint_ids": list(scene.endpoint_ids),
+                "pair_candidates": sum(c.kind == "PAIR" for c in scene.candidates),
+                "junction_candidates": sum(c.kind == "JUNCTION" for c in scene.candidates),
+                "candidates": [
+                    {"candidate_id": c.candidate_id, "type": c.kind,
+                     "endpoint_ids": list(c.endpoint_ids)}
+                    for c in scene.candidates
+                ],
+            }
+            for scene in scenes
+        ],
         "model_pack_sha256": getattr(engine, "pack_sha", None),
         "radius_mm": params.radius_mm,
         "max_new_voxels_per_decision": params.max_new_voxels,
