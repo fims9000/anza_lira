@@ -45,7 +45,8 @@ jobs:
             tests/test_ccta_3d_an_real_scene_contract.py \
             tests/test_ct28_cardinality_benchmark.py \
             tests/test_ct28_topology_metrics.py \
-            tests/test_ccta_3d_an_controls.py
+            tests/test_ccta_3d_an_controls.py \
+            tests/test_ccta_3d_failure_triage.py
       - name: Compile 3D kernel and train-only workflow
         run: |
           python -m py_compile \
@@ -62,7 +63,8 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ct28_cardinality_benchmark.py \
             scripts/research/ccta_graph_lira_safe_repair/ct28_topology_metrics.py \
             scripts/research/ccta_graph_lira_safe_repair/ct28_mask_metrics.py \
-            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_controls.py
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_controls.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_failure_triage.py
       - name: Verify Linux CLI imports without medical CT
         run: |
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_patch_cache.py --help >/dev/null
@@ -73,3 +75,4 @@ jobs:
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py --help >/dev/null
           python scripts/research/ccta_graph_lira_safe_repair/ct28_cardinality_benchmark.py --help >/dev/null
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_controls.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_failure_triage.py --help >/dev/null
