@@ -1,0 +1,30 @@
+name: CCTA 3D ANZA research primitive
+on:
+  push:
+    branches:
+      - feature/ccta-3d-anza-encoder-2026-11-02
+  pull_request:
+    branches:
+      - feature/ccta-3d-runtime-2026-11-02
+    paths:
+      - 'models/azconv3d.py'
+      - 'tests/test_azconv3d.py'
+      - '.github/workflows/ccta-3d-anza.yml'
+  workflow_dispatch:
+
+jobs:
+  azconv3d:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only PyTorch and test suite
+        run: |
+          python -m pip install pytest
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify volumetric fuzzy anisotropy and gradients
+        run: python -m pytest -q tests/test_azconv3d.py
+      - name: Compile 3D kernel
+        run: python -m py_compile models/azconv3d.py
