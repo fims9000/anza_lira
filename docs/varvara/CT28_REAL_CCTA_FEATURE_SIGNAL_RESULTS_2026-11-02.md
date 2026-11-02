@@ -54,3 +54,29 @@ python scripts/research/ccta_graph_lira_safe_repair/ct28_ct_signal_benchmark.py 
 ```
 
 Пакеты успешного GitHub Actions прогона: Python 3.11, numpy 1.26.4, pandas 2.2.3, scipy 1.14.1, scikit-learn 1.5.2.
+
+## Дополнительная проверка: 25 независимых перестановок CT-признаков
+
+После основного эксперимента была отдельно проверена устойчивость результата к выбору *конкретной случайной перестановки*. Для каждого типа кандидата на тех же 17 train и 5 development-validation пациентах обучены 25 HGB моделей с разными заранее фиксированными seed. Внутри каждого пациента **совместно переставлялись целые CT-feature vectors**, сохраняя их распределение и набор кандидатов, но разрывая соответствие с геометрией и правильной меткой.
+
+| Candidate | Реальный CT+геометрия AP | Mean sham AP (25) | Sham min–max AP | Sham AP >= real AP |
+|---|---:|---:|---:|---:|
+| PAIR | 0.881366 | 0.720090 | 0.695193–0.740626 | **0 из 25** |
+| JUNCTION | 0.849010 | 0.729192 | 0.671627–0.795217 | **0 из 25** |
+
+У пациента 966 JUNCTION-эффект в сравнении с перемешанными CT-признаками остался негативным в среднем по 25 повторам (**−0.032055 AP**); это не следует скрывать агрегированной таблицей.
+
+В контрольной программе **отсутствует самостоятельный тест на иной клинической выборке**. «0 из 25» здесь — наблюдаемое число shuffled-null превосходств на тех же пяти post-selected validation пациентах, **не p-value и не доказательство причинности**.
+
+- [Успешный повторный расчёт #41506191078](https://github.com/fims9000/anza_lira/actions/runs/41506191078)
+- [JSON + 50 строк результатов всех повторов](https://github.com/fims9000/anza_lira/actions/runs/41506191078/artifacts/13171620128)
+- `sham_robustness.json` SHA-256: `88d082d0e785b9cc90b3a039428b68ab81aca718cbe4dd217c807bce9b07b72f`
+- `sham_repetitions.csv` SHA-256: `d5418c0dd92fd3345555b9d9fba66170f2aa47915916ad54fb7049ba4446b90b`
+
+Воспроизведение:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ct28_ct_sham_robustness.py \
+  --output-dir varvara/anza_lira_local_results/ct28_real_CT_25_shams \
+  --repetitions 25 --max-iter 100 --seed 20261102
+```
