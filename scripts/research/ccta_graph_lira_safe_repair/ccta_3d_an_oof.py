@@ -201,7 +201,9 @@ def build_oof(
                     raise ValueError("Duplicate CT28 candidate identity in OOF evidence")
                 keys.add(key)
                 writer.writerow({
-                    **sample,"scan_id":sample["patient_id"],
+                    "scene_id":sample["scene_id"],
+                    "candidate_id":sample["candidate_id"],
+                    "scan_id":sample["patient_id"],
                     "candidate_type":candidate_type,
                     "split":split,"score":float(score),
                     "oof_fold":int(fold),
