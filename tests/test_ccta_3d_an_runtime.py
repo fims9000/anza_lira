@@ -198,3 +198,39 @@ def test_neural_encoder_persists_full_volume_nifti_and_provenance(monkeypatch,tm
     increase=np.asanyarray(added.dataobj)>0
     assert np.array_equal(increase,after&~before)
     assert np.all(before<=after)
+
+
+def test_true_volumetric_anisotropic_anza_model_scores_real_3d_ct_patches(monkeypatch):
+    from models.ccta3d_candidate_encoder import Candidate3dEncoder
+    def dummy_features(row,lookup,ct,inverse,arm_names):
+        return {
+            "scene_id":row.scene_id,
+            "candidate_id":row.candidate_id,
+            "candidate_type":row.candidate_type,
+            "pair_g0":1.0,
+            "pair_ct0":200.0,
+            "junction_span_mm":2.0,
+            "junction_ct0":230.0,
+        }
+    monkeypatch.setattr(graph,"perturbed_candidate_features",dummy_features)
+    ends,scene=setup()
+    torch.manual_seed(45)
+    neural=NeuralCCTA3dInference(
+        models(),
+        pair_encoder=Candidate3dEncoder("anza3d",channels=9,voxel_mm=1.25),
+        junction_encoder=Candidate3dEncoder("anza3d",channels=9,voxel_mm=1.25),
+        patch_config=PatchConfig(side=8,voxel_mm=1.25),
+        variant="anza3d",
+    )
+    _,endpoint_frame,candidate_frame=neural._frames(scene,ends)
+    ct=np.random.default_rng(21).normal(
+        250.,50.,size=(32,32,32)
+    ).astype(np.float32)
+    scores,decisions=neural._score(
+        scene,endpoint_frame,candidate_frame,ct,np.eye(4)
+    )
+    assert len(scores)==2
+    assert scores["ct_score"].between(0,1).all()
+    assert np.isfinite(scores["ct_score"].to_numpy()).all()
+    assert not np.allclose(scores["ct_score"].to_numpy(),.5)
+    assert "ct_conditioned" in decisions
