@@ -72,7 +72,7 @@ Implementation: `ct28_mask_reconstruction.py`; standalone local CLI: `ct28_mask_
 
 Current facts: HGB K10/15 gets 155/206 exact pre-gate and 52/0 accepted after gate. JUNCTION and BOTH contribute only 2/36 and 2/36 accepted. Existing diagnostics attribute losses to unstable relation confidence, relation type and candidate identity. A prior MLP CE+JS experiment got 54/0 on the *same development cohort*, but does not justify replacing K10/15.
 
-**Pre-register ONE exploratory experiment, without changing the frozen K10/15:** replace separate hard type/identity regularity with a *structured perturbation-consistency objective*. This is a proposed method, not an implemented result.
+**Pre-register ONE exploratory experiment, without changing the frozen K10/15:** replace separate hard type/identity regularity with a *structured perturbation-consistency objective*. The differentiable feasible-set distribution and JS loss are now implemented as a **train-only research primitive** in `ct28_structured_objective.py`, with autograd and finite-difference gradient tests. **No model has been trained or validated with this objective yet.**
 
 For each feasible type `t`, let `\mathcal F_t(X)` be feasible candidate sets with that type; for `r\in \mathcal F_t` define
 
@@ -149,7 +149,7 @@ Important: held-out test subjects remain inaccessible in this PR. No `torch` tra
 ## 6. Commands on the clone (development mode)
 
 ```bash
-python -m pytest -q tests/test_ct28_safety_gate.py tests/test_ct28_scene_shortcuts.py tests/test_ct28_mask_reconstruction.py tests/test_ct28_mask_reconstruction_cli.py tests/test_ct28_mask_metrics.py tests/test_ct28_selected_statistics.py
+python -m pytest -q tests/test_ct28_safety_gate.py tests/test_ct28_scene_shortcuts.py tests/test_ct28_candidate_permutation.py tests/test_ct28_mask_reconstruction.py tests/test_ct28_mask_reconstruction_cli.py tests/test_ct28_mask_metrics.py tests/test_ct28_mask_metrics_cli.py tests/test_ct28_selected_statistics.py tests/test_ct28_structured_objective.py
 python scripts/research/ccta_graph_lira_safe_repair/audit_ct28_scene_shortcuts.py
 python scripts/research/ccta_graph_lira_safe_repair/ct28_selected_statistics.py --out-md /tmp/ct28_selected_results.md --out-json /tmp/ct28_selected_results.json
 ```
@@ -165,3 +165,14 @@ python scripts/research/ccta_graph_lira_safe_repair/ct28_mask_reconstruction_cli
 ```
 
 Neither arbitrary clinical thresholds nor an unseen dataset outcome are supplied by this document. The trained models and medical volumes reside in the ignored local Varvara folder and must not be committed.
+
+For a separately produced repaired mask (evaluation only, never a solver input):
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ct28_mask_metrics_cli.py \
+  --patient 957 --before /path/to/broken_prediction.npy \
+  --after /path/to/repaired.npy --reference /path/to/reference.npy \
+  --affine /path/to/voxel_to_ras.npy --output /path/to/posthoc_metrics.json
+```
+
+The clinical-dataset objective remains open; only the mathematical objective implementation and synthetic mask-interface tests are verified here.
