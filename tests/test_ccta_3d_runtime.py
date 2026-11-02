@@ -111,3 +111,27 @@ def test_frozen_path_v2_cannot_be_modified(tmp_path):
     wrong.write_text(json.dumps(data))
     with pytest.raises(ValueError, match="parameters changed"):
         frozen_path_protocol(wrong)
+
+
+def test_real_ct_path_v2_and_mask_gate_connects_synthetic_vessels(monkeypatch):
+    import ccta_3d_runtime as rt
+    ct, mask, affine = synthetic_case()
+    # Exercise the real train-selected 3D CT graph/route solver once.
+    original_builder = rt.build_candidate_scenes
+    monkeypatch.setattr(rt, "build_candidate_scenes", lambda endpoints, **kw:
+                        original_builder(endpoints, **kw)[:1])
+    proto = Path(__file__).resolve().parents[1] / (
+        "artifacts/varvara/ct28_graph_lira/path/selected_path_protocol.json"
+    )
+    settings, slack = frozen_path_protocol(proto)
+    repaired, report = run_volume(
+        ct, mask, affine, patient_label="train_synthetic_real_solver",
+        engine=AcceptPair(),
+        params=RuntimeConfig(radius_mm=0, max_new_voxels=50,
+                             min_component_voxels=5),
+        path_config=settings, slack_fraction=slack,
+    )
+    assert report["scene_count"] == 1
+    assert report["accepted_decisions"] == 1, report["decisions"]
+    assert report["added_voxels"] >= 1
+    assert repaired.sum() > mask.sum()
