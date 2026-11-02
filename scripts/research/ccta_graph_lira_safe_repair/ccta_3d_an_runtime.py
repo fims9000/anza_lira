@@ -99,6 +99,8 @@ class NeuralCCTA3dInference(K10Inference):
                 raise ValueError("OOF neural candidate model type/variant mismatch")
             if meta["status"]!="train_patient_OOF_experimental_CT_evidence_not_promoted_K10":
                 raise ValueError("OOF model status is not approved research evidence")
+            if meta.get("source_input_control_mode","full_ct")!="full_ct":
+                raise ValueError("Cannot deploy endpoint-only or scrambled-CT model as full 3D CCTA")
             if meta.get("held_out_test_accessed") is not False:
                 raise ValueError("Unsealed medical test evidence in OOF pack")
             scores=directory/f"{kind}_{variant}_oof_val.csv"
