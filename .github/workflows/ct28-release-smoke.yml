@@ -39,7 +39,7 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ct28_mask_metrics.py \
             scripts/research/ccta_graph_lira_safe_repair/ct28_mask_metrics_cli.py \
             scripts/research/ccta_graph_lira_safe_repair/ct28_selected_statistics.py \
-            scripts/research/ccta_graph_lira_safe_repair/ct28_safety_policy.py
+            scripts/research/ccta_graph_lira_safe_repair/ct28_safety_policy.py \
             scripts/research/ccta_graph_lira_safe_repair/ct28_structured_objective.py
 
   ct28-structured-objective:
