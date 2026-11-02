@@ -215,6 +215,9 @@ def summarize(root:Path,*,pilot:Path,patient:int)->dict:
             "cldice_after":m["cldice_after"],
             "delta_cldice":m["cldice_delta"],
             "reference_unsupported_added_voxels":m["reference_unsupported_added_voxels"],
+            "false_GT_component_bridge_pairs":m.get("gt_inconsistent_new_component_pairs"),
+            "gt_consistent_component_pairs":m.get("gt_consistent_new_component_pairs"),
+            "gt_unknown_component_pairs":m.get("gt_unassigned_new_component_pairs"),
         }
     result={
         "status":"train_only_exploratory_single_patient_volume_comparison",
@@ -238,12 +241,17 @@ def summarize(root:Path,*,pilot:Path,patient:int)->dict:
     lines=[
         f"# CT28 CCTA 3D train-only controlled gap comparison — patient {patient}",
         "",
-        "| Variant | Accepted repairs | Added voxels | False added voxels | Dice before | Dice after | clDice before | clDice after |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Variant | Repairs | Added voxels | False added voxels | GT-inconsistent merge pairs | Dice before | Dice after | clDice before | clDice after |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for variant,row in records.items():
+        invalid_merges=(
+            str(row["false_GT_component_bridge_pairs"])
+            if row["false_GT_component_bridge_pairs"] is not None
+            else "NOT MEASURED"
+        )
         lines.append(f"| {variant} | {row['accepted_repairs']} | {row['added_voxels']} | "
-                     f"{row['reference_unsupported_added_voxels']} | "
+                     f"{row['reference_unsupported_added_voxels']} | {invalid_merges} | "
                      f"{row['dice_before']:.5f} | {row['dice_after']:.5f} | "
                      f"{row['cldice_before']:.5f} | {row['cldice_after']:.5f} |")
     lines.extend(["","## Limitations",""]+[f"- {x}" for x in result["limitations"]])
