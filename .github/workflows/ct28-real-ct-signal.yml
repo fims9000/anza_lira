@@ -1,0 +1,45 @@
+name: CT28 genuine CCTA feature signal vs geometry and sham CT
+on:
+  push:
+    branches:
+      - feature/ccta3d-research-contract-2026-11-02
+    paths:
+      - 'scripts/research/ccta_graph_lira_safe_repair/ct28_ct_signal_benchmark.py'
+      - 'tests/test_ct28_ct_signal_benchmark.py'
+      - '.github/workflows/ct28-real-ct-signal.yml'
+  workflow_dispatch:
+
+jobs:
+  actual_precomputed_CT28_signal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deterministic CPU benchmark environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1' 'scikit-learn==1.5.2' 'pytest==8.3.5'
+      - name: Test true committed CT28 feature schema and sham controls
+        run: |
+          python -m pytest -q tests/test_ct28_ct_signal_benchmark.py
+          python -m py_compile scripts/research/ccta_graph_lira_safe_repair/ct28_ct_signal_benchmark.py
+      - name: Recompute actual CT28 candidate AP and AUROC from frozen CT evidence
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/ct28_ct_signal_benchmark.py \
+            --output-dir /tmp/ct28_real_ct_signal \
+            --max-iter 100 \
+            --bootstrap 2000 \
+            --seed 20261102
+      - name: Publish source-pinned non-image benchmark evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ct28-real-ct-signal-candidate-evidence
+          path: /tmp/ct28_real_ct_signal/
+          retention-days: 30
+          if-no-files-found: error
