@@ -38,6 +38,11 @@ def local_frame(endpoints_lps: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
     pts=np.asarray(endpoints_lps,dtype=np.float64)
     if pts.shape not in ((2,3),(3,3)) or not np.isfinite(pts).all():
         raise ValueError("Expected finite 2- or 3-endpoint LPS coordinate array")
+    # Physical-coordinate canonicalization makes the representation
+    # invariant to candidate endpoint-ID renaming and row permutations.
+    # This is critical because the original CT28 scenes use deterministic
+    # endpoint positions in their ground-truth examples.
+    pts=pts[np.lexsort((pts[:,2],pts[:,1],pts[:,0]))]
     direction=pts[1]-pts[0]
     length=float(np.linalg.norm(direction))
     if length <= 1e-6:
@@ -87,7 +92,9 @@ def extract_candidate_patch(
     normalized=(2*(clip-config.hu_min)/(config.hu_max-config.hu_min)-1)
     # Gaussian endpoint locations in local physical coordinates; no endpoint
     # names, labels or scene type are provided as network input.
-    local=frame.T@(np.asarray(endpoints_lps).T-center[:,None])
+    pts=np.asarray(endpoints_lps,dtype=np.float64)
+    pts=pts[np.lexsort((pts[:,2],pts[:,1],pts[:,0]))]
+    local=frame.T@(pts.T-center[:,None])
     squared=np.zeros((config.side,)*3,dtype=np.float32)
     heat=np.zeros_like(squared)
     for pos in local.T:
