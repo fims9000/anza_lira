@@ -146,6 +146,41 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_evaluate.py \
 
 Здесь будут Dice, clDice, число компонент, добавленный объём в мм³ и доля добавленных вокселей вне GT. Это **контролируемое искусственное повреждение** исходной разметки, а не настоящий сегментационный pipeline, поэтому результаты **нельзя** переносить на естественные ошибки отдельной сегментационной модели.
 
+## 5. Групповая оценка train-когорты с учётом отказов
+
+Для последующей статьи нужен не один успешный пример, а сводка по пациентам, в которой ошибки запуска и отсутствие repair не исчезают из знаменателя. Добавлен единый train-only запуск для всех 17 CT28 пациентов:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_train_cohort.py --run
+```
+
+Результаты окажутся в `varvara/anza_lira_local_results/ccta_3d_runtime_pilot/train_cohort/`. Каждому пациенту выделяется независимая immutable папка `patient_<ID>`. Ошибки записываются в `pilot_failure.json` и попадают в агрегированный отчёт. Если хотя бы одна серия не завершена, команда завершается с ошибкой и статусом `partial_train_cohort`.
+
+Для пробного контролируемого прогона только первых трёх train-пациентов:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_train_cohort.py \
+  --run --patients 953 955 956 \
+  --root varvara/anza_lira_local_results/ccta_3d_runtime_pilot/three_train_subjects
+```
+
+Сводка: `train_cohort_summary.json`, `train_cohort_patients.csv`, `train_cohort_results.md`. В каждой строке — число сцен/принятых ремонтов, Dice/clDice до и после, ложные добавленные воксели, причины abstain. Interval — patient-level descriptive bootstrap только по train; приёмка на реальных новых пациентах ещё требуется.
+
+### Диагностика OOD относительно исходных контролируемых сцен
+
+В `decisions.json` и `candidates.json` есть `candidate_count_shift`, сравнивающий количество PAIR/JUNCTION кандидатов каждого real-3D окна с **17 train-пациентами** старого CT28. Сцены с новыми парами количеств маркируются `out_of_train_count_support`. Это не доказывает ошибку модели, но обнаруживает один из документированных shortcut-факторов.
+
+Опционально отключить repair для всех таких окон:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_cli.py \
+  --ct ct.nii.gz --mask broken_mask.nii.gz \
+  --patient-id external_001 --mode k10 --model-pack /path/to/relation_models.joblib \
+  --strict-count-support --output-mask repaired.nii.gz --report decisions.json
+```
+
+Включение этого флага меняет **новый full-volume runtime**, а не старый K10/15 CT28 validation baseline. Строгость по cardinality не заменяет независимой оценки анатомии и надёжности на новых пациентах.
+
 ## 5. Контракт и готовность для исследования
 
 | Проверка | Действие |
