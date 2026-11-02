@@ -162,7 +162,6 @@ def build_oof(
             train_x[fit_idx],train_y[fit_idx],train_x[hold_idx],
             variant=variant,epochs=epochs,batch_size=batch_size,
             learning_rate=learning_rate,seed=seed,device=device,
-        voxel_mm=patch_voxel_mm,
             voxel_mm=patch_voxel_mm,
         )
         oof[hold_idx]=scores
@@ -183,6 +182,7 @@ def build_oof(
         train_x,train_y,val_x,variant=variant,
         epochs=epochs,batch_size=batch_size,
         learning_rate=learning_rate,seed=seed,device=device,
+        voxel_mm=patch_voxel_mm,
     )
     checkpoint=out_dir/f"{candidate_type}_{variant}_fulltrain.pt"
     torch.save(model.state_dict(),checkpoint)
