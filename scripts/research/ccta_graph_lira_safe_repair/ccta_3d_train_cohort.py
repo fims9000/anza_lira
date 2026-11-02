@@ -102,6 +102,9 @@ def summarize_cohort(
                 accepted_decisions=dec["accepted_decisions"],
                 added_voxels=dec["added_voxels"],
                 false_added_voxels=metrics["reference_unsupported_added_voxels"],
+                false_GT_component_bridge_pairs=metrics.get("gt_inconsistent_new_component_pairs"),
+                gt_consistent_component_pairs=metrics.get("gt_consistent_new_component_pairs"),
+                gt_unknown_component_pairs=metrics.get("gt_unassigned_new_component_pairs"),
                 dice_before=metrics["dice_before"],
                 dice_after=metrics["dice_after"],
                 dice_delta=deltas[0],
@@ -145,6 +148,14 @@ def summarize_cohort(
         "paired_metrics_patient_macro":dict(draws),
         "total_accepted_repairs":sum(row["accepted_decisions"] for row in complete),
         "total_false_added_voxels":sum(row["false_added_voxels"] for row in complete),
+        "total_false_GT_component_bridge_pairs":(
+            sum(row["false_GT_component_bridge_pairs"] for row in complete)
+            if complete and all(row["false_GT_component_bridge_pairs"] is not None for row in complete)
+            else None
+        ),
+        "topology_GT_component_audit_available_for_all_completed":bool(complete) and all(
+            row["false_GT_component_bridge_pairs"] is not None for row in complete
+        ),
         "total_added_voxels":sum(row["added_voxels"] for row in complete),
         "reasons":dict(sorted(reasons.items())),
         "bootstrap_draws":bootstrap,
@@ -195,6 +206,7 @@ def write_report(root: Path, report: dict, rows: list[dict]) -> None:
             lines.append(f"- {metric}: mean {result['mean']:+.5f}, descriptive bootstrap 95% [{low:+.5f}, {high:+.5f}]")
     lines += [
         "", f"Added voxels: {report['total_added_voxels']}; outside GT: {report['total_false_added_voxels']}.",
+        f"GT-inconsistent inter-component merge pairs: {report['total_false_GT_component_bridge_pairs'] if report['total_false_GT_component_bridge_pairs'] is not None else 'NOT MEASURED IN LEGACY EVALUATION'}",
         "", "## Limitations", "",
     ] + [f"- {x}" for x in report["limitations"]]
     destinations[2].write_text("\n".join(lines)+"\n",encoding="utf-8")

@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - feature/ccta-3d-anza-encoder-2026-11-02
+      - feature/ccta3d-research-contract-2026-11-02
   pull_request:
     branches:
       - feature/ccta-3d-runtime-2026-11-02
+      - feature/ccta-3d-anza-encoder-2026-11-02
     paths:
       - 'models/azconv3d.py'
       - 'models/ccta3d_candidate_encoder.py'
@@ -39,7 +41,17 @@ jobs:
             tests/test_ccta_3d_an_oof.py \
             tests/test_ccta_3d_an_relation.py \
             tests/test_ccta_3d_an_runtime.py \
-            tests/test_ccta_3d_an_study.py
+            tests/test_ccta_3d_an_study.py \
+            tests/test_ccta_3d_an_real_scene_contract.py \
+            tests/test_ct28_cardinality_benchmark.py \
+            tests/test_ct28_topology_metrics.py \
+            tests/test_ct28_mask_eval_tight_roi.py \
+            tests/test_ccta_3d_an_controls.py \
+            tests/test_ccta_3d_failure_triage.py \
+            tests/test_ccta_3d_validation_gap.py \
+            tests/test_ccta_3d_val_freeze.py \
+            tests/test_ccta_3d_val_cohort.py \
+            tests/test_ccta_3d_val_an_compare.py
       - name: Compile 3D kernel and train-only workflow
         run: |
           python -m py_compile \
@@ -52,7 +64,17 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_runtime.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_cli.py \
-            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_cardinality_benchmark.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_topology_metrics.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_mask_metrics.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_controls.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_failure_triage.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_export.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_freeze.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_pilot.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_cohort.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py
       - name: Verify Linux CLI imports without medical CT
         run: |
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_patch_cache.py --help >/dev/null
@@ -61,3 +83,11 @@ jobs:
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation.py --help >/dev/null
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_cli.py --help >/dev/null
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ct28_cardinality_benchmark.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_controls.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_failure_triage.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_export.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_freeze.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_pilot.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_cohort.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py --help >/dev/null

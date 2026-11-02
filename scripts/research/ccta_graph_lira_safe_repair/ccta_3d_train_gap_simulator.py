@@ -25,6 +25,7 @@ from ccta_3d_endpoints import CONNECTIVITY, LPS_SIGN
 
 TRAIN_CT28_IDS = {953, 955, 956, 959, 960, 963, 964, 967, 969,
                   970, 971, 975, 976, 977, 979, 982, 983}
+VAL_CT28_IDS = {957, 961, 965, 966, 974}
 
 
 def _lps(point: np.ndarray, affine: np.ndarray) -> np.ndarray:
@@ -46,7 +47,7 @@ def _sphere_to_remove(shape, center, affine, radius_mm):
     )
 
 
-def synthesize_train_gaps(
+def _synthesize_gaps(
     reference: np.ndarray,
     affine: np.ndarray,
     *,
@@ -55,9 +56,11 @@ def synthesize_train_gaps(
     radius_mm: float,
     seed: int = 20261102,
     min_center_spacing_mm: float = 12.0,
+    split: str = "train",
 ) -> tuple[np.ndarray, dict]:
-    if patient_id not in TRAIN_CT28_IDS:
-        raise ValueError("Controlled gap generation is restricted to CT28 train patients")
+    allowed = TRAIN_CT28_IDS if split == "train" else VAL_CT28_IDS if split == "validation" else set()
+    if patient_id not in allowed:
+        raise ValueError("Controlled gap generator requires a matching train/validation patient; held-out test forbidden")
     if reference.ndim != 3 or reference.dtype != bool:
         raise ValueError("Need a 3D boolean full reference mask")
     if affine.shape != (4, 4) or not np.isfinite(affine).all():
@@ -126,7 +129,10 @@ def synthesize_train_gaps(
             "increase vessel region or revise the train-only gap plan"
         )
     meta = {
-        "protocol": "ct28_train_only_controlled_mask_gap_v1",
+        "protocol": (
+            "ct28_train_only_controlled_mask_gap_v1"
+            if split == "train" else "ct28_validation_controlled_mask_gap_v1"
+        ),
         "patient_id": patient_id,
         "source": "full reference mask used exclusively to create controlled damage",
         "ground_truth_is_never_sent_to_repair_runtime": True,
@@ -146,6 +152,47 @@ def synthesize_train_gaps(
         ],
     }
     return damaged, meta
+
+
+
+def synthesize_train_gaps(
+    reference: np.ndarray,
+    affine: np.ndarray,
+    *,
+    patient_id: int,
+    gaps: int,
+    radius_mm: float,
+    seed: int = 20261102,
+    min_center_spacing_mm: float = 12.0,
+) -> tuple[np.ndarray, dict]:
+    """Existing TRAIN-only API; protocol and random trajectory unchanged."""
+    if patient_id not in TRAIN_CT28_IDS:
+        raise ValueError("Controlled gap generation is restricted to CT28 train patients")
+    return _synthesize_gaps(
+        reference,affine,patient_id=patient_id,gaps=gaps,
+        radius_mm=radius_mm,seed=seed,
+        min_center_spacing_mm=min_center_spacing_mm,split="train",
+    )
+
+
+def synthesize_validation_gaps(
+    reference: np.ndarray,
+    affine: np.ndarray,
+    *,
+    patient_id: int,
+    gaps: int,
+    radius_mm: float,
+    seed: int = 20261102,
+    min_center_spacing_mm: float = 12.0,
+) -> tuple[np.ndarray, dict]:
+    """Frozen validation-only counterpart; NEVER accepts held-out CT28 test."""
+    if patient_id not in VAL_CT28_IDS:
+        raise ValueError("Validation gap generation is restricted to five CT28 validation patients")
+    return _synthesize_gaps(
+        reference,affine,patient_id=patient_id,gaps=gaps,
+        radius_mm=radius_mm,seed=seed,
+        min_center_spacing_mm=min_center_spacing_mm,split="validation",
+    )
 
 
 def main() -> None:

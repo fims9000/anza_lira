@@ -78,12 +78,15 @@ def load_type(
             })
         receipts.append({
             "patient_id":patient,"cache_sha256":digest(path),
-            "patch_protocol":receipt["patch_protocol"]
+            "patch_protocol":receipt["patch_protocol"],
+            "input_control_mode":receipt.get("input_control_mode","full_ct"),
         })
     if not arrays or not sum(a.shape[0] for a in arrays):
         raise ValueError(f"No {candidate_type} candidate patches available")
     if len({json.dumps(r["patch_protocol"],sort_keys=True) for r in receipts})!=1:
         raise ValueError("Patch protocols differ across patients")
+    if len({r["input_control_mode"] for r in receipts})!=1:
+        raise ValueError("Cannot mix real-CCTA and negative-control patients")
     return np.concatenate(arrays),np.concatenate(labels),examples,receipts
 
 
@@ -152,6 +155,8 @@ def fit_comparison(
     patch_config=train_sources[0]["patch_protocol"]
     if patch_config!=valid_sources[0]["patch_protocol"]:
         raise ValueError("Train/validation patch source protocols differ")
+    if train_sources[0]["input_control_mode"]!=valid_sources[0]["input_control_mode"]:
+        raise ValueError("Train/validation CT image-control modes differ")
 
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -248,6 +253,7 @@ def fit_comparison(
         "learning_rate":learning_rate,"seed":seed,
         "device":device,"training_class_pos_weight":pos_weight,
         "candidate_patch_config":patch_config,
+        "input_control_mode":train_sources[0]["input_control_mode"],
         "matched_capacity":budget,
         "results":measurements,
         "warnings":[

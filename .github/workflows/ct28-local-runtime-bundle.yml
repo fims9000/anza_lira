@@ -1,0 +1,44 @@
+name: CT28 local-only 3D medical runtime bundle
+on:
+  push:
+    branches:
+      - feature/ccta3d-research-contract-2026-11-02
+    paths:
+      - '.github/workflows/ct28-local-runtime-bundle.yml'
+  workflow_dispatch:
+
+jobs:
+  python_runtime_bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download standalone offline nibabel wheel
+        run: |
+          mkdir -p /tmp/ct28_runtime/wheels
+          python -m pip download --no-deps --only-binary=:all: --dest /tmp/ct28_runtime/wheels 'nibabel==5.3.2'
+      - name: Package exact tracked CT28 runtime and reference geometry
+        run: |
+          tar -czf /tmp/ct28_runtime/ct28_runtime_source.tar.gz \
+            scripts/research/ccta_graph_lira_safe_repair \
+            models \
+            artifacts/varvara/ct28_graph_lira/path/selected_path_protocol.json \
+            artifacts/varvara/ct28_graph_lira/scene_plan_train_val.csv \
+            artifacts/varvara/ct28_graph_lira/scene_endpoints_train_val.csv \
+            artifacts/varvara/ct28_graph_lira/scene_candidates_train_val.csv \
+            artifacts/varvara/ct28_pair/expected_ct_geometry.csv \
+            artifacts/varvara/ct28_pair/ct_alignment.csv \
+            requirements-ccta-3d.txt
+          sha256sum /tmp/ct28_runtime/ct28_runtime_source.tar.gz /tmp/ct28_runtime/wheels/*.whl | tee /tmp/ct28_runtime/SHA256SUMS.txt
+      - name: Export version-locked source, not any patient files
+        uses: actions/upload-artifact@v4
+        with:
+          name: ct28-local-only-python-runtime
+          path: /tmp/ct28_runtime/
+          retention-days: 7
+          if-no-files-found: error

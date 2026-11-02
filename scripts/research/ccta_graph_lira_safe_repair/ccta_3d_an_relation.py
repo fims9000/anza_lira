@@ -61,6 +61,8 @@ def _validated_oof_scores(
         raise ValueError("Held-out test evidence present")
     if protocol["n_train_patients"]!=17 or protocol["n_validation_patients"]!=5:
         raise ValueError("OOF candidate models require all 17 train and 5 validation patients")
+    if protocol.get("source_input_control_mode","full_ct")!="full_ct":
+        raise ValueError("Sham-CT OOF evidence cannot replace a real CT relation stream")
     for fold in protocol["fold_assignments"]:
         if set(fold["train_patients"]) & set(fold["held_patients"]):
             raise ValueError("OOF fold trained on a held patient")
