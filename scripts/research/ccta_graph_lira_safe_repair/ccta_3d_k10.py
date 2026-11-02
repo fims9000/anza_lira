@@ -129,6 +129,38 @@ class K10Inference:
         ])
         return plan, pd.DataFrame(data), candidates
 
+    @staticmethod
+    def _score_sparse_candidate_types(
+        features: pd.DataFrame, local_models: dict,
+    ) -> pd.DataFrame:
+        """Score only candidate kinds present; never fabricate dummy candidates.
+
+        The historical CT28 runner always has both candidate types in its
+        controlled scenes and therefore calls each branch on every scene.
+        A real local five-endpoint window can contain PAIR without JUNCTION.
+        """
+        if features.empty:
+            raise ValueError("Cannot score empty feature table")
+        output = features[["scene_id", "candidate_id", "candidate_type"]].copy()
+        for stream in ("geometry", "ct", "geometry_plus_ct"):
+            output[stream + "_score"] = np.nan
+        for kind in ("PAIR", "JUNCTION"):
+            mask = features.candidate_type.eq(kind)
+            if not mask.any():
+                continue
+            for stream in ("geometry", "ct", "geometry_plus_ct"):
+                model = local_models[kind][stream]
+                columns = list(model.feature_names_in_)
+                if not set(columns).issubset(features.columns):
+                    raise ValueError(f"Missing {kind}/{stream} model input features")
+                scores = model.predict_proba(features.loc[mask, columns])[:, 1]
+                output.loc[mask, stream + "_score"] = scores
+        if not np.isfinite(
+            output[["geometry_score", "ct_score", "geometry_plus_ct_score"]].to_numpy(dtype=float)
+        ).all():
+            raise ValueError("Incomplete local score streams")
+        return output
+
     def _score(
         self, scene: Scene, endpoints: pd.DataFrame, candidates: pd.DataFrame,
         ct: np.ndarray, inverse_affine: np.ndarray,
@@ -140,7 +172,9 @@ class K10Inference:
             )
             for _, candidate in candidates.iterrows()
         ])
-        scores = graph.score_feature_frame(features, self.models["local_models"])
+        scores = self._score_sparse_candidate_types(
+            features, self.models["local_models"]
+        )
         plan = pd.DataFrame([{
             "scene_id": scene.scene_id, "scan_id": -1,
             "split": "unlabelled_runtime", "scene_family": "unlabelled_runtime",
