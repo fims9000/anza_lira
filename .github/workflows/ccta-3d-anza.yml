@@ -8,7 +8,11 @@ on:
       - feature/ccta-3d-runtime-2026-11-02
     paths:
       - 'models/azconv3d.py'
+      - 'models/ccta3d_candidate_encoder.py'
+      - 'scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_*'
       - 'tests/test_azconv3d.py'
+      - 'tests/test_ccta3d_candidate_encoder.py'
+      - 'tests/test_ccta_3d_an_*'
       - '.github/workflows/ccta-3d-anza.yml'
   workflow_dispatch:
 
@@ -22,9 +26,21 @@ jobs:
           python-version: '3.11'
       - name: Install CPU-only PyTorch and test suite
         run: |
-          python -m pip install pytest
+          python -m pip install pytest numpy scipy scikit-image pandas scikit-learn joblib nibabel
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Verify volumetric fuzzy anisotropy and gradients
-        run: python -m pytest -q tests/test_azconv3d.py
-      - name: Compile 3D kernel
-        run: python -m py_compile models/azconv3d.py
+        run: |
+          python -m pytest -q \
+            tests/test_azconv3d.py \
+            tests/test_ccta3d_candidate_encoder.py \
+            tests/test_ccta_3d_an_patches.py \
+            tests/test_ccta_3d_an_patch_cache.py \
+            tests/test_ccta_3d_an_train.py
+      - name: Compile 3D kernel and train-only workflow
+        run: |
+          python -m py_compile \
+            models/azconv3d.py \
+            models/ccta3d_candidate_encoder.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_patches.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_patch_cache.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_train.py
