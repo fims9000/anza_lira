@@ -40,3 +40,18 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ct28_mask_metrics_cli.py \
             scripts/research/ccta_graph_lira_safe_repair/ct28_selected_statistics.py \
             scripts/research/ccta_graph_lira_safe_repair/ct28_safety_policy.py
+            scripts/research/ccta_graph_lira_safe_repair/ct28_structured_objective.py
+
+  ct28-structured-objective:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only PyTorch
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Check structured objective and numerical gradients
+        run: python -m pytest -q tests/test_ct28_structured_objective.py
