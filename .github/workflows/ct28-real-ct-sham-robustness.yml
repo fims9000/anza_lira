@@ -1,0 +1,43 @@
+name: CT28 precomputed CCTA feature repeat-sham robustness
+on:
+  push:
+    branches:
+      - feature/ccta3d-research-contract-2026-11-02
+    paths:
+      - 'scripts/research/ccta_graph_lira_safe_repair/ct28_ct_sham_robustness.py'
+      - 'tests/test_ct28_ct_sham_robustness.py'
+      - '.github/workflows/ct28-real-ct-sham-robustness.yml'
+  workflow_dispatch:
+
+jobs:
+  twenty_five_sham_CT_controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install fixed CPU HGB dependencies
+        run: |
+          python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1' 'scikit-learn==1.5.2' 'pytest==8.3.5'
+      - name: Test real CT28 image-signal robustness controls
+        run: |
+          python -m pytest -q tests/test_ct28_ct_sham_robustness.py
+          python -m py_compile scripts/research/ccta_graph_lira_safe_repair/ct28_ct_sham_robustness.py
+      - name: Evaluate 25 independent within-patient CCTA image-permutation controls
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/ct28_ct_sham_robustness.py \
+            --source artifacts/varvara/ct28_graph_lira/scene_candidate_features_train_val.csv \
+            --output-dir /tmp/ct28_real_CT_sham_25 \
+            --repetitions 25 --max-iter 100 --seed 20261102
+      - name: Publish source-hashed sham distribution and per-patient deltas
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ct28-real-ct-sham-25-repeat-evidence
+          path: /tmp/ct28_real_CT_sham_25/
+          retention-days: 30
+          if-no-files-found: error
