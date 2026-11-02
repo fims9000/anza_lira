@@ -132,3 +132,69 @@ def test_neural_cli_forbids_heldout_before_loading_medical_files():
             pair_oof=dummy,junction_oof=dummy,variant="anza3d",
             output_mask=dummy,report=dummy,
         )
+
+
+def test_neural_encoder_persists_full_volume_nifti_and_provenance(monkeypatch,tmp_path):
+    import json
+    import nibabel as nib
+    from ccta_3d_cli import run_cli
+    def stub_features(row,lookup,ct,inverse,arm_names):
+        return {
+            "scene_id":row.scene_id,
+            "candidate_id":row.candidate_id,
+            "candidate_type":row.candidate_type,
+            "pair_g0":2.0,
+            "pair_ct0":240.0,
+            "junction_span_mm":3.0,
+            "junction_ct0":230.0,
+        }
+    monkeypatch.setattr(graph,"perturbed_candidate_features",stub_features)
+    ct=np.full((50,65,35),250.,dtype=np.float32)
+    mask=np.zeros(ct.shape,dtype=np.uint8)
+    for y in (10,16,28,40,52):
+        mask[10:19,y,18]=1
+    ctfile=tmp_path/"ct.nii.gz"
+    maskfile=tmp_path/"broken.nii.gz"
+    nib.save(nib.Nifti1Image(ct,np.eye(4)),ctfile)
+    nib.save(nib.Nifti1Image(mask,np.eye(4)),maskfile)
+    engine=NeuralCCTA3dInference(
+        models(),pair_encoder=FixedNeural(),junction_encoder=FixedNeural(),
+        patch_config=PatchConfig(side=8),variant="anza3d",
+    )
+    outputs={
+        "ct_path":ctfile,
+        "mask_path":maskfile,
+        "patient_id":"train_synthetic_anza",
+        "mode":"k10",
+        "model_pack":tmp_path/"stub_not_read.joblib",
+        "output_mask":tmp_path/"repaired.nii.gz",
+        "output_additions":tmp_path/"added.nii.gz",
+        "report_path":tmp_path/"decision.json",
+        "radius_mm":0,
+        "max_new_voxels":50,
+        "min_component_voxels":5,
+        "trace_mm":3,
+        "max_endpoints":30,
+        "max_scenes":128,
+        "threshold":.5,
+        "engine_override":engine,
+        "experimental_evidence":{
+            "variant":"anza3d",
+            "source":"synthetic_stub_no_medical_CT",
+        }
+    }
+    outcome=run_cli(**outputs)
+    persisted=json.loads(outputs["report_path"].read_text())
+    assert persisted["experimental_evidence"]["variant"]=="anza3d"
+    assert outcome["experimental_encoder_variant"]=="anza3d"
+    assert outcome["model_pack_sha256"]=="synthetic_test_only"
+    assert persisted["scene_count"]>=1
+    assert persisted["accepted_decisions"]>=0
+    repaired=nib.load(str(outputs["output_mask"]))
+    added=nib.load(str(outputs["output_additions"]))
+    assert repaired.shape==ct.shape and added.shape==ct.shape
+    before=np.asanyarray(nib.load(str(maskfile)).dataobj)>0
+    after=np.asanyarray(repaired.dataobj)>0
+    increase=np.asanyarray(added.dataobj)>0
+    assert np.array_equal(increase,after&~before)
+    assert np.all(before<=after)
