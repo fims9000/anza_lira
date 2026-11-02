@@ -45,3 +45,19 @@ def test_heldout_patient_is_never_in_validation_report():
     x[0]["scan_id"] = "954"
     with pytest.raises(ValueError, match="Held-out"):
         summarize(x, draws=101)
+
+
+def test_selected_validation_artifact_is_recomputed_not_historical():
+    from ct28_selected_statistics import read_predictions
+    path = Path(__file__).resolve().parents[1] / (
+        "artifacts/varvara/ct28_graph_lira/selected_validation/graph_lira_predictions_val.csv"
+    )
+    report = summarize(read_predictions(path), draws=101, seed=20261102)
+    geometry = report["models"]["geometry_only"]
+    ct = report["models"]["ct_conditioned"]
+    assert report["patient_ids"] == [957, 961, 965, 966, 974]
+    assert (geometry["scenes"], geometry["repair_needed"]) == (368, 206)
+    assert (geometry["pre_exact"], geometry["pre_false"], geometry["accepted_exact"], geometry["accepted_false"]) == (157, 20, 16, 0)
+    assert (ct["pre_exact"], ct["pre_false"], ct["accepted_exact"], ct["accepted_false"]) == (155, 11, 52, 0)
+    assert [report["per_patient"][str(p)]["ct_conditioned"]["accepted_exact"] for p in report["patient_ids"]] == [11, 15, 7, 13, 6]
+    assert [ct["by_class"][t]["accepted_exact"] for t in ("PAIR", "JUNCTION", "BOTH")] == [48, 2, 2]
