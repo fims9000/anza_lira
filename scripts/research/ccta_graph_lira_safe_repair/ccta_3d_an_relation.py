@@ -59,8 +59,6 @@ def _validated_oof_scores(
         raise ValueError("OOF candidate score file checksum mismatch")
     if protocol.get("held_out_test_accessed") is not False:
         raise ValueError("Held-out test evidence present")
-    if set(protocol.get("n_train_patients",[]) if isinstance(protocol.get("n_train_patients"),list) else []) - set():
-        raise ValueError("Unexpected training protocol format")
     if protocol["n_train_patients"]!=17 or protocol["n_validation_patients"]!=5:
         raise ValueError("OOF candidate models require all 17 train and 5 validation patients")
     for fold in protocol["fold_assignments"]:
