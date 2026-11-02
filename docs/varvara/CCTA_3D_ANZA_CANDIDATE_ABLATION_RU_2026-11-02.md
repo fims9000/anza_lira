@@ -154,9 +154,44 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation.py \
 
 Результаты: `clean_relation_predictions_val.csv`, `clean_relation_head.joblib`, `relation_protocol.json` (перепроверенные source hashes и метрики). **Это сравнение только clean relation type**, не полное Graph-LIRA со стабильностью после 15 perturbations и path/mask reconstruction. K10/15 имел 15 augmentation copies при обучении relation head, поэтому нельзя напрямую трактовать разницу с clean вариантом как эффект одного CT encoder. Чтобы делать вывод про архитектуру ANZA, необходимо воспроизвести perturbation-augmentation для NN CT streams либо сопоставить обе ANN-модели при единых режимах.
 
-## 6. Чего этот эксперимент ещё НЕ делает
+## 6. Сквозной экспериментальный ANZA/CNN → Graph-LIRA → 3D-маска
 
-Это **локальная candidate classification**. Она не подключена к relation head K10/15 и не может заменить старые HGB CT scores без нового протокола patient-level OOF train candidate scoring. Иначе появится in-sample leakage при обучении следующего уровня.
+В PR #3 теперь есть **`ccta_3d_an_runtime.py`** — адаптер, который загружает и проверяет SHA выбранного K10/15 model pack, двух full-train ANN encoder checkpoints (PAIR/JUNCTION), их patient-OOF score provenance и **нового clean HGB relation head**.
+
+В реальном 3D-window inference адаптер вычисляет neural CT candidate score из того же CT объёма и 3D endpoints, а geometry/fusion identity HGB оставляет исходными. Тип relation принимается новым clean head, затем включаются **замороженные K10 правила**: tau=0.85, 15 возмущений (0.8 мм / 20°), consistency >=0.60, совместимость PAIR/JUNCTION и path/mask veto. Это реальный технический интеграционный интерфейс, но он *не равен* обученному augmented K10/15.
+
+После формирования обученных ANN packs и relation head из предыдущих разделов можно прогнать **только train CT28** в уже созданной директории train pilot:
+
+```bash
+OUT=varvara/anza_lira_local_results/ccta_3d_runtime_pilot/953_k10_g3_seed20261102
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_cli.py \
+  --ct "$OUT/ct.nii.gz" --mask "$OUT/broken_mask.nii.gz" \
+  --patient-id 953 --variant anza3d --device cuda \
+  --pair-oof varvara/anza_lira_local_results/ccta_3d_an_oof_pair_anza \
+  --junction-oof varvara/anza_lira_local_results/ccta_3d_an_oof_junction_anza \
+  --relation-dir varvara/anza_lira_local_results/ccta_3d_an_relation_anza \
+  --output-mask "$OUT/anza3d_repaired.nii.gz" \
+  --output-additions "$OUT/anza3d_added.nii.gz" \
+  --report "$OUT/anza3d_decisions.json"
+```
+
+Для CNN меняются только `--variant conv3d` и соответствующие три каталога. Результат содержит независимую segmentation `.nii.gz`, overlay добавленных вокселей и JSON решений с новым encoder provenance. Не повторять запуск по тем же выходным именам: immutable evidence.
+
+Потом отдельно считать качество (GT используется *только* в post-hoc evaluation):
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_evaluate.py \
+  --patient-id 953 \
+  --before "$OUT/broken_mask.nii.gz" --after "$OUT/anza3d_repaired.nii.gz" \
+  --reference varvara/anza_lira_local_data/Varvara_CT28_junction_source_pack/segmentations/953.coronary.nii.gz \
+  --output "$OUT/anza3d_posthoc.json"
+```
+
+Ограничения: сейчас модель 3D ANZA/CNN обучается на **контролируемых candidate сцепках** и существует риск domain shift при автоматической генерации реальных 3D окон. Clean relation head ещё не trained-on-15-perturbations, из-за чего сравнение с оригинальным K10/15 по 52/0 некорректно. Структурная/масочная проверка на медицинских пациентах пока не выполнена. Если новая ANN отказывается от всех repairs на реальном train volume, это не доказательство бесполезности 3D ANZA; необходимо проверить candidate recall, OOD, CT patch extent и consistency.
+
+## 7. Чего этот эксперимент ещё НЕ делает
+
+У нас есть экспериментальная связка candidate-level neural CT → clean relation HGB → 3D Graph-LIRA runtime, но она **не подменяет выбранный K10/15**. Для научно сопоставимого итогового сравнения необходимо обучить relation head с 15 joint perturbation copies, пересчитать полностью patient-OOF train evidence и выполнить одинаковую модельную и масочную валидацию. ANN-only локальные метрики не являются финальными structural/clinical outcome.
 
 Чтобы проверить реальный вклад 3D ANZA в Graph-LIRA, нужна последовательность:
 
