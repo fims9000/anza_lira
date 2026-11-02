@@ -158,8 +158,8 @@ def fit_comparison(
     random.seed(seed)
     torch.backends.cudnn.deterministic=True
     torch.backends.cudnn.benchmark=False
-    az_probe=Candidate3dEncoder("anza3d")
-    cnn_probe=Candidate3dEncoder("conv3d")
+    az_probe=Candidate3dEncoder("anza3d",voxel_mm=patch_config["voxel_mm"])
+    cnn_probe=Candidate3dEncoder("conv3d",voxel_mm=patch_config["voxel_mm"])
     budget=parameter_budget(az_probe,cnn_probe)
     if not budget["matched_parameter_budget"]:
         raise ValueError("ANZA and CNN parameter budget differs by >20%")
@@ -171,7 +171,7 @@ def fit_comparison(
         # for both model families. Different architectures are not claimed
         # to have identical starting functions.
         torch.manual_seed(seed)
-        model=Candidate3dEncoder(variant).to(device)
+        model=Candidate3dEncoder(variant,voxel_mm=patch_config["voxel_mm"]).to(device)
         optimizer=torch.optim.AdamW(
             model.parameters(),lr=learning_rate,weight_decay=1e-4
         )
