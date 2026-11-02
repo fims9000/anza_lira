@@ -62,6 +62,8 @@ def _verified_oof(path:Path,kind:str,variant:str)->bool:
         raise ValueError(f"OOF model score protocol changed: {path}")
     if m.get("n_train_patients")!=17 or m.get("n_validation_patients")!=5 or m.get("held_out_test_accessed") is not False:
         raise ValueError("Invalid train/val OOF cohort")
+    if m.get("source_input_control_mode","full_ct")!="full_ct":
+        raise ValueError("Cannot reuse a negative-control encoder for main 3D CCTA repair study")
     checkpoint=path/f"{kind}_{variant}_fulltrain.pt"
     if not checkpoint.exists() or sha256(checkpoint)!=m.get("fulltrain_model_sha256"):
         raise ValueError("OOF neural model weights changed")
