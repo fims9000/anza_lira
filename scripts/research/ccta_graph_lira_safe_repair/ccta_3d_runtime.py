@@ -281,6 +281,16 @@ def run_volume(
                 "scene_id": scene.scene_id, "accepted": False,
                 "reason": "feature_or_model_error", "detail": str(exc)[:250],
             })
+    if not scored:
+        raise RuntimeError(
+            "Every generated 3D scene failed K10 feature/model inference; "
+            "inspect exception logs and the local model pack instead of "
+            "misreporting this as a valid abstention"
+        )
+    report["scored_scene_count"] = len(scored)
+    report["failed_scene_count"] = len(scenes) - len(scored)
+    if len(scored) != len(scenes):
+        report["status"] = "experimental_inference_partial_failures"
     scored.sort(key=lambda x: (
         -float(x[1].confidence * x[1].consistency),
         -x[1].identity_log_utility,
