@@ -6,7 +6,7 @@ patient split, optimizer and evaluation for both comparisons.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+import math
 
 import torch
 from torch import nn
@@ -42,12 +42,16 @@ class Candidate3dEncoder(nn.Module):
     def __init__(
         self,variant:str="anza3d",channels:int=12,
         cfg:AZConv3dConfig|None=None,
+        voxel_mm:float=1.,
     ):
         super().__init__()
         if variant not in {"anza3d","conv3d"}:
             raise ValueError("variant must be anza3d or conv3d")
         if channels<3:
             raise ValueError("channels must be >=3")
+        if not math.isfinite(voxel_mm) or voxel_mm <= 0:
+            raise ValueError("Physical patch voxel size must be positive finite mm")
+        self.voxel_mm=float(voxel_mm)
         self.variant=variant
         self.stem=nn.Sequential(
             nn.Conv3d(2,channels,kernel_size=3,padding=1,bias=False),
@@ -74,7 +78,13 @@ class Candidate3dEncoder(nn.Module):
         if x.ndim!=5 or x.shape[1]!=2:
             raise ValueError("Expected 2-channel CCTA/endpoint 3D patch")
         h=self.stem(x)
-        h=self.local(h)
+        if self.variant=="anza3d":
+            # Resampled CT patches have an isotropic physical voxel grid
+            # in the candidate-local frame, not arbitrary raw CT spacing.
+            basis=torch.eye(3,device=h.device,dtype=h.dtype)*self.voxel_mm
+            h=self.local(h,voxel_world_basis=basis)
+        else:
+            h=self.local(h)
         return self.head(h).flatten()
 
     def parameter_count(self)->int:
