@@ -46,6 +46,9 @@ def test_bridging_distinct_GT_trees_is_an_explicit_false_bridge():
     assert report["reference_component_count"]==2
     assert report["gt_consistent_new_component_pairs"]==0
     assert report["gt_inconsistent_new_component_pairs"]==1
+    flagged=report["per_merge_examples"][0]
+    assert flagged["gt_inconsistent_pairs"]==1
+    assert len(flagged["before_component_representative_ijk"])==2
     assert report["gt_unassigned_new_component_pairs"]==0
     metrics=evaluate(before,after,gt,np.eye(4))
     assert metrics["reference_unsupported_added_voxels"]>0
