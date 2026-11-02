@@ -22,6 +22,7 @@ from ccta_3d_endpoints import (
     extract_endpoints, build_candidate_scenes,
 )
 from ccta_3d_k10 import ScenePrediction
+from ccta_3d_global import GlobalProposal, choose_global_repairs
 
 
 HELD_OUT_CT28_IDS = {"954", "958", "972", "973", "980", "984"}
@@ -273,6 +274,8 @@ def run_volume(
             if prediction.scene_id != scene.scene_id:
                 raise ValueError("Model prediction returned an unrelated scene ID")
             if prediction.accepted and (not np.isfinite(prediction.confidence) or
+                                        not np.isfinite(prediction.consistency) or
+                                        not 0 <= prediction.confidence <= 1 or
                                         not 0 <= prediction.consistency <= 1):
                 raise ValueError("Invalid accepted model confidence/consistency")
             scored.append((scene, prediction))
@@ -296,6 +299,50 @@ def run_volume(
         -x[1].identity_log_utility,
         x[0].scene_id,
     ))
+    # Structural K10 decisions are fixed at this point. Reconcile overlapping
+    # windows globally, *before* creating CT paths, using exact set packing
+    # rather than greedily choosing the single most confident scene first.
+    lookup = {endpoint.endpoint_id: endpoint for endpoint in endpoints}
+    invalid_global: dict[str, str] = {}
+    global_candidates = []
+    for scene, prediction in scored:
+        if not prediction.accepted:
+            continue
+        try:
+            selected_cands = [
+                _candidate_for_id(scene, prediction.pair_candidate_id),
+                _candidate_for_id(scene, prediction.junction_candidate_id),
+            ]
+            selected_ids = tuple(
+                eid for cand in selected_cands if cand is not None
+                for eid in cand.endpoint_ids
+            )
+            selected_comp = [lookup[eid].component for eid in selected_ids]
+            if not selected_ids or len(selected_ids) != len(set(selected_ids)):
+                raise ValueError("invalid_selected_endpoint_set")
+            if len(selected_comp) != len(set(selected_comp)):
+                raise ValueError("selected_endpoint_component_conflict")
+            if prediction.selected_relation != (
+                "BOTH" if len([x for x in selected_cands if x is not None]) == 2
+                else next(x for x in selected_cands if x is not None).kind
+            ):
+                raise ValueError("predicted_type_does_not_match_selected_candidates")
+            global_candidates.append(GlobalProposal(
+                scene.scene_id, selected_ids,
+                float(prediction.confidence * prediction.consistency),
+            ))
+        except (ValueError, RuntimeError, KeyError, StopIteration) as exc:
+            invalid_global[scene.scene_id] = str(exc)[:250]
+    selection = choose_global_repairs(global_candidates)
+    report["global_selection"] = {
+        "algorithm": selection.algorithm,
+        "optimality_proven": selection.optimality_proven,
+        "eligible_K10_proposals": selection.candidate_proposals,
+        "selected_endpoint_disjoint_proposals": selection.selected_proposals,
+        "selection_objective": selection.objective,
+        "objective_note": "heuristic sum(confidence*consistency), not calibrated clinical risk",
+        "path_vetoes_may_reduce_final_acceptance": True,
+    }
     used_components: set[int] = set()
     used_endpoint_ids: set[str] = set()
     accepted = 0
@@ -315,6 +362,14 @@ def run_volume(
         }
         if not prediction.accepted:
             item["reason"] = "K10_abstain"
+            report["decisions"].append(item)
+            continue
+        if scene.scene_id in invalid_global:
+            item["reason"] = "invalid_global_proposal:" + invalid_global[scene.scene_id]
+            report["decisions"].append(item)
+            continue
+        if scene.scene_id not in selection.scene_ids:
+            item["reason"] = "globally_conflicting_endpoint_proposal"
             report["decisions"].append(item)
             continue
         try:
