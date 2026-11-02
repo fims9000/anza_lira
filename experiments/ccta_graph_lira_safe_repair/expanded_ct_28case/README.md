@@ -64,7 +64,7 @@ The real 28-patient extraction and local PAIR experiment are complete.
 - geometry + radial CT reached held-out AUROC 0.9847, recall 82.63%, FPR 1.80%, precision 97.87%;
 - patient-cluster uncertainty and hard-anatomy analyses are committed.
 
-Current continuation is **not another PAIR retune**. The missing scientific block is 28-patient JUNCTION+CT evidence, followed by a CT-conditioned NONE / PAIR / JUNCTION / BOTH relation head and frozen Graph-LIRA evaluation.
+This paragraph described the next task at the end of the PAIR-only run. JUNCTION train/validation evidence and the CT28 Graph-LIRA validation pipeline were subsequently built. Current status and the still-closed Graph-LIRA held-out test are in `artifacts/varvara/ct28_graph_lira/README.md`.
 
 See:
 - `docs/research/ccta_graph_lira_safe_repair/REAL_CT28_RESULTS_AND_PROMOTION.md`

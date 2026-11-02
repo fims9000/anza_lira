@@ -25,9 +25,10 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import GroupKFold
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
 import build_ct28_relation_features as relation_features
+from ct28_feature_precision import round_model_features
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -96,6 +97,12 @@ def parse_args() -> argparse.Namespace:
         choices=("logistic", "hgb"),
         default="logistic",
     )
+    parser.add_argument(
+        "--feature-precision",
+        type=int,
+        choices=(6,),
+        help="Round local inputs during both HGB fitting and inference.",
+    )
     return parser.parse_args()
 
 
@@ -114,7 +121,9 @@ def provenance_path(path: Path) -> str:
         return str(path.resolve())
 
 
-def local_model(family: str = "logistic") -> Pipeline:
+def local_model(
+    family: str = "logistic", feature_precision: int | None = None
+) -> Pipeline:
     if family == "logistic":
         logistic_params = {
             key: value
@@ -134,12 +143,18 @@ def local_model(family: str = "logistic") -> Pipeline:
             for key, value in LOCAL_HGB_PARAMS.items()
             if key != "missing_ct_policy"
         }
-        return Pipeline(
+        steps = []
+        if feature_precision == 6:
+            steps.append(
+                ("precision", FunctionTransformer(round_model_features, validate=False))
+            )
+        steps.extend(
             [
                 ("impute", SimpleImputer(strategy="median", add_indicator=False)),
                 ("hgb", HistGradientBoostingClassifier(**hgb_params)),
             ]
         )
+        return Pipeline(steps)
     raise RelationTrainingError(f"unknown local model family: {family}")
 
 
@@ -213,6 +228,7 @@ def generate_local_scores(
     candidates: pd.DataFrame,
     folds: int,
     model_family: str = "logistic",
+    feature_precision: int | None = None,
 ) -> tuple[pd.DataFrame, dict[str, object], dict[str, object]]:
     validate_scene_inputs(plans, candidates)
     if {"scan_id", "split"} - set(candidates):
@@ -277,11 +293,11 @@ def generate_local_scores(
                     raise RelationTrainingError(
                         f"fold {fold} lacks a class for {candidate_type} {stream}"
                     )
-                fold_model = local_model(model_family).fit(fit[columns], fit["y"])
+                fold_model = local_model(model_family, feature_precision).fit(fit[columns], fit["y"])
                 frame.loc[held.index, score_column] = fold_model.predict_proba(
                     held[columns]
                 )[:, 1]
-            final_model = local_model(model_family).fit(
+            final_model = local_model(model_family, feature_precision).fit(
                 type_train[columns], type_train["y"]
             )
             frame.loc[type_validation.index, score_column] = final_model.predict_proba(
@@ -341,6 +357,7 @@ def generate_local_scores(
     protocol = {
         "training": "patient-group OOF for train; all-train fitted model for validation",
         "model_family": model_family,
+        "feature_precision_decimal_places": feature_precision,
         "model": model_description,
         "params": model_params,
         "folds": folds,
@@ -467,6 +484,8 @@ def fit_relation_head(
 
 def main() -> None:
     args = parse_args()
+    if args.feature_precision is not None and args.local_model_family != "hgb":
+        raise RelationTrainingError("feature precision ablation requires local HGB")
     if args.tau != 0.85:
         raise RelationTrainingError("frozen relation tau must remain 0.85")
     if (
@@ -500,7 +519,8 @@ def main() -> None:
         raise RelationTrainingError("candidate feature table does not match scene candidates")
 
     local_scores, local_protocol, local_models = generate_local_scores(
-        plans, candidate_features, args.folds, args.local_model_family
+        plans, candidate_features, args.folds, args.local_model_family,
+        args.feature_precision,
     )
     args.out_dir.mkdir(parents=True, exist_ok=True)
     local_score_path = args.out_dir / "relation_local_scores_train_val.csv"
@@ -637,6 +657,7 @@ def main() -> None:
             "base_stress", {"enabled": False, "role": "not recorded"}
         ),
         "local_evidence": local_protocol,
+        "feature_precision_decimal_places": args.feature_precision,
         "relation_model": {
             "model": "HistGradientBoostingClassifier",
             "params": RELATION_MODEL_PARAMS,

@@ -1,5 +1,7 @@
 # Negative results that matter
 
+> Historical experiments through 2026-09-26. Their negative findings remain provenance, not results of the current K10/15 CT28 Graph-LIRA validation run; see `artifacts/varvara/ct28_graph_lira/README.md` for that run.
+
 Date: 2026-09-26
 
 This is not a dump of every failed experiment. These are the negative results that materially determine the current architecture.

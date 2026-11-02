@@ -1,0 +1,1850 @@
+{
+  "purpose": "rejected CT28 Graph-LIRA validation ablations; archive members use repository-relative paths",
+  "file_count": 309,
+  "files": [
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_comparison.json",
+      "bytes": 7835,
+      "sha256": "dd98c0e0c36b758f59d989e95cf45457bd8fb764420143f28e9eb4b6c454fc74"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/graph_lira_by_junction_group_val.csv",
+      "bytes": 1873,
+      "sha256": "783a463cc602434db1806165327cdf6b6800bd21a188a2d6bcba0e73ca3a43d5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/graph_lira_by_scene_type_val.csv",
+      "bytes": 2770,
+      "sha256": "31d35f34c74eaa296e8808931cb107e721b9cebee477d387d6c37c538c89f399"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 2041,
+      "sha256": "151f9776d1079c763652e99999a6f9cfa81aabe04dbe82fc8293425395d26b57"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/graph_lira_per_patient_val.csv",
+      "bytes": 3500,
+      "sha256": "f2b9a45e12dbe929a566934b4a255c45ff427e6249024ecb81fbe4d9b7bfbf3f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/graph_lira_predictions_val.csv",
+      "bytes": 125388,
+      "sha256": "9dddd4387bc40ac4ec2b53a1072455dabe78f8a9ba3fd32c8f1342a2c67d87fa"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/graph_lira_protocol.json",
+      "bytes": 3579,
+      "sha256": "d0556d7920b9dc75bcb1f968af7d848935dc9e19a50ebad0c1abfbe3c84f6893"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/graph_lira_structural_metrics_val.csv",
+      "bytes": 1167,
+      "sha256": "0f5f94ff6af2ca75789389e7ed2cc2d19b3cce9d9346d57f274dbdfd87cf4942"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/identity_ablation_summary.json",
+      "bytes": 2854,
+      "sha256": "19541136b8ec34f36c8d2e3eb3ee31160ea5cc3000b8487c36d130fb7281d126"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/ct_identity_geometry_plus_ct/perturbation_consistency_val.csv",
+      "bytes": 200154,
+      "sha256": "2c6277fe4e18c305ecbb8d6db01ddb295b150631512bd487b431821ab06201e3"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/graph_lira_by_junction_group_val.csv",
+      "bytes": 1925,
+      "sha256": "8cd204f99334086087480cac8c68b56d4643bbe7dbdf681c34d29e97a2033762"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/graph_lira_by_scene_type_val.csv",
+      "bytes": 2851,
+      "sha256": "49107f44797cc84e96e97d594a03fe3e0a55e85d5497e6c31373cfee569fe0b6"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1632,
+      "sha256": "4f9160f404165d5250d7e5ee1bfe061001478389e466ece939c2589d7dbdb756"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/graph_lira_per_patient_val.csv",
+      "bytes": 3037,
+      "sha256": "e1874e6ba66e33abca2747d94b5f24c54a52b77a0418433f1c6e8178f39bb9d4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/graph_lira_predictions_val.csv",
+      "bytes": 127191,
+      "sha256": "aa673fc0e0e18e58be8a0a45101e64343baed65f51e18bda3a0b5cde7af5c9db"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/graph_lira_protocol.json",
+      "bytes": 3892,
+      "sha256": "f4f72f73c54723f29985a7d59ac148b5d52c8f4f50e8f2838f629f36e6a7ecb2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/graph_lira_structural_metrics_val.csv",
+      "bytes": 1058,
+      "sha256": "349a95954f5fdd177312968ba9959acdc516a1ff8fa31a4e3203dffd2bc675cf"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/perturbation_consistency_val.csv",
+      "bytes": 206145,
+      "sha256": "886925bed6b8ad0c92f297cf58b9ceb9564645f6689498142aab2e18b386ad8f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/graph_lira/perturbation_decisions_val.csv",
+      "bytes": 1153475,
+      "sha256": "db0770b3dfecbcf3a13be273aad20ae13484c9d927761af19f27dbde6f346369"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/junction_fusion_ranking_summary_val.csv",
+      "bytes": 498,
+      "sha256": "a9c831f5c8daa6719637f0c5c2c7aa4d39e91cdde7ad3bfa1127d6f654b9e3d4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/junction_fusion_ranking_val.csv.gz",
+      "bytes": 30012,
+      "sha256": "056e03ddb7fca5ef70a83d47703d1084e4417cdeb5772b6d98efc2d2a644cde6"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/relation_local_scores_train_val.csv",
+      "bytes": 1952457,
+      "sha256": "1ebe8cf22cba9e833d7fdaff18e4e3973741ee978e5ad48de250ec77eaf81874"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/relation_model_protocol.json",
+      "bytes": 1548,
+      "sha256": "defa5f0118ba468731b558eb3cc761bf40e227087c307f696b2adf92c3ed4ade"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/relation_models.joblib",
+      "bytes": 5295104,
+      "sha256": "2ab381e69b3fc4324c0d7d3371c7ef2c4e873ace98df49ee42a52d4b2766b60b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/relation_predictions_val.csv",
+      "bytes": 203669,
+      "sha256": "f88edd28c725a22bf684c48602558d8847f6c78bdacf651a58870a25f5259378"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_fusion_position_robustness/train_extraction_audit.csv",
+      "bytes": 316,
+      "sha256": "ff4dd4707dab768dcce8c8865c8c5e563f47bfcdb742df016ffe41c9cf282888"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/fusion_feature_attribution/fusion_input_interventions_val.csv.gz",
+      "bytes": 309666,
+      "sha256": "28c95725ab52f8aad60ffa799953c0508a893f3f4b7e65fc71efbe30834de7ed"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/fusion_feature_attribution/summary.json",
+      "bytes": 11848,
+      "sha256": "3add69c8aa5c543816caff8bd27c61b9e2df6861827467d110f72e06e5977e95"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/fusion_inputs/fusion_input_interventions_val.csv.gz",
+      "bytes": 98736,
+      "sha256": "59886563b5abb8a76acad8cc6431f0c18637a1091456300e6f19ccb0cfacd13d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/fusion_inputs/summary.json",
+      "bytes": 3333,
+      "sha256": "a8b5a8f38bc3046198b0b0d5a41adabd688498716adbe21dcf36500f849d79d9"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/graph_lira_by_junction_group_val.csv",
+      "bytes": 1922,
+      "sha256": "0ce5f8643b8923ea80349cdfc8976a97bab85d0f920c32aedcceeb1f167ae31f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/graph_lira_by_scene_type_val.csv",
+      "bytes": 2851,
+      "sha256": "4d4f61f9c4594e7c8185481de035cbba7c7ac7a0e57847ba9f2c339aa26a89ec"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1632,
+      "sha256": "4f9160f404165d5250d7e5ee1bfe061001478389e466ece939c2589d7dbdb756"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/graph_lira_per_patient_val.csv",
+      "bytes": 3034,
+      "sha256": "82c27035ad6c7fc0bafe22e5f1f7388fb47525b575f0bed595a1e03163a46dec"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/graph_lira_predictions_val.csv",
+      "bytes": 127191,
+      "sha256": "7c687384d32a0a832731499f8f8217f7483373fd9a500da61423e50513ad48fb"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/graph_lira_protocol.json",
+      "bytes": 3993,
+      "sha256": "d55563d42a25dbfefd7e5c515aa43b204db1eb04d9579eefb14fd206c07a355b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/graph_lira_structural_metrics_val.csv",
+      "bytes": 1058,
+      "sha256": "a0ee8e8475437da2b23a93afa338ab3e88eebe999dc01de122488031ea449a80"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/perturbation_consistency_val.csv",
+      "bytes": 206169,
+      "sha256": "b19c639f49c562e2fe7b173d06baf42209498bceafd3a60c49e735f48f071886"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/geometry_selector/perturbation_decisions_val.csv",
+      "bytes": 1153523,
+      "sha256": "0620df6d092b01291868bca5e5d2d294668ad855fa2132318f48aa6e5d3f3456"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/position_robust/candidate_traces_val.csv.gz",
+      "bytes": 6112607,
+      "sha256": "5b03c7430f3cbde1acda2a0f0aab9b4187a4c92691358bb9ccbdbfc832cb1e31"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/position_robust/decision_traces_val.csv.gz",
+      "bytes": 837980,
+      "sha256": "1e5dc451829e367049402bc44fa8f76f83fa298b9f6e7372f6dfe35126421060"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/position_robust/protocol.json",
+      "bytes": 1873,
+      "sha256": "a8c2a6f0c5f311bc195f909cacc556d8b70a9857e1cbb315be41a0bb1b53b8f0"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/position_robust/scene_diagnostics_val.csv",
+      "bytes": 325745,
+      "sha256": "d25a7a2ca37d1f2bba662a709018ae87691385c3c3b02434b3e58e94a8907d46"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/position_robust/summary_val.csv",
+      "bytes": 8572,
+      "sha256": "967ab22868b55c99016b2ba27f9f5a4fb54d63615eccf18ac80ddd08603145d5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/position_robust/type_switch_summary.json",
+      "bytes": 1806,
+      "sha256": "9b0f5175939de99112b1fe68b2d460367172c015a56389f84e856bb4966d7eaa"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/position_robust/type_switches_val.csv",
+      "bytes": 955,
+      "sha256": "937d9a4ccf01a51214f14a0029e4310fb6449b65722ae4f7260b534054de7645"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/position_robust/zero_noise_audit.csv",
+      "bytes": 2294,
+      "sha256": "1f52cf8237e977b6f48808e59ed4514d93e4388f793542b6d311ed83368ebd20"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/split_geometry/candidate_traces_val.csv.gz",
+      "bytes": 2107276,
+      "sha256": "8212190e932292eb5024071324f0374e286750b7d65354443e68cc3d29288afd"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/split_geometry/decision_traces_val.csv.gz",
+      "bytes": 267152,
+      "sha256": "118bc54b706c0f9931003cf2ade18044d455f396b5756d147c79ee93df93a5d5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/split_geometry/protocol.json",
+      "bytes": 1844,
+      "sha256": "892f272f7d2eef16e062ed6c7c6165e03e4e2d4001c1077336f743aca844c097"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/split_geometry/scene_diagnostics_val.csv",
+      "bytes": 128489,
+      "sha256": "158c3a216dd11cb81630b86417c480594d21d83949ea5c3071449dac5d1c8821"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/split_geometry/summary_val.csv",
+      "bytes": 3415,
+      "sha256": "90e5e353d3ab447bd71bdda2e47d55ec0ea1bc825e393dbaf687bb990e7f5320"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_identity_diagnostics/split_geometry/zero_noise_audit.csv",
+      "bytes": 2294,
+      "sha256": "1f52cf8237e977b6f48808e59ed4514d93e4388f793542b6d311ed83368ebd20"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean/candidate_traces_val.csv.gz",
+      "bytes": 5730434,
+      "sha256": "f8fac8147331308bbf26872050b8b5791b9357b7e4c3abc9489eefe8c7560375"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean/decision_traces_val.csv.gz",
+      "bytes": 836145,
+      "sha256": "3fc59b0d139c33298ad4118046dda9b70b50595e02dd569c8a5d9cecff508e56"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean/protocol.json",
+      "bytes": 1807,
+      "sha256": "b816b0f60470d52053625ca5bdabdac3d53e4ec16ce147d04b432ac6eda4f360"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean/scene_diagnostics_val.csv",
+      "bytes": 303981,
+      "sha256": "9488f53cb7fd54a7163295fca884d6b24f6d08c5d11ff6bd3df2f11dc47f05d9"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean/summary_val.csv",
+      "bytes": 8173,
+      "sha256": "f341a39ba2b16e8b6f22e8fd3739a5417351f7bfe69d58e5b6cdd00d39a98357"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean/zero_noise_audit.csv",
+      "bytes": 2296,
+      "sha256": "e014a1f4b96f38b87bca51944ed66fc651b8b96176dd7c26978d2401da622aae"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean_split_geometry/candidate_traces_val.csv.gz",
+      "bytes": 1958764,
+      "sha256": "c60c1d875935295ea087c7b2a130abfc181a50b4ad986e4a39af1e26e41406cd"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean_split_geometry/decision_traces_val.csv.gz",
+      "bytes": 264708,
+      "sha256": "c1f014b3f8fede84ecbc31cecace40ee513e666d31308ae9fc623804df5aa02e"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean_split_geometry/protocol.json",
+      "bytes": 1763,
+      "sha256": "9c2c6793e7bcebbd65583cd69f8e59dcbcd7972534e72ecf7b73c047b1a34500"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean_split_geometry/scene_diagnostics_val.csv",
+      "bytes": 111619,
+      "sha256": "50bb4ff48e67bd2ec8cc7f4da0e72c0da3e7beb2f338d27e159d88d7ff528730"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean_split_geometry/summary_val.csv",
+      "bytes": 2993,
+      "sha256": "64c5c07c9ba28a7989eb0a14a88e2bea44cd2590fdceaee1da7486039a1d1c9d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/clean_split_geometry/zero_noise_audit.csv",
+      "bytes": 2296,
+      "sha256": "e014a1f4b96f38b87bca51944ed66fc651b8b96176dd7c26978d2401da622aae"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/geometry_shift_summary.csv",
+      "bytes": 7519,
+      "sha256": "3b27dd704664ef07a89e879c7c3a8d95e00974e64b66b05230219cf8531e582c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/metrics.json",
+      "bytes": 33314,
+      "sha256": "0815d11aac32f396b2154b656f228e758303510d911a4a220efc12406985cfe6"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/numeric_boundary_example.json",
+      "bytes": 596,
+      "sha256": "b243e5ade1760228e529c3ce03f81f6b3b8cace6fb0b6b267c6a6706edcb60eb"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/stress/candidate_traces_val.csv.gz",
+      "bytes": 6368663,
+      "sha256": "f6c0f269398ec47ece9574a8ef9e52cbdaf3822c0de48f0000087f7446c359fe"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/stress/decision_traces_val.csv.gz",
+      "bytes": 791425,
+      "sha256": "1b918e76dc6c6cf1aa920a63e062fb1930ef33a156419c77c3fad4e91824fe03"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/stress/protocol.json",
+      "bytes": 1958,
+      "sha256": "f5c87cfe8ed0f9842e09e7ffb2bbf6d92b5a4434012de16adff803d35236f609"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/stress/scene_diagnostics_val.csv",
+      "bytes": 303606,
+      "sha256": "0483f829038a55e62c154e1f7d03dbb98c774a1d3a47a17952ca0558b4227e13"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/stress/summary_val.csv",
+      "bytes": 8225,
+      "sha256": "af2f7f86e34662cbcf968593d32f758b173be342f78f007de220cdde545204c6"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/stress/zero_noise_audit.csv",
+      "bytes": 2257,
+      "sha256": "91979602be3a6bbb8110e9a9f0953d076b278427c53539b53b7e49fe34ffbab8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/true_junction_geometry_traces_val.csv.gz",
+      "bytes": 263302,
+      "sha256": "5e5bd5cb96b86bc8f28d0306b369e0ea87a9af357fd48b6cc9789529c8cd8b5d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_input_diagnostics/verification.json",
+      "bytes": 591,
+      "sha256": "f9d4b5fa8556dd384bcd9436a704e4c3b3e089d56dfa829cf25219ff86021dc1"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/graph_lira_by_junction_group_val.csv",
+      "bytes": 1881,
+      "sha256": "1b3871ec2122ee6cc20f2fb29835322bf82bf4bdbd033f3c3bbea75f8c573fb7"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/graph_lira_by_scene_type_val.csv",
+      "bytes": 2674,
+      "sha256": "bea4f27b1ac602b84fac94b4cff5b82bcf6848b9e8d7c2fc1b4e726bf02d8583"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1637,
+      "sha256": "cccceb3f96ef7851760988f04e3638bb451d264b336c8acab9ed8ca1266b8daf"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/graph_lira_per_patient_val.csv",
+      "bytes": 2921,
+      "sha256": "7bdbbfee9ec9a9d2f57a0cf18ff3549bdb842ceef00bcb1bd156c609643ad5be"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/graph_lira_predictions_val.csv",
+      "bytes": 126773,
+      "sha256": "d31f5c815aef7c9481016f7dd6f0e49fb65416d0e3339cfabaaf1f0f27fabc20"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/graph_lira_protocol.json",
+      "bytes": 3868,
+      "sha256": "f3bbcf67b81f6b675cf831fb18eeb8469108e0097642ab67b55495ed00e790e9"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/graph_lira_structural_metrics_val.csv",
+      "bytes": 1046,
+      "sha256": "1caa6a4d003de20375252181a7fa689b7bd4fb412c6c816ed26d9e5ef11d82e2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/perturbation_consistency_val.csv",
+      "bytes": 195600,
+      "sha256": "c8f7bb1ff4345f854123ee35f786ff96b8fc28ac15a5888b62733ca73be57bcb"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/graph_lira/perturbation_decisions_val.csv",
+      "bytes": 1130372,
+      "sha256": "9c28a965c461f1d47277add48fd315a10477edde7cd57d032584b17b878791c9"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/relation_local_scores_train_val.csv",
+      "bytes": 2047252,
+      "sha256": "8637daa1d752ba659016948d040abfe663232b466fbfcd8d2f84d2b1baf1cc93"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/relation_metrics_val.json",
+      "bytes": 6294,
+      "sha256": "622cbe1755994931efb1700fc0687bfa8805219db8516dc934e96d3f5b4da624"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/relation_model_protocol.json",
+      "bytes": 30544,
+      "sha256": "4eb657f418c8d28fd887794dee88ed3df578ac62a7e0215282894c2583839531"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/relation_models.joblib",
+      "bytes": 5245008,
+      "sha256": "854d95598de04653df3b40d666e042dc2ad9c4f9c67131ef6deb2312c356a73f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/relation_predictions_val.csv",
+      "bytes": 203615,
+      "sha256": "d00faab551d58c7fc43576da80b888fccfa15c9cbd5c6e8013410a69c4d143cd"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_numeric_robustness/zero_noise_patient_957.json",
+      "bytes": 253,
+      "sha256": "bed00a9121516b251d9991643a521a670b454bdaf500d2bcf7aedac593fe6cb1"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/graph_lira_by_junction_group_val.csv",
+      "bytes": 1925,
+      "sha256": "9ef5bda990fdcd01941de0e779df47e9dbc911fb78a01152ddd5e71a1fa28c79"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/graph_lira_by_scene_type_val.csv",
+      "bytes": 2850,
+      "sha256": "ada8a887f522d0560db861e05314eb30e88c6d0bbe713f5645088ee4ff77fec4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1632,
+      "sha256": "4f9160f404165d5250d7e5ee1bfe061001478389e466ece939c2589d7dbdb756"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/graph_lira_per_patient_val.csv",
+      "bytes": 3054,
+      "sha256": "7142a7937336abcfcea44fa87147857ae74869c990ba2f79235f183dac81eb98"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/graph_lira_predictions_val.csv",
+      "bytes": 127191,
+      "sha256": "0b11a24510e2706514bcca460c64d34189b5648144acb6665a54c5c03695c7df"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/graph_lira_protocol.json",
+      "bytes": 3871,
+      "sha256": "832bae34f27a813019371aac06bf9bbc5b9afeb2e1d78fda6f6ccc2dc4c9d8e0"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/graph_lira_structural_metrics_val.csv",
+      "bytes": 1058,
+      "sha256": "33dcbf304fe3f27e018a0f911dc85caa3000d73889617123ea900b0e3a408247"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/perturbation_consistency_val.csv",
+      "bytes": 205869,
+      "sha256": "3e89af5c0fc0c3a6c55a6674a38086baf4a42d7bcf5f347f20b58774b3fb7ce2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/graph_lira/perturbation_decisions_val.csv",
+      "bytes": 1152923,
+      "sha256": "108c34d93b6e9b69d3fec7bd1f90026881c23f83c703013caedb2c7e88162442"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/junction_position_rank_scores_val.csv.gz",
+      "bytes": 525625,
+      "sha256": "2a384b10f5802684a496096018285c3d2723338b03a2b04877a434d84d3e0c25"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/junction_position_ranking_val.json",
+      "bytes": 500,
+      "sha256": "f3104f1a160fac91b2c19c6bd449ebca9ab1165083293ac978f7b281aca9237f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/relation_local_scores_train_val.csv",
+      "bytes": 1951616,
+      "sha256": "51849daabe0beb0e9a4866339e2506450161856fc6d5d75e676b7ba19e61fdac"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/relation_metrics_val.json",
+      "bytes": 5711,
+      "sha256": "dee184ed5a4a1791ebe80e19f23def01a4b82fa407b4dadc8149319eb33f9027"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/relation_model_protocol.json",
+      "bytes": 2314,
+      "sha256": "4aeb756a67eb60c5f789e363b67e405279ee215a483f06423f352e16eb48574d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/relation_models.joblib",
+      "bytes": 5260016,
+      "sha256": "0df8a029a4de847e5b35d0a3238160058a0099c9601cdb08c3507176d490b1f9"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness/relation_predictions_val.csv",
+      "bytes": 203669,
+      "sha256": "f88edd28c725a22bf684c48602558d8847f6c78bdacf651a58870a25f5259378"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness_unrounded/junction_position_rank_scores_val.csv.gz",
+      "bytes": 529798,
+      "sha256": "1dced455ba3c3e7c675e7781007924bb2dc5325c312badbf3c71920ef6fcf353"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness_unrounded/junction_position_ranking_val.json",
+      "bytes": 499,
+      "sha256": "758765a3909168f0de89a4987cb8cd8d48c6fc2371f6340f470bcf9d8ad13804"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness_unrounded/relation_local_scores_train_val.csv",
+      "bytes": 1951473,
+      "sha256": "e8557e1d17df7bbb2a739e49fd9fe3523e05fcda68cdd10080553a9a1ef721cf"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness_unrounded/relation_metrics_val.json",
+      "bytes": 5683,
+      "sha256": "24097ad7b58b54ce5b1c7406c1bc2c11b8f07cc85fb8a5d5dd2cf6c62cfba4c5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness_unrounded/relation_model_protocol.json",
+      "bytes": 2249,
+      "sha256": "5ec99b9610352892f53d6a32d145dbfbb45ccaed322367ce88fa610b0a07d052"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness_unrounded/relation_models.joblib",
+      "bytes": 5269440,
+      "sha256": "9ea056283724c723b3586116af580fb1d9efb0fe09d3c1ef60656e7d8d649d8c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/junction_position_robustness_unrounded/relation_predictions_val.csv",
+      "bytes": 203662,
+      "sha256": "d1c1e0d928c1013299c020445907046c6e8783232c0b1bcd4875a8cb557e08e3"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira_ct_identity/graph_lira_by_junction_group_val.csv",
+      "bytes": 1878,
+      "sha256": "296ff44f824dc8349abd99ff3d4406e9ddd55c05079ad284292c413de5324a1c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira_ct_identity/graph_lira_by_scene_type_val.csv",
+      "bytes": 2595,
+      "sha256": "e251fc29d19ce3567d16c1e69f90f96bcd0f94ba1be5869c963b2464c73e928b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira_ct_identity/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1349,
+      "sha256": "eb7f8cb99ec251446dffb02ae3c4ab7e0ec617df28edc58f029769e665aefdfd"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira_ct_identity/graph_lira_per_patient_val.csv",
+      "bytes": 2844,
+      "sha256": "14343b3d06d00f3b17ba06c56a1008766b4fef2d211f85e9ce1a63cba09a31ae"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira_ct_identity/graph_lira_predictions_val.csv",
+      "bytes": 126883,
+      "sha256": "3074a3edcc4301ef5f12060f2163329fc8397b737559b8f58cac554c02d8d52e"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira_ct_identity/graph_lira_protocol.json",
+      "bytes": 3667,
+      "sha256": "37d29b8f25bc382018cd27ce79bfa1ba872f0c4522c4f9dbbfc6e07d26691d54"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira_ct_identity/graph_lira_structural_metrics_val.csv",
+      "bytes": 972,
+      "sha256": "b283f025eabdefa2611e51c425e323ca9a0458a8598ec254ad3ad138b47ea9b5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/local_hgb/graph_lira_ct_identity/perturbation_consistency_val.csv",
+      "bytes": 195112,
+      "sha256": "1ef20ec6cd43a3383515045928bef8be1145449978ad1de6c1aa8187943331d8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/comparison_val.json",
+      "bytes": 3265,
+      "sha256": "e11e8eadf2b7d60e10eb028c9c1d9c59f45c8b989b9cb9ced5bc09bd3100ae56"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/graph_lira_by_junction_group_val.csv",
+      "bytes": 1877,
+      "sha256": "2a7b64410e73822f88d41fb91c3c1de92e5ce9a754fd74662ff8bc28f1e9a2d5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/graph_lira_by_scene_type_val.csv",
+      "bytes": 2762,
+      "sha256": "a33ceafad55cb1531ad456007a91f6bff95ff7c73968686a6809d7186b9f7db5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1877,
+      "sha256": "57351d040c1b96bf3bfed12d9a7fb231f88cc3edfc03c2381801f7523523198f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/graph_lira_per_patient_val.csv",
+      "bytes": 3488,
+      "sha256": "bc6193e8e1771c0abb8b69eeeae95e6fb00a64a8c241e6b91eb5462ac2b5b009"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/graph_lira_predictions_val.csv",
+      "bytes": 128093,
+      "sha256": "43d2637a6dbf4345c4510b96eadbbf578dcad2c71521036a9e117ce05ea34cb4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/graph_lira_protocol.json",
+      "bytes": 3988,
+      "sha256": "b0e4a0ad3d244fe18c24d322ee5a95d16a5eff1f35ffc207f12575a4e681d891"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/graph_lira_structural_metrics_val.csv",
+      "bytes": 1159,
+      "sha256": "004ee22afc0e95c518c2cb0bdfcad35f45e6f892ddc755d59c193d65bf251fd8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/perturbation_consistency_val.csv",
+      "bytes": 221228,
+      "sha256": "453f70ec59316dbc24f9209155ed60be4d2d935f1d1e48ecf2db2d4f382530a9"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/graph_lira/perturbation_decisions_val.csv",
+      "bytes": 1182202,
+      "sha256": "3119a98d2fa92ca3db6432e73bf42edb047200210f7d9e551dfb899dbaf8e35b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/pair_position_ranking_val.json",
+      "bytes": 851,
+      "sha256": "cea2ae854d014fb2de2851dea181c5b29a41fc61e5502a7e2a3537a08103d40d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/relation_local_scores_train_val.csv",
+      "bytes": 1949218,
+      "sha256": "109c10f8da078f23a9080f774d2b3e049a929aeb1b59cc4bc9d0e1e470b03479"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/relation_metrics_val.json",
+      "bytes": 5678,
+      "sha256": "ebfa35407cd22840aeda297604007ea33027aefc51eedc780aacaf8e74c3b102"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/relation_model_protocol.json",
+      "bytes": 2265,
+      "sha256": "7100b60bd2b88f487357991eedab8bb353182c132fdb8f3cb0d8d8973054a6ca"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/relation_models.joblib",
+      "bytes": 5283446,
+      "sha256": "a34f1dbb8bfbc8d38ed07f79e4dce9762b3791a319ca1d8f8e09d744c1231661"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust/relation_predictions_val.csv",
+      "bytes": 203678,
+      "sha256": "dcdf008dde9bfb71eeb7563e1c1e656219627b79cc07d82adb02aabb5449a216"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/graph_lira_by_junction_group_val.csv",
+      "bytes": 1929,
+      "sha256": "89d6bf861164dbea92519609aa5ff3bd63a5646b75f2206de38855a56ebf40fd"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/graph_lira_by_scene_type_val.csv",
+      "bytes": 2910,
+      "sha256": "c74457ca72dc6070393160e49d17536e8e220b14eac531e53a264f717c76d39f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1885,
+      "sha256": "22ecf8810013c5d01dab2a185ca4b939e41d36fe5603186a63033f79b6da3b4f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/graph_lira_per_patient_val.csv",
+      "bytes": 3492,
+      "sha256": "e8d3f3e71deaeb9f480f1980a9cebeb4c8fca4ffa684282e1e8a95c33df15c40"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/graph_lira_predictions_val.csv",
+      "bytes": 128195,
+      "sha256": "7932938cf610cf397388ce95423593551cc4fd6f362b59eb9f196907e8580d60"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/graph_lira_protocol.json",
+      "bytes": 4018,
+      "sha256": "37113ae7774d3154cf10d85bf014846ca2b14f2d853ca651f6ae36d3ada33bf6"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/graph_lira_structural_metrics_val.csv",
+      "bytes": 1156,
+      "sha256": "b4e3b5114a3a26d3bcd9e44a0f0b8518944bf5038ee7d73d2f491f9504343407"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/perturbation_consistency_val.csv",
+      "bytes": 220719,
+      "sha256": "87aa8520989c9669c720aa5e9bed9c8f3fa520f30c4a0dfde2d6f31cc08a55f8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/graph_lira/perturbation_decisions_val.csv",
+      "bytes": 1180299,
+      "sha256": "c51ef91d3b6fa4f70acbc57ad8972e315d856260b51ffccd479c95f4c6907f9f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/pair_position_ranking_val.json",
+      "bytes": 851,
+      "sha256": "d96b28ed62f8e1189852355187cc1fccd36fdfa93b3eaefe694d6463fd6d832d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/relation_local_scores_train_val.csv",
+      "bytes": 1949360,
+      "sha256": "3b99c4c7e35acda6b62db412ed698295cd11b6b8daf55ab4bedb1945268c22cd"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/relation_metrics_val.json",
+      "bytes": 5685,
+      "sha256": "2616195532d9d1dfc6425422f159cf13cf058181350f818ffbb240d9912d6bfa"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/relation_model_protocol.json",
+      "bytes": 2139,
+      "sha256": "ba97faa7b35e41b63900fb9407cd7baa6b070fb7b37f9a79da036873fb8b79be"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/relation_models.joblib",
+      "bytes": 5295382,
+      "sha256": "7ca96e51364bfccef5bcfdac507213c99df111f659c609b3ed1906c556ad27fb"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/relation_predictions_val.csv",
+      "bytes": 203712,
+      "sha256": "963a7672e00d499e816076f16d895670f8bccfabc9253185234f976e13d8e08f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/zero_noise_audit_rounded_reference_val.json",
+      "bytes": 587,
+      "sha256": "d845e26a1d9f9fd447c521ecdb1ef785adc8a6a2d927ef5b5a54cd38ec39b3f1"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/pair_junction_geometry_robust_unrounded/zero_noise_audit_val.json",
+      "bytes": 586,
+      "sha256": "bf3749551ce77d6d711c275f916ee477f974263cffece304b503355a412a2396"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/augmentation_audit_train.csv",
+      "bytes": 63138,
+      "sha256": "c1863aae8a89cb49e536b0c35eb219e7f7efeca15685924b244b3aad0b680b71"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/augmentation_summary.json",
+      "bytes": 2337,
+      "sha256": "99b9f8d4a561aca4d81b9bc9b6dc0a594b177b5865b1cc02631468838a19577b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/abstention_reason_summary_val.csv",
+      "bytes": 438,
+      "sha256": "c22d04d48b50785e20bdd1c4202518b1649fe8c11bec27a172b98e7f074feec3"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/consistency_components_val.csv",
+      "bytes": 164828,
+      "sha256": "a2a244eed89190d1d3831010234548b5e5ab29c966e06eb697ea8e7e9cfdba6e"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/consistency_summary_val.csv",
+      "bytes": 4520,
+      "sha256": "6c5729c65a78ffe1977c255328f7c0acd2356aad546a2ee24bd0709976def4c4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/consistency_type_transitions_val.csv",
+      "bytes": 2189,
+      "sha256": "6d7269ed8e1b0b1629a3f50d743ae03323a14d7590d8946140b1d408bf1124ef"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/graph_lira_by_junction_group_val.csv",
+      "bytes": 1863,
+      "sha256": "351975c861ccf03f3638f4ee5696c64b4632acb39119912f43cd8d2c271d34ee"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/graph_lira_by_scene_type_val.csv",
+      "bytes": 2679,
+      "sha256": "8d907ed9ab6c8825ea7fa0eda1ed81bdae827d8240042dedb060fb45f4c67249"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1711,
+      "sha256": "b5161d8baf83aac2433517a224cb27c1d8d31421c31501e5c60bc15c7bc41a9d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/graph_lira_per_patient_val.csv",
+      "bytes": 3247,
+      "sha256": "f91cc4cf02004d3d6c6930d6600d5da90960634cc533483f2b2aca0f64575d4f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/graph_lira_predictions_val.csv",
+      "bytes": 125220,
+      "sha256": "aa497d1f982defdc647b81728aa9bf894e73a7fcfd8b1f4ba7a33d5f1f710323"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/graph_lira_protocol.json",
+      "bytes": 3904,
+      "sha256": "d070a2174e0fdbf8d798f3903a13142cc5a4e11fa744677c2b587ff1adb9a904"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/graph_lira_structural_metrics_val.csv",
+      "bytes": 1071,
+      "sha256": "62bd0da9b869799f17e9617040bd38fb99527a180e221d437da2d42b1f9114da"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/perturbation_consistency_val.csv",
+      "bytes": 194284,
+      "sha256": "606ec2e5b776594fb9741e73f196977ac1b5c7c6f447e9c7010a808719ba9123"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/graph_lira_ct_identity/perturbation_decisions_val.csv",
+      "bytes": 1134287,
+      "sha256": "8532e3d17ae5fd7b736dd488a8c2805ee65e6dfc5893a5f833593a2439b42880"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/relation_local_scores_train_val.csv",
+      "bytes": 2047212,
+      "sha256": "71cf7e7436acc49dbf166254dbe6855c4d8c5b96f56df2a46b55a4d8ba94f0a8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/relation_metrics_val.json",
+      "bytes": 6791,
+      "sha256": "1a0b73d00d17a551e5fcb102fd79ca366298908129740c6be40ff8591d9ec81a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/relation_model_protocol.json",
+      "bytes": 6093,
+      "sha256": "ddefd84734d57c3a8f41ed2c46a66410f7e748e2d13e973f5c205356775f4060"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/relation_models.joblib",
+      "bytes": 5344026,
+      "sha256": "5206c696ca7c960ac4eb985af2e7350bdbcfc9ee6cc4c65c8503d3ef4b763e6a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/relation_predictions_val.csv",
+      "bytes": 196585,
+      "sha256": "ffa01d1b75ad0bc24c6b549d54c11d551f0038a191f4a41cedb6f93fb6a31b81"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/abstention_reason_summary_val.csv",
+      "bytes": 430,
+      "sha256": "df090a55830a984f185abdc69228769424bb3877402e5fd5af4b7896799ba624"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/consistency_components_val.csv",
+      "bytes": 163468,
+      "sha256": "4b1bb99891743da7509b62a87d7a96545f23c2254893028ea7234780110ff872"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/consistency_summary_val.csv",
+      "bytes": 4127,
+      "sha256": "2d9c875dccdced7137a485cc777b026b5c9680234863b60e0d02550dfddfd52e"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/consistency_type_transitions_val.csv",
+      "bytes": 2128,
+      "sha256": "801e0a0161d53fd9e3b4847909a4f9c402f9e3918fdb4f18c221e3eff939d1d4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/graph_lira_by_junction_group_val.csv",
+      "bytes": 1842,
+      "sha256": "d684c2f194511b937762d502fede758c30c9454d8689532b35f3b40337037882"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/graph_lira_by_scene_type_val.csv",
+      "bytes": 2753,
+      "sha256": "f60feb37a8dd3962789b1b309f0aea917a6d6f24a4e4e9530511bed4ed9507c5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 1926,
+      "sha256": "fe7be2957a6cba846f5ab68840c1e075b38ea8a08faeafc19d38c2be28bd7ec0"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/graph_lira_per_patient_val.csv",
+      "bytes": 3422,
+      "sha256": "c7d4ec72ec467bdf07627fb07fc10d203bba74b5447957a8e85ee2e1a6b453d3"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/graph_lira_predictions_val.csv",
+      "bytes": 123039,
+      "sha256": "8bc7e67f9e307d2318db8207b22b83f67a21e2b464b31e5768f5e8a5d0af3ab8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/graph_lira_protocol.json",
+      "bytes": 4238,
+      "sha256": "53149793c4bc51f2f3ad05fca7f9c8356f1431dc168a633de2ec8faad5e796c9"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/graph_lira_structural_metrics_val.csv",
+      "bytes": 1105,
+      "sha256": "bee6c6b8224fb464fd017e0426b7269b8a9180ec32361c9877b439a2c41449ed"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/perturbation_consistency_val.csv",
+      "bytes": 184443,
+      "sha256": "c4ef094780d17f02ed47522f68e48b8ffca44471f35182536798ea6a5a642dc2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_graph_lira_ct_identity/perturbation_decisions_val.csv",
+      "bytes": 1119197,
+      "sha256": "e87d9f3ac147145a93cfa98214067a4a5dc06cccc361200fda36f7b929f19cd2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_validation_evidence/relation_local_scores_train_val.csv",
+      "bytes": 496156,
+      "sha256": "e2737ca242831dea2bfee69afc3344a2487147899a15172164fae560544bf22c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_validation_evidence/relation_metrics_val.json",
+      "bytes": 3913,
+      "sha256": "4a9e04f9bca38ab0039b9c82d622a447e313e12ff31c85266bb6acf0ef712968"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_validation_evidence/relation_model_protocol.json",
+      "bytes": 1146,
+      "sha256": "bcab457b5e025ec90a8c8ce65e11684c0d7f96ea6e4b6e9263f9485a35887334"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_validation_evidence/relation_models.joblib",
+      "bytes": 5344026,
+      "sha256": "5206c696ca7c960ac4eb985af2e7350bdbcfc9ee6cc4c65c8503d3ef4b763e6a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/relation_perturbation_augmented_hgb/stress30_validation_evidence/relation_predictions_val.csv",
+      "bytes": 133226,
+      "sha256": "5ae9a8fb08435c6478a63b40224f21ce739262b7e1b659a598d54df58f3ce056"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/abstention_reason_summary_val.csv",
+      "bytes": 502,
+      "sha256": "6423fb94ef9c5871433ce5f0880b8999aa61a0e0a04e444087ea8a131dda8019"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/abstention_reasons_by_junction_group_val.csv",
+      "bytes": 880,
+      "sha256": "3671a88476540c82598c31bbb1046229b56084ea4ca3e439e2a571b1903e8cb4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/abstention_reasons_by_scene_type_val.csv",
+      "bytes": 1737,
+      "sha256": "1b8fd8b99ec7382c30868526f19b122f76945a92a8be72551dc2ccb9274a2143"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/abstention_reasons_per_patient_val.csv",
+      "bytes": 2271,
+      "sha256": "e9dbb1956394c8b0cfc2d750630656c32c4200920dcd08347a5c83bdafe2a8e9"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/abstention_reasons_val.csv",
+      "bytes": 78918,
+      "sha256": "a153bf04f29e2eda50749e10ca2e435877a26b91e312d2de9524ea01306fb2e5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/consistency_by_scene_type_val.csv",
+      "bytes": 4376,
+      "sha256": "183852780b0e204a6460dba05cfc14abbf4b5b0bbe1bef3a0ef342b70c3d840f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/consistency_by_true_relation_val.csv",
+      "bytes": 3777,
+      "sha256": "93aceaf0767fa079ba025567be793789e07f616097638f7bd991f2080a53b587"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/consistency_components_val.csv",
+      "bytes": 173534,
+      "sha256": "ec41adf8022e0c890b49817c7e65f6ef7cf25c4e30f28d89ff14abbc64971a5a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/consistency_diagnostics.json",
+      "bytes": 19345,
+      "sha256": "b4832867eccddb3185fde47b06bcf71aa1a5685471425906e6f00fd221aa07a7"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/consistency_summary_val.csv",
+      "bytes": 4774,
+      "sha256": "55d6cf0b2fe40c623cdfb18d389184189b753f47ab476f55ae9889437ed74d52"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/consistency_diagnostics_corrected/consistency_type_transitions_val.csv",
+      "bytes": 2641,
+      "sha256": "11a450682e305a1c7e864d85bf3f3bf4cd0b0c542d7308fc9a38697c7a32b521"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity/graph_lira_by_junction_group_val.csv",
+      "bytes": 2037,
+      "sha256": "7419f5341fd8ef52f5c90693557e45802a021e47f6a423124e607a5686b6244f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity/graph_lira_by_scene_type_val.csv",
+      "bytes": 3135,
+      "sha256": "2a85e360efe124d8285bf8679446dee8c704c69ad8c16e1bca957dd88a62b678"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 2426,
+      "sha256": "8fece10c894b2e68ddf76ff1d46860259e6a66fbb3cc287edd08e876426b8d96"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity/graph_lira_per_patient_val.csv",
+      "bytes": 3918,
+      "sha256": "0cf94293369039c3faa5c99cd97ab90c7289df543e4105cfecffafe175ca2b0e"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity/graph_lira_predictions_val.csv",
+      "bytes": 125321,
+      "sha256": "c439eb9e4e1102d761fe4b29814a688cc5dde1f2d0385b907e9404657f3d297c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity/graph_lira_protocol.json",
+      "bytes": 4058,
+      "sha256": "60611f481e1aefebb27e2b0fe20421bbfce9a91d27db2460021e08e35994afc4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity/graph_lira_structural_metrics_val.csv",
+      "bytes": 1248,
+      "sha256": "a8e6c70d3acd79104e412eb18ef512e4abf74957866dffdf01227b310de4bc74"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity/perturbation_consistency_val.csv",
+      "bytes": 210937,
+      "sha256": "886c9ef892c9ab06c4779e12456a4f56cd859c56682357efd8361ae5c29de68f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/graph_lira_by_junction_group_val.csv",
+      "bytes": 2037,
+      "sha256": "7419f5341fd8ef52f5c90693557e45802a021e47f6a423124e607a5686b6244f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/graph_lira_by_scene_type_val.csv",
+      "bytes": 3135,
+      "sha256": "2a85e360efe124d8285bf8679446dee8c704c69ad8c16e1bca957dd88a62b678"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 2426,
+      "sha256": "8fece10c894b2e68ddf76ff1d46860259e6a66fbb3cc287edd08e876426b8d96"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/graph_lira_per_patient_val.csv",
+      "bytes": 3918,
+      "sha256": "0cf94293369039c3faa5c99cd97ab90c7289df543e4105cfecffafe175ca2b0e"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/graph_lira_predictions_val.csv",
+      "bytes": 125321,
+      "sha256": "c439eb9e4e1102d761fe4b29814a688cc5dde1f2d0385b907e9404657f3d297c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/graph_lira_protocol.json",
+      "bytes": 4227,
+      "sha256": "d1423d650ba13e75d4fb5a7d8e67de511408b68ea5c54db382bf7c6b20db1f5b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/graph_lira_structural_metrics_val.csv",
+      "bytes": 1248,
+      "sha256": "a8e6c70d3acd79104e412eb18ef512e4abf74957866dffdf01227b310de4bc74"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/perturbation_consistency_val.csv",
+      "bytes": 210937,
+      "sha256": "886c9ef892c9ab06c4779e12456a4f56cd859c56682357efd8361ae5c29de68f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/graph_lira_ct_identity_corrected/perturbation_decisions_val.csv",
+      "bytes": 1167427,
+      "sha256": "26e1b5d6591088f2e062b3308e118b7bdae02a26c4645071fee15e39f158c4a8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/comparison.json",
+      "bytes": 1550,
+      "sha256": "b26fddde12566e50c3e8fa6e9ae2a2140c2d6f4ab2d9ac73754182adc9d55f7d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/abstention_reason_summary_val.csv",
+      "bytes": 612,
+      "sha256": "128ba89b904aa85c65cb038742003559bf9ab44d55920dee7893f5b931ad469d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/abstention_reasons_by_junction_group_val.csv",
+      "bytes": 893,
+      "sha256": "2aa7bbda15a41fa1015eb2a72e6ceedabb71b1b5b544e4e85f6b113fc997a5a3"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/abstention_reasons_by_scene_type_val.csv",
+      "bytes": 1661,
+      "sha256": "4f5b8931c3c92d6b72553a4d4287ca7ae4fd9b067b19467a699249ce1087ff6d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/abstention_reasons_per_patient_val.csv",
+      "bytes": 2320,
+      "sha256": "359df9d818afc3a58abe5095c626a6afc00164f6ad553fe2846f38bce7104f6c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/abstention_reasons_val.csv",
+      "bytes": 80363,
+      "sha256": "60f33e252163b4cea32d38ac1d386e585239d89a38ff5711c38d31da7c616e82"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/consistency_by_scene_type_val.csv",
+      "bytes": 4427,
+      "sha256": "3a2338d541f0792a7dd6de9f070d7fc7ca0d19277c6bdd078f2cf7a0df5d8eb5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/consistency_by_true_relation_val.csv",
+      "bytes": 3864,
+      "sha256": "c71bc02a64be1db6f3ced7d762e08c05ca604e204a49af462c2d2db76df9dcb4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/consistency_components_val.csv",
+      "bytes": 175137,
+      "sha256": "061c77abbc159cbf9fda0bd3905e028e8125e02843408d91d78a1507ae1b6c18"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/consistency_diagnostics.json",
+      "bytes": 19669,
+      "sha256": "8abeb13f25901e2d505e91873d769d33f3786bf25bd6466d767cf8136ccc4f8d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/consistency_summary_val.csv",
+      "bytes": 4892,
+      "sha256": "1e15cc0ca1cee75d6d130d5a57d52800868cca4d5cdd810be4851a0022fed8d1"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/consistency_diagnostics/consistency_type_transitions_val.csv",
+      "bytes": 2706,
+      "sha256": "7d22978036433c988ac29d2c8fe6487f45bdf1c9049f5a8f5336073e50aaecc6"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/graph_lira_by_junction_group_val.csv",
+      "bytes": 2040,
+      "sha256": "23c18beeb0e4fe9e64dc2220051b61ad4190bc04be225e5cbc3021c3c3719aeb"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/graph_lira_by_scene_type_val.csv",
+      "bytes": 3082,
+      "sha256": "40176500d04656d6c017b1b303ee2db1a5fbf4651331963e83013bb7f9c6f4ad"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 2302,
+      "sha256": "bad6929f6fa5e7d5c87dfca4506d0f92c31dac444b6283b60ee09e07978fb5f7"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/graph_lira_per_patient_val.csv",
+      "bytes": 3787,
+      "sha256": "2890475a05ef6f792df8724857928042fa08e473498a4fd9833d9872dd0dcf28"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/graph_lira_predictions_val.csv",
+      "bytes": 125399,
+      "sha256": "cc3de63f9ee95854019a9f0c2f5ac0910e0eecab0dd6b7a8a7711d49efbb74aa"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/graph_lira_protocol.json",
+      "bytes": 4250,
+      "sha256": "1ade97a3147dfbf7e101067672d0028081938a20c55d4d0a847b836add699115"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/graph_lira_structural_metrics_val.csv",
+      "bytes": 1222,
+      "sha256": "925cb8a65470cfbc33ba5c773948ebdd9b879d1d888f9a3f9c385667d9c2e9b5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/perturbation_consistency_val.csv",
+      "bytes": 210916,
+      "sha256": "7ed4ccf29157f43902039fa650187394d6676e588c4dcc8fdcaf65828c135cfa"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/graph_lira/perturbation_decisions_val.csv",
+      "bytes": 1166678,
+      "sha256": "b45dcf9e1a319dd73f4eb20d2baec0c1838de6a585102c6247eda50f90fedd96"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/relation_local_scores_train_val.csv",
+      "bytes": 1990625,
+      "sha256": "87b62ec4865290b1c77a130f30c6d2c26ef7d01a083f5d96d3aabeadbf9215ed"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/relation_metrics_val.json",
+      "bytes": 6187,
+      "sha256": "b61ab44979842d0d1d0174b54f443b028c37e2d1a90b10245eafc6337f929eac"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/relation_model_protocol.json",
+      "bytes": 9733,
+      "sha256": "794d3c16bfba1ef4e7d0ba64a6a86af6c34fc4adf693f1f49bd708ad2cbe09cd"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/relation_models.joblib",
+      "bytes": 5621343,
+      "sha256": "e0c778c2762520307cdcacf3ebc6d9685c94f55c6d0796d488dc67e578ac7670"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb/no_cardinality/relation_predictions_val.csv",
+      "bytes": 200635,
+      "sha256": "78e4f2fb1a8f1d7455934adae8e71dd31d671d822f378b1355a3cdce83a7bfc2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/abstention_reason_summary_val.csv",
+      "bytes": 528,
+      "sha256": "976fcac34c9049a4c0ec34a7c8c185ddd5adca563e3bf395bbd6b72223f5c8e2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/abstention_reasons_by_junction_group_val.csv",
+      "bytes": 831,
+      "sha256": "526773d019316ed47ebdefb8b2c75322703fbdb81c38ba11436b45abcee88ce2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/abstention_reasons_by_scene_type_val.csv",
+      "bytes": 1599,
+      "sha256": "387e66b35a70f20501096b63fd6e0c5fef9f8ad21debf2d9b1591eb8363771bc"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/abstention_reasons_per_patient_val.csv",
+      "bytes": 2190,
+      "sha256": "e255448ca3695e1d58da27d4d68dc5f406103cdcba579da741d0c95494e82ad8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/abstention_reasons_val.csv",
+      "bytes": 80499,
+      "sha256": "237c530b4682918f9a2d1db10f94be94855f46e9dfd582ef7b1a5b27f276560a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/consistency_by_scene_type_val.csv",
+      "bytes": 4347,
+      "sha256": "c8391f0413adc17317c61fdecc3cfebef22c578cb54a3e5466a49db8dac4f578"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/consistency_by_true_relation_val.csv",
+      "bytes": 3820,
+      "sha256": "843f43e5518abe61c944356dbaab4a0c536f66db9897f621e976b6a2d6937849"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/consistency_components_val.csv",
+      "bytes": 175486,
+      "sha256": "5353c989afd53e1446109292f236a2e9f3b6e55152bdd387008580b8e0a7cf34"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/consistency_diagnostics.json",
+      "bytes": 19463,
+      "sha256": "287ad005b7367e2a9c0906ce90540c8e21556d22fd8ea495d5fa76562cb6d139"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/consistency_summary_val.csv",
+      "bytes": 4873,
+      "sha256": "e4b168bed02ccae3b2dc18f8f7d1bbc59b820c55bf98d81f5da4af23409b6df8"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/consistency_diagnostics/consistency_type_transitions_val.csv",
+      "bytes": 2789,
+      "sha256": "42ada383ac6e70b09f9efe85498f79098789f7eb8c9511f29aad9932f848007d"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/graph_lira_by_junction_group_val.csv",
+      "bytes": 1881,
+      "sha256": "75adb4958c0229b13e67c3395bdf8ad34e90498bf00e21cbbf81fcb47619e88a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/graph_lira_by_scene_type_val.csv",
+      "bytes": 3028,
+      "sha256": "63fabe3eab36f1770f4042b87ac906dfc3e67d9ef08e495817731b79fce1ff81"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 2435,
+      "sha256": "9813a71e5fd2cadcf038aa92354fbc909d059377ebf4e2238d7835162a6e6386"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/graph_lira_per_patient_val.csv",
+      "bytes": 3805,
+      "sha256": "93597ddc110e6ade761b7037d1962c1f2b3da1b1a80ea062b50fbc512585a2cc"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/graph_lira_predictions_val.csv",
+      "bytes": 125765,
+      "sha256": "a41e833bde4814ed90c29b342d06a2e76f20ae9cbbf811559ad239f7a76d0c2b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/graph_lira_protocol.json",
+      "bytes": 4207,
+      "sha256": "871aa4f683cd92ecfaac6444b274bba7001a4cee5554d1ca9e4f0a4cff55b610"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/graph_lira_structural_metrics_val.csv",
+      "bytes": 1251,
+      "sha256": "850d6784b89e6b66855c79753a760f615ca9869d32f8897b686843ecc329da47"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/perturbation_consistency_val.csv",
+      "bytes": 210369,
+      "sha256": "a8c2ddda8583641a087bb6cb8503106b6cdaaf995f2604a2b0fde27671a82ba7"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/graph_lira/perturbation_decisions_val.csv",
+      "bytes": 1164381,
+      "sha256": "895fd745a1ca5db112b9317fba76f8aea5976c20818e92c13f8d96866a0a1cf5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/relation_local_scores_train_val.csv",
+      "bytes": 1971637,
+      "sha256": "524c75bc77dcbd0ddc26a6307960b121c1f9af49a30634be2bf4101e793bc005"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/relation_metrics_val.json",
+      "bytes": 5767,
+      "sha256": "8d73a70688ed2683a524702a171a7ea7f07ab61b4bd962d07b8439f53a6cc80c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/relation_model_protocol.json",
+      "bytes": 1924,
+      "sha256": "702b03d88cb0c0add97c94856d9a4101cb657f74e509c8a6c941a88195227e80"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/relation_models.joblib",
+      "bytes": 5618837,
+      "sha256": "b79e344a13b6e24b8fd2ad20bc939ed8309ea8d7e85489790ec3b6c560058497"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/base_relation/relation_predictions_val.csv",
+      "bytes": 200808,
+      "sha256": "89db02de7c8ae6234c0a5fa744dbd4702d27dce6ac665fa8a52d3621c3cd0cf3"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/experiment_protocol.json",
+      "bytes": 488,
+      "sha256": "ff7c6038201e1e22a7b804b5ea3492e0945247245a91f780f7de616cbffded5e"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/train_perturbation_audit.csv",
+      "bytes": 1342,
+      "sha256": "2762c034fa49ee7d15f077546c1540b096768c1925a5a156cf00f960be192e3a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/abstention_reason_summary_val.csv",
+      "bytes": 559,
+      "sha256": "4dcd1558c12dd7a607c3da6d5cff77e74d82555acd44ab1ad4b284292e09e795"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/abstention_reasons_by_junction_group_val.csv",
+      "bytes": 717,
+      "sha256": "985cda00889bca57bd72af7527cb2292adcc96299fd7e8321b0aef688f4e9ee3"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/abstention_reasons_by_scene_type_val.csv",
+      "bytes": 1432,
+      "sha256": "765f96fd0e36e2ad46ce22fc95262f74b6224d58a8eeb9fd088f57c99ae4063c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/abstention_reasons_per_patient_val.csv",
+      "bytes": 2350,
+      "sha256": "e5f769f2e83a4b90a88511618f0fbd4057387a59f34a77d2983794acc79231ce"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/abstention_reasons_val.csv",
+      "bytes": 78983,
+      "sha256": "7255d4450ca03d08bbdfd69b226aef076f2ceb37eed3e5b65874f69ab7ec8444"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/consistency_by_scene_type_val.csv",
+      "bytes": 4048,
+      "sha256": "cb9fa1743237ed801a9184a050f9440caa1e1abb29d9209abae81bd984a82ea2"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/consistency_by_true_relation_val.csv",
+      "bytes": 3607,
+      "sha256": "261ce568d45c386bb98e75559135f34c0379ce283e4610b393396f469c1aa657"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/consistency_components_val.csv",
+      "bytes": 168810,
+      "sha256": "5136930c8adfe912a22f4156f07f7fa6d3082054f0b59d76a71214b9a7d3bcfe"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/consistency_diagnostics.json",
+      "bytes": 19304,
+      "sha256": "99eb5e5372b866c33b2248ebec54fce4811bc7619e6411939007ecc562939fe4"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/consistency_summary_val.csv",
+      "bytes": 4651,
+      "sha256": "4c2e78fb49c23d0c3501d760b85386cdd4ea901611cb0df44cde3f2c22e7dc12"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/consistency_diagnostics/consistency_type_transitions_val.csv",
+      "bytes": 2567,
+      "sha256": "890e420574a6da2d7e828cf42deb194f681d1a8efbdddea611db700dd80910d5"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/graph_lira_by_junction_group_val.csv",
+      "bytes": 1880,
+      "sha256": "2e73b75252e3a6f2a76741e37ea169f17f2643328fe1782beea94f9911445114"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/graph_lira_by_scene_type_val.csv",
+      "bytes": 2916,
+      "sha256": "e215bd96cb2539390730af0887ab82432c852c841476f53c665657062896d9ed"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 2383,
+      "sha256": "eaf6c4a3174813b7b4a87a10427ac7318523e508bd381a3e30030450f499c047"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/graph_lira_per_patient_val.csv",
+      "bytes": 3692,
+      "sha256": "7c812aec4e9cb447b72de5ed0c0c3dc2e3af31319dc6a1321ec1cfec5ac5c48f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/graph_lira_predictions_val.csv",
+      "bytes": 124317,
+      "sha256": "5c28f22b2da0af1e28a7c7abf9a6f8b940454e3284a34920c117612206451632"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/graph_lira_protocol.json",
+      "bytes": 4219,
+      "sha256": "60103e7200df2a5d1c21cddef3bd690e0b805aca1dc4117526c17faf565d76ea"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/graph_lira_structural_metrics_val.csv",
+      "bytes": 1225,
+      "sha256": "34ab2eb4aa13ab90665869ef8b250e88abd6e69e2956bd8d759a0764810b320a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/perturbation_consistency_val.csv",
+      "bytes": 200575,
+      "sha256": "39c6cc5a32a2f98debc27bf4ef7a77ab04e01dc0aa3a612756a75affb58a9aa1"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/graph_lira/perturbation_decisions_val.csv",
+      "bytes": 1149227,
+      "sha256": "c9b30b00e5a1ddd0b6c80c3107d3c532ae49afce250971dcdd0c736d41888c6f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/relation_local_scores_train_val.csv",
+      "bytes": 1971637,
+      "sha256": "524c75bc77dcbd0ddc26a6307960b121c1f9af49a30634be2bf4101e793bc005"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/relation_metrics_val.json",
+      "bytes": 5752,
+      "sha256": "8c169ca33773436ddbdc3ad45e7f2e3743a68abff76ed812037e27de932c0e7b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/relation_model_protocol.json",
+      "bytes": 2003,
+      "sha256": "c39de2350c6f69ab389c1ce5a7bf3975cb7898866ba97acb321b7013d5a65621"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/relation_models.joblib",
+      "bytes": 5619957,
+      "sha256": "058ac8543d65b4054a870d7659b12c1f9a8769f868692d2a74d25f5b9d0b5514"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/local_hgb_robustness/weighted_relation/relation_predictions_val.csv",
+      "bytes": 200439,
+      "sha256": "dc53d6c4ed336c2ab896efd8c2dd68d0625382ec0d3b5d210b87adda90ec6451"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/logistic/graph_lira_ct_identity/graph_lira_by_junction_group_val.csv",
+      "bytes": 1936,
+      "sha256": "98c1e0b374405acf8f2f52d618566ec4cf79d2d3b8e3d36c5d557751d392270a"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/logistic/graph_lira_ct_identity/graph_lira_by_scene_type_val.csv",
+      "bytes": 3045,
+      "sha256": "3aa4d96ce30bd576c02a569329a06d51c59ee997fd35b860138eacbff801b885"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/logistic/graph_lira_ct_identity/graph_lira_patient_bootstrap_val.csv",
+      "bytes": 2401,
+      "sha256": "25a5bafb4e8739765eedc360e332c80e2fc3f2c3e4a0d96f2bd04923695a7e34"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/logistic/graph_lira_ct_identity/graph_lira_per_patient_val.csv",
+      "bytes": 3930,
+      "sha256": "bc82f37f0997d5153c1de95ef21670d2ee0f87a165f31aa9129daf21e8b127da"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/logistic/graph_lira_ct_identity/graph_lira_predictions_val.csv",
+      "bytes": 125687,
+      "sha256": "c81b726d9d7503d0f47785a1b4c5ea30dfdbd80fc0549ec9e89649c08805909c"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/logistic/graph_lira_ct_identity/graph_lira_protocol.json",
+      "bytes": 4060,
+      "sha256": "c48fabc771773092e36853400bf630dde529a81a73455223a3cc53aedd910a60"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/logistic/graph_lira_ct_identity/graph_lira_structural_metrics_val.csv",
+      "bytes": 1233,
+      "sha256": "9a60e1c872feff9aebdcd09364cd65dc0d80d087f3b1098269ac4b9179a6921f"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/stress30_jitter1/logistic/graph_lira_ct_identity/perturbation_consistency_val.csv",
+      "bytes": 214181,
+      "sha256": "cfb347e28c19a7183477164b93445086595a4b53d2d53c99235f3cbc907a6941"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/working_baseline/stress30_transfer_validation.json",
+      "bytes": 1408,
+      "sha256": "e1b5aedb2f2226c6acd85587b1f13d322409e0ffb9d7b91ce444ea27b4781c8b"
+    },
+    {
+      "path": "artifacts/varvara/ct28_graph_lira/ablations/working_baseline/working_baseline.json",
+      "bytes": 3453,
+      "sha256": "d3958a4f70917b1a7d24f29d5d6850079625931fbf4830776df4d4628f686200"
+    }
+  ],
+  "archive_sha256": "3951fab68c9e4698b7198a64569f261a934fb565c3525af955c09a2b7089078c",
+  "archive_bytes": 60058992,
+  "archive_local_path": "varvara/anza_lira_local_results/ct28_rejected_archive/rejected_validation_outputs.tar.gz",
+  "script_archive": {
+    "path": "artifacts/varvara/ct28_graph_lira/ablations/rejected/rejected_experiment_scripts.tar.gz",
+    "sha256": "46dc08ace82e7ed982e6ee65ce13bca167218f03bc6a090332bbfe6602d581a2",
+    "bytes": 69860,
+    "file_count": 27,
+    "files": [
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/analyze_ct28_consistency.py",
+        "bytes": 25046,
+        "sha256": "a66124b85033be6c428607db4636f9aca02c0c064b612c86d1d36e3a4ea12f63"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/analyze_ct28_junction_type_switches.py",
+        "bytes": 3283,
+        "sha256": "9959f409c76af7ea7cd6d92459ba9c47e5985cfa1da41321c4fbe9823f0abbe6"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/audit_ct28_pair_position_ranking.py",
+        "bytes": 3748,
+        "sha256": "c6d992250f75e0a888ade5e18be447a555aa7ee7c925a7889716e30762cb7fa6"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/audit_ct28_zero_noise.py",
+        "bytes": 5486,
+        "sha256": "ee292e81bbf7d46c207f413d5ad98937aadcd84bcb12542c786abd1764a98238"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/combine_ct28_geometry_pair_fusion.py",
+        "bytes": 13557,
+        "sha256": "5d69f778aa78f48d7bee726876f3d52681278b68fbf9ddcd955b135025dfd5cf"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/diagnose_ct28_junction_identity_features.py",
+        "bytes": 8445,
+        "sha256": "89b78d81f40e4adbb83ea34bd60983fa30ae98fed68cc35613d60f39306c4b5d"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/diagnose_ct28_junction_inputs.py",
+        "bytes": 23446,
+        "sha256": "c428a07447a66fb5f25dc93f5867d61467c3f485a9be0ddb0e634634bea44417"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/diagnose_ct28_junction_local_logistic.py",
+        "bytes": 7348,
+        "sha256": "fe9362fc9d9db277486c2353594885837768327ee89c1fab48df48c454996f03"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/evaluate_ct28_junction_score_averaging.py",
+        "bytes": 13566,
+        "sha256": "16b355ed05b4f3daff95303aa89a2bbe827fe72c22c2c14dc2319b1f07ccc7b4"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/evaluate_ct28_recovery.py",
+        "bytes": 11603,
+        "sha256": "b95269a2ad283d8fed6e1c8ce728cd7125f48304f9f0dce3fd394b365d7d4248"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/evaluate_ct28_selected_joint_junction_geometry.py",
+        "bytes": 9397,
+        "sha256": "242df692f03d06c1af2eba4f4bb02f19813d8eaaecb41e94eed4ea2e8f210bb6"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/evaluate_ct28_selected_no_cardinality.py",
+        "bytes": 6293,
+        "sha256": "4e51b5704cdd7f59070188f813ed4214d3e5bb8be00580f139f006f8f66831e5"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/evaluate_ct28_selected_no_junction_geometry.py",
+        "bytes": 7013,
+        "sha256": "f366e7234b08ea1514265f61f8bec4a761c345f0f967db5ecd5c634f5c1e6838"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/pilot_ct28_path_attachment.py",
+        "bytes": 17455,
+        "sha256": "e85de94e572feb00f6c5f6474793ae9fa431c0b27a5ad39adb79358698f2a449"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/pilot_ct28_path_evidence.py",
+        "bytes": 22892,
+        "sha256": "323e6e3172793906503763ed7c4e4add69318d7cc3f63cca28948ee718ecafcb"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/prepare_ct28_joint_geometry_fusion_ablations.py",
+        "bytes": 3811,
+        "sha256": "902b1d86123b21407db0835afccbaed1e0455e215edfd4a4437a75cac1c326af"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/run_ct28_independent_geometry_copy_sweep.py",
+        "bytes": 9360,
+        "sha256": "1e33cf0e110dc1d690e361d6d6d2322eb79d0fa97025cc2f40a8b308c0429617"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/run_ct28_mixed_noise_relation.py",
+        "bytes": 6570,
+        "sha256": "700bcd4a1677c61cf20b6f876a00c9add5191f95ada0d80c5cb0c8f230e372be"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_candidate_ranker.py",
+        "bytes": 10938,
+        "sha256": "7671286c11b87386e2663a269f5a2407a90699289d7f99c2c9c715aca53881b6"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_confidence_ensemble.py",
+        "bytes": 12032,
+        "sha256": "b50a4cd7f6a3bfc0fdc2c424150e291a9dc29246faef3cda489f3f4b35310c3c"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_joint_geometry_relation_modes.py",
+        "bytes": 9502,
+        "sha256": "ba949b1b3c8e2a4826fc90303e64954321e10f4b18f91691157d9ef4e06a9812"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_junction_fusion_position.py",
+        "bytes": 14080,
+        "sha256": "55b248aaf3b9bf4792f14059304d719ca85171dfcb112934e976fda09c7276ff"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_js.py",
+        "bytes": 10359,
+        "sha256": "d9af14b54f23e880f8342b6982fca0c59350dc7ce4f4d4c5d9513c392b33d3b1"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_pair_preference.py",
+        "bytes": 12270,
+        "sha256": "faeb338747fa4b4f81b2e3fb1289dddd253a76f7439969e69bbd8fa36f4cfb33"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_perturbation_robust_local_models.py",
+        "bytes": 23568,
+        "sha256": "5ab2d04d40f5a59a71f8ceb0ca4bff7a74ca7ab680e3c4e1edf75fa1474b1dfd"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_probability_consistency.py",
+        "bytes": 16084,
+        "sha256": "3c9a5003d300bf73384ddbeacbc6b30985e461cf6dc14f4f8b16f6623c6da3c8"
+      },
+      {
+        "path": "scripts/research/ccta_graph_lira_safe_repair/train_ct28_relation_head_no_cardinality.py",
+        "bytes": 8586,
+        "sha256": "ae71548bde4285cf442b6998db6dd619829bec4b20606c4e9bd4b2936e3996a2"
+      }
+    ]
+  },
+  "early_consistency_archive": {
+    "local_path": "varvara/anza_lira_local_results/ct28_rejected_archive/consistency_diagnostics.tar.gz",
+    "sha256": "6011d43bbafd71d7b8c53258c84c09f7bb4152c07488f25e37a988b8f864da80",
+    "bytes": 553768,
+    "file_count": 29,
+    "files": [
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/abstention_reason_summary_val.csv",
+        "bytes": 636,
+        "sha256": "55eed17574c183f627ba7a99053b58fa71ab09c8a4770e81f59ea60d64ba4ae9"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/abstention_reasons_by_junction_group_val.csv",
+        "bytes": 826,
+        "sha256": "e5eab9ed0a49aa0c53c1a3e4bfbc578af51522ff8ccc26e5ff5a777c21ea4f8b"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/abstention_reasons_by_scene_type_val.csv",
+        "bytes": 1866,
+        "sha256": "0401f4d4130fd9ff1c52e5f58accadf42ced3e0296fb7e3a55645d3ba695d56d"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/abstention_reasons_per_patient_val.csv",
+        "bytes": 2725,
+        "sha256": "3ca5a3a9c4d14fe7edd81a6527996c589479a19e4d916278580b5fe96a54e753"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/abstention_reasons_val.csv",
+        "bytes": 144985,
+        "sha256": "dba47f9ed7def132d91bbd0673b0d8a48e54fc2be236f3134456ed2a81101d6b"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/graph_lira_by_junction_group_val.csv",
+        "bytes": 1878,
+        "sha256": "296ff44f824dc8349abd99ff3d4406e9ddd55c05079ad284292c413de5324a1c"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/graph_lira_by_scene_type_val.csv",
+        "bytes": 2595,
+        "sha256": "e251fc29d19ce3567d16c1e69f90f96bcd0f94ba1be5869c963b2464c73e928b"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/graph_lira_patient_bootstrap_val.csv",
+        "bytes": 1349,
+        "sha256": "eb7f8cb99ec251446dffb02ae3c4ab7e0ec617df28edc58f029769e665aefdfd"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/graph_lira_per_patient_val.csv",
+        "bytes": 2844,
+        "sha256": "14343b3d06d00f3b17ba06c56a1008766b4fef2d211f85e9ce1a63cba09a31ae"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/graph_lira_predictions_val.csv",
+        "bytes": 126883,
+        "sha256": "3074a3edcc4301ef5f12060f2163329fc8397b737559b8f58cac554c02d8d52e"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/graph_lira_protocol.json",
+        "bytes": 3817,
+        "sha256": "a6e718dd8920b92cd545750e5041c1d5fc6937d4ffc1491b252f7bdb66b3113a"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/graph_lira_structural_metrics_val.csv",
+        "bytes": 972,
+        "sha256": "b283f025eabdefa2611e51c425e323ca9a0458a8598ec254ad3ad138b47ea9b5"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/perturbation_consistency_val.csv",
+        "bytes": 195112,
+        "sha256": "1ef20ec6cd43a3383515045928bef8be1145449978ad1de6c1aa8187943331d8"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_hgb/perturbation_decisions_val.csv",
+        "bytes": 1129110,
+        "sha256": "658e01f57a310af70c7d7f8a1c260ee3ad43cbfcf0f8ebddee2e2fed2853f722"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/graph_lira_by_junction_group_val.csv",
+        "bytes": 1873,
+        "sha256": "783a463cc602434db1806165327cdf6b6800bd21a188a2d6bcba0e73ca3a43d5"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/graph_lira_by_scene_type_val.csv",
+        "bytes": 2770,
+        "sha256": "31d35f34c74eaa296e8808931cb107e721b9cebee477d387d6c37c538c89f399"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/graph_lira_patient_bootstrap_val.csv",
+        "bytes": 2041,
+        "sha256": "151f9776d1079c763652e99999a6f9cfa81aabe04dbe82fc8293425395d26b57"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/graph_lira_per_patient_val.csv",
+        "bytes": 3500,
+        "sha256": "f2b9a45e12dbe929a566934b4a255c45ff427e6249024ecb81fbe4d9b7bfbf3f"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/graph_lira_predictions_val.csv",
+        "bytes": 125388,
+        "sha256": "9dddd4387bc40ac4ec2b53a1072455dabe78f8a9ba3fd32c8f1342a2c67d87fa"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/graph_lira_protocol.json",
+        "bytes": 3738,
+        "sha256": "90a42b6444edd313f94b3daef8a12da2523a82d9d063a217f2c4574ea90122c6"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/graph_lira_structural_metrics_val.csv",
+        "bytes": 1167,
+        "sha256": "0f5f94ff6af2ca75789389e7ed2cc2d19b3cce9d9346d57f274dbdfd87cf4942"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/perturbation_consistency_val.csv",
+        "bytes": 200154,
+        "sha256": "2c6277fe4e18c305ecbb8d6db01ddb295b150631512bd487b431821ab06201e3"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/clean_logistic/perturbation_decisions_val.csv",
+        "bytes": 1139958,
+        "sha256": "d13a58eea3b00d86f22feb39166d57af5f78f86e6bc4e98fe8d5d3008e42cb63"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/consistency_by_scene_type_val.csv",
+        "bytes": 6584,
+        "sha256": "f3e44df632da549410c7df8f6410dd8d776dfc5855bb7c2dc5d3a4a068b15844"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/consistency_by_true_relation_val.csv",
+        "bytes": 5514,
+        "sha256": "86011216752580d653ac14cf9ff3280026e821585d10ba4ac9b837093ea9887f"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/consistency_components_val.csv",
+        "bytes": 341797,
+        "sha256": "b0e6403362045989693d5f54d08f303be3f76400b61947f953ea36794c04053c"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/consistency_diagnostics.json",
+        "bytes": 34531,
+        "sha256": "bd054b727072edff5c33eaf7fc47e73ca090528fe2533c692582adb5141b028a"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/consistency_summary_val.csv",
+        "bytes": 7400,
+        "sha256": "256efd115388092ebe7e0a28318aca49fffd068c0bdaf2bc8524cd631202f444"
+      },
+      {
+        "path": "artifacts/varvara/ct28_graph_lira/consistency_diagnostics/consistency_type_transitions_val.csv",
+        "bytes": 4147,
+        "sha256": "b73a9b7ecd298a2ed4d59f0e495bf43f4e8b7d68664eb1a6bd13c93013e7c971"
+      }
+    ]
+  }
+}

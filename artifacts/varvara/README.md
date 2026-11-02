@@ -1,53 +1,13 @@
-# Varvara collaborator artifacts
+# CT28: карта артефактов
 
-Canonical pack:
+- [ct28_pair/](ct28_pair/README.md) — завершённый отдельный PAIR baseline: frozen plan, lossless feature payload, predictions, модели и проверка alignment. Для воспроизведения raw CT не нужен.
+- [ct28_junction/](ct28_junction/README.md) — frozen JUNCTION plan/endpoints, CT feature payload и ранние local baselines на train/validation. Исходные VTK и сегментации хранятся в игнорируемой Git папке `varvara/anza_lira_local_data/Varvara_CT28_junction_source_pack/`.
+- [ct28_graph_lira/](ct28_graph_lira/README.md) — текущая scene-level разработка. Выбранный validation-претендент K10/15: 52 точных и 0 ложных repair после gate; test не открыт. Внутри отдельно описаны абляции, consistency и новый path protocol.
 
-`artifacts/varvara/ct28_pair/`
-
-There are no parallel top-level CT28 CSV mirrors anymore. All collaborator-facing CT28 artifacts are under this one directory.
-
-## Current status
-
-The earlier generated-artifact gap is closed.
-
-The pack contains:
-
-- exact 1,360-row frozen pair plan;
-- row-level predictions;
-- train/val/test + per-patient summaries;
-- protocol and SHA provenance;
-- CT alignment and expected geometry;
-- headline result, paired bootstrap and risk/coverage;
-- lossless compressed full feature table;
-- regenerated PAIR model snapshots;
-- scripts to restore/retrain models without raw CCTA.
-
-Run the integrity check:
+Проверка исходного PAIR collaboration pack:
 
 ```bash
 python scripts/research/ccta_graph_lira_safe_repair/verify_varvara_collab_pack.py
 ```
 
-Expected:
-
-`PASS: Varvara CT28 collaborator pack is internally consistent.`
-
-## Raw CT
-
-Raw ImageCAS CCTA is intentionally outside Git.
-
-It is not needed to reproduce the frozen PAIR baseline.
-
-It is required for new JUNCTION+CT image-feature extraction.
-
-Exact source/cohort/alignment:
-
-`docs/varvara/CT28_DATA_ACCESS.md`
-
-## Current task
-
-`28-patient JUNCTION+CT -> CT-conditioned relation head -> canonical frozen Graph-LIRA evaluation`
-
-Start from:
-
-`docs/varvara/FINAL_HANDOFF_2026-09-27.md`
+Raw CCTA хранится вне Git. Источник, frozen cohort и alignment checks описаны в [CT28_DATA_ACCESS.md](../../docs/varvara/CT28_DATA_ACCESS.md). Актуальный порядок работы — в [CURRENT_TASK.md](../../docs/varvara/CURRENT_TASK.md); [handoff 2026-09-27](../../docs/varvara/FINAL_HANDOFF_2026-09-27.md) отражает старый этап.

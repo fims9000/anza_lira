@@ -1,75 +1,13 @@
 # Варвара — начать отсюда
 
-Каноническая рабочая ветка:
+Каноническая ветка: `research/coronary-connectivity-repair`.
 
-`research/coronary-connectivity-repair`
+1. [Текущее состояние и следующий шаг](docs/varvara/CURRENT_TASK.md).
+2. [Выбранный CT28 Graph-LIRA validation-вариант и источники результатов](artifacts/varvara/ct28_graph_lira/README.md).
+3. [Исходное ТЗ](docs/varvara/TASK_CT28_CT_CONDITIONED_GRAPH_LIRA_2026-10-06.md) и [validation plan](docs/varvara/CT28_GRAPH_LIRA_VALIDATION_PLAN.md) — требования и последовательность, написанные до текущих результатов.
 
-С 2026-10-06 вся актуальная coronary / CCTA работа снова собрана в этой
-ветке. Старые experiment/research branches — только checkpoints.
+Текущий претендент **K10/15**: на пяти validation-пациентах после gate принято 52 точных и 0 ложных repair. Это не held-out test. Подробная история выбранных и отклонённых вариантов находится внутри `artifacts/varvara/ct28_graph_lira/`; старые результаты не следует подменять этим итогом или наоборот.
 
-После обновления репозитория читать в таком порядке:
+Для воспроизведения отдельного PAIR baseline: [PAIR pack](artifacts/varvara/ct28_pair/README.md). Frozen JUNCTION plan и признаки: [JUNCTION pack](artifacts/varvara/ct28_junction/README.md); исходные VTK и сегментации — в игнорируемой Git папке `varvara/anza_lira_local_data/Varvara_CT28_junction_source_pack/`. [Handoff от 2026-09-27](docs/varvara/FINAL_HANDOFF_2026-09-27.md) сохранён как исторический документ.
 
-1. `docs/varvara/CURRENT_TASK.md`
-2. `docs/varvara/TASK_CT28_CT_CONDITIONED_GRAPH_LIRA_2026-10-06.md`
-
-Второй файл — полное текущее ТЗ: зачем нужен следующий этап, какие inputs уже
-есть, что именно строить, какие части historical Graph-LIRA использовать как
-reference, какие outputs сохранить и когда можно открывать held-out test.
-
-## Коротко о текущем состоянии
-
-PAIR local CCTA evidence уже frozen/reproducible.
-
-JUNCTION train/validation local evidence тоже готов к следующему уровню:
-
-- frozen controlled generator;
-- 143 positives + 1,666 negatives;
-- 17 train / 5 validation patients;
-- candidate recall 100%;
-- CT tensor `3 x 17 x 25`;
-- geometry / CT / geometry+CT baselines;
-- held-out JUNCTION test пока закрыт.
-
-Следующая задача — **не CNN/ANZA и не новый generator**.
-
-Следующая задача:
-
-```text
-PAIR + JUNCTION local evidence
-        ->
-NONE / PAIR / JUNCTION / BOTH
-        ->
-frozen Graph-LIRA
-        ->
-repair / abstain
-```
-
-После первого clean end-to-end результата и failure analysis уже будет
-делаться radial vs compact CNN vs compact ANZA.
-
-## JUNCTION feature table
-
-Восстановить committed train/val feature table:
-
-```bash
-python artifacts/varvara/ct28_junction/restore_junction_features.py
-```
-
-## Historical Graph-LIRA reference code
-
-Для чтения старых archived scripts:
-
-```bash
-bash scripts/research/ccta_graph_lira_safe_repair/restore_historical_graph_lira_sources.sh
-```
-
-Они только reference. Новый canonical runner не должен зависеть от hidden
-historical pickle/joblib state.
-
-## Test firewall
-
-Не открывать JUNCTION test patients:
-
-`954, 958, 972, 973, 980, 984`
-
-до фиксации scene/relation/graph protocol на train/validation.
+Held-out Graph-LIRA test остаётся закрытым до фиксации scene, relation, graph и path protocol на train/validation. `tau=0.85` и consistency `0.60` не подбираются на test.

@@ -1,9 +1,11 @@
 # Ответы на вопросы по моделям, данным и Graph-LIRA
 
+> Исторические ответы от 2026-09-26. Тогда JUNCTION+CT и scene-level CT28 Graph-LIRA ещё не были построены. Текущий результат и выбранная конфигурация K10/15: `artifacts/varvara/ct28_graph_lira/README.md`.
+
 Актуализировано: 2026-09-27  
 Ветка: `research/coronary-connectivity-repair`
 
-Ниже ответы именно на заданные вопросы. Если старые заметки противоречат этому файлу или `FINAL_HANDOFF_2026-09-27.md`, актуальны эти два файла.
+Ниже ответы именно на заданные вопросы в состоянии 2026-09-26. При расхождении с поздним экспериментом использовать `docs/varvara/CURRENT_TASK.md` и `artifacts/varvara/ct28_graph_lira/README.md`.
 
 ## 1. Где `radial_hu_summary_v1`?
 

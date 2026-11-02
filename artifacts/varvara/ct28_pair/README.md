@@ -12,7 +12,8 @@ Committed directly in this directory:
 - `expected_ct_geometry.csv` — frozen expected ImageCAS-X geometry;
 - `pair_plan_counts.csv` — frozen patient/split/class counts;
 - `headline_test.csv` — compact held-out test result;
-- `paired_bootstrap_ci.csv` — paired patient-cluster uncertainty against the strong geometry reference;\n- `risk_coverage.csv` — validation-budget / held-out risk-coverage table;
+- `paired_bootstrap_ci.csv` — paired patient-cluster uncertainty against the strong geometry reference;
+- `risk_coverage.csv` — validation-budget / held-out risk-coverage table;
 - `relation_pair_plan.csv` — exact 1,360-row frozen pair plan;
 - `expanded_relation_predictions.csv` — row-level scores/predictions;
 - `expanded_relation_summary.csv` — train/val/test and patient-level model summary;
@@ -98,13 +99,6 @@ using the committed `relation_pair_plan.csv`.
 
 The raw ImageCAS archive is multi-gigabyte medical image data and is intentionally not versioned in Git. It is only needed to regenerate image features from scratch; it is **not** needed to reproduce/retrain the already-frozen CT28 PAIR baseline from the committed feature payload.
 
-## Current scientific task
+## Subsequent CT28 work
 
-Do not re-tune the PAIR baseline.
-
-Proceed to:
-
-1. 28-patient JUNCTION+CT evidence;
-2. PAIR_CT + JUNCTION_CT scene-level relation head;
-3. frozen Graph-LIRA evaluation;
-4. only then radial-vs-CNN-vs-ANZA ablation.
+The PAIR-only baseline is complete and remains frozen. JUNCTION local evidence and the CT28 scene-level Graph-LIRA pipeline have since been built on train/validation; the selected K10/15 validation variant and remaining work are described in [Graph-LIRA status](../ct28_graph_lira/README.md). The scene-level held-out test remains unopened.

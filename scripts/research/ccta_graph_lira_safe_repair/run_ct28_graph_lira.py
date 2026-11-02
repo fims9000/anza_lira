@@ -4,9 +4,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shlex
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Sequence
+from typing import Mapping, Sequence
 
 import joblib
 import numpy as np
@@ -34,6 +35,7 @@ MODEL_CONFIGS = {
         "relation_feature_key": "ct_conditioned_relation_features",
     },
 }
+IDENTITY_SCORE_COLUMNS = ("geometry_score", "geometry_plus_ct_score")
 EXPECTED_VALIDATION_PATIENTS = {957, 961, 965, 966, 974}
 BOOTSTRAP_METRICS = (
     "repair_needed_exact",
@@ -66,11 +68,30 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_SCENE_DIR)
     parser.add_argument("--tau", type=float, default=0.85)
     parser.add_argument("--consistency", type=float, default=0.60)
+    parser.add_argument(
+        "--ct-conditioned-identity-score",
+        choices=IDENTITY_SCORE_COLUMNS,
+        default="geometry_score",
+        help=(
+            "Candidate score used only for CT-conditioned PAIR/JUNCTION identity "
+            "selection; relation-type probabilities are unchanged."
+        ),
+    )
+    parser.add_argument(
+        "--ct-conditioned-junction-identity-score",
+        choices=IDENTITY_SCORE_COLUMNS,
+        help="Optional JUNCTION-only identity score; PAIR keeps --ct-conditioned-identity-score.",
+    )
     parser.add_argument("--perturbations", type=int, default=15)
     parser.add_argument("--position-noise-mm", type=float, default=0.8)
     parser.add_argument("--tangent-noise-deg", type=float, default=20.0)
     parser.add_argument("--seed", type=int, default=20260920)
     parser.add_argument("--bootstrap-repetitions", type=int, default=2000)
+    parser.add_argument(
+        "--save-consistency-details",
+        action="store_true",
+        help="Save one diagnostic row per model, scene and perturbation repeat.",
+    )
     return parser.parse_args()
 
 
@@ -130,7 +151,7 @@ def perturbed_candidate_features(
             values = ct_features.extract_junction_features(
                 rows, ct, inverse_affine, junction_arm_names
             )
-        except ct_features.SceneFeatureError as error:
+        except (ct_features.SceneFeatureError, ValueError) as error:
             if "leaves the CT volume" not in str(error):
                 raise
             values = np.full(152, np.nan)
@@ -178,17 +199,20 @@ def score_feature_frame(
     frame: pd.DataFrame, local_models: dict[str, dict[str, object]]
 ) -> pd.DataFrame:
     output = frame[["scene_id", "candidate_id", "candidate_type"]].copy()
-    output["geometry_score"] = np.nan
-    output["ct_score"] = np.nan
+    score_columns = [
+        f"{stream}_score" for stream in ("geometry", "ct", "geometry_plus_ct")
+    ]
+    for column in score_columns:
+        output[column] = np.nan
     for candidate_type in ("PAIR", "JUNCTION"):
         mask = frame["candidate_type"].eq(candidate_type)
-        for stream in ("geometry", "ct"):
+        for stream in ("geometry", "ct", "geometry_plus_ct"):
             model = local_models[candidate_type][stream]
             columns = list(model.feature_names_in_)
             output.loc[mask, f"{stream}_score"] = model.predict_proba(
                 frame.loc[mask, columns]
             )[:, 1]
-    if not np.isfinite(output[["geometry_score", "ct_score"]]).all().all():
+    if not np.isfinite(output[score_columns]).all().all():
         raise GraphLiraError("perturbed local scores are incomplete")
     return output
 
@@ -230,9 +254,13 @@ def predict_relations(
             plans, candidates, scores, config["score_columns"]
         )
         expected_columns = models[config["relation_feature_key"]]
-        if columns != expected_columns:
+        expected_set = set(expected_columns)
+        selected_columns = [column for column in columns if column in expected_set]
+        if selected_columns != expected_columns or len(expected_set) != len(expected_columns):
             raise GraphLiraError(f"relation feature order changed for {model_name}")
-        values = np.asarray([[float(row[column]) for column in columns] for row in rows])
+        values = np.asarray(
+            [[float(row[column]) for column in expected_columns] for row in rows]
+        )
         probabilities = models["relation_heads"][model_name].predict_proba(values)
         predictions[model_name] = {}
         for row, probability in zip(rows, probabilities):
@@ -252,17 +280,39 @@ def choose_compatible_candidates(
     candidates: pd.DataFrame,
     scores: pd.DataFrame,
     relation: str,
+    identity_score_column: str | Mapping[str, str] = "geometry_score",
 ) -> tuple[str | None, str | None]:
+    by_type = (
+        {"PAIR": identity_score_column, "JUNCTION": identity_score_column}
+        if isinstance(identity_score_column, str)
+        else dict(identity_score_column)
+    )
+    if set(by_type) != {"PAIR", "JUNCTION"} or any(
+        value not in IDENTITY_SCORE_COLUMNS for value in by_type.values()
+    ):
+        raise GraphLiraError(f"unsupported candidate identity scores: {by_type}")
+    if relation not in RELATION_CLASSES:
+        raise GraphLiraError(f"unsupported relation: {relation}")
+    needed = list(dict.fromkeys(by_type.values()))
     merged = candidates[["candidate_id", "candidate_type", "endpoint_ids"]].merge(
-        scores[["candidate_id", "geometry_score"]],
+        scores[["candidate_id", *needed]],
         on="candidate_id",
         validate="one_to_one",
     )
+    if len(merged) != len(candidates) or not np.isfinite(merged[needed].to_numpy(dtype=float)).all():
+        raise GraphLiraError("candidate identity scores are missing or non-finite")
+    merged["identity_score"] = [
+        getattr(row, by_type[row.candidate_type]) for row in merged.itertuples()
+    ]
     pair_rows = list(merged[merged["candidate_type"] == "PAIR"].itertuples())
     junction_rows = list(merged[merged["candidate_type"] == "JUNCTION"].itertuples())
-    pair = max(pair_rows, key=lambda row: row.geometry_score) if relation in {"PAIR", "BOTH"} else None
+    pair = (
+        max(pair_rows, key=lambda row: row.identity_score, default=None)
+        if relation in {"PAIR", "BOTH"}
+        else None
+    )
     junction = (
-        max(junction_rows, key=lambda row: row.geometry_score)
+        max(junction_rows, key=lambda row: row.identity_score, default=None)
         if relation in {"JUNCTION", "BOTH"}
         else None
     )
@@ -275,15 +325,15 @@ def choose_compatible_candidates(
                         str(junction_row.endpoint_ids).split("|")
                     ):
                         continue
-                    objective = np.log(max(pair_row.geometry_score, 1e-8)) + np.log(
-                        max(junction_row.geometry_score, 1e-8)
+                    objective = np.log(max(pair_row.identity_score, 1e-8)) + np.log(
+                        max(junction_row.identity_score, 1e-8)
                     )
                     if best is None or objective > best[0]:
                         best = (objective, pair_row, junction_row)
             if best is not None:
                 pair, junction = best[1], best[2]
-            elif max(row.geometry_score for row in pair_rows) >= max(
-                row.geometry_score for row in junction_rows
+            elif max(row.identity_score for row in pair_rows) >= max(
+                row.identity_score for row in junction_rows
             ):
                 junction = None
             else:
@@ -319,7 +369,11 @@ def select_scene_decisions(
     candidates: pd.DataFrame,
     scores: pd.DataFrame,
     relation_predictions: dict[str, dict[str, dict[str, object]]],
+    identity_score_columns: dict[str, str | Mapping[str, str]] | None = None,
 ) -> dict[str, dict[str, dict[str, object]]]:
+    identity_score_columns = identity_score_columns or {
+        model_name: "geometry_score" for model_name in MODEL_CONFIGS
+    }
     output: dict[str, dict[str, dict[str, object]]] = {}
     for model_name in MODEL_CONFIGS:
         output[model_name] = {}
@@ -328,14 +382,22 @@ def select_scene_decisions(
             scene_scores = scores[scores["scene_id"] == scene_id]
             prediction = relation_predictions[model_name][scene_id]
             pair_id, junction_id = choose_compatible_candidates(
-                scene_candidates, scene_scores, str(prediction["relation"])
+                scene_candidates,
+                scene_scores,
+                str(prediction["relation"]),
+                identity_score_columns[model_name],
+            )
+            selected_relation = relation_class(pair_id, junction_id)
+            compatibility_satisfied = not (
+                prediction["relation"] == "BOTH" and selected_relation != "BOTH"
             )
             output[model_name][scene_id] = {
                 **prediction,
                 "pair_candidate_id": pair_id,
                 "junction_candidate_id": junction_id,
-                "selected_relation": relation_class(pair_id, junction_id),
+                "selected_relation": selected_relation,
                 "relation_key": relation_key(pair_id, junction_id),
+                "compatibility_satisfied": compatibility_satisfied,
             }
     return output
 
@@ -514,6 +576,15 @@ def main() -> None:
         raise GraphLiraError("frozen tau=0.85 and consistency=0.60 must not change")
     if args.perturbations != 15:
         raise GraphLiraError("frozen consistency protocol uses 15 perturbations")
+    identity_score_columns = {
+        "geometry_only": "geometry_score",
+        "ct_conditioned": (
+            {"PAIR": args.ct_conditioned_identity_score,
+             "JUNCTION": args.ct_conditioned_junction_identity_score}
+            if args.ct_conditioned_junction_identity_score
+            else args.ct_conditioned_identity_score
+        ),
+    }
     source_paths = {
         "scene_plan": args.scene_dir / "scene_plan_train_val.csv",
         "scene_endpoints": args.scene_dir / "scene_endpoints_train_val.csv",
@@ -542,6 +613,30 @@ def main() -> None:
         if scene_feature_protocol_path.exists()
         else {}
     )
+    evidence_protocol_path = evidence_dir / "relation_model_protocol.json"
+    evidence_protocol = (
+        json.loads(evidence_protocol_path.read_text())
+        if evidence_protocol_path.exists()
+        else {}
+    )
+    evidence_hashes = evidence_protocol.get("source_sha256", {})
+    scene_feature_path = args.scene_dir / "scene_candidate_features_train_val.csv"
+    comparable_sources = {
+        "scene_plan": source_paths["scene_plan"],
+        "scene_candidates": source_paths["scene_candidates"],
+        "scene_candidate_features": scene_feature_path,
+    }
+    mismatched_sources = [
+        name
+        for name, path in comparable_sources.items()
+        if evidence_hashes.get(name)
+        and (not path.exists() or evidence_hashes[name] != sha256(path))
+    ]
+    if mismatched_sources:
+        raise GraphLiraError(
+            "relation evidence and --scene-dir use different frozen inputs: "
+            f"{mismatched_sources}"
+        )
     base_stress = scene_feature_protocol.get(
         "base_stress", {"enabled": False, "role": "clean controlled scene"}
     )
@@ -561,6 +656,18 @@ def main() -> None:
     val_endpoints = endpoints[endpoints["scene_id"].isin(val_scene_ids)].copy()
     val_candidates = candidates[candidates["scene_id"].isin(val_scene_ids)].copy()
     val_scores = local_scores[local_scores["scene_id"].isin(val_scene_ids)].copy()
+    selected_identity_columns = set()
+    for choice in identity_score_columns.values():
+        selected_identity_columns.update(choice.values() if isinstance(choice, dict) else [choice])
+    required_score_columns = selected_identity_columns | {
+        "geometry_score",
+        "ct_score",
+    }
+    missing_score_columns = required_score_columns - set(val_scores.columns)
+    if missing_score_columns:
+        raise GraphLiraError(
+            f"local-score table is missing columns: {sorted(missing_score_columns)}"
+        )
     if set(val_plans["scan_id"].astype(int)) != EXPECTED_VALIDATION_PATIENTS:
         raise GraphLiraError("validation patient set changed")
     if set(plans["scan_id"].astype(int)) & {954, 958, 972, 973, 980, 984}:
@@ -582,7 +689,11 @@ def main() -> None:
             ):
                 raise GraphLiraError("baseline relation probability does not reproduce")
     baseline_decisions = select_scene_decisions(
-        val_plans, val_candidates, val_scores, baseline_relation
+        val_plans,
+        val_candidates,
+        val_scores,
+        baseline_relation,
+        identity_score_columns,
     )
 
     expected_geometry = pd.read_csv(ct_features.EXPECTED_GEOMETRY).set_index("scan_id")
@@ -591,6 +702,7 @@ def main() -> None:
     perturbed_keys: dict[str, dict[str, list[str]]] = {
         model: {scene_id: [] for scene_id in val_scene_ids} for model in MODEL_CONFIGS
     }
+    perturbation_detail_rows: list[dict[str, object]] = []
     for scan_id in sorted(EXPECTED_VALIDATION_PATIENTS):
         patient_plans = val_plans[val_plans["scan_id"].astype(int) == scan_id]
         patient_scene_ids = set(patient_plans["scene_id"])
@@ -632,13 +744,41 @@ def main() -> None:
                 patient_plans, patient_candidates, scores, models, args.tau
             )
             decisions = select_scene_decisions(
-                patient_plans, patient_candidates, scores, relation_predictions
+                patient_plans,
+                patient_candidates,
+                scores,
+                relation_predictions,
+                identity_score_columns,
             )
             for model_name in MODEL_CONFIGS:
-                for scene_id in patient_scene_ids:
+                for scene_id in sorted(patient_scene_ids):
+                    decision = decisions[model_name][scene_id]
                     perturbed_keys[model_name][scene_id].append(
-                        str(decisions[model_name][scene_id]["relation_key"])
+                        str(decision["relation_key"])
                     )
+                    if args.save_consistency_details:
+                        perturbation_detail_rows.append(
+                            {
+                                "model": model_name,
+                                "scene_id": scene_id,
+                                "scan_id": scan_id,
+                                "repetition": repetition,
+                                "raw_relation": decision["raw_relation"],
+                                "tau_relation": decision["relation"],
+                                "selected_relation": decision["selected_relation"],
+                                "confidence": decision["confidence"],
+                                "pair_candidate_id": decision["pair_candidate_id"]
+                                or "",
+                                "junction_candidate_id": decision[
+                                    "junction_candidate_id"
+                                ]
+                                or "",
+                                "relation_key": decision["relation_key"],
+                                "compatibility_satisfied": int(
+                                    decision["compatibility_satisfied"]
+                                ),
+                            }
+                        )
         del ct
         print(f"consistency: patient {scan_id} complete", flush=True)
 
@@ -790,6 +930,10 @@ def main() -> None:
         "bootstrap": args.out_dir / "graph_lira_patient_bootstrap_val.csv",
         "consistency": args.out_dir / "perturbation_consistency_val.csv",
     }
+    if args.save_consistency_details:
+        output_paths["consistency_details"] = (
+            args.out_dir / "perturbation_decisions_val.csv"
+        )
     predictions.to_csv(output_paths["predictions"], index=False)
     metrics.to_csv(output_paths["metrics"], index=False)
     per_patient.to_csv(output_paths["per_patient"], index=False)
@@ -797,6 +941,10 @@ def main() -> None:
     by_junction_group.to_csv(output_paths["by_junction_group"], index=False)
     bootstrap.to_csv(output_paths["bootstrap"], index=False)
     pd.DataFrame(consistency_rows).to_csv(output_paths["consistency"], index=False)
+    if args.save_consistency_details:
+        pd.DataFrame(perturbation_detail_rows).to_csv(
+            output_paths["consistency_details"], index=False
+        )
 
     protocol = {
         "protocol_version": "ct28_graph_lira_structural_v1",
@@ -817,7 +965,7 @@ def main() -> None:
             else "clean controlled realization"
         ),
         "evidence_dir": str(evidence_dir.resolve()),
-        "identity_score": "geometry_score for both systems",
+        "identity_score_by_model": identity_score_columns,
         "compatibility": (
             "historical endpoint-disjoint PAIR/JUNCTION selection; maximize "
             "log(pair_score)+log(junction_score) on conflicts"
@@ -830,6 +978,7 @@ def main() -> None:
             "baseline identity agreement fraction if the baseline identity is "
             "also the perturbation mode, otherwise zero"
         ),
+        "consistency_details_saved": args.save_consistency_details,
         "perturbations": args.perturbations,
         "position_noise_mm": args.position_noise_mm,
         "tangent_noise_deg": args.tangent_noise_deg,
@@ -852,10 +1001,15 @@ def main() -> None:
         },
         "degree4_included": False,
         "anatomical_names_role": "failure audit only; never model input",
-        "exact_run_command": " ".join(
+        "exact_run_command": shlex.join(
             [
                 "python",
                 "scripts/research/ccta_graph_lira_safe_repair/run_ct28_graph_lira.py",
+                *(
+                    ["--scene-dir", str(args.scene_dir)]
+                    if args.scene_dir.resolve() != DEFAULT_SCENE_DIR.resolve()
+                    else []
+                ),
                 *(
                     ["--evidence-dir", str(evidence_dir)]
                     if args.evidence_dir
@@ -866,6 +1020,25 @@ def main() -> None:
                     if args.out_dir.resolve() != DEFAULT_SCENE_DIR.resolve()
                     else []
                 ),
+                *(
+                    [
+                        "--ct-conditioned-identity-score",
+                        args.ct_conditioned_identity_score,
+                    ]
+                    if args.ct_conditioned_identity_score != "geometry_score"
+                    else []
+                ),
+                *(
+                    ["--ct-conditioned-junction-identity-score",
+                     args.ct_conditioned_junction_identity_score]
+                    if args.ct_conditioned_junction_identity_score
+                    else []
+                ),
+                *( ["--save-consistency-details"] if args.save_consistency_details else [] ),
+                "--position-noise-mm", str(args.position_noise_mm),
+                "--tangent-noise-deg", str(args.tangent_noise_deg),
+                "--seed", str(args.seed),
+                "--bootstrap-repetitions", str(args.bootstrap_repetitions),
             ]
         ),
         "source_sha256": {name: sha256(path) for name, path in source_paths.items()},

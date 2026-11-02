@@ -1,4 +1,6 @@
-# CT28 raw-data access for the current JUNCTION+CT task
+# CT28 raw-data access and alignment
+
+> This is the source/alignment protocol written before the JUNCTION and Graph-LIRA train/validation runs. For current experiment status, see `artifacts/varvara/ct28_graph_lira/README.md`; the CT source and integrity rules below remain the data reference.
 
 Date: 2026-09-27  
 Canonical branch: `research/coronary-connectivity-repair`

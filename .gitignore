@@ -23,6 +23,7 @@ archive.zip
 *.ckpt
 *.tar
 *.tar.gz
+!artifacts/varvara/ct28_graph_lira/ablations/rejected/rejected_experiment_scripts.tar.gz
 *.zip
 *.docx
 *.pdf
