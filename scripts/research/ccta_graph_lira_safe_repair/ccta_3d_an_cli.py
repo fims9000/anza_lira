@@ -50,6 +50,14 @@ def run_neural(
         pair_oof_dir=pair_oof,junction_oof_dir=junction_oof,
         variant=variant,device=device,
     )
+    evidence={
+        "relation_dir":str(relation_dir),
+        "pair_oof":str(pair_oof),
+        "junction_oof":str(junction_oof),
+        "variant":variant,
+        "not_frozen_K10_relation_head":True,
+        "note":"neural CT scores and clean relation head; 15x consistency exploratory",
+    }
     outcome=run_cli(
         ct_path=ct,mask_path=mask,patient_id=patient_id,
         mode="k10",model_pack=base_k10,
@@ -61,20 +69,8 @@ def run_neural(
         path_protocol=path_protocol,
         strict_count_support=strict_count_support,
         engine_override=engine,
+        experimental_evidence=evidence,
     )
-    outcome["experimental_evidence"]={
-        "relation_dir":str(relation_dir),
-        "pair_oof":str(pair_oof),
-        "junction_oof":str(junction_oof),
-        "variant":variant,
-        "not_frozen_K10_relation_head":True,
-        "note":"neural CT scores and clean relation head; 15x consistency exploratory",
-    }
-    # Add experimental provenance to the persisted report without modifying
-    # immutable inputs; it is written once by run_cli then amended in place
-    # for the same freshly produced report file.
-    report.write_text(json.dumps(outcome,indent=2,ensure_ascii=False)+"\n",
-                      encoding="utf-8")
     return outcome
 
 
