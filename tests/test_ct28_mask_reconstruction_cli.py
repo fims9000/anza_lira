@@ -49,3 +49,32 @@ def test_cli_explicitly_blocks_heldout_test(tmp_path):
     route, *_ = sample(tmp_path, patient=954)
     with pytest.raises(ValueError, match="Held-out"):
         load_route_record(route, "s1")
+
+
+def test_no_truncation_of_noninteger_voxels_or_overwrite_of_inputs(tmp_path):
+    routes, mask, affine = sample(tmp_path)
+    from ct28_mask_reconstruction_cli import proposals_for_record
+    source = json.loads(routes.read_text())
+    source["routes"][0]["paths_voxel"][0][0][0] = 3.5
+    with pytest.raises(ValueError, match="integer voxel"):
+        from ct28_mask_reconstruction import apply_approved_paths
+        apply_approved_paths(np.load(mask), np.load(affine), proposals_for_record(source),
+                             radius_mm=0, max_new_voxels=20)
+    with pytest.raises(ValueError, match="Cannot replace"):
+        run_from_files(routes=routes, scene_id="s1", mask_file=mask,
+                       affine_file=affine, output_mask=tmp_path / "out.npy",
+                       output_report=mask, radius_mm=0, max_new_voxels=20)
+
+
+def test_scene_mismatch_and_unsafe_route_rejected(tmp_path):
+    routes, *_ = sample(tmp_path)
+    obj = json.loads(routes.read_text())
+    obj["scene_id"] = "CT28S:test:pair_only:957:0"
+    routes.write_text(json.dumps(obj) + "\n")
+    with pytest.raises(ValueError, match="frozen train/validation"):
+        load_route_record(routes, obj["scene_id"])
+    obj["scene_id"] = "s1"
+    obj["routes"][0]["extra_endpoint_hit"] = True
+    routes.write_text(json.dumps(obj) + "\n")
+    with pytest.raises(ValueError, match="unsafe route"):
+        load_route_record(routes, "s1")
