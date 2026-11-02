@@ -42,7 +42,10 @@ def kwargs(tmp_path, ct_path, mask_path, **changes):
 def test_candidate_cli_roundtrip_non_destructive(tmp_path):
     ct_path, mask_path = files(tmp_path)
     before = np.asanyarray(nib.load(mask_path).dataobj) > 0
-    report = run_cli(**kwargs(tmp_path, ct_path, mask_path))
+    report = run_cli(**kwargs(
+        tmp_path, ct_path, mask_path,
+        output_additions=tmp_path / "new_voxels.nii.gz",
+    ))
     assert report["status"] == "candidate_inspection_only"
     assert report["accepted_decisions"] == 0
     assert report["endpoint_count"] == 10
@@ -52,6 +55,7 @@ def test_candidate_cli_roundtrip_non_destructive(tmp_path):
     assert np.array_equal(np.asanyarray(after_image.dataobj) > 0, before)
     assert np.allclose(after_image.affine, nib.load(mask_path).affine)
     assert json.loads((tmp_path / "decisions.json").read_text())["added_voxels"] == 0
+    assert nib.load(tmp_path / "new_voxels.nii.gz").get_fdata().sum() == 0
     with pytest.raises(FileExistsError, match="Immutable"):
         run_cli(**kwargs(tmp_path, ct_path, mask_path))
 
