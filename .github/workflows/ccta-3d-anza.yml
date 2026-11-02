@@ -38,7 +38,8 @@ jobs:
             tests/test_ccta_3d_an_train.py \
             tests/test_ccta_3d_an_oof.py \
             tests/test_ccta_3d_an_relation.py \
-            tests/test_ccta_3d_an_runtime.py
+            tests/test_ccta_3d_an_runtime.py \
+            tests/test_ccta_3d_an_study.py
       - name: Compile 3D kernel and train-only workflow
         run: |
           python -m py_compile \
@@ -50,4 +51,5 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_oof.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_runtime.py \
-            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_cli.py
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_cli.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py
