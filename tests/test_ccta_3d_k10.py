@@ -116,3 +116,19 @@ def test_invalid_or_incomplete_model_pack_rejected():
     wrong["ct_conditioned_relation_features"] = ["wrong"]
     with pytest.raises(ValueError, match="84"):
         K10Inference(wrong)
+
+
+def test_sparse_pair_only_scene_requires_no_fabricated_junction(monkeypatch):
+    scene, endpoints = fixture_scene()
+    only_pair = Scene(scene.scene_id, scene.endpoint_ids, scene.candidates[:1])
+    def stub(row, lookup, ct, inverse, arms):
+        return {
+            "scene_id": row.scene_id, "candidate_id": row.candidate_id,
+            "candidate_type": "PAIR", "pair_g0": 2.0, "pair_ct0": 240.0,
+        }
+    monkeypatch.setattr(graph, "perturbed_candidate_features", stub)
+    pred = K10Inference(stub_pack()).predict(
+        only_pair, endpoints, np.ones((30,30,30)), np.eye(4)
+    )
+    assert pred.accepted and pred.candidate_count_pair == 1
+    assert pred.candidate_count_junction == 0
