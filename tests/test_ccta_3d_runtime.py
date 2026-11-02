@@ -66,7 +66,7 @@ def test_full_volume_predict_score_route_mask_and_global_conflict():
     assert np.array_equal(mask, before), "input mask must never be modified"
     assert report["output_components_26"] < report["extraction"]["components"]
     assert report["model_pack_sha256"] == AcceptPair.pack_sha
-    assert any(d["reason"] == "globally_reused_endpoint"
+    assert any(d["reason"] == "globally_conflicting_endpoint_proposal"
                for d in report["decisions"])
 
 
