@@ -42,3 +42,18 @@ def test_reject_wrong_patch_shape_or_variant():
         Candidate3dEncoder("unknown")
     with pytest.raises(ValueError,match="2-channel"):
         Candidate3dEncoder("conv3d")(torch.randn(2,1,8,8,8))
+
+
+def test_anisotropic_kernel_uses_patch_voxel_mm_at_inference():
+    torch.manual_seed(73)
+    coarse=Candidate3dEncoder("anza3d",channels=9,voxel_mm=2.5)
+    fine=Candidate3dEncoder("anza3d",channels=9,voxel_mm=.5)
+    fine.load_state_dict(coarse.state_dict())
+    sample=torch.randn(1,2,5,6,5)
+    out_coarse=coarse(sample)
+    out_fine=fine(sample)
+    assert torch.isfinite(out_coarse).all()
+    assert torch.isfinite(out_fine).all()
+    assert not torch.allclose(out_coarse,out_fine,rtol=1e-7,atol=1e-7)
+    with pytest.raises(ValueError,match="Physical patch voxel"):
+        Candidate3dEncoder("anza3d",voxel_mm=0)
