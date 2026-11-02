@@ -68,6 +68,10 @@ def gt_component_merge_audit(
     else:
         unique=np.empty(0,dtype=int)
         parent=np.empty(0,dtype=int)
+    representatives={
+        int(b):[int(v) for v in np.unravel_index(int(flat),before.shape)]
+        for b,flat in zip(unique,nonzero[first])
+    } if nonzero.size else {}
     group=defaultdict(list)
     for b,p in zip(unique,parent):
         group[int(p)].append(int(b))
@@ -97,6 +101,9 @@ def gt_component_merge_audit(
                 "after_component":final_id,
                 "before_component_count":n,
                 "before_component_ids":members[:25],
+                "before_component_representative_ijk":{
+                    str(b):representatives[b] for b in members[:25]
+                },
                 "gt_component_owners":{
                     str(int(gt)):int(count)
                     for gt,count in sorted(by_gt.items())
