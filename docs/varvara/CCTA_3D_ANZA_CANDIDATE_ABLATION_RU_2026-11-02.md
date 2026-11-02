@@ -2,6 +2,24 @@
 
 Статус: **исследовательская реализация, не валидированная на реальных КТ**. Ветка `feature/ccta-3d-anza-encoder-2026-11-02`; PR #3; построена поверх PR #2 и PR #1. Ветка Варвары `research/coronary-connectivity-repair` и её выбранный K10/15 не изменены.
 
+## Самый быстрый train-only запуск всей 3D линии
+
+Новый оркестратор `ccta_3d_an_study.py` связывает подготовленные ниже этапы в **одно воспроизводимое исследование** без доступа к test:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
+  --stage all --patient-id 953 \
+  --device cuda --epochs 8 --folds 5 --batch-size 8
+```
+
+Он последовательно создаёт SHA-verified patch caches для 17 train + 5 val CT, four 5-fold OOF models (PAIR/JUNCTION × CNN/ANZA), два clean relation head, K10/15 train pilot пациента 953, затем две нейросетевые 3D сегментации на **одной и той же повреждённой маске** и post-hoc Dice/clDice. Конец исследования — `train_953_three_model_comparison.json` и `train_953_three_model_comparison.md` в:
+
+`varvara/anza_lira_local_results/ccta_3d_runtime_pilot/anza_vs_cnn_development/`
+
+При прерывании отдельные уже созданные артефакты используются повторно **только после проверки SHA**, отсутствующие шаги выполняются. Можно запускать по этапам `--stage patches`, `--stage oof`, `--stage relations`, `--stage pilot`, `--stage volume`, если требуется контроль GPU/RAM и времени. Повторная генерация отчёта в ту же директорию запрещена для неизменяемости результата; для нового эксперимента задайте новый `--root`.
+
+**Строго:** это сравнение на **одном train-пациенте с искусственным разрывом**, демонстрация сквозной связи модулей, а не независимая оценка. Отдельные NN головы обучаются на тех же 17 train пациентах; из этого результата нельзя делать вывод об обобщении или победе ANZA. При наличии полнообъёмных предсказаний сегментационной модели необходимо выполнить отдельное patient-disjoint исследование естественных разрывов.
+
 ## 1. Зачем добавлен собственный 3D ANZA
 
 Исходная CT28 Graph-LIRA извлекает geometry/CT признаки вручную, применяет локальные HGB и 84-признаковый HGB для relation type. Это рабочий baseline, **но не научное доказательство пользы архитектуры ANZA** на 3D КТ.
