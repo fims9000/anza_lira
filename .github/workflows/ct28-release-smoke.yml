@@ -25,6 +25,7 @@ jobs:
           python -m pytest -q \
             tests/test_ct28_safety_gate.py \
             tests/test_ct28_scene_shortcuts.py \
+            tests/test_ct28_candidate_permutation.py \
             tests/test_ct28_mask_reconstruction.py \
             tests/test_ct28_mask_reconstruction_cli.py \
             tests/test_ct28_mask_metrics.py \
