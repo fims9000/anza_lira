@@ -31,13 +31,20 @@ def load_route_record(path: Path, scene_id: str) -> dict:
     if len(matches) != 1:
         raise ValueError("Expected exactly one selected route record for scene")
     record = matches[0]
-    if int(record["scan_id"]) in HELD_OUT:
+    patient = int(record["scan_id"])
+    if patient in HELD_OUT:
         raise ValueError("Held-out CT28 patient is blocked before protocol freeze")
+    if scene_id.startswith("CT28S:"):
+        tokens = scene_id.split(":")
+        if len(tokens) < 5 or tokens[1] not in {"train", "val"} or int(tokens[3]) != patient:
+            raise ValueError("Scene ID does not match frozen train/validation patient")
     if len(record.get("routes", [])) not in (1, 2):
         raise ValueError("Expected one relation or a BOTH pair of relations")
+    if "selected_candidate_ids" in record and len(record["selected_candidate_ids"]) != len(record["routes"]):
+        raise ValueError("Selected candidate IDs and route count disagree")
     for route in record["routes"]:
-        if route.get("status") != "ok":
-            raise ValueError("Unsuccessful route cannot be rasterized")
+        if route.get("status") != "ok" or route.get("extra_endpoint_hit", False):
+            raise ValueError("Unsuccessful or unsafe route cannot be rasterized")
     return record
 
 
@@ -45,7 +52,7 @@ def proposals_for_record(record: dict) -> list[RepairProposal]:
     return [
         RepairProposal(
             route["kind"],
-            tuple(tuple(tuple(int(c) for c in voxel) for voxel in arm)
+            tuple(tuple(tuple(voxel) for voxel in arm)
                   for arm in route["paths_voxel"]),
         )
         for route in record["routes"]
@@ -64,8 +71,13 @@ def run_from_files(
     max_new_voxels: int,
     allowed_file: Path | None = None,
 ) -> dict:
-    if output_mask.resolve() in {mask_file.resolve(), affine_file.resolve()}:
+    protected = {mask_file.resolve(), affine_file.resolve(), routes.resolve()}
+    if allowed_file is not None:
+        protected.add(allowed_file.resolve())
+    if output_mask.resolve() in protected or output_report.resolve() in protected or output_mask.resolve() == output_report.resolve():
         raise ValueError("Cannot replace original input files")
+    if output_mask.suffix != ".npy" or output_report.suffix != ".json":
+        raise ValueError("Expected output mask .npy and output report .json")
     if output_mask.exists() or output_report.exists():
         raise FileExistsError("Output exists: use a new path for immutable evidence")
     record = load_route_record(routes, scene_id)
