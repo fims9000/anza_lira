@@ -1,0 +1,50 @@
+name: CT28 train-only CCTA HGB model compatible with Python 3.13 sklearn 1.8
+on:
+  push:
+    branches:
+      - feature/ccta3d-research-contract-2026-11-02
+    paths:
+      - '.github/workflows/ct28-real-ct-relation-sklearn18.yml'
+  workflow_dispatch:
+
+jobs:
+  compatible_patientOOF_CCTA_HGB:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install compatible model-serialization environment
+        run: |
+          python -m pip install 'numpy==2.3.5' 'pandas==2.2.3' 'scipy==1.17.0' 'scikit-learn==1.8.0' 'joblib==1.5.3'
+      - name: Train reproducible patient-OOF experimental HGB on stored real CCTA features
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/train_ct28_relation_head.py \
+            --scene-dir artifacts/varvara/ct28_graph_lira \
+            --out-dir /tmp/ct28_real_CT_hgb_sklearn18 \
+            --local-model-family hgb --folds 5 --tau 0.85
+      - name: Verify actual model pickle reload using identical Python and scikit-learn
+        run: |
+          python - <<'PY'
+          import joblib,json,sys,sklearn
+          from pathlib import Path
+          p=Path('/tmp/ct28_real_CT_hgb_sklearn18')
+          models=joblib.load(p/'relation_models.joblib')
+          assert sklearn.__version__ == '1.8.0'
+          assert len(models['ct_conditioned_relation_features']) == 84
+          meta=json.loads((p/'relation_model_protocol.json').read_text())
+          assert meta['held_out_test_accessed'] is False
+          assert len(meta['local_evidence']['fold_by_patient']) == 17
+          print('Model roundtrip PASS',sys.version,sklearn.__version__)
+          PY
+      - name: Publish compatible experimental models, never original ImageCAS voxels
+        uses: actions/upload-artifact@v4
+        with:
+          name: ct28-experimental-real-CCTA-OOF-HGB-sklearn18-model
+          path: /tmp/ct28_real_CT_hgb_sklearn18/
+          retention-days: 7
+          if-no-files-found: error
