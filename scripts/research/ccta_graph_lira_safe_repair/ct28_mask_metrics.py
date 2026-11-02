@@ -9,6 +9,8 @@ import numpy as np
 from scipy import ndimage
 from skimage.morphology import skeletonize
 
+from ct28_topology_metrics import gt_component_merge_audit
+
 
 def dice(predicted: np.ndarray, reference: np.ndarray) -> float:
     cardinality = int(predicted.sum() + reference.sum())
@@ -48,7 +50,7 @@ def evaluate(before: np.ndarray, after: np.ndarray, reference: np.ndarray,
     reference_components = int(ndimage.label(reference, structure=component_structure)[1])
     added_count = int(new.sum())
     mm3 = abs(float(np.linalg.det(affine[:3, :3])))
-    return {
+    result = {
         "metric_scope": "post-hoc full-mask evaluation; never provided to the solver",
         "voxel_volume_mm3": mm3,
         "dice_before": dice(before, reference),
@@ -65,3 +67,5 @@ def evaluate(before: np.ndarray, after: np.ndarray, reference: np.ndarray,
         "reference_unsupported_added_voxels": int(wrong.sum()),
         "added_voxel_precision_vs_reference": float(supported.sum() / added_count) if added_count else None,
     }
+    result.update(gt_component_merge_audit(before, after, reference))
+    return result
