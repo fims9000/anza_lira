@@ -75,6 +75,7 @@ def run_cli(
     max_scenes: int,
     threshold: float,
     path_protocol: Path = DEFAULT_PATH,
+    output_additions: Path | None = None,
 ) -> dict:
     if mode not in {"candidates", "k10"}:
         raise ValueError("Mode must be candidates or k10")
@@ -86,10 +87,19 @@ def run_cli(
     if (output_mask.resolve() in protected or report_path.resolve() in protected or
             report_path.resolve() == output_mask.resolve()):
         raise ValueError("Never overwrite CT, predicted mask, model pack or path protocol")
-    if output_mask.exists() or report_path.exists():
+    if output_additions is not None and (
+        output_additions.resolve() in protected or
+        output_additions.resolve() in {output_mask.resolve(), report_path.resolve()}
+    ):
+        raise ValueError("Overlay path conflicts with inputs or other outputs")
+    if output_mask.exists() or report_path.exists() or (
+        output_additions is not None and output_additions.exists()
+    ):
         raise FileExistsError("Immutable outputs already exist; choose a new directory")
     if not output_mask.name.endswith(".nii.gz") and output_mask.suffix != ".nii":
         raise ValueError("Output mask must be .nii or .nii.gz")
+    if output_additions is not None and not output_additions.name.endswith(".nii.gz"):
+        raise ValueError("Overlay must be a .nii.gz NIfTI")
     if report_path.suffix != ".json":
         raise ValueError("Report must end in .json")
     # Block test patients before any CCTA bytes are opened.
@@ -132,7 +142,13 @@ def run_cli(
     report_path.parent.mkdir(parents=True, exist_ok=True)
     temp_nii = output_mask.with_name(".tmp_" + output_mask.name)
     temp_json = report_path.with_name(".tmp_" + report_path.name)
-    if temp_nii.exists() or temp_json.exists():
+    temp_additions = (
+        output_additions.with_name(".tmp_" + output_additions.name)
+        if output_additions is not None else None
+    )
+    if temp_nii.exists() or temp_json.exists() or (
+        temp_additions is not None and temp_additions.exists()
+    ):
         raise FileExistsError("Temporary evidence file already exists")
     try:
         nib.save(out_nii, str(temp_nii))
@@ -144,17 +160,31 @@ def run_cli(
         if not np.array_equal(np.asanyarray(verify.dataobj) > 0, result):
             raise RuntimeError("Written NIfTI mask content does not reproduce result")
         report["output_mask"] = str(output_mask.resolve())
+        report["output_added_voxels"] = str(output_additions.resolve()) if output_additions else None
+        if temp_additions is not None:
+            output_additions.parent.mkdir(parents=True, exist_ok=True)
+            added = result & ~mask
+            overlay = nib.Nifti1Image(added.astype(np.uint8), mask_nii.affine,
+                                      header=mask_nii.header.copy())
+            overlay.header.set_data_dtype(np.uint8)
+            nib.save(overlay, str(temp_additions))
+            if not np.array_equal(np.asanyarray(nib.load(str(temp_additions)).dataobj) > 0, added):
+                raise RuntimeError("NIfTI added-voxel overlay did not verify")
         temp_json.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n",
                              encoding="utf-8")
         if output_mask.exists() or report_path.exists():
             raise FileExistsError("Output appeared during inference; refusing overwrite")
         os.rename(temp_nii, output_mask)
+        if temp_additions is not None:
+            os.rename(temp_additions, output_additions)
         os.rename(temp_json, report_path)
     finally:
         if temp_nii.exists():
             temp_nii.unlink()
         if temp_json.exists():
             temp_json.unlink()
+        if temp_additions is not None and temp_additions.exists():
+            temp_additions.unlink()
     return report
 
 
@@ -180,6 +210,8 @@ def main() -> None:
     parser.add_argument("--mask-threshold", type=float, default=0.5)
     parser.add_argument("--output-mask", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--output-additions", type=Path,
+                        help="Optional NIfTI overlay containing newly added voxels only")
     args = parser.parse_args()
     report = run_cli(
         ct_path=args.ct, mask_path=args.mask, patient_id=args.patient_id,
@@ -189,7 +221,7 @@ def main() -> None:
         min_component_voxels=args.min_component_voxels,
         trace_mm=args.trace_mm, max_endpoints=args.max_endpoints,
         max_scenes=args.max_scenes, threshold=args.mask_threshold,
-        path_protocol=args.path_protocol,
+        path_protocol=args.path_protocol, output_additions=args.output_additions,
     )
     print(json.dumps({
         "status": report["status"],
