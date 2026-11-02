@@ -85,3 +85,25 @@ def test_validation_firewall_and_mixed_mode_detection(tmp_path):
     assert x.shape==(2,2,8,8,8)
     assert list(y)==[0.,1.]
     assert len(examples)==2
+
+
+def test_sham_CT_model_cannot_enter_real_CCTA_relation_or_repair(tmp_path):
+    from ccta_3d_an_relation import _validated_oof_scores
+    from ccta_3d_an_study import _verified_oof
+    root=tmp_path/"sham_pack"
+    root.mkdir()
+    score=root/"PAIR_anza3d_oof_val.csv"
+    score.write_text("scene_id,candidate_id,score\n",encoding="utf-8")
+    (root/"oof_protocol.json").write_text(json.dumps({
+        "status":"train_patient_OOF_experimental_CT_evidence_not_promoted_K10",
+        "candidate_type":"PAIR","variant":"anza3d",
+        "score_sha256":digest(score),
+        "source_input_control_mode":"endpoint_only",
+        "n_train_patients":17,"n_validation_patients":5,
+        "fold_assignments":[],
+        "held_out_test_accessed":False,
+    }))
+    with pytest.raises(ValueError,match="Sham-CT"):
+        _validated_oof_scores(root,"anza3d","PAIR")
+    with pytest.raises(ValueError,match="negative-control"):
+        _verified_oof(root,"PAIR","anza3d")
