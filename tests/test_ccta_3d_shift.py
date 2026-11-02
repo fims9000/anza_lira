@@ -44,8 +44,11 @@ def test_strict_ood_policy_rejects_model_acceptance(monkeypatch):
                 pair.candidate_id,None,-.1,1,0,
                 (.01,.98,.01,0.),("PAIR|"+pair.candidate_id,)*15
             )
-    from tests.test_ccta_3d_runtime import synthetic_case
-    ct,mask,affine=synthetic_case()
+    mask=np.zeros((50,65,35),dtype=bool)
+    for y in (10,16,28,40,52):
+        mask[10:19,y,18]=True
+    ct=np.full(mask.shape,250,dtype=np.float32)
+    affine=np.eye(4)
     monkeypatch.setattr(runtime,"training_count_support",lambda:Counter({(99,99):1036}))
     out,report=runtime.run_volume(
         ct,mask,affine,patient_label="synthetic_no_such_count",
