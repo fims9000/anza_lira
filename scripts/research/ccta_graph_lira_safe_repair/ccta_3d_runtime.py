@@ -263,6 +263,7 @@ def run_volume(
         x[0].scene_id,
     ))
     used_components: set[int] = set()
+    used_endpoint_ids: set[str] = set()
     accepted = 0
     added_voxels = 0
     for scene, prediction in scored:
@@ -294,8 +295,8 @@ def run_volume(
             selected_components = {endpoint_lookup[i].component for i in selected_ids}
             if len(selected_components) != len(selected_ids):
                 raise ValueError("selected_endpoint_component_conflict")
-            if used_components & selected_components:
-                raise ValueError("globally_reused_original_component")
+            if used_endpoint_ids & set(selected_ids):
+                raise ValueError("globally_reused_endpoint")
             if not selected_components:
                 raise ValueError("no_selected_components")
             proposals, chosen_ids = _paths_for_decision(
@@ -311,6 +312,7 @@ def run_volume(
                 raise ValueError("mask_gate:" + reconstructed.reason)
             result = reconstructed.mask
             used_components.update(selected_components)
+            used_endpoint_ids.update(selected_ids)
             accepted += 1
             added_voxels += reconstructed.added_voxels
             item["accepted"] = True
