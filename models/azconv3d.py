@@ -153,9 +153,14 @@ class AZConv3d(nn.Module):
             )
         else:
             mu=x.new_full((b,modes,d,h,w),1.0/modes)
-        direction=F.normalize(
-            self.orientation(x).reshape(b,modes,3,d,h,w),
-            dim=2,eps=1e-8,
+        raw_direction=self.orientation(x).reshape(b,modes,3,d,h,w)
+        direction_norm=torch.linalg.vector_norm(raw_direction,dim=2,keepdim=True)
+        fallback=torch.zeros_like(raw_direction)
+        fallback[:,:,0]=1.0
+        direction=torch.where(
+            direction_norm>1e-8,
+            raw_direction/direction_norm.clamp_min(1e-8),
+            fallback,
         )
         if self.cfg.anisotropy:
             hyper=self.cfg.max_hyperbolicity*torch.tanh(self.hyperbolicity(x))
