@@ -17,6 +17,7 @@ from sklearn.metrics import confusion_matrix
 import build_ct28_relation_features as relation_features
 import build_ct28_scene_plan as scene_builder
 from ct28_perturbations import perturb_scene_endpoints
+from ct28_safety_policy import should_accept
 import extract_ct28_scene_candidate_features as ct_features
 import train_ct28_relation_head as relation_training
 
@@ -807,8 +808,13 @@ def main() -> None:
             consistency = consistency_value(
                 str(base["relation_key"]), perturbed_keys[model_name][scene_id]
             )
-            proposed = base["selected_relation"] != "NONE"
-            accepted = bool(proposed and consistency >= args.consistency)
+            accepted = should_accept(
+                proposed_relation=str(base["relation"]),
+                selected_relation=str(base["selected_relation"]),
+                compatibility_satisfied=bool(base["compatibility_satisfied"]),
+                consistency=consistency,
+                threshold=args.consistency,
+            )
             final_pair = base["pair_candidate_id"] if accepted else None
             final_junction = base["junction_candidate_id"] if accepted else None
             final_relation = relation_class(final_pair, final_junction)

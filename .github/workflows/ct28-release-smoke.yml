@@ -1,0 +1,57 @@
+name: CT28 release smoke
+on:
+  pull_request:
+    branches:
+      - research/coronary-connectivity-repair
+    paths:
+      - 'scripts/research/ccta_graph_lira_safe_repair/ct28_*'
+      - 'scripts/research/ccta_graph_lira_safe_repair/run_ct28_graph_lira.py'
+      - 'tests/test_ct28_*'
+      - '.github/workflows/ct28-release-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  ct28-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install focused test dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy scikit-image pandas scikit-learn joblib pytest
+      - name: Run train/validation-only CT28 regression tests
+        run: |
+          python -m pytest -q \
+            tests/test_ct28_safety_gate.py \
+            tests/test_ct28_scene_shortcuts.py \
+            tests/test_ct28_candidate_permutation.py \
+            tests/test_ct28_mask_reconstruction.py \
+            tests/test_ct28_mask_reconstruction_cli.py \
+            tests/test_ct28_mask_metrics.py \
+            tests/test_ct28_mask_metrics_cli.py \
+            tests/test_ct28_selected_statistics.py
+      - name: Verify source compiles
+        run: |
+          python -m compileall -q \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_mask_reconstruction.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_mask_reconstruction_cli.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_mask_metrics.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_mask_metrics_cli.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_selected_statistics.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_safety_policy.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_structured_objective.py
+
+  ct28-structured-objective:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only PyTorch
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Check structured objective and numerical gradients
+        run: python -m pytest -q tests/test_ct28_structured_objective.py
