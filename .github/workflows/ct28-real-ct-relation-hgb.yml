@@ -1,0 +1,58 @@
+name: CT28 genuine stored CCTA features patient-OOF 4-class relation HGB
+on:
+  push:
+    branches:
+      - feature/ccta3d-research-contract-2026-11-02
+    paths:
+      - '.github/workflows/ct28-real-ct-relation-hgb.yml'
+  workflow_dispatch:
+
+jobs:
+  actual_image_evidence_scene_relation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned full CT28 relation HGB dependencies
+        run: |
+          python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1' 'scikit-learn==1.5.2' 'joblib==1.4.2'
+      - name: Run genuine precomputed CCTA candidate -> patient-group OOF -> 4-class scene HGB
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/train_ct28_relation_head.py \
+            --scene-dir artifacts/varvara/ct28_graph_lira \
+            --out-dir /tmp/ct28_real_CT_hgb_scene_relation \
+            --local-model-family hgb \
+            --folds 5 \
+            --tau 0.85
+      - name: Verify patient split, finite numbers and 42/84 schemas
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/ct28_real_CT_hgb_scene_relation')
+          result=json.loads((p/'relation_metrics_val.json').read_text())
+          protocol=json.loads((p/'relation_model_protocol.json').read_text())
+          assert result['held_out_test_accessed'] is False
+          assert result['validation_scenes']==368
+          assert protocol['local_evidence']['folds']==5
+          assert len(protocol['local_evidence']['fold_by_patient'])==17
+          assert [protocol['relation_features'][k]['feature_count'] for k in
+                  ('geometry_only','geometry_plus_ct','ct_conditioned')]==[42,42,84]
+          for name,model in result['models'].items():
+              print(name,'raw accuracy',model['raw']['accuracy'],
+                    'tau accuracy',model['tau_0_85']['accuracy'],
+                    'coverage',model['tau_0_85']['confidence_coverage'])
+          PY
+      - name: Upload HGB relation data with predeclared patient OOF provenance
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ct28-real-ct-OOF-HGB-scene-relation
+          path: /tmp/ct28_real_CT_hgb_scene_relation/
+          retention-days: 30
+          if-no-files-found: error
