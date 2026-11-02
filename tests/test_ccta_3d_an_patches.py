@@ -53,3 +53,18 @@ def test_frame_is_right_handed_and_rejects_degeneracy():
         local_frame(np.stack([pts[0],pts[0]]))
     with pytest.raises(ValueError,match="even"):
         PatchConfig(side=15)
+
+
+def test_3d_patch_invariant_to_pair_and_junction_endpoint_permutations():
+    from itertools import permutations
+    ct,affine,pts=synthetic_ct()
+    cfg=PatchConfig(side=16,voxel_mm=1.)
+    for selected in (pts[:2],pts):
+        reference,ref_info=extract_candidate_patch(ct,affine,selected,cfg)
+        for order in permutations(range(len(selected))):
+            rearranged=selected[list(order)]
+            value,info=extract_candidate_patch(ct,affine,rearranged,cfg)
+            assert np.array_equal(value,reference)
+            assert info["patch_center_lps_mm"]==pytest.approx(
+                ref_info["patch_center_lps_mm"]
+            )
