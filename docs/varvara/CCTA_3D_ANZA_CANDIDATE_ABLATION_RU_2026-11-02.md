@@ -132,7 +132,29 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_oof.py \
 
 Каждый каталог содержит `<TYPE>_<VARIANT>_oof_val.csv` со score на *всех* train/val кандидатах, `oof_protocol.json` с точным списком held/train пациентов для каждого fold, независимыми checkpoint hashes и групповой метрикой. Это уже корректный **вход для обучения следующего relation head без утечки от своего пациента**, но не измерение end-to-end восстановления: переключение relation head, full-mask evaluation и один final test ещё должны выполняться отдельно.
 
-## 5. Чего этот эксперимент ещё НЕ делает
+## 5. Пробное включение ANZA/CNN в CT28 relation head (без полного consistency)
+
+Добавлен `ccta_3d_an_relation.py`. Он загружает frozen `relation_models.joblib` K10/15 с проверкой SHA, использует **исходный geometry OOF score stream** и подставляет **новые patient-OOF 3D CNN либо ANZA candidate scores только в CT stream**. Затем обучает отдельный HGB relation head с теми же 84 входами и HGB hyperparameters, сохраняя исходные PAIR/JUNCTION identity scores неизменными.
+
+После четырёх OOF-экспериментов из предыдущего раздела:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation.py \
+  --variant conv3d \
+  --pair-oof varvara/anza_lira_local_results/ccta_3d_an_oof_pair_cnn \
+  --junction-oof varvara/anza_lira_local_results/ccta_3d_an_oof_junction_cnn \
+  --output-dir varvara/anza_lira_local_results/ccta_3d_an_relation_cnn
+
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation.py \
+  --variant anza3d \
+  --pair-oof varvara/anza_lira_local_results/ccta_3d_an_oof_pair_anza \
+  --junction-oof varvara/anza_lira_local_results/ccta_3d_an_oof_junction_anza \
+  --output-dir varvara/anza_lira_local_results/ccta_3d_an_relation_anza
+```
+
+Результаты: `clean_relation_predictions_val.csv`, `clean_relation_head.joblib`, `relation_protocol.json` (перепроверенные source hashes и метрики). **Это сравнение только clean relation type**, не полное Graph-LIRA со стабильностью после 15 perturbations и path/mask reconstruction. K10/15 имел 15 augmentation copies при обучении relation head, поэтому нельзя напрямую трактовать разницу с clean вариантом как эффект одного CT encoder. Чтобы делать вывод про архитектуру ANZA, необходимо воспроизвести perturbation-augmentation для NN CT streams либо сопоставить обе ANN-модели при единых режимах.
+
+## 6. Чего этот эксперимент ещё НЕ делает
 
 Это **локальная candidate classification**. Она не подключена к relation head K10/15 и не может заменить старые HGB CT scores без нового протокола patient-level OOF train candidate scoring. Иначе появится in-sample leakage при обучении следующего уровня.
 
