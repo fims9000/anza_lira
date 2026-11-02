@@ -135,3 +135,19 @@ def test_real_ct_path_v2_and_mask_gate_connects_synthetic_vessels(monkeypatch):
     assert report["accepted_decisions"] == 1, report["decisions"]
     assert report["added_voxels"] >= 1
     assert repaired.sum() > mask.sum()
+
+
+def test_all_model_scene_errors_are_not_silently_called_abstention():
+    class FailingModel:
+        pack_sha = "bad_stub"
+        def predict(self, scene, endpoints, ct, affine):
+            raise ValueError("feature payload unavailable")
+    ct, mask, affine = synthetic_case()
+    with pytest.raises(RuntimeError, match="Every generated 3D scene failed"):
+        run_volume(
+            ct, mask, affine, patient_label="train_bad_model",
+            engine=FailingModel(),
+            params=RuntimeConfig(radius_mm=0,max_new_voxels=20,
+                                 min_component_voxels=5),
+            path_config=PathConfig(),
+        )
