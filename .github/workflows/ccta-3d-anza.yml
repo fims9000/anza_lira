@@ -53,3 +53,11 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_runtime.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_cli.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py
+      - name: Verify Linux CLI imports without medical CT
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_patch_cache.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_train.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_oof.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_cli.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py --help >/dev/null
