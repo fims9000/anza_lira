@@ -38,6 +38,33 @@ python -m pytest -q tests/test_ccta_3d_endpoints.py tests/test_ccta_3d_k10.py te
 
 Новый `nibabel` нужен только для NIfTI. Если сериализованный `relation_models.joblib` нельзя открыть из-за sklearn/version mismatch, следует использовать версию sklearn из **оригинального окружения обучения Варвары**; не делать скрытого переобучения. Проверка SHA обязана пройти перед десериализацией.
 
+## 2. Рекомендуемый быстрый запуск — теперь одной командой
+
+Новый воспроизводимый пилот автоматически выполняет export CT, контролируемые train-only повреждения, candidate inspection, настоящий K10/15, 3D path и восстановление маски, затем постфактум Dice/clDice и manifest. При ошибке оставляет `pilot_failure.json`, не выдаёт её за успех.
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_train_pilot.py \
+  --patient-id 953 \
+  --mode k10 \
+  --gaps 3 --gap-radius-mm 1.5 \
+  --repair-radius-mm 0 --max-new-voxels 250
+```
+
+По умолчанию результаты будут в `varvara/anza_lira_local_results/ccta_3d_runtime_pilot/953_k10_g3_seed20261102/`. Там появятся `ct.nii.gz`, `broken_mask.nii.gz`, `candidates.json`, `decisions.json`, `repaired.nii.gz`, `added_voxels.nii.gz`, `posthoc_metrics.json`, `pilot_manifest.json`. Повторный запуск в ту же директорию запрещён, потому что эксперимент должен оставаться воспроизводимым.
+
+Для первичной диагностики **без загрузки K10/15 и без ремонта**:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_train_pilot.py \
+  --patient-id 953 --mode candidates --gaps 3 --gap-radius-mm 1.5
+```
+
+При сравнении результатов не смешивать pilot с неполностью наблюдаемыми естественными segmentation failures. Это controlled reference-mask corruption, а не клинический результат. Параметры 1.5 мм, 0 мм и 250 в приведённой команде — демонстрационные train-only значения, а не зафиксированные оптимальные настройки.
+
+### Ручной пошаговый вариант
+
+Если нужно разобрать ошибку отдельного этапа, команды ниже выполняют те же операции по шагам.
+
 ## 2. Первый запуск именно на данных CT28 train-пациента 953
 
 Оригинальный архив CT28 намеренно игнорируется Git. Оригинальная полная сегментация используется **только для подготовки controlled damage и постфактум сравнения**, но **не для скоринга или прокладки маршрута**. Не используем validation/test для подбора правил восстановления.
