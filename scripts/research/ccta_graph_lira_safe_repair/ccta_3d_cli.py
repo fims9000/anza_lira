@@ -78,6 +78,7 @@ def run_cli(
     output_additions: Path | None = None,
     strict_count_support: bool = False,
     engine_override: object | None = None,
+    experimental_evidence: dict | None = None,
 ) -> dict:
     if mode not in {"candidates", "k10"}:
         raise ValueError("Mode must be candidates or k10")
@@ -140,6 +141,10 @@ def run_cli(
         "mask_affine": mask_nii.affine.tolist(),
     }
     report["elapsed_seconds"] = round(time.perf_counter() - tic, 3)
+    if experimental_evidence is not None:
+        if engine_override is None:
+            raise ValueError("Experimental evidence requires explicit neural predictor")
+        report["experimental_evidence"] = experimental_evidence
     if engine_override is not None:
         report["experimental_encoder_variant"] = getattr(
             engine_override, "variant", "unknown_experimental_encoder"
