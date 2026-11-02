@@ -46,10 +46,10 @@ def test_patientwise_permutation_keeps_all_CT_rows_and_labels_but_breaks_alignme
         variant="geometry_plus_shuffled_ct",seed=14
     )
     assert np.array_equal(original[:,0],transformed[:,0])
-    assert np.array_equal(original[:8,1:][np.argsort(original[:8,1])[:,0]],
-                          transformed[:8,1:][np.argsort(transformed[:8,1])[:,0]])
-    assert np.array_equal(original[8:,1:][np.argsort(original[8:,1])[:,0]],
-                          transformed[8:,1:][np.argsort(transformed[8:,1])[:,0]])
+    assert np.array_equal(original[:8,1:][np.argsort(original[:8,1])],
+                          transformed[:8,1:][np.argsort(transformed[:8,1])])
+    assert np.array_equal(original[8:,1:][np.argsort(original[8:,1])],
+                          transformed[8:,1:][np.argsort(transformed[8:,1])])
     assert not np.array_equal(original[:,1:],transformed[:,1:])
     assert np.array_equal(transformed,make_matrix(
         frame,geometry=["g"],ct=["ct_a","ct_b"],
