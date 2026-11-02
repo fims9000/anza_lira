@@ -17,7 +17,14 @@ import hashlib
 import json
 import random
 import time
+import sys
 from pathlib import Path
+
+# Direct CLI execution adds the script directory, not necessarily repo root.
+# The encoder lives in the canonical top-level models/ package.
+ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import numpy as np
 import torch
