@@ -102,7 +102,37 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_train.py \
 - `<TYPE>_anza3d.pt` и `<TYPE>_conv3d.pt`: model state dict;
 - `<TYPE>_anza3d_val_scores.csv` и `<TYPE>_conv3d_val_scores.csv`: validation candidate scores и labels для сравнения.
 
-## 4. Чего этот эксперимент ещё НЕ делает
+## 4. Patient-level OOF для последующего Graph-LIRA
+
+Добавлен исполняемый `ccta_3d_an_oof.py`. Он строит **5 пациентских fold** на 17 train-пациентах. Каждая train candidate-scene получает score только от 3D CNN/ANZA, обученной на **других пациентах**. Пять validation-пациентов получает score единственной full-train моделью. Внешних held-out test пациентов код не открывает.
+
+Сначала сгенерировать все 17+5 patch caches, как указано выше. Далее отдельно PAIR и JUNCTION и отдельно CNN и ANZA:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_oof.py \
+  --candidate-type PAIR --variant conv3d \
+  --folds 5 --epochs 8 --batch-size 8 --device cuda \
+  --output-dir varvara/anza_lira_local_results/ccta_3d_an_oof_pair_cnn
+
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_oof.py \
+  --candidate-type PAIR --variant anza3d \
+  --folds 5 --epochs 8 --batch-size 8 --device cuda \
+  --output-dir varvara/anza_lira_local_results/ccta_3d_an_oof_pair_anza
+
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_oof.py \
+  --candidate-type JUNCTION --variant conv3d \
+  --folds 5 --epochs 8 --batch-size 8 --device cuda \
+  --output-dir varvara/anza_lira_local_results/ccta_3d_an_oof_junction_cnn
+
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_oof.py \
+  --candidate-type JUNCTION --variant anza3d \
+  --folds 5 --epochs 8 --batch-size 8 --device cuda \
+  --output-dir varvara/anza_lira_local_results/ccta_3d_an_oof_junction_anza
+```
+
+Каждый каталог содержит `<TYPE>_<VARIANT>_oof_val.csv` со score на *всех* train/val кандидатах, `oof_protocol.json` с точным списком held/train пациентов для каждого fold, независимыми checkpoint hashes и групповой метрикой. Это уже корректный **вход для обучения следующего relation head без утечки от своего пациента**, но не измерение end-to-end восстановления: переключение relation head, full-mask evaluation и один final test ещё должны выполняться отдельно.
+
+## 5. Чего этот эксперимент ещё НЕ делает
 
 Это **локальная candidate classification**. Она не подключена к relation head K10/15 и не может заменить старые HGB CT scores без нового протокола patient-level OOF train candidate scoring. Иначе появится in-sample leakage при обучении следующего уровня.
 
