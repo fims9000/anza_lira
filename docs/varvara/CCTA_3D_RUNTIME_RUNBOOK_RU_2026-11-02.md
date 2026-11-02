@@ -80,13 +80,13 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_cli.py \
 Точный файл весов на машине Варвары:
 
 ```text
-varvara/anza_lira_local_results/ct28_copy_count_ablations/joint_check/fusion_10_relation_15/clean_eval/relation_models.joblib
+varvara/anza_lira_local_results/ct28_copy_count_ablations/joint_check/fusion_10_relation_15/relation_models.joblib
 ```
 
 Его замороженный SHA256: `1693b6e9b00fd74f2d443905351f534e6bdf745a5cdc00d0057823646aa09630`. Если файл отсутствует или его хэш отличается, runtime отказывается запускаться. Для запуска не используются архивные root-level модельные пакеты.
 
 ```bash
-MODEL=varvara/anza_lira_local_results/ct28_copy_count_ablations/joint_check/fusion_10_relation_15/clean_eval/relation_models.joblib
+MODEL=varvara/anza_lira_local_results/ct28_copy_count_ablations/joint_check/fusion_10_relation_15/relation_models.joblib
 python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_cli.py \
   --ct "$OUT/ct.nii.gz" --mask "$OUT/broken.nii.gz" \
   --patient-id 953 --mode k10 --model-pack "$MODEL" \
