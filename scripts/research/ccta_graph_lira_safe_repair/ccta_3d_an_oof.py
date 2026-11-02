@@ -147,6 +147,8 @@ def build_oof(
         raise ValueError("Train and validation 3D patches differ in shape")
     if train_sources[0]["patch_protocol"]!=val_sources[0]["patch_protocol"]:
         raise ValueError("Train and validation patch protocol differs")
+    if train_sources[0]["input_control_mode"]!=val_sources[0]["input_control_mode"]:
+        raise ValueError("Train and validation image-control modes differ")
     patch_voxel_mm=float(train_sources[0]["patch_protocol"]["voxel_mm"])
     groups=np.asarray([entry["patient_id"] for entry in train_examples])
     unique=set(groups)
@@ -237,6 +239,7 @@ def build_oof(
         "train_patch_sources":train_sources,
         "validation_patch_sources":val_sources,
         "held_out_test_accessed":False,
+        "source_input_control_mode":train_sources[0]["input_control_mode"],
         "warnings":[
             "Candidate-level validation, not complete end-to-end Graph-LIRA test",
             "OOF leakage excluded at patient level; candidate windows remain correlated",
