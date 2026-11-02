@@ -17,7 +17,13 @@ import hashlib
 import json
 import random
 import time
+import sys
 from pathlib import Path
+
+# Preserve direct Linux CLI imports from scripts/research/... without PYTHONPATH.
+ROOT=Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0,str(ROOT))
 
 import numpy as np
 import torch
