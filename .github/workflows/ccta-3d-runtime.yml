@@ -33,7 +33,8 @@ jobs:
             tests/test_ccta_3d_runtime.py \
             tests/test_ccta_3d_cli.py \
             tests/test_ccta_3d_train_gap_simulator.py \
-            tests/test_ccta_3d_evaluate.py
+            tests/test_ccta_3d_evaluate.py \
+            tests/test_ccta_3d_export_training_ct.py
       - name: Compile runtime
         run: |
           python -m compileall -q \
@@ -42,4 +43,5 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_runtime.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_cli.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_train_gap_simulator.py \
-            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_evaluate.py
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_evaluate.py \
+            scripts/research/ccta_graph_lira_safe_repair/ccta_3d_export_training_ct.py
