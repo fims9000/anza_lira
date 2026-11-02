@@ -44,7 +44,7 @@ def fit_score(
     inference_x:np.ndarray,
     *,
     variant:str,epochs:int,batch_size:int,learning_rate:float,
-    seed:int,device:str,
+    seed:int,device:str,voxel_mm:float,
 )->tuple[torch.nn.Module,np.ndarray,dict]:
     if not {0,1}<=set(np.unique(train_y)):
         raise ValueError("Each training fold must contain both candidate classes")
@@ -55,7 +55,7 @@ def fit_score(
     np.random.seed(seed)
     torch.backends.cudnn.deterministic=True
     torch.backends.cudnn.benchmark=False
-    model=Candidate3dEncoder(variant).to(device)
+    model=Candidate3dEncoder(variant,voxel_mm=voxel_mm).to(device)
     loader=DataLoader(
         TensorDataset(torch.from_numpy(train_x),torch.from_numpy(train_y)),
         batch_size=batch_size,shuffle=True,
@@ -141,6 +141,7 @@ def build_oof(
         raise ValueError("Train and validation 3D patches differ in shape")
     if train_sources[0]["patch_protocol"]!=val_sources[0]["patch_protocol"]:
         raise ValueError("Train and validation patch protocol differs")
+    patch_voxel_mm=float(train_sources[0]["patch_protocol"]["voxel_mm"])
     groups=np.asarray([entry["patient_id"] for entry in train_examples])
     unique=set(groups)
     if unique!=set(train_patients):
@@ -161,6 +162,8 @@ def build_oof(
             train_x[fit_idx],train_y[fit_idx],train_x[hold_idx],
             variant=variant,epochs=epochs,batch_size=batch_size,
             learning_rate=learning_rate,seed=seed,device=device,
+        voxel_mm=patch_voxel_mm,
+            voxel_mm=patch_voxel_mm,
         )
         oof[hold_idx]=scores
         held_assignments[hold_idx]=fold
