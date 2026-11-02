@@ -23,6 +23,7 @@ from ccta_3d_endpoints import (
 )
 from ccta_3d_k10 import ScenePrediction
 from ccta_3d_global import GlobalProposal, choose_global_repairs
+from ccta_3d_shift import training_count_support, describe_shift, scene_counts
 
 
 HELD_OUT_CT28_IDS = {"954", "958", "972", "973", "980", "984"}
@@ -191,6 +192,7 @@ def run_volume(
     path_config: path_stage.PathConfig,
     slack_fraction: float = 0.05,
     solver: Callable | None = None,
+    strict_count_support: bool = False,
 ) -> tuple[np.ndarray, dict]:
     """Run candidate inspection (engine=None) or frozen model inference.
 
@@ -211,6 +213,8 @@ def run_volume(
     scenes = build_candidate_scenes(
         endpoints, patient_label=patient_label, max_scenes=params.max_scenes,
     )
+    train_support = training_count_support()
+    shift = describe_shift(scenes, train_support)
     report = {
         "protocol": "experimental_ccta_3d_runtime_v1",
         "status": "candidate_inspection_only" if engine is None else "experimental_inference",
@@ -222,6 +226,8 @@ def run_volume(
         "endpoint_count": len(endpoints),
         "scene_count": len(scenes),
         "candidate_count": sum(len(scene.candidates) for scene in scenes),
+        "candidate_count_shift": shift,
+        "strict_train_cardinality_support_required": strict_count_support,
         "endpoints": [
             {
                 "endpoint_id": endpoint.endpoint_id,
@@ -307,6 +313,9 @@ def run_volume(
     global_candidates = []
     for scene, prediction in scored:
         if not prediction.accepted:
+            continue
+        if strict_count_support and scene_counts(scene) not in train_support:
+            invalid_global[scene.scene_id] = "out_of_training_count_support"
             continue
         try:
             selected_cands = [
