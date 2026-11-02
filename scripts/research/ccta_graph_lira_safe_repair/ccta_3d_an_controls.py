@@ -90,7 +90,10 @@ def make_control_cache(
                 # destroys voxel-level correspondence between CT and anatomy.
                 rng=np.random.default_rng(seed+int(patient))
                 for index in range(len(patches)):
-                    rng.shuffle(patches[index,0].flat)
+                    plane=patches[index,0]
+                    patches[index,0]=rng.permutation(
+                        plane.reshape(-1)
+                    ).reshape(plane.shape)
             payload["patches"]=patches
             destination=staging/f"patches_{patient}.npz"
             np.savez_compressed(destination,**payload)
