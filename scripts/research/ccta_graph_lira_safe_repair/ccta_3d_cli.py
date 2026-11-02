@@ -76,6 +76,7 @@ def run_cli(
     threshold: float,
     path_protocol: Path = DEFAULT_PATH,
     output_additions: Path | None = None,
+    strict_count_support: bool = False,
 ) -> dict:
     if mode not in {"candidates", "k10"}:
         raise ValueError("Mode must be candidates or k10")
@@ -120,6 +121,7 @@ def run_cli(
             max_scenes=max_scenes,
         ),
         path_config=path_config, slack_fraction=slack,
+        strict_count_support=strict_count_support,
     )
     report["input_provenance"] = {
         "ct_path": str(ct_path.resolve()),
@@ -212,6 +214,8 @@ def main() -> None:
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--output-additions", type=Path,
                         help="Optional NIfTI overlay containing newly added voxels only")
+    parser.add_argument("--strict-count-support", action="store_true",
+                        help="Fail closed for a candidate-count pattern unseen in 17 CT28 train subjects")
     args = parser.parse_args()
     report = run_cli(
         ct_path=args.ct, mask_path=args.mask, patient_id=args.patient_id,
@@ -222,6 +226,7 @@ def main() -> None:
         trace_mm=args.trace_mm, max_endpoints=args.max_endpoints,
         max_scenes=args.max_scenes, threshold=args.mask_threshold,
         path_protocol=args.path_protocol, output_additions=args.output_additions,
+        strict_count_support=args.strict_count_support,
     )
     print(json.dumps({
         "status": report["status"],
