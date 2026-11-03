@@ -68,3 +68,18 @@ def test_3d_patch_invariant_to_pair_and_junction_endpoint_permutations():
             assert info["patch_center_lps_mm"]==pytest.approx(
                 ref_info["patch_center_lps_mm"]
             )
+
+
+def test_3d_endpoint_heatmap_coverage_is_explicit_in_physical_mm():
+    ct,affine,_=synthetic_ct()
+    ras=np.array([[25.,25.,25.],[40.,25.,25.]])
+    pts=(affine[:3,:3]@ras.T).T+affine[:3,3]
+    pts*=np.array([-1.,-1.,1.])
+    small=PatchConfig(side=8,voxel_mm=1.)
+    _,meta=extract_candidate_patch(ct,affine,pts,small)
+    assert not meta["all_endpoints_inside_patch"]
+    assert meta["endpoint_patch_margin_mm"]<0
+    large=PatchConfig(side=24,voxel_mm=1.)
+    _,meta2=extract_candidate_patch(ct,affine,pts,large)
+    assert meta2["all_endpoints_inside_patch"]
+    assert meta2["endpoint_patch_margin_mm"]>0

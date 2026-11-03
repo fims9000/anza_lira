@@ -33,7 +33,7 @@ from torch.utils.data import DataLoader,TensorDataset
 
 from models.ccta3d_candidate_encoder import Candidate3dEncoder
 from ccta_3d_an_patch_cache import DEFAULT_CACHE
-from ccta_3d_an_train import load_type, classify_metrics
+from ccta_3d_an_train import load_type, classify_metrics, candidate_scene_ranking_metrics
 from extract_ct28_scene_candidate_features import EXPECTED_PATIENT_IDS
 
 
@@ -232,7 +232,13 @@ def build_oof(
             "learning_rate":learning_rate,"seed":seed,"device":device,
         },
         "train_OOF_metrics":classify_metrics(train_y,oof),
+        "train_OOF_scene_top1_identity":candidate_scene_ranking_metrics(
+            train_y,oof,train_examples
+        ),
         "validation_fulltrain_metrics":classify_metrics(val_y,val_scores),
+        "validation_scene_top1_identity":candidate_scene_ranking_metrics(
+            val_y,val_scores,val_examples
+        ),
         "fulltrain_history":full_history,
         "fulltrain_model_sha256":sha256(checkpoint),
         "score_sha256":sha256(scores_path),

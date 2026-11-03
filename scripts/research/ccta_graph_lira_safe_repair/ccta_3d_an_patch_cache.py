@@ -98,6 +98,7 @@ def build_patient_cache(
     scene_keys=[]
     candidate_keys=[]
     inside_fracs=[]
+    endpoint_margins=[]
     for row in rows.itertuples(index=False):
         endpoint_ids=str(row.endpoint_ids).split("|")
         if len(endpoint_ids)!=(2 if row.candidate_type=="PAIR" else 3):
@@ -114,6 +115,7 @@ def build_patient_cache(
         scene_keys.append(str(row.scene_id))
         candidate_keys.append(str(row.candidate_id))
         inside_fracs.append(detail["sampling_inside_volume_fraction"])
+        endpoint_margins.append(detail["endpoint_patch_margin_mm"])
     output_dir.mkdir(parents=True,exist_ok=True)
     np.savez_compressed(
         output,
@@ -133,6 +135,8 @@ def build_patient_cache(
         "n_pair":sum(kind=="PAIR" for kind in kinds),
         "n_junction":sum(kind=="JUNCTION" for kind in kinds),
         "outside_fraction_over_20pct":sum(f<.8 for f in inside_fracs),
+        "endpoint_outside_patch_count":sum(v<0 for v in endpoint_margins),
+        "minimum_endpoint_patch_margin_mm":float(min(endpoint_margins)),
         "patch_protocol":vars(config),
         "scene_plan_sha256":digest(plan_path),
         "candidate_source_sha256":digest(candidate_path),

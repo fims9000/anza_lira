@@ -62,6 +62,11 @@ def load_type(
             raise ValueError("Patch cache SHA mismatch")
         if receipt.get("model_input_contains_ground_truth") is not False:
             raise ValueError("Ground truth included as model feature")
+        if receipt.get("endpoint_outside_patch_count",0)>0:
+            raise ValueError(
+                "CCTA patch cache has candidate endpoints outside fixed physical FOV; "
+                "choose a predeclared larger patch and rebuild before training"
+            )
         data=np.load(path,allow_pickle=False)
         keep=data["candidate_type"]==candidate_type
         x=data["patches"][keep].astype(np.float32)
@@ -80,6 +85,8 @@ def load_type(
             "patient_id":patient,"cache_sha256":digest(path),
             "patch_protocol":receipt["patch_protocol"],
             "input_control_mode":receipt.get("input_control_mode","full_ct"),
+            "endpoint_outside_patch_count":receipt.get("endpoint_outside_patch_count"),
+            "minimum_endpoint_patch_margin_mm":receipt.get("minimum_endpoint_patch_margin_mm"),
         })
     if not arrays or not sum(a.shape[0] for a in arrays):
         raise ValueError(f"No {candidate_type} candidate patches available")
@@ -105,6 +112,83 @@ def classify_metrics(truth:np.ndarray,confidence:np.ndarray)->dict:
         "auroc":float(roc_auc_score(truth,confidence)),
         "auprc":float(average_precision_score(truth,confidence)),
     }
+
+
+
+def candidate_scene_ranking_metrics(
+    truth:np.ndarray,scores:np.ndarray,examples:list[dict]
+)->dict:
+    """PAIR/JUNCTION identity top-1 among scenes with exactly one true edge.
+
+    Negative/NONE scenes do not have a correct candidate, therefore a
+    per-scene top-1 ranking score is undefined for them and they remain
+    explicitly accounted for, not treated as perfect abstentions.
+    """
+    if (truth.shape!=scores.shape or len(truth)!=len(examples)
+        or not np.isfinite(scores).all() or
+        not set(np.unique(truth))<={0.,1.}):
+        raise ValueError("Invalid rank evaluation labels, scores or identities")
+    if np.any(scores<0) or np.any(scores>1):
+        raise ValueError("Candidate scores outside [0,1]")
+    scene_index={}
+    unique_keys=set()
+    for i,record in enumerate(examples):
+        sid=str(record["scene_id"])
+        pid=int(record["patient_id"])
+        cid=str(record["candidate_id"])
+        key=(sid,cid)
+        if key in unique_keys:
+            raise ValueError("Duplicate candidate within scene")
+        unique_keys.add(key)
+        entry=scene_index.setdefault(sid,{"patient":pid,"positions":[]})
+        if entry["patient"]!=pid:
+            raise ValueError("Same candidate scene spans multiple patients")
+        entry["positions"].append((i,cid))
+    per_patient={}
+    scenes_with_true=0
+    scenes_none=0
+    correct=0
+    for scene_id,record in sorted(scene_index.items()):
+        selection=record["positions"]
+        indices=np.asarray([index for index,_ in selection],dtype=int)
+        labels=truth[indices]
+        positives=int(labels.sum())
+        if positives>1:
+            raise ValueError("Scene contains more than one true candidate of one kind")
+        pid=str(record["patient"])
+        patient=per_patient.setdefault(pid,{
+            "scenes":0,"positive_scenes":0,"none_scenes":0,
+            "top1_correct":0,
+        })
+        patient["scenes"]+=1
+        if positives==0:
+            scenes_none+=1
+            patient["none_scenes"]+=1
+            continue
+        # Tie-breaking by candidate ID, never using true candidate label.
+        best=sorted(
+            selection,key=lambda pair:(-float(scores[pair[0]]),pair[1])
+        )[0][0]
+        is_right=int(truth[best]==1)
+        correct+=is_right
+        scenes_with_true+=1
+        patient["top1_correct"]+=is_right
+        patient["positive_scenes"]+=1
+    for patient in per_patient.values():
+        n=patient["positive_scenes"]
+        patient["top1_accuracy"]=(
+            patient["top1_correct"]/n if n else None
+        )
+    return {
+        "total_scenes":len(scene_index),
+        "positive_scenes":scenes_with_true,
+        "none_scenes":scenes_none,
+        "top1_correct":correct,
+        "top1_accuracy":correct/scenes_with_true if scenes_with_true else None,
+        "per_patient":per_patient,
+        "definition":"identity ranking only among scenes containing exactly one positive candidate; NONE accounted separately",
+    }
+
 
 
 def fit_comparison(
@@ -213,6 +297,9 @@ def fit_comparison(
                 all_scores.append(torch.sigmoid(model(x)).cpu().numpy())
         scores=np.concatenate(all_scores).astype(np.float64)
         metrics=classify_metrics(valid_y.astype(float),scores)
+        scene_ranking=candidate_scene_ranking_metrics(
+            valid_y.astype(float),scores,valid_examples
+        )
         per_patient={}
         for patient in val_patients:
             which=np.asarray([x["patient_id"]==patient for x in valid_examples])
@@ -232,6 +319,7 @@ def fit_comparison(
                                  "y":int(y),"score":float(score)})
         measurements[variant]={
             "val_metrics":metrics,
+            "val_scene_top1_identity":scene_ranking,
             "val_by_patient":per_patient,
             "train_epoch_losses":epoch_losses,
             "training_seconds":duration,

@@ -1,0 +1,57 @@
+name: CT28 matched 84-feature HGB CT-reliance ablation
+on:
+  push:
+    branches:
+      - feature/ct28-relation-matched-ablation-2026-11-03
+    paths:
+      - 'scripts/research/ccta_graph_lira_safe_repair/ct28_relation_capacity_matched.py'
+      - 'tests/test_ct28_relation_capacity_matched.py'
+      - '.github/workflows/ct28-relation-matched-ablation.yml'
+  workflow_dispatch:
+
+jobs:
+  matched-relations:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install statistical/evaluation libraries (no GPU or medical download)
+        run: |
+          python -m pip install pytest numpy scipy pandas scikit-learn scikit-image joblib nibabel
+      - name: Test patient firewall, exact 84 feature schema and matched HGB fitting
+        run: |
+          python -m pytest -q tests/test_ct28_relation_capacity_matched.py
+      - name: Fit full, duplicate-geometry, constant-CT and 16 patient-shuffled HGB controls
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/ct28_relation_capacity_matched.py \
+            --output-dir evidence/ct28-relation-matched \
+            --sham-repetitions 16 --bootstrap 3000 --seed 20261103
+      - name: Publish real-score evidence in CI summary
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path('evidence/ct28-relation-matched/research_report.json')
+          j=json.loads(p.read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('# CT28 real CCTA-derived score, capacity-controlled relation ablation\n\n')
+              f.write('| Same 84-column HGB | Raw accuracy | Tau .85 accuracy | Log loss |\n')
+              f.write('|---|---:|---:|---:|\n')
+              for name,met in j['variants'].items():
+                  f.write(f"| {name} | {met['raw_accuracy']:.5f} | {met['tau_085_accuracy']:.5f} | {met['log_loss']:.5f} |\n")
+              null=j['sham_summary']
+              f.write(f"| mean of {j['sham_repetitions']} patient-stratified CT shams | {null['mean_accuracy']:.5f} | — | {null['mean_log_loss']:.5f} |\n")
+              f.write('\n**Historical saved HGB only, 17 train/5 reused development-val, not K10/15 or ANZA, not independent medical evaluation.**\n')
+          PY
+      - name: Save per-patient and per-scene raw experimental artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CT28-real-score-84column-relation-ablation
+          path: evidence/ct28-relation-matched/
+          retention-days: 21
+          if-no-files-found: error

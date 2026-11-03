@@ -22,7 +22,7 @@ def fake_cache(root,patient,split):
         path,patches=data,y=labels,
         candidate_type=np.array(["PAIR"]*4),
         candidate_id=np.array([f"PAIR:e{i}+e{i+1}" for i in range(4)]),
-        scene_id=np.array([f"scene_{patient}"]*4),
+        scene_id=np.array([f"scene_{patient}_A"]*2+[f"scene_{patient}_B"]*2),
     )
     sha=hashlib.sha256(path.read_bytes()).hexdigest()
     (root/f"patches_{patient}.json").write_text(json.dumps({
@@ -53,6 +53,7 @@ def test_two_3d_backbones_train_on_exact_same_patient_isolated_patches(tmp_path)
         assert metrics["n"]==4
         assert 0<=metrics["auroc"]<=1
         assert 0<=metrics["auprc"]<=1
+        assert result["results"][name]["val_scene_top1_identity"]["positive_scenes"]==2
         assert (out/f"PAIR_{name}.pt").exists()
         assert (out/f"PAIR_{name}_val_scores.csv").exists()
     assert (out/"experiment.json").exists()
