@@ -53,7 +53,8 @@ jobs:
             tests/test_ccta_3d_val_freeze.py \
             tests/test_ccta_3d_val_cohort.py \
             tests/test_ccta_3d_val_an_compare.py \
-            tests/test_ct28_saved_ct_signal.py
+            tests/test_ct28_saved_ct_signal.py \
+            tests/test_ct28_saved_pair_ct_signal.py
       - name: Compile 3D kernel and train-only workflow
         run: |
           python -m py_compile \
@@ -77,7 +78,8 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_pilot.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_cohort.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py \
-            scripts/research/ccta_graph_lira_safe_repair/ct28_saved_ct_signal.py
+            scripts/research/ccta_graph_lira_safe_repair/ct28_saved_ct_signal.py \
+            scripts/research/ccta_graph_lira_safe_repair/ct28_saved_pair_ct_signal.py
       - name: Verify Linux CLI imports without medical CT
         run: |
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_patch_cache.py --help >/dev/null
@@ -95,3 +97,4 @@ jobs:
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_cohort.py --help >/dev/null
           python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py --help >/dev/null
           python scripts/research/ccta_graph_lira_safe_repair/ct28_saved_ct_signal.py --help >/dev/null
+          python scripts/research/ccta_graph_lira_safe_repair/ct28_saved_pair_ct_signal.py --help >/dev/null
