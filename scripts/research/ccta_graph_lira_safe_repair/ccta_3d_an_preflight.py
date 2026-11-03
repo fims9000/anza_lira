@@ -87,7 +87,8 @@ def assess_inputs(
     else:
         digest=None
     check(path_protocol,"selected_CT_path_v2_protocol")
-    disk_check=shutil.disk_usage(str(archive_dir) if archive_dir.exists() else str(scene_dir))
+    disk_root=archive_dir if archive_dir.exists() else scene_dir if scene_dir.exists() else Path.cwd()
+    disk_check=shutil.disk_usage(str(disk_root))
     free_gb=float(disk_check.free)/(1024**3)
     if free_gb<min_free_gb:
         problems.append("not_enough_free_disk_space")
