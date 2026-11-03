@@ -1,0 +1,49 @@
+name: CT28 saved CT evidence sham research (no raw imaging)
+on:
+  push:
+    branches:
+      - feature/ccta3d-ct-signal-2026-11-03
+    paths:
+      - 'scripts/research/ccta_graph_lira_safe_repair/ct28_saved_ct_signal.py'
+      - '.github/workflows/ct28-saved-ct-signal.yml'
+  workflow_dispatch:
+
+jobs:
+  historical-ct-score-signal:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install reproducible CT28 saved-score evaluation dependencies
+        run: |
+          python -m pip install numpy scipy pandas scikit-learn scikit-image joblib nibabel
+      - name: Independently reproduce old local-HGB baseline and 30 stratified CT shams
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/ct28_saved_ct_signal.py \
+            --output-dir ct28_saved_CT_signal_results \
+            --repetitions 30 --seed 20261103
+      - name: Append explicit scoped aggregate evidence to run summary
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          j=json.loads(Path('ct28_saved_CT_signal_results/ct_signal_report.json').read_text())
+          b=j['baseline']; sham=j['CT_sham']
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('# CT28 historical HGB — CT-score alignment sham\n')
+              f.write(f"Baseline: {b['correct_scenes']}/{b['validation_scenes']} raw relation correct; accuracy {b['raw_accuracy']:.5f}; log loss {b['log_loss']:.5f}.\n")
+              f.write(f"Patient/type-stratified CT shams ({sham['replications']}): mean accuracy {sham['accuracy_mean']:.5f}, mean log loss {sham['log_loss_mean']:.5f}.\n")
+              f.write('\n**This is the historical committed local HGB and five reused development-val patients, NOT selected K10/15, NOT an independent test, and NOT a natural 3D mask repair.**\n')
+          PY
+      - name: Upload immutable aggregate results and per-scene saved-score provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: CT28-historical-HGB-CT-signal-negative-control
+          path: ct28_saved_CT_signal_results/
+          retention-days: 14
+          if-no-files-found: error
