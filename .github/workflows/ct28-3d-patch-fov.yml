@@ -1,0 +1,41 @@
+name: CT28 ANZA 24mm patch endpoint coverage
+on:
+  push:
+    branches:
+      - feature/ct28-relation-matched-ablation-2026-11-03
+    paths:
+      - 'scripts/research/ccta_graph_lira_safe_repair/ct28_3d_patch_fov_audit.py'
+      - 'tests/test_ct28_3d_patch_fov_audit.py'
+      - '.github/workflows/ct28-3d-patch-fov.yml'
+  workflow_dispatch:
+
+jobs:
+  candidate-coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only geometric research requirements (no GPU nor imaging)
+        run: |
+          python -m pip install pytest numpy scipy pandas scikit-learn joblib
+      - name: Validate 3D patch cube math on 15k committed candidate identities
+        run: |
+          python -m pytest -q tests/test_ct28_3d_patch_fov_audit.py
+      - name: Evaluate exact clean and 15 frozen perturbations on 15,092 candidates
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/ct28_3d_patch_fov_audit.py \
+            --output-dir evidence/CT28_patch_endpoint_coverage \
+            --side 24 --voxel-mm 1 \
+            --perturbations 15 --seed 20260920
+      - name: Persist complete per-patient model-input FOV audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: CT28-Anza-3D-patch-physical-endpoint-coverage
+          path: evidence/CT28_patch_endpoint_coverage/
+          if-no-files-found: error
+          retention-days: 21
