@@ -42,6 +42,7 @@ def run_neural(
     radius_mm:float=0.,
     max_new_voxels:int=250,
     strict_count_support:bool=False,
+    pair_identity_source:str="frozen_fusion",
 )->dict:
     if str(patient_id).strip() in HELD_OUT_CT28_IDS:
         raise ValueError("Graph-LIRA held-out test remains closed")
@@ -49,12 +50,14 @@ def run_neural(
         k10_pack=base_k10,relation_dir=relation_dir,
         pair_oof_dir=pair_oof,junction_oof_dir=junction_oof,
         variant=variant,device=device,
+        pair_identity_source=pair_identity_source,
     )
     evidence={
         "relation_dir":str(relation_dir),
         "pair_oof":str(pair_oof),
         "junction_oof":str(junction_oof),
         "variant":variant,
+        "pair_identity_source":pair_identity_source,
         "not_frozen_K10_relation_head":True,
         "note":"neural CT scores and clean relation head; 15x consistency exploratory",
     }
@@ -84,6 +87,7 @@ def main():
     parser.add_argument("--pair-oof",type=Path,required=True)
     parser.add_argument("--junction-oof",type=Path,required=True)
     parser.add_argument("--variant",choices=("conv3d","anza3d"),required=True)
+    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--path-protocol",type=Path,default=DEFAULT_PATH)
     parser.add_argument("--output-mask",type=Path,required=True)
@@ -102,6 +106,7 @@ def main():
         device=args.device,path_protocol=args.path_protocol,
         radius_mm=args.radius_mm,max_new_voxels=args.max_new_voxels,
         strict_count_support=args.strict_count_support,
+        pair_identity_source=args.pair_identity_source,
     )
     print(json.dumps({
         "status":result["status"],
