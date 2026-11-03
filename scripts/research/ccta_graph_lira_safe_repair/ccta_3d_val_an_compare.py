@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 
 from ccta_3d_an_cli import run_neural
+from ccta_3d_an_study import _relation_protocol, _verified_relation
 from ccta_3d_evaluate import evaluate_files
 from ccta_3d_train_pilot import SELECTED_PACK,REFERENCE_DIR
 from ccta_3d_val_freeze import verify_validation_freeze,sha
@@ -79,9 +80,11 @@ def run_neural_val_patient(
     output_root:Path,
     device:str,
     pair_identity_source:str="frozen_fusion",
+    relation_training:str="clean",
 )->dict:
     if patient not in VAL_CT28_IDS:
         raise ValueError("Held-out test/train patient forbidden in val neural comparison")
+    expected_relation_protocol=_relation_protocol(relation_training)
     frozen=verify_validation_freeze(freeze_path)
     pilot=pilot_root/f"patient_{patient}"
     check_val_pilot(
@@ -89,6 +92,8 @@ def run_neural_val_patient(
         freeze_path=freeze_path,frozen=frozen,
     )
     relation,pair,junction=pair_experiment_paths(study_root,variant)
+    if not _verified_relation(relation,variant,relation_training):
+        raise ValueError("Selected neural relation model is missing or incomplete")
     output=output_root/f"patient_{patient}"/variant
     if output.exists():
         raise FileExistsError("One-time val neural result already exists; never overwrite")
@@ -111,6 +116,12 @@ def run_neural_val_patient(
             strict_count_support=frozen["settings"]["strict_count_support"],
             pair_identity_source=pair_identity_source,
         )
+        if (result.get("experimental_evidence",{}).get("relation_train_protocol")
+                !=expected_relation_protocol):
+            raise ValueError("Inference used a different relation-head training protocol")
+        if (result.get("experimental_evidence",{}).get("pair_identity_source")
+                !=pair_identity_source):
+            raise ValueError("Inference used a different PAIR identity policy")
         stats=evaluate_files(
             patient_id=str(patient),before=pilot/"broken_mask.nii.gz",
             after=output/"repaired.nii.gz",
@@ -126,6 +137,10 @@ def run_neural_val_patient(
             "status":"complete_exploratory_neural_CT28_development_validation",
             "patient_id":patient,"variant":variant,
             "pair_identity_source":pair_identity_source,
+            "relation_train_protocol":expected_relation_protocol,
+            "relation_protocol_sha256":sha(relation/"relation_protocol.json"),
+            "pair_oof_protocol_sha256":sha(pair/"oof_protocol.json"),
+            "junction_oof_protocol_sha256":sha(junction/"oof_protocol.json"),
             "freeze_sha256":sha(freeze_path),
             "model_pack_sha256":frozen["selected_K10_SHA256"],
             "source_broken_mask_sha256":stats["before_sha256"],
@@ -137,7 +152,11 @@ def run_neural_val_patient(
             "cldice_delta":stats["cldice_delta"],
             "gt_inconsistent_new_component_pairs":stats["gt_inconsistent_new_component_pairs"],
             "held_out_test_accessed":False,
-            "warning":"Relation model trained on clean OOF only; not augmentation-matched to original K10/15.",
+            "warning":(
+                "Neural relation HGB uses clean OOF: 15-copy K10 training is unmatched."
+                if relation_training=="clean" else
+                "Neural relation HGB uses 15 patient-OOF train copies; CNN/ANZA encoders are still fitted on clean candidate patches."
+            ),
         }
         (output/"result_manifest.json").write_text(
             json.dumps(receipt,ensure_ascii=False,indent=2)+"\n"
@@ -164,9 +183,11 @@ def summarize_matched_validation(
     bootstrap:int=10000,
     seed:int=20261102,
     pair_identity_source:str="frozen_fusion",
+    relation_training:str="clean",
 )->tuple[dict,list[dict]]:
     if bootstrap<100:
         raise ValueError("At least 100 patient-resampled bootstrap draws required")
+    expected_relation_protocol=_relation_protocol(relation_training)
     freeze=verify_validation_freeze(freeze_path)
     rows=[]
     for patient in sorted(VAL_CT28_IDS):
@@ -196,7 +217,8 @@ def summarize_matched_validation(
                 run.get("status")!="complete_exploratory_neural_CT28_development_validation"
                 or run.get("patient_id")!=patient
                 or run.get("variant")!=variant
-                or run.get("pair_identity_source","frozen_fusion")!=pair_identity_source
+                or run.get("pair_identity_source")!=pair_identity_source
+                or run.get("relation_train_protocol")!=expected_relation_protocol
                 or run.get("freeze_sha256")!=sha(freeze_path)
             ):
                 raise ValueError("Neural CCTA validation receipt or freeze mismatch")
@@ -251,6 +273,7 @@ def summarize_matched_validation(
         ),
         "patient_count":5,
         "pair_identity_source":pair_identity_source,
+        "relation_train_protocol":expected_relation_protocol,
         "patient_completed":len(complete),
         "patient_failed_or_missing":5-len(complete),
         "protocol_sha256":sha(freeze_path),
@@ -258,7 +281,11 @@ def summarize_matched_validation(
         "held_out_test_accessed":False,
         "limitations":[
             "K10/15 selected on the same five development-validation patients; not independent.",
-            "ANN relation heads are clean-OOF trained; K10 used 15 train augmentations.",
+            (
+                "ANN relation heads use clean OOF; K10 used 15 training augmentations."
+                if relation_training=="clean" else
+                "ANN relation heads use 15 patient-OOF perturbation copies matching K10 relation augmentation; candidate CNN/ANZA encoders remain clean-trained."
+            ),
             "Only controlled artificial GT gaps, not natural predicted segmentation errors.",
             "A 5-patient bootstrap interval is descriptive, not a confirmatory CI.",
             "Different tree branches within one GT component may still be incorrectly bridged.",
@@ -280,6 +307,7 @@ def write_matched(root:Path,report:dict,rows:list[dict]):
         "# CT28 CCTA development-validation: K10 vs CNN vs ANZA",
         "",
         f"Status: {report['status']} ({report['patient_completed']}/5)",
+        f"PAIR identity: {report['pair_identity_source']}; relation training: {report['relation_train_protocol']}",
         "",
         "| Patient | Status | K10 ΔclDice | CNN ΔclDice | ANZA ΔclDice | ANZA–CNN |",
         "|---|---|---:|---:|---:|---:|",
@@ -314,6 +342,7 @@ def main():
     parser.add_argument("--run",action="store_true")
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
+    parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
     parser.add_argument("--bootstrap",type=int,default=10000)
     args=parser.parse_args()
     verify_validation_freeze(args.freeze)
@@ -333,6 +362,7 @@ def main():
                         output_root=args.output_root,
                         device=args.device,
                         pair_identity_source=args.pair_identity_source,
+                        relation_training=args.relation_training,
                     )
                     print(f"Completed development-val {patient}/{variant}",flush=True)
                 except Exception as exc:
@@ -342,6 +372,7 @@ def main():
         pilot_root=args.pilot_root,output_root=args.output_root,
         bootstrap=args.bootstrap,
         pair_identity_source=args.pair_identity_source,
+        relation_training=args.relation_training,
     )
     write_matched(args.output_root,report,rows)
     print(json.dumps({
