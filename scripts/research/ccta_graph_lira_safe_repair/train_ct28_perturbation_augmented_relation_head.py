@@ -6,6 +6,7 @@ import copy
 import json
 import shutil
 from pathlib import Path
+from typing import Callable
 
 import joblib
 import numpy as np
@@ -220,6 +221,8 @@ def build_augmented_train_rows(
     candidates: pd.DataFrame,
     fold_models: dict[int, dict[str, dict[str, object]]],
     fold_by_patient: dict[int, int],
+    *,
+    score_transform: Callable | None = None,
 ) -> tuple[list[dict[str, object]], list[str], list[dict[str, object]]]:
     train_plans = plans[plans["split"] == "train"].copy()
     train_scene_ids = set(train_plans["scene_id"])
@@ -257,6 +260,7 @@ def build_augmented_train_rows(
         local_models = fold_models[fold_by_patient[scan_id]]
         for repetition in range(args.perturbations):
             feature_rows: list[dict[str, object]] = []
+            perturbed_frames: list[pd.DataFrame] = []
             missing_by_scene = {scene_id: 0 for scene_id in patient_scene_ids}
             for scene_id, scene_endpoint_rows in patient_endpoints.groupby(
                 "scene_id", sort=False
@@ -268,6 +272,7 @@ def build_augmented_train_rows(
                     position_noise_mm=args.position_noise_mm,
                     tangent_noise_deg=args.tangent_noise_deg,
                 )
+                perturbed_frames.append(perturbed)
                 endpoint_lookup = perturbed.set_index("endpoint_id")
                 scene_candidates = patient_candidates[
                     patient_candidates["scene_id"] == scene_id
@@ -291,6 +296,30 @@ def build_augmented_train_rows(
                     feature_rows.append(row)
             feature_frame = pd.DataFrame(feature_rows)
             scores = graph_lira.score_feature_frame(feature_frame, local_models)
+            if score_transform is not None:
+                original = scores.copy(deep=True)
+                scores = score_transform(
+                    int(scan_id), int(repetition),
+                    pd.concat(perturbed_frames, ignore_index=True),
+                    patient_candidates,
+                    ct, inverse_affine, original.copy(deep=True),
+                )
+                keys = ("scene_id", "candidate_id", "candidate_type")
+                if not isinstance(scores, pd.DataFrame) or len(scores) != len(original):
+                    raise AugmentationError("Augmented CT-score callback changed candidate count")
+                if not scores[list(keys)].reset_index(drop=True).equals(
+                    original[list(keys)].reset_index(drop=True)
+                ):
+                    raise AugmentationError("Augmented CT-score callback changed candidate identity/order")
+                for column in ("geometry_score", "geometry_plus_ct_score"):
+                    if not np.array_equal(
+                        scores[column].to_numpy(), original[column].to_numpy()
+                    ):
+                        raise AugmentationError(
+                            f"Augmented CT-score callback unexpectedly changed {column}"
+                        )
+                if not np.isfinite(scores["ct_score"].to_numpy(dtype=float)).all():
+                    raise AugmentationError("Augmented learned CT-score contains nonfinite values")
             relation_rows, columns = graph_lira.relation_feature_rows(
                 patient_plans,
                 patient_candidates,
