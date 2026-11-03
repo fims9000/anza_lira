@@ -24,6 +24,16 @@ def test_saved_historical_HGB_geometry_fusion_probability_reproduction():
     assert fusion["roc_auc"]==pytest.approx(.9910161432994251,rel=1e-7)
     assert fusion["average_precision"]==pytest.approx(.901173169225066,rel=1e-7)
     assert fusion["average_precision"]>pair["average_precision"]
+    paired=report["paired_top1_identity_comparison"]
+    assert paired["pair_scenes"]==170
+    assert paired["net_improved_pair_scenes"]==14
+    assert paired["top1_absolute_improvement"]==pytest.approx(14/170)
+    assert paired["fusion_correct_geometry_wrong"]-paired["geometry_correct_fusion_wrong"]==14
+    assert paired["both_correct"]+paired["both_wrong"]+paired["fusion_correct_geometry_wrong"]+paired["geometry_correct_fusion_wrong"]==170
+    assert sum(p["true_PAIR_scenes"] for p in paired["per_patient"])==170
+    assert len(paired["per_patient"])==5
+    assert len(paired["patient_cluster_descriptive_95pct"])==2
+    assert paired["inference_input_contains_truth"] is False
     assert len(runs)==5
     assert report["held_out_test_accessed"] is False
 
