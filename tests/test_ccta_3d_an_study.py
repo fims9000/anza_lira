@@ -83,3 +83,28 @@ def test_partial_patch_cache_is_not_silently_reused(tmp_path):
     (tmp_path/"patches_953.json").write_text("{}")
     with pytest.raises(ValueError,match="Partial"):
         _verified_cache(tmp_path,953)
+
+
+def test_pair_identity_modes_cannot_reuse_one_another_volume_outputs(tmp_path):
+    pilot=tmp_path/"pilot_953"
+    pilot.mkdir()
+    write(pilot/"posthoc_metrics.json",metrics(.05))
+    write(pilot/"decisions.json",{
+        "patient_label":"953","accepted_decisions":0,"added_voxels":0,
+    })
+    for variant in ("conv3d","anza3d"):
+        write(tmp_path/f"{variant}_posthoc.json",metrics(.05))
+        write(tmp_path/f"{variant}_decisions.json",{
+            "patient_label":"953","accepted_decisions":0,"added_voxels":0,
+            "experimental_evidence":{
+                "variant":variant,
+                "pair_identity_source":"neural_pair",
+            }
+        })
+    from ccta_3d_an_study import summarize
+    with pytest.raises(ValueError,match="identity provenance mismatch"):
+        summarize(tmp_path,pilot=pilot,patient=953,
+                  pair_identity_source="frozen_fusion")
+    report=summarize(tmp_path,pilot=pilot,patient=953,
+                     pair_identity_source="neural_pair")
+    assert report["pair_identity_source"]=="neural_pair"

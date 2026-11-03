@@ -78,6 +78,7 @@ def run_neural_val_patient(
     study_root:Path,
     output_root:Path,
     device:str,
+    pair_identity_source:str="frozen_fusion",
 )->dict:
     if patient not in VAL_CT28_IDS:
         raise ValueError("Held-out test/train patient forbidden in val neural comparison")
@@ -108,6 +109,7 @@ def run_neural_val_patient(
             radius_mm=frozen["settings"]["repair_radius_mm"],
             max_new_voxels=frozen["settings"]["max_new_voxels_per_decision"],
             strict_count_support=frozen["settings"]["strict_count_support"],
+            pair_identity_source=pair_identity_source,
         )
         stats=evaluate_files(
             patient_id=str(patient),before=pilot/"broken_mask.nii.gz",
@@ -123,6 +125,7 @@ def run_neural_val_patient(
         receipt={
             "status":"complete_exploratory_neural_CT28_development_validation",
             "patient_id":patient,"variant":variant,
+            "pair_identity_source":pair_identity_source,
             "freeze_sha256":sha(freeze_path),
             "model_pack_sha256":frozen["selected_K10_SHA256"],
             "source_broken_mask_sha256":stats["before_sha256"],
@@ -160,6 +163,7 @@ def summarize_matched_validation(
     output_root:Path,
     bootstrap:int=10000,
     seed:int=20261102,
+    pair_identity_source:str="frozen_fusion",
 )->tuple[dict,list[dict]]:
     if bootstrap<100:
         raise ValueError("At least 100 patient-resampled bootstrap draws required")
@@ -192,6 +196,7 @@ def summarize_matched_validation(
                 run.get("status")!="complete_exploratory_neural_CT28_development_validation"
                 or run.get("patient_id")!=patient
                 or run.get("variant")!=variant
+                or run.get("pair_identity_source","frozen_fusion")!=pair_identity_source
                 or run.get("freeze_sha256")!=sha(freeze_path)
             ):
                 raise ValueError("Neural CCTA validation receipt or freeze mismatch")
@@ -245,6 +250,7 @@ def summarize_matched_validation(
             "partial_CCTA_development_validation_neural_comparison"
         ),
         "patient_count":5,
+        "pair_identity_source":pair_identity_source,
         "patient_completed":len(complete),
         "patient_failed_or_missing":5-len(complete),
         "protocol_sha256":sha(freeze_path),
@@ -307,6 +313,7 @@ def main():
     parser.add_argument("--output-root",type=Path,default=DEFAULT_COMPARE)
     parser.add_argument("--run",action="store_true")
     parser.add_argument("--device",default="cpu")
+    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
     parser.add_argument("--bootstrap",type=int,default=10000)
     args=parser.parse_args()
     verify_validation_freeze(args.freeze)
@@ -325,6 +332,7 @@ def main():
                         study_root=args.study_root,
                         output_root=args.output_root,
                         device=args.device,
+                        pair_identity_source=args.pair_identity_source,
                     )
                     print(f"Completed development-val {patient}/{variant}",flush=True)
                 except Exception as exc:
@@ -333,6 +341,7 @@ def main():
         freeze_path=args.freeze,
         pilot_root=args.pilot_root,output_root=args.output_root,
         bootstrap=args.bootstrap,
+        pair_identity_source=args.pair_identity_source,
     )
     write_matched(args.output_root,report,rows)
     print(json.dumps({

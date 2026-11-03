@@ -20,6 +20,33 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
 
 **Строго:** это сравнение на **одном train-пациенте с искусственным разрывом**, демонстрация сквозной связи модулей, а не независимая оценка. Отдельные NN головы обучаются на тех же 17 train пациентах; из этого результата нельзя делать вывод об обобщении или победе ANZA. При наличии полнообъёмных предсказаний сегментационной модели необходимо выполнить отдельное patient-disjoint исследование естественных разрывов.
 
+## Важно — правильная научная задача ANZA: PAIR identity, а не только relation class
+
+Проверенный 03.11.2026 эксперимент на сохранённой *исторической* HGB показал: CT evidence повышает **PAIR top-1 exact identity** с **153/170** до **167/170**, AUPRC с **0.717** до **0.901**, тогда как перемешивание только `ct_score` для relation-class HGB снижает accuracy лишь на ≈1.01 п.п. Это **не** измерение 3D ANZA и не выбранная K10/15. Полная таблица и ограничения: [CT28 signal findings](CCTA_3D_ANZA_CT_SIGNAL_FINDINGS_RU_2026-11-03.md).
+
+Предыдущий neural runtime проверял только влияние CT encoder на relation HGB: даже при изменении `ct_score` идентичность PAIR продолжала определяться старой K10-HGB fusion. Для содержательного исследования добавлен **явный режим `--pair-identity-source neural_pair`**: score обученной 3D CNN/ANZA теперь выбирает конкретный PAIR endpoint set. Сохранился `frozen_fusion` по умолчанию — контроль/воспроизводимость старых протоколов. JUNCTION identity не меняется.
+
+**Контролируемый train-пилот новой PAIR identity** (используется новый output root, без перезаписи старых результатов):
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
+  --stage all --patient-id 953 --device cuda --epochs 8 --folds 5 \
+  --pair-identity-source neural_pair \
+  --root varvara/anza_lira_local_results/ccta_3d_runtime_pilot/anza_vs_cnn_neural_pair
+```
+
+После фиксирования модели и пятипациентного development-validation freeze запускать сравнение под новой самостоятельной директории:
+
+```bash
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py \
+  --freeze varvara/anza_lira_local_results/ccta_3d_validation/frozen_dev_val_v1.json \
+  --study-root varvara/anza_lira_local_results/ccta_3d_runtime_pilot/anza_vs_cnn_neural_pair \
+  --output-root varvara/anza_lira_local_results/ccta_3d_validation_neural_pair \
+  --pair-identity-source neural_pair --run --device cuda
+```
+
+**Не путать:** выбранный K10/15 сохраняет оригинальную PAIR fusion; новый ANN-vs-CNN PAIR benchmark использует neural_pair для обоих NN вариантов. Полный сравнительный протокол остаётся development only, пока CNN/ANZA не обучены на идентичной train augmentation схеме, и until natural mask+blind held-out доказательство.
+
 ## 1. Зачем добавлен собственный 3D ANZA
 
 Исходная CT28 Graph-LIRA извлекает geometry/CT признаки вручную, применяет локальные HGB и 84-признаковый HGB для relation type. Это рабочий baseline, **но не научное доказательство пользы архитектуры ANZA** на 3D КТ.
