@@ -22,7 +22,7 @@ def write_fixture(cache_dir,pid,split):
         patches=rng.standard_normal((4,2,8,8,8)).astype(np.float16),
         y=np.asarray([0,1,0,1],dtype=np.uint8),
         candidate_type=np.asarray(["PAIR"]*4),
-        scene_id=np.asarray([f"scene_{pid}"]*4),
+        scene_id=np.asarray([f"scene_{pid}_A"]*2+[f"scene_{pid}_B"]*2),
         candidate_id=np.asarray([f"pair_{pid}_{i}" for i in range(4)]),
     )
     checksum=hashlib.sha256(path.read_bytes()).hexdigest()
@@ -60,6 +60,8 @@ def test_oof_folds_never_train_on_the_scored_patient(tmp_path):
     assert all(int(x["oof_fold"])==-1 for x in rows if x["split"]=="val")
     assert (out/"PAIR_conv3d_fulltrain.pt").exists()
     assert report["held_out_test_accessed"] is False
+    assert report["validation_scene_top1_identity"]["positive_scenes"]==2
+    assert report["train_OOF_scene_top1_identity"]["positive_scenes"]==6
     with pytest.raises(FileExistsError):
         build_oof(cache_dir=cache,out_dir=out,candidate_type="PAIR",
                   variant="conv3d",train_patients=[953,955,956],
