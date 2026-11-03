@@ -58,8 +58,16 @@ def run_neural(
         "junction_oof":str(junction_oof),
         "variant":variant,
         "pair_identity_source":pair_identity_source,
+        "relation_train_protocol":getattr(
+            engine,"relation_train_protocol","unrecorded_legacy_injected_predictor"
+        ),
         "not_frozen_K10_relation_head":True,
-        "note":"neural CT scores and clean relation head; 15x consistency exploratory",
+        "note":(
+            "Neural CT candidate scores and 15-copy patient-OOF augmented relation head"
+            if getattr(engine,"relation_train_protocol","")==
+            "experimental_patient_OOF_15copy_augmented_relation_head"
+            else "Neural CT candidate scores and clean patient-OOF relation head; train augmentation unmatched"
+        ),
     }
     outcome=run_cli(
         ct_path=ct,mask_path=mask,patient_id=patient_id,
