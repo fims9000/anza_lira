@@ -143,7 +143,8 @@ def ensure_pilot(root:Path,*,patient:int)->Path:
     return output
 
 
-def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str)->None:
+def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str,
+                            pair_identity_source:str="frozen_fusion")->None:
     for variant in ("conv3d","anza3d"):
         repaired=root/f"{variant}_repaired.nii.gz"
         additions=root/f"{variant}_additions.nii.gz"
@@ -154,7 +155,7 @@ def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str)->None
             if not all(path.is_file() for path in artifacts):
                 raise ValueError(f"Partial neural volume evidence for {variant}")
             provenance=_load_json(decisions)
-            if provenance.get("experimental_evidence",{}).get("variant")!=variant or provenance.get("patient_label")!=str(patient):
+            if provenance.get("experimental_evidence",{}).get("variant")!=variant or provenance.get("patient_label")!=str(patient) or provenance.get("experimental_evidence",{}).get("pair_identity_source","frozen_fusion")!=pair_identity_source:
                 raise ValueError("Wrong neural volume inference provenance")
             evaluation=_load_json(metrics)
             if evaluation.get("patient_id")!=str(patient):
@@ -172,6 +173,7 @@ def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str)->None
             output_additions=additions,
             report=decisions,device=device,
             radius_mm=0.,max_new_voxels=250,
+            pair_identity_source=pair_identity_source,
         )
         evaluate_files(
             patient_id=str(patient),
@@ -186,7 +188,8 @@ def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str)->None
         print(f"3D neural CT inference and Dice/clDice computed: {variant}",flush=True)
 
 
-def summarize(root:Path,*,pilot:Path,patient:int)->dict:
+def summarize(root:Path,*,pilot:Path,patient:int,
+              pair_identity_source:str="frozen_fusion")->dict:
     k10_metrics=_load_json(pilot/"posthoc_metrics.json")
     inputs=_load_json(pilot/"decisions.json")
     records={}
@@ -201,8 +204,8 @@ def summarize(root:Path,*,pilot:Path,patient:int)->dict:
         )):
             raise ValueError(f"Missing paired 3D mask metrics for {variant}")
         if variant!="K10":
-            if decisions.get("experimental_evidence",{}).get("variant")!=variant:
-                raise ValueError("Neural encoder model provenance mismatch")
+            if decisions.get("experimental_evidence",{}).get("variant")!=variant or decisions.get("experimental_evidence",{}).get("pair_identity_source","frozen_fusion")!=pair_identity_source:
+                raise ValueError("Neural encoder/PAIR identity provenance mismatch")
             if m["before_sha256"]!=k10_metrics["before_sha256"]:
                 raise ValueError("Not the same broken 3D segmentation input")
             if m["reference_sha256"]!=k10_metrics["reference_sha256"]:
@@ -224,6 +227,7 @@ def summarize(root:Path,*,pilot:Path,patient:int)->dict:
     result={
         "status":"train_only_exploratory_single_patient_volume_comparison",
         "patient":patient,
+        "pair_identity_source":pair_identity_source,
         "source":"controlled damaged ImageCAS-X reference segmentation",
         "same_ct_mask_and_reference_for_all":True,
         "held_out_test_accessed":False,
@@ -267,6 +271,7 @@ def main():
     parser.add_argument("--root",type=Path,default=DEFAULT_STUDY)
     parser.add_argument("--cache-dir",type=Path,default=DEFAULT_CACHE)
     parser.add_argument("--patient-id",type=int,default=953)
+    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--epochs",type=int,default=8)
     parser.add_argument("--folds",type=int,default=5)
@@ -286,8 +291,10 @@ def main():
     if args.stage in ("pilot","volume","all"):
         pilot=ensure_pilot(args.root,patient=args.patient_id)
     if args.stage in ("volume","all"):
-        ensure_neural_inference(args.root,pilot=pilot,patient=args.patient_id,device=args.device)
-        result=summarize(args.root,pilot=pilot,patient=args.patient_id)
+        ensure_neural_inference(args.root,pilot=pilot,patient=args.patient_id,device=args.device,
+                                pair_identity_source=args.pair_identity_source)
+        result=summarize(args.root,pilot=pilot,patient=args.patient_id,
+                         pair_identity_source=args.pair_identity_source)
         print(json.dumps(result,ensure_ascii=False,indent=2))
     else:
         print(json.dumps({"status":"stage_complete","stage":args.stage},indent=2))
