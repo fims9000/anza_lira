@@ -174,6 +174,7 @@ class NeuralCCTA3dInference(K10Inference):
             raise ValueError("Duplicate candidate identity in neural CCTA scoring")
         affine=np.linalg.inv(inverse_affine)
         by_kind={"PAIR":[],"JUNCTION":[]}
+        any_endpoint_outside_patch=False
         for ix,row in enumerate(candidates.itertuples()):
             degree=2 if row.candidate_type=="PAIR" else 3
             ids=str(row.endpoint_ids).split("|")
@@ -185,6 +186,8 @@ class NeuralCCTA3dInference(K10Inference):
             )
             if audit["sampling_inside_volume_fraction"]<self.min_inside_fraction:
                 raise ValueError("CT neural patch leaves image support region")
+            if not audit["all_endpoints_inside_patch"]:
+                any_endpoint_outside_patch=True
             by_kind[str(row.candidate_type)].append((ix,patch))
         for kind,items in by_kind.items():
             if not items:
@@ -222,5 +225,21 @@ class NeuralCCTA3dInference(K10Inference):
         decisions=graph.select_scene_decisions(
             plan,candidates,scores,predictions,IDENTITY
         )
+        if any_endpoint_outside_patch:
+            # Conservative selective repair: a candidate whose endpoint is
+            # outside the ANN's physical patch loses essential heatmap context.
+            # Abstain for this entire scene, including perturbation repeats.
+            # Never substitute a made-up confidence for missing visual evidence.
+            for group in decisions.values():
+                decision=group[scene.scene_id]
+                decision.update({
+                    "relation":"NONE",
+                    "pair_candidate_id":None,
+                    "junction_candidate_id":None,
+                    "selected_relation":"NONE",
+                    "relation_key":graph.relation_key(None,None),
+                    "compatibility_satisfied":False,
+                    "endpoint_patch_fov_abstain":True,
+                })
         return scores,{model:result[scene.scene_id]
                        for model,result in decisions.items()}
