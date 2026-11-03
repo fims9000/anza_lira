@@ -320,7 +320,7 @@ def test_truncated_endpoint_heatmap_conservatively_abstains_from_3d_repair(monke
     endpoints,scene=setup()
     old=endpoints[1]
     endpoints[1]=Endpoint(
-        old.endpoint_id,old.component_id,(40,15,15),
+        old.endpoint_id,old.component,(40,15,15),
         (-40.,-15.,15.),(1.,0.,0.)
     )
     engine=NeuralCCTA3dInference(
