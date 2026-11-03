@@ -52,12 +52,16 @@ class NeuralCCTA3dInference(K10Inference):
         device:str="cpu",
         pack_sha:str="synthetic_test_only",
         min_inside_fraction:float=.75,
+        pair_identity_source:str="frozen_fusion",
     ):
         super().__init__(models,pack_sha=pack_sha)
         if variant not in {"anza3d","conv3d"}:
             raise ValueError("Unknown 3D neural encoder variant")
         if not 0<=min_inside_fraction<=1:
             raise ValueError("Invalid minimum CT patch in-volume fraction")
+        if pair_identity_source not in {"frozen_fusion","neural_pair"}:
+            raise ValueError("PAIR identity source must be frozen_fusion or neural_pair")
+        self.pair_identity_source=pair_identity_source
         self.variant=variant
         self.device=device
         self.patch_config=patch_config
@@ -77,6 +81,7 @@ class NeuralCCTA3dInference(K10Inference):
         junction_oof_dir:Path,
         variant:str,
         device:str="cpu",
+        pair_identity_source:str="frozen_fusion",
     ):
         base,base_sha=verified_model_pack(k10_pack)
         relation=json.loads((relation_dir/"relation_protocol.json").read_text())
@@ -130,6 +135,7 @@ class NeuralCCTA3dInference(K10Inference):
             patch_config=PatchConfig(**patch_configs[0]),
             variant=variant,device=device,
             pack_sha=base_sha,
+            pair_identity_source=pair_identity_source,
         )
 
     def _score(
@@ -182,6 +188,12 @@ class NeuralCCTA3dInference(K10Inference):
                 if not np.isfinite(value) or not 0<=value<=1:
                     raise ValueError("Nonfinite neural CT candidate score")
                 scores.loc[scores.index[index],"ct_score"]=float(value)
+                if kind=="PAIR" and self.pair_identity_source=="neural_pair":
+                    # Explicit image-encoder identity experiment. The original
+                    # K10/15 geometry+CT PAIR identity remains the default.
+                    # Keep the historical column and chooser contract, but
+                    # replace its numerical evidence for PAIR *only*.
+                    scores.loc[scores.index[index],"geometry_plus_ct_score"]=float(value)
 
         plan=pd.DataFrame([{
             "scene_id":scene.scene_id,"scan_id":-1,
