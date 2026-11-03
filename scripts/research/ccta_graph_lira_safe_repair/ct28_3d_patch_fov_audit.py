@@ -129,11 +129,11 @@ def run(
     if len(result)!=15092*(perturbations+1):
         raise ValueError("Candidate containment records incomplete")
     grouped={}
-    for (split,kind,mode),subset in (
-        (split,kind,mode,part)
-        for (split,kind,mode),part in result.assign(
-            mode=np.where(result["repeat"].eq(-1),"clean","perturbed")
-        ).groupby(["split","candidate_type","mode"])
+    with_modes=result.assign(
+        mode=np.where(result["repeat"].eq(-1),"clean","perturbed")
+    )
+    for (split,kind,mode),subset in with_modes.groupby(
+        ["split","candidate_type","mode"],sort=True
     ):
         key=f"{split}/{kind}/{mode}"
         grouped[key]={
