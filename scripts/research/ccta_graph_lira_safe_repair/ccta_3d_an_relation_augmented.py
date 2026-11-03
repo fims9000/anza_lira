@@ -122,6 +122,7 @@ class FoldNeuralCTTransform:
         self.patch_config=PatchConfig(**configs[0])
         self.tracked_candidate_scenes=0
         self.tracked_candidate_predictions=0
+        self.out_of_patch_perturbation_candidates=0
 
     def __call__(
         self,patient:int,repetition:int,endpoints:pd.DataFrame,
@@ -160,6 +161,11 @@ class FoldNeuralCTTransform:
                 )
                 if record["sampling_inside_volume_fraction"]<self.min_inside_fraction:
                     raise ValueError("Neural CT patch crosses unsupported CT volume boundary")
+                if not record["all_endpoints_inside_patch"]:
+                    # Train-only perturbation baseline: retain the frozen
+                    # 15-copy sample weighting, but explicitly account for
+                    # partially truncated rare endpoint heatmaps.
+                    self.out_of_patch_perturbation_candidates+=1
                 gathered.append(patch)
                 identifiers.append((row.scene_id,row.candidate_id))
             if not gathered:
@@ -270,12 +276,14 @@ def train_augmented_neural_relation(
         "geometry_OOF_reproduction_max_abs_error":max_error,
         "neural_patient_OOF_provenance":transform.provenance,
         "neural_candidate_scores_created":transform.tracked_candidate_predictions,
+        "train_augmented_candidate_patches_with_truncated_endpoint_heatmap":transform.out_of_patch_perturbation_candidates,
         "frozen_identity_policy":"PAIR is controlled at inference by explicit identity source; JUNCTION geometry-only",
         "validation_metrics":metrics,
         "held_out_test_accessed":False,
         "limitations":[
             "Relation head uses 15 train perturb copies and separate patient-OOF neural CT scores.",
             "Neural PAIR/JUNCTION encoder itself was trained on clean candidate patches, not 15 position augmentations.",
+            "Rare out-of-physical-patch endpoints during 15x augmentation are counted, not silently concealed.",
             "Neither selected K10/15 nor real CCTA path v2 medical mask performance is reproduced by this relation-only head.",
             "Five development-validation patients are not independent confirmatory test.",
         ],
