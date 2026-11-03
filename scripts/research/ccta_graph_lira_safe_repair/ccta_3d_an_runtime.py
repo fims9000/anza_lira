@@ -85,11 +85,24 @@ class NeuralCCTA3dInference(K10Inference):
     ):
         base,base_sha=verified_model_pack(k10_pack)
         relation=json.loads((relation_dir/"relation_protocol.json").read_text())
-        if relation.get("status")!="experimental_clean_relation_head_no_consistency_gate":
+        allowed={
+            "experimental_clean_relation_head_no_consistency_gate",
+            "experimental_patient_OOF_15copy_augmented_relation_head",
+        }
+        if relation.get("status") not in allowed or relation.get("held_out_test_accessed") is not False:
             raise ValueError("Neural relation protocol not approved for experimental mode")
+        if relation["status"]=="experimental_patient_OOF_15copy_augmented_relation_head":
+            if (
+                relation.get("relation_training_copies_per_scene")!=15
+                or relation.get("perturbation_seed")!=20260920
+                or relation.get("position_noise_mm")!=.8
+                or relation.get("tangent_noise_deg")!=20.
+                or relation.get("clean_relation_sample_weight")!=.5
+            ):
+                raise ValueError("15-copy OOF neural relation protocol does not match frozen K10 train augmentation")
         if relation["variant"]!=variant or relation["source_K10_model_sha256"]!=base_sha:
             raise ValueError("Neural relation head mismatches baseline variant/pack")
-        relation_head_file=relation_dir/"clean_relation_head.joblib"
+        relation_head_file=relation_dir/relation.get("relation_head_filename","clean_relation_head.joblib")
         if sha256(relation_head_file)!=relation["model_sha256"]:
             raise ValueError("Neural relation head SHA differs from manifest")
         relation_head=joblib.load(relation_head_file)
@@ -129,7 +142,7 @@ class NeuralCCTA3dInference(K10Inference):
         pack=dict(base)
         pack["relation_heads"]=dict(base["relation_heads"])
         pack["relation_heads"]["ct_conditioned"]=relation_head
-        return cls(
+        engine=cls(
             pack,pair_encoder=full_models["PAIR"],
             junction_encoder=full_models["JUNCTION"],
             patch_config=PatchConfig(**patch_configs[0]),
@@ -137,6 +150,8 @@ class NeuralCCTA3dInference(K10Inference):
             pack_sha=base_sha,
             pair_identity_source=pair_identity_source,
         )
+        engine.relation_train_protocol=relation["status"]
+        return engine
 
     def _score(
         self,
