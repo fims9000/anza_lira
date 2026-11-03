@@ -95,6 +95,10 @@ def extract_candidate_patch(
     pts=np.asarray(endpoints_lps,dtype=np.float64)
     pts=pts[np.lexsort((pts[:,2],pts[:,1],pts[:,0]))]
     local=frame.T@(pts.T-center[:,None])
+    physical_half_extent=(config.side-1)*config.voxel_mm/2.
+    endpoint_patch_margin_mm=float(
+        physical_half_extent-np.abs(local).max()
+    )
     squared=np.zeros((config.side,)*3,dtype=np.float32)
     heat=np.zeros_like(squared)
     for pos in local.T:
@@ -111,4 +115,6 @@ def extract_candidate_patch(
         "voxel_mm":config.voxel_mm,
         "side":config.side,
         "orientation_det":float(np.linalg.det(frame)),
+        "endpoint_patch_margin_mm":endpoint_patch_margin_mm,
+        "all_endpoints_inside_patch":bool(endpoint_patch_margin_mm>=0.),
     }
