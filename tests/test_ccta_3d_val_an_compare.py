@@ -47,6 +47,7 @@ def fake_patient(pilot_root,result_root,patient,freeze,an_delta,relation_trainin
             "status":"complete_exploratory_neural_CT28_development_validation",
             "patient_id":patient,
             "variant":model,
+            "pair_identity_source":"frozen_fusion",
             "relation_train_protocol":compare._relation_protocol(relation_training),
             "freeze_sha256":compare.sha(freeze),
         })
