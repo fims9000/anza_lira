@@ -70,19 +70,45 @@ def _verified_oof(path:Path,kind:str,variant:str)->bool:
     return True
 
 
-def _verified_relation(path:Path,variant:str)->bool:
+def _relation_protocol(mode:str)->str:
+    statuses={
+        "clean":"experimental_clean_relation_head_no_consistency_gate",
+        "augmented_15":"experimental_patient_OOF_15copy_augmented_relation_head",
+    }
+    if mode not in statuses:
+        raise ValueError("Expected clean or augmented_15 CT28 relation training mode")
+    return statuses[mode]
+
+
+def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
+    status=_relation_protocol(mode)
     if not path.exists():
         return False
     manifest=path/"relation_protocol.json"
-    model=path/"clean_relation_head.joblib"
-    pred=path/"clean_relation_predictions_val.csv"
-    if not all(x.exists() for x in (manifest,model,pred)):
+    if not manifest.is_file():
         raise ValueError(f"Partial relation-model evidence: {path}")
     m=_load_json(manifest)
-    if m.get("status")!="experimental_clean_relation_head_no_consistency_gate" or m.get("variant")!=variant:
-        raise ValueError("Wrong experimental relation variant")
+    if m.get("status")!=status or m.get("variant")!=variant:
+        raise ValueError("Wrong experimental relation variant or augmentation mode")
+    name="clean_relation_head.joblib" if mode=="clean" else "augmented_relation_head.joblib"
+    predictions=(
+        "clean_relation_predictions_val.csv" if mode=="clean"
+        else "augmented_relation_predictions_val.csv"
+    )
+    model=path/name
+    pred=path/predictions
+    if not all(x.is_file() for x in (model,pred)):
+        raise ValueError(f"Partial relation-model evidence: {path}")
     if m.get("model_sha256")!=sha256(model) or m.get("predictions_sha256")!=sha256(pred):
         raise ValueError("Relation model/prediction hash mismatch")
+    if mode=="augmented_15" and (
+        m.get("relation_training_copies_per_scene")!=15
+        or m.get("train_scenes")!=1036
+        or m.get("validation_scenes")!=368
+        or m.get("augmented_train_scenes")!=1036*15
+        or m.get("held_out_test_accessed") is not False
+    ):
+        raise ValueError("The 15-copy relation training protocol is incomplete")
     return True
 
 
@@ -110,17 +136,24 @@ def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size
             print(f"Patient-OOF candidate evidence: {kind}/{variant}",flush=True)
 
 
-def ensure_relations(root:Path)->None:
+def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu")->None:
+    _relation_protocol(mode)
     for variant in ("conv3d","anza3d"):
         path=root/f"relation_{variant}"
-        if _verified_relation(path,variant):
+        if _verified_relation(path,variant,mode):
             continue
-        run_relation_training(
-            pair_oof=root/f"oof_pair_{variant}",
-            junction_oof=root/f"oof_junction_{variant}",
-            variant=variant,output_dir=path,
-        )
-        print(f"Clean 84-feature relation trained: {variant}",flush=True)
+        options={
+            "pair_oof":root/f"oof_pair_{variant}",
+            "junction_oof":root/f"oof_junction_{variant}",
+            "variant":variant,
+            "output_dir":path,
+        }
+        if mode=="clean":
+            run_relation_training(**options)
+        else:
+            from ccta_3d_an_relation_augmented import train_augmented_neural_relation
+            train_augmented_neural_relation(**options,device=device)
+        print(f"{mode} 84-feature relation trained: {variant}",flush=True)
 
 
 def ensure_pilot(root:Path,*,patient:int)->Path:
@@ -144,7 +177,9 @@ def ensure_pilot(root:Path,*,patient:int)->Path:
 
 
 def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str,
-                            pair_identity_source:str="frozen_fusion")->None:
+                            pair_identity_source:str="frozen_fusion",
+                            relation_mode:str="clean")->None:
+    expected_protocol=_relation_protocol(relation_mode)
     for variant in ("conv3d","anza3d"):
         repaired=root/f"{variant}_repaired.nii.gz"
         additions=root/f"{variant}_additions.nii.gz"
@@ -155,12 +190,14 @@ def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str,
             if not all(path.is_file() for path in artifacts):
                 raise ValueError(f"Partial neural volume evidence for {variant}")
             provenance=_load_json(decisions)
-            if provenance.get("experimental_evidence",{}).get("variant")!=variant or provenance.get("patient_label")!=str(patient) or provenance.get("experimental_evidence",{}).get("pair_identity_source","frozen_fusion")!=pair_identity_source:
+            if provenance.get("experimental_evidence",{}).get("variant")!=variant or provenance.get("patient_label")!=str(patient) or provenance.get("experimental_evidence",{}).get("pair_identity_source","frozen_fusion")!=pair_identity_source or provenance.get("experimental_evidence",{}).get("relation_train_protocol",_relation_protocol("clean"))!=expected_protocol:
                 raise ValueError("Wrong neural volume inference provenance")
             evaluation=_load_json(metrics)
             if evaluation.get("patient_id")!=str(patient):
                 raise ValueError("Wrong posthoc evaluation patient")
             continue
+        if not _verified_relation(root/f"relation_{variant}",variant,relation_mode):
+            raise ValueError("Neural relation head for requested augmentation mode is missing")
         run_neural(
             ct=pilot/"ct.nii.gz",
             mask=pilot/"broken_mask.nii.gz",
@@ -189,7 +226,9 @@ def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str,
 
 
 def summarize(root:Path,*,pilot:Path,patient:int,
-              pair_identity_source:str="frozen_fusion")->dict:
+              pair_identity_source:str="frozen_fusion",
+              relation_mode:str="clean")->dict:
+    expected_protocol=_relation_protocol(relation_mode)
     k10_metrics=_load_json(pilot/"posthoc_metrics.json")
     inputs=_load_json(pilot/"decisions.json")
     records={}
@@ -206,6 +245,8 @@ def summarize(root:Path,*,pilot:Path,patient:int,
         if variant!="K10":
             if decisions.get("experimental_evidence",{}).get("variant")!=variant or decisions.get("experimental_evidence",{}).get("pair_identity_source","frozen_fusion")!=pair_identity_source:
                 raise ValueError("Neural encoder/PAIR identity provenance mismatch")
+            if decisions.get("experimental_evidence",{}).get("relation_train_protocol",_relation_protocol("clean"))!=expected_protocol:
+                raise ValueError("Neural relation training mode provenance mismatch")
             if m["before_sha256"]!=k10_metrics["before_sha256"]:
                 raise ValueError("Not the same broken 3D segmentation input")
             if m["reference_sha256"]!=k10_metrics["reference_sha256"]:
@@ -228,12 +269,17 @@ def summarize(root:Path,*,pilot:Path,patient:int,
         "status":"train_only_exploratory_single_patient_volume_comparison",
         "patient":patient,
         "pair_identity_source":pair_identity_source,
+        "relation_train_protocol":expected_protocol,
         "source":"controlled damaged ImageCAS-X reference segmentation",
         "same_ct_mask_and_reference_for_all":True,
         "held_out_test_accessed":False,
         "models":records,
         "limitations":[
-            "ANZA/CNN compare clean relation HGB heads, not 15-copy augmented K10 head",
+            (
+                "ANZA/CNN relation HGB is clean-only and not matched to K10/15's 15 train perturbations"
+                if relation_mode=="clean" else
+                "ANZA/CNN relation HGB uses 15 patient-OOF train perturbations but neural candidate encoder was fitted on clean inputs"
+            ),
             "Single training patient is not generalization evidence",
             "Real natural predicted mask errors remain untested",
             "ANZA advantage requires independent subjects and matched train augmentations",
@@ -272,6 +318,7 @@ def main():
     parser.add_argument("--cache-dir",type=Path,default=DEFAULT_CACHE)
     parser.add_argument("--patient-id",type=int,default=953)
     parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
+    parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--epochs",type=int,default=8)
     parser.add_argument("--folds",type=int,default=5)
@@ -286,15 +333,17 @@ def main():
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
                    folds=args.folds,batch_size=args.batch_size)
     if args.stage in ("relations","all"):
-        ensure_relations(args.root)
+        ensure_relations(args.root,mode=args.relation_training,device=args.device)
     pilot=None
     if args.stage in ("pilot","volume","all"):
         pilot=ensure_pilot(args.root,patient=args.patient_id)
     if args.stage in ("volume","all"):
         ensure_neural_inference(args.root,pilot=pilot,patient=args.patient_id,device=args.device,
-                                pair_identity_source=args.pair_identity_source)
+                                pair_identity_source=args.pair_identity_source,
+                                relation_mode=args.relation_training)
         result=summarize(args.root,pilot=pilot,patient=args.patient_id,
-                         pair_identity_source=args.pair_identity_source)
+                         pair_identity_source=args.pair_identity_source,
+                         relation_mode=args.relation_training)
         print(json.dumps(result,ensure_ascii=False,indent=2))
     else:
         print(json.dumps({"status":"stage_complete","stage":args.stage},indent=2))
