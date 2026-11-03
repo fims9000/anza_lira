@@ -5,6 +5,7 @@ on:
       - feature/ccta3d-ct-signal-2026-11-03
     paths:
       - 'scripts/research/ccta_graph_lira_safe_repair/ct28_saved_ct_signal.py'
+      - 'scripts/research/ccta_graph_lira_safe_repair/ct28_saved_pair_ct_signal.py'
       - '.github/workflows/ct28-saved-ct-signal.yml'
   workflow_dispatch:
 
@@ -27,6 +28,11 @@ jobs:
           python scripts/research/ccta_graph_lira_safe_repair/ct28_saved_ct_signal.py \
             --output-dir ct28_saved_CT_signal_results \
             --repetitions 30 --seed 20261103
+      - name: Measure PAIR candidate identity reliance on CT image-derived features
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/ct28_saved_pair_ct_signal.py \
+            --out-dir ct28_saved_PAIR_CT_feature_results \
+            --repetitions 20 --seed 20261103
       - name: Append explicit scoped aggregate evidence to run summary
         run: |
           python - <<'PY'
@@ -34,16 +40,21 @@ jobs:
           from pathlib import Path
           j=json.loads(Path('ct28_saved_CT_signal_results/ct_signal_report.json').read_text())
           b=j['baseline']; sham=j['CT_sham']
+          pair=json.loads(Path('ct28_saved_PAIR_CT_feature_results/pair_ct_identity_report.json').read_text())
+          geom=pair['frozen_Pair_geometry']; fusion=pair['frozen_Pair_geometry_plus_CT']; sham_pair=pair['within_patient_CT_vector_shuffling']
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
               f.write('# CT28 historical HGB — CT-score alignment sham\n')
               f.write(f"Baseline: {b['correct_scenes']}/{b['validation_scenes']} raw relation correct; accuracy {b['raw_accuracy']:.5f}; log loss {b['log_loss']:.5f}.\n")
               f.write(f"Patient/type-stratified CT shams ({sham['replications']}): mean accuracy {sham['accuracy_mean']:.5f}, mean log loss {sham['log_loss_mean']:.5f}.\n")
+              f.write(f"PAIR identity AP geometry {geom['average_precision']:.5f}; fusion {fusion['average_precision']:.5f}; CT-sham mean {sham_pair['mean_AUPRC']:.5f}.\n")
               f.write('\n**This is the historical committed local HGB and five reused development-val patients, NOT selected K10/15, NOT an independent test, and NOT a natural 3D mask repair.**\n')
           PY
       - name: Upload immutable aggregate results and per-scene saved-score provenance
         uses: actions/upload-artifact@v4
         with:
           name: CT28-historical-HGB-CT-signal-negative-control
-          path: ct28_saved_CT_signal_results/
+          path: |
+            ct28_saved_CT_signal_results/
+            ct28_saved_PAIR_CT_feature_results/
           retention-days: 14
           if-no-files-found: error
