@@ -61,6 +61,70 @@ def candidate_metrics(rows:pd.DataFrame,scores:np.ndarray)->dict:
     }
 
 
+def paired_top1_identity_audit(
+    rows:pd.DataFrame,geometry_scores:np.ndarray,CT_fused_scores:np.ndarray,
+    *,seed:int=20261103,bootstrap:int=5000,
+)->dict:
+    """Paired top-1 PAIR identity improvements; five-patient descriptive CI."""
+    if bootstrap<100:
+        raise ValueError("Need at least 100 patient bootstrap samples")
+    pieces=[]
+    for name,scores in (
+        ("geometry",geometry_scores),("geometry_plus_CT",CT_fused_scores)
+    ):
+        vals=rows[["scene_id","scan_id","y"]].copy()
+        vals["score"]=scores
+        best=vals.loc[vals.groupby("scene_id")["score"].idxmax()]
+        true=vals.groupby("scene_id")["y"].sum()
+        best=best[best.scene_id.isin(true[true==1].index)]
+        if len(best)!=170 or set(best.scan_id.astype(int))!=VAL_IDS:
+            raise ValueError("PAIR top1 comparison source scene/patient mismatch")
+        pieces.append(best.set_index("scene_id")["y"].astype(int).rename(name))
+    comparison=pd.concat(pieces,axis=1)
+    names=rows[["scene_id","scan_id"]].drop_duplicates("scene_id")
+    comparison=comparison.merge(names,on="scene_id",validate="one_to_one")
+    if len(comparison)!=170 or comparison[["geometry","geometry_plus_CT"]].isna().any().any():
+        raise ValueError("Different PAIR scene sets in paired comparison")
+    g=comparison["geometry"].to_numpy(dtype=int)
+    c=comparison["geometry_plus_CT"].to_numpy(dtype=int)
+    rows_by_patient={
+        int(patient):comparison.loc[comparison.scan_id.eq(patient)]
+        for patient in sorted(VAL_IDS)
+    }
+    descriptive=[]
+    for patient,frame in rows_by_patient.items():
+        n=len(frame)
+        descriptive.append({
+            "patient_id":patient,
+            "true_PAIR_scenes":n,
+            "geometry_top1_correct":int(frame.geometry.sum()),
+            "geometry_plus_CT_top1_correct":int(frame.geometry_plus_CT.sum()),
+            "paired_difference":float((frame.geometry_plus_CT-frame.geometry).mean()),
+        })
+    rng=np.random.default_rng(seed)
+    patients=sorted(VAL_IDS)
+    deltas=[]
+    for _ in range(bootstrap):
+        choices=rng.choice(patients,size=len(patients),replace=True)
+        samples=pd.concat([rows_by_patient[int(p)] for p in choices],ignore_index=True)
+        deltas.append(float((samples.geometry_plus_CT-samples.geometry).mean()))
+    intervals=np.quantile(deltas,[.025,.975]).tolist()
+    return {
+        "pair_scenes":len(comparison),
+        "fusion_correct_geometry_wrong":int(np.sum((c==1)&(g==0))),
+        "geometry_correct_fusion_wrong":int(np.sum((c==0)&(g==1))),
+        "both_correct":int(np.sum((c==1)&(g==1))),
+        "both_wrong":int(np.sum((c==0)&(g==0))),
+        "net_improved_pair_scenes":int(c.sum()-g.sum()),
+        "top1_absolute_improvement":float(c.mean()-g.mean()),
+        "per_patient":descriptive,
+        "patient_cluster_descriptive_95pct":[float(v) for v in intervals],
+        "bootstrap_seed":seed,
+        "bootstrap_repetitions":bootstrap,
+        "inference_input_contains_truth":False,
+    }
+
+
 def _shuffle_ct_vectors(
     frame:pd.DataFrame,*,seed:int,
 )->pd.DataFrame:
@@ -132,6 +196,9 @@ def run_pair_signal(
         raise ValueError(f"Fitted local-HGB model no longer reproduces saved scores: {max_error}")
     original_geo_metrics=candidate_metrics(pair,original_geo)
     original_fusion_metrics=candidate_metrics(pair,original_fused)
+    paired_top1=paired_top1_identity_audit(
+        pair,original_geo,original_fused,seed=seed,bootstrap=5000,
+    )
     rows=[]
     for rep in range(repetitions):
         changed=_shuffle_ct_vectors(pair,seed=seed+rep)
@@ -150,6 +217,7 @@ def run_pair_signal(
         "model_scope":"historical_saved_LOCAL_HGB_not_selected_K10_15",
         "frozen_Pair_geometry":original_geo_metrics,
         "frozen_Pair_geometry_plus_CT":original_fusion_metrics,
+        "paired_top1_identity_comparison":paired_top1,
         "within_patient_CT_vector_shuffling":{
             "count":repetitions,
             "seed_start":seed,
