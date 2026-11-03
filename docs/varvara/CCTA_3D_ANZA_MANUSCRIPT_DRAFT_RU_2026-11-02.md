@@ -74,6 +74,18 @@ Bootstrap выполняется на уровне **пациента**, а не
 
 Воспроизводимые предсказания и checksum: [GitHub CI #41505361958](https://github.com/fims9000/anza_lira/actions/runs/41505361958), [протокол результатов](CT28_REAL_CCTA_FEATURE_SIGNAL_RESULTS_2026-11-02.md). Сохранённая экспериментальная таблица не включает ни сырые КТ-тома, ни результаты новых 3D CNN/ANZA.
 
+### 3.1. Дополнительная проверка сохранённой historical local-HGB (03.11.2026)
+
+В отдельном эксперименте **без обучения новых моделей** проверена конкретная historical `ablations/local_hgb/relation_models.joblib` с SHA256 `3985e5c3b81a1c1be60887adbefd2622f992c541f3ac3e472364b65ecc0ad204`. Исходные validation-вероятности воспроизведены с ошибкой менее 1e−8. Не следует смешивать числа этого опыта с переобученным 02.11.2026 контролем, выбранной K10/15 или новой ANZA.
+
+На 368 сценах исходная relation HGB показала **341/368 = 92,66%** raw accuracy; 30 перестановок *только* локального `ct_score` внутри пациента и candidate-type снизили показатель в среднем до **91,65%** (log-loss 0,224 → 0,252).
+
+На 2 298 PAIR-кандидатах той же исторической модели geometry-only AUPRC **0,717**, geometry+CT AUPRC **0,901**, а PAIR top-1 identity увеличилась с **153/170** до **167/170**. Парное сравнение: 15 исправленных CT-fusion сцен, одна ухудшенная, 152 правильные обеими моделями, две неправильные обеими. Во всех пяти пациентах число правильных PAIR top-1 улучшилось; средняя patient-cluster bootstrap разница **+8,24 п.п.**, описательный интервал **[+4,15; +13,61] п.п.** при 5000 повторов. Перестановка *всего 38-мерного CT vector* между кандидатами внутри пациента (20 seed) снизила AUPRC до **0,416** и PAIR top-1 до **70,9%** в среднем.
+
+Наблюдение уточняет выбор primary scientific outcome: CT-derived evidence **важнее для определения identity правильной пары сосудов**, чем для агрегированного класса связи. Ранее прототип ANN лишь подменял CT-score relation head, не затрагивая PAIR identity. Теперь режим `--pair-identity-source neural_pair` напрямую передаёт 3D CNN/ANZA score в ranking PAIR при сохранении JUNCTION geometry-first и независимого `frozen_fusion` контроля. Обучение и проверка настоящей 3D ANZA ещё не выполнены. Ни один из приведённых HGB результатов нельзя считать подтверждением эффективности ANZA на 3D CCTA.
+
+Подробные числа, ограничения и SHA: [CT28 Signal Findings](CCTA_3D_ANZA_CT_SIGNAL_FINDINGS_RU_2026-11-03.md), [воспроизводимый GitHub Actions](https://github.com/fims9000/anza_lira/actions/runs/41609984006).
+
 ## 4. Результаты — таблица для заполнения
 
 | Эксперимент | Relation/structural | Full-mask Dice Δ | Full-mask clDice Δ | GT-false bridge pairs | Статус |
