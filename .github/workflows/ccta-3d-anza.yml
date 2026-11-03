@@ -5,6 +5,7 @@ on:
       - feature/ccta-3d-anza-encoder-2026-11-02
       - feature/ccta3d-research-contract-2026-11-02
       - feature/ccta3d-ct-signal-2026-11-03
+      - feature/ct28-relation-matched-ablation-2026-11-03
   pull_request:
     branches:
       - feature/ccta-3d-runtime-2026-11-02
@@ -55,7 +56,8 @@ jobs:
             tests/test_ccta_3d_val_an_compare.py \
             tests/test_ct28_saved_ct_signal.py \
             tests/test_ct28_saved_pair_ct_signal.py \
-            tests/test_ccta_3d_an_preflight.py
+            tests/test_ccta_3d_an_preflight.py \
+            tests/test_ccta_3d_an_scene_rank.py
       - name: Compile 3D kernel and train-only workflow
         run: |
           python -m py_compile \
