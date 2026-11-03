@@ -62,6 +62,11 @@ def load_type(
             raise ValueError("Patch cache SHA mismatch")
         if receipt.get("model_input_contains_ground_truth") is not False:
             raise ValueError("Ground truth included as model feature")
+        if receipt.get("endpoint_outside_patch_count",0)>0:
+            raise ValueError(
+                "CCTA patch cache has candidate endpoints outside fixed physical FOV; "
+                "choose a predeclared larger patch and rebuild before training"
+            )
         data=np.load(path,allow_pickle=False)
         keep=data["candidate_type"]==candidate_type
         x=data["patches"][keep].astype(np.float32)
@@ -80,6 +85,8 @@ def load_type(
             "patient_id":patient,"cache_sha256":digest(path),
             "patch_protocol":receipt["patch_protocol"],
             "input_control_mode":receipt.get("input_control_mode","full_ct"),
+            "endpoint_outside_patch_count":receipt.get("endpoint_outside_patch_count"),
+            "minimum_endpoint_patch_margin_mm":receipt.get("minimum_endpoint_patch_margin_mm"),
         })
     if not arrays or not sum(a.shape[0] for a in arrays):
         raise ValueError(f"No {candidate_type} candidate patches available")
