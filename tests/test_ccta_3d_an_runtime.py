@@ -305,3 +305,37 @@ def test_unrecognized_neural_identity_experiment_is_not_silently_accepted():
             variant="anza3d",
             pair_identity_source="arbitrary",
         )
+
+
+def test_truncated_endpoint_heatmap_conservatively_abstains_from_3d_repair(monkeypatch):
+    def dummy_features(row,lookup,ct,inverse,arm_names):
+        return {
+            "scene_id":row.scene_id,
+            "candidate_id":row.candidate_id,
+            "candidate_type":row.candidate_type,
+            "pair_g0":1.,"pair_ct0":200.,
+            "junction_span_mm":2.,"junction_ct0":200.,
+        }
+    monkeypatch.setattr(graph,"perturbed_candidate_features",dummy_features)
+    endpoints,scene=setup()
+    old=endpoints[1]
+    endpoints[1]=Endpoint(
+        old.endpoint_id,old.component_id,(40,15,15),
+        (-40.,-15.,15.),(1.,0.,0.)
+    )
+    engine=NeuralCCTA3dInference(
+        models(),pair_encoder=FixedNeural(),
+        junction_encoder=FixedNeural(),
+        patch_config=PatchConfig(side=8,voxel_mm=1.),
+        variant="anza3d",
+    )
+    ct=np.full((64,64,64),225.,dtype=np.float32)
+    _,ep,cands=engine._frames(scene,endpoints)
+    _,decisions=engine._score(scene,ep,cands,ct,np.eye(4))
+    assert decisions["ct_conditioned"]["endpoint_patch_fov_abstain"]
+    assert decisions["ct_conditioned"]["selected_relation"]=="NONE"
+    assert decisions["ct_conditioned"]["pair_candidate_id"] is None
+    outcome=engine.predict(scene,endpoints,ct,np.eye(4))
+    assert not outcome.accepted
+    assert outcome.proposed_relation=="NONE"
+    assert outcome.selected_relation=="NONE"
