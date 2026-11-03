@@ -234,3 +234,74 @@ def test_true_volumetric_anisotropic_anza_model_scores_real_3d_ct_patches(monkey
     assert np.isfinite(scores["ct_score"].to_numpy()).all()
     assert not np.allclose(scores["ct_score"].to_numpy(),.5)
     assert "ct_conditioned" in decisions
+
+
+class TwoPairNeural(torch.nn.Module):
+    def forward(self,x):
+        if len(x)!=2:
+            raise AssertionError("The synthetic scene needs two PAIR candidates")
+        return torch.tensor([-6.,6.],device=x.device)
+
+
+def test_3d_neural_pair_identity_changes_actual_SELECTED_pair(monkeypatch):
+    from ccta_3d_endpoints import Candidate,Scene
+    def stub_features(row,lookup,ct,inverse,arm_names):
+        return {
+            "scene_id":row.scene_id,
+            "candidate_id":row.candidate_id,
+            "candidate_type":row.candidate_type,
+            "pair_g0":2.0,"pair_ct0":200.,
+            "junction_span_mm":3.,"junction_ct0":220.,
+        }
+    monkeypatch.setattr(graph,"perturbed_candidate_features",stub_features)
+    ep,base_scene=setup()
+    old_pair=base_scene.candidates[0]
+    added_pair=Candidate(
+        "PAIR:E0001+E0002","PAIR",("E0001","E0002")
+    )
+    scene=Scene(
+        base_scene.scene_id,
+        base_scene.endpoint_ids,
+        (old_pair,added_pair,base_scene.candidates[1]),
+    )
+    def predictor(mode):
+        return NeuralCCTA3dInference(
+            models(),pair_encoder=TwoPairNeural(),
+            junction_encoder=FixedNeural(),
+            patch_config=PatchConfig(side=8),
+            variant="anza3d",
+            pair_identity_source=mode,
+        )
+    ct=np.full((32,32,32),250.,dtype=np.float32)
+    old_engine=predictor("frozen_fusion")
+    new_engine=predictor("neural_pair")
+    _,end,candidate=old_engine._frames(scene,ep)
+    old_scores,old_decisions=old_engine._score(
+        scene,end,candidate,ct,np.eye(4)
+    )
+    new_scores,new_decisions=new_engine._score(
+        scene,end,candidate,ct,np.eye(4)
+    )
+    old=old_decisions["ct_conditioned"]["pair_candidate_id"]
+    new=new_decisions["ct_conditioned"]["pair_candidate_id"]
+    assert old==old_pair.candidate_id
+    assert new==added_pair.candidate_id
+    assert new!=old
+    assert np.allclose(new_scores["geometry_score"],old_scores["geometry_score"])
+    assert not np.allclose(new_scores["geometry_plus_ct_score"],old_scores["geometry_plus_ct_score"])
+    assert new_decisions["geometry_only"]["pair_candidate_id"]==old_decisions["geometry_only"]["pair_candidate_id"]
+    scored=new_engine.predict(scene,ep,ct,np.eye(4))
+    assert scored.accepted
+    assert scored.pair_candidate_id==added_pair.candidate_id
+    assert len(scored.decision_keys_under_perturbation)==15
+
+
+def test_unrecognized_neural_identity_experiment_is_not_silently_accepted():
+    with pytest.raises(ValueError,match="PAIR identity source"):
+        NeuralCCTA3dInference(
+            models(),pair_encoder=FixedNeural(),
+            junction_encoder=FixedNeural(),
+            patch_config=PatchConfig(side=8),
+            variant="anza3d",
+            pair_identity_source="arbitrary",
+        )
