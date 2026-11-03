@@ -114,3 +114,16 @@ def test_test_subject_never_passes_to_volume_loader(tmp_path):
             pilot_root=tmp_path/"absent",study_root=tmp_path/"absent",
             output_root=tmp_path/"absent",device="cpu",
         )
+
+
+def test_experimental_pair_identity_source_cannot_mix_in_same_val_report(tmp_path,monkeypatch):
+    freeze=freeze_stub(tmp_path,monkeypatch)
+    baseline=tmp_path/"pilots"
+    neural=tmp_path/"neural"
+    for patient in (957,961,965,966,974):
+        fake_patient(baseline,neural,patient,freeze,.07)
+    with pytest.raises(ValueError,match="Neural CCTA validation receipt or freeze mismatch"):
+        compare.summarize_matched_validation(
+            freeze_path=freeze,pilot_root=baseline,output_root=neural,
+            bootstrap=100,pair_identity_source="neural_pair",
+        )
