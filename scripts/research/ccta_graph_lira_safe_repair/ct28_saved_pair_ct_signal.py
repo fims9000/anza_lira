@@ -80,7 +80,7 @@ def paired_top1_identity_audit(
         if len(best)!=170 or set(best.scan_id.astype(int))!=VAL_IDS:
             raise ValueError("PAIR top1 comparison source scene/patient mismatch")
         pieces.append(best.set_index("scene_id")["y"].astype(int).rename(name))
-    comparison=pd.concat(pieces,axis=1)
+    comparison=pd.concat(pieces,axis=1).reset_index()
     names=rows[["scene_id","scan_id"]].drop_duplicates("scene_id")
     comparison=comparison.merge(names,on="scene_id",validate="one_to_one")
     if len(comparison)!=170 or comparison[["geometry","geometry_plus_CT"]].isna().any().any():
