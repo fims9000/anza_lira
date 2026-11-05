@@ -194,8 +194,8 @@ def test_short_hairpin_bridge_across_parallel_tracks_requires_observed_curvature
 
 def test_medium_size_v_mark_goes_to_review_without_dropping_true_short_track():
     # A 40-50px hand-drawn tick was not covered by the tiny-stroke cutoff.
-    rising=np.column_stack((np.linspace(10,33,26),np.linspace(40,16,26)))
-    falling=np.column_stack((np.linspace(33.2,56,26),np.linspace(16.2,40,26)))
+    rising=np.column_stack((np.linspace(10,23,26),np.linspace(40,25,26)))
+    falling=np.column_stack((np.linspace(23.2,36,26),np.linspace(25.2,40,26)))
     glyph=np.concatenate([rising,falling],axis=0)
     m=describe_trace(glyph)
     assert 24<m["observed_length_px"]<72
