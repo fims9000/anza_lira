@@ -46,15 +46,21 @@ def low_memory_gray_preview(bmp:GrayBMP8,*,max_side:int=2048)->tuple[np.ndarray,
     ratio=min(1.,max_side/max(bmp.width,bmp.height))
     width=max(1,int(round(bmp.width*ratio)))
     height=max(1,int(round(bmp.height*ratio)))
-    # A row of original bytes is already mmap-backed. Advanced x indexing
-    # allocates at most one output row. Independent of original BMP byte size.
-    xx=np.clip(np.rint(np.linspace(0,bmp.width-1,width)).astype(np.int64),
-               0,bmp.width-1)
-    yy=np.clip(np.rint(np.linspace(0,bmp.height-1,height)).astype(np.int64),
-               0,bmp.height-1)
+    # Nearest-neighbor sampling can delete a 1px film trace entirely when
+    # the image is reduced 10-15x. Instead read ONLY narrow source row bands
+    # from the disk-backed BMP, average pixels into one output row and keep
+    # total RAM bounded by a single stripe (< 2 MiB for H50Z dimensions).
     out=np.empty((height,width),dtype=np.uint8)
-    for i,y in enumerate(yy):
-        out[i,:]=bmp._data[int(y),xx]
+    for i in range(height):
+        start=min(bmp.height-1,int(math.floor(i*bmp.height/height)))
+        stop=min(bmp.height,int(math.ceil((i+1)*bmp.height/height)))
+        stop=max(start+1,stop)
+        source_band=np.ascontiguousarray(
+            bmp._data[start:stop,:bmp.width],dtype=np.uint8
+        )
+        out[i,:]=cv2.resize(
+            source_band,(width,1),interpolation=cv2.INTER_AREA
+        )[0]
     return out,ratio
 
 
