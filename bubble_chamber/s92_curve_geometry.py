@@ -114,7 +114,7 @@ def describe_trace(points,cfg:TraceReviewConfig=TraceReviewConfig()):
     tick=(not spiral and
           ((short and sharp>=cfg.sharp_tick_min_turn_deg) or
            (length<=cfg.angular_glyph_max_px and
-            sharp>=max(75.,cfg.sharp_tick_min_turn_deg) and
+            sharp>=max(65.,cfg.sharp_tick_min_turn_deg) and
             chord_ratio<=cfg.angular_glyph_max_chord_ratio)))
     flags=[]
     if spiral:
