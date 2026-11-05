@@ -23,7 +23,7 @@ class TraceReviewConfig:
     resample_step_px: float = 1.5
     short_stroke_max_px: float = 24.0
     hairpin_max_px: float = 72.0
-    hairpin_max_chord_ratio: float = 0.56
+    hairpin_max_chord_ratio: float = 0.70
     hairpin_min_turn_deg: float = 115.0
     sharp_tick_min_turn_deg: float = 55.0
     spiral_min_px: float = 72.0
