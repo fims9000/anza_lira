@@ -333,7 +333,10 @@ def construct_chain_hypotheses(components,selected, cfg=TraceReviewConfig()):
             ordered.append(cur)
             p=lookup[cur] if input_port==0 else lookup[cur][::-1]
             observed.append(np.round(p,3).tolist())
-            all_points.extend(p.tolist())
+            if all_points and np.linalg.norm(np.asarray(all_points[-1])-p[0])<.01:
+                all_points.extend(p[1:].tolist())
+            else:
+                all_points.extend(p.tolist())
             next_port=1-input_port
             if next_port not in graph[cur]:
                 break
@@ -344,7 +347,7 @@ def construct_chain_hypotheses(components,selected, cfg=TraceReviewConfig()):
             if not np.allclose(bridge[0],p[-1],atol=0.005):
                 raise ValueError("Reversed or misplaced geometric bridge")
             gaps.append({"proposal_id":edge["proposal_id"],
-                         "inferred_only_points_xy":edge["inferred_bridge_points_xy"],
+                         "inferred_only_points_xy":np.round(bridge,3).tolist(),
                          "from_component":cur,"to_component":nxt})
             all_points.extend(bridge[1:].tolist())
             cur=nxt
