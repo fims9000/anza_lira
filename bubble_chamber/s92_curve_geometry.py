@@ -151,6 +151,27 @@ def _outward(points,port):
     return vector/norm if norm>1e-7 else None
 
 
+def _end_turn_density(points,port,*,arriving:bool)->float:
+    """Observed signed curvature proxy (degrees/pixel) near a gap endpoint.
+
+    A is oriented from observed interior to the gap. B is oriented from the
+    gap into its observed interior. Artificial high-turn U-bridges between two
+    straight parallel scratches therefore cannot pass as coiled continuations.
+    """
+    p,_=resample(points,1.5)
+    if (not arriving and port==0) or (arriving and port==1):
+        p=p[::-1]
+    span=min(len(p),14)
+    section=p[:span] if arriving else p[-span:]
+    if len(section)<5:
+        return 0.
+    smooth=gaussian_filter1d(section,sigma=.8,axis=0,mode="nearest")
+    steps=np.diff(smooth,axis=0)
+    angles=np.unwrap(np.arctan2(steps[:,1],steps[:,0]))
+    length=sum(np.linalg.norm(np.diff(section,axis=0),axis=1))
+    return float(np.degrees(angles[-1]-angles[0])/max(length,1e-8))
+
+
 def _hermite(a,b,ua,ub,steps=17):
     # ua: tangent leaving A. ub: tangent leaving B into the other direction.
     chord=float(np.linalg.norm(b-a))
@@ -252,6 +273,15 @@ def propose_gap_links(components:list[dict],
         result=_link_geometry(pts[i],pa,pts[j],pb,cfg)
         if result is None:
             continue
+        # A near-180-degree tiny U-shaped bridge between parallel straight
+        # marks is almost always an unsupported hairpin hypothesis. Permit
+        # stronger turns only when BOTH observed sides supply compatible
+        # nontrivial same-sign local curvature (e.g., a broken tight coil).
+        if result["bridge_turn_deg"]>110.:
+            ka=_end_turn_density(pts[i],pa,arriving=False)
+            kb=_end_turn_density(pts[j],pb,arriving=True)
+            if ka*kb<=0 or min(abs(ka),abs(kb))<.8:
+                continue
         bridge=np.asarray(result["inferred_bridge_points_xy"],float)
         interior=bridge[3:-3]
         nearby=support_tree.query_ball_point(interior,
