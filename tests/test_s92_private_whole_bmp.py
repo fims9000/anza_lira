@@ -51,7 +51,8 @@ def test_private_full_bmp_s92_sees_dashes_and_keeps_raw_masks(tmp_path,monkeypat
     manifest_sha=sha256_file(s86/"manifest.json")
     shard_hashes={p.name:sha256_file(p) for p in (s86/"masks").glob("*.png")}
     output=tmp_path/"PRIVATE_S92"
-    report=run_s92(s86,output,bmp_path=source,preview_limit=12)
+    report=run_s92(s86,output,bmp_path=source,preview_limit=12,
+                   export_priority_tiles=True)
     assert report["status"]=="COMPLETE_PRIVATE_REVIEW_ONLY"
     assert report["source_fragments"]>=3
     assert report["observed_components_after_S87"]>=2
@@ -80,6 +81,14 @@ def test_private_full_bmp_s92_sees_dashes_and_keeps_raw_masks(tmp_path,monkeypat
     gallery=(output/"index.html").read_text(encoding="utf8")
     assert "S92" in gallery and "НЕ физическая разметка" in gallery
     assert report["preview_count"]>=1
+    assert report["priority_centerline_tiles_exported"] is True
+    display=output/"priority_centerline_tiles"
+    assert len(list(display.glob("*.png")))==report["display_only_centerline_layer"]["tiles"]
+    assert report["display_only_centerline_layer"]["total_observed_centerline_pixels"]>0
+    assert (output/"priority_centerline_tiles_manifest.json").is_file()
+    assert all(json.loads(line)["physical_auto_join"] is False
+               for line in (output/"priority_view_observed_only.ndjson").read_text().splitlines()
+               if line.strip())
     assert list((output/"preview").glob("*_source.png"))
     assert list((output/"preview").glob("*_overlay.png"))
     with pytest.raises(FileExistsError):
