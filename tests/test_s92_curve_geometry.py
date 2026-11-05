@@ -151,3 +151,42 @@ def test_bridge_endpoints_and_metric_are_translation_rotation_invariant():
     assert len(links)==len(rel)==1
     assert rel[0]["gap_px"]==pytest.approx(links[0]["gap_px"],abs=1e-3)
     assert rel[0]["geometry_score"]==pytest.approx(links[0]["geometry_score"],abs=.002)
+
+
+def test_three_short_dashes_stitch_into_one_unknown_long_structure():
+    from bubble_chamber.s92_curve_review import assign_display_priority
+    pieces=[
+        {"component_id":"dash_1","points_xy":_line(10,27,30)},
+        {"component_id":"dash_2","points_xy":_line(39,56,30)},
+        {"component_id":"dash_3","points_xy":_line(68,85,30)},
+    ]
+    proposals,review,stats=propose_gap_links(pieces)
+    assert stats["gap_review_links"]==2
+    chains=construct_chain_hypotheses(pieces,review)
+    assert len(chains)==1
+    assert len(chains[0]["ordered_component_ids"])==3
+    assert len(chains[0]["inferred_gaps"])==2
+    assert all(len(x)>5 for x in chains[0]["observed_sections_xy"])
+    assert chains[0]["shape_if_all_gaps_real"]["observed_length_px"]>70
+    rows=[{"component_id":c["component_id"],
+           "shape_review_category":describe_trace(c["points_xy"])["shape_review_category"]}
+          for c in pieces]
+    stats=assign_display_priority(rows,chains)
+    assert stats["PROVISIONAL_GAP_CHAIN_RESCUE_NOT_GT"]==3
+    assert all(x["show_in_primary_view"] is True for x in rows)
+    assert all(x["original_source_untouched"] for x in rows)
+
+
+def test_short_hairpin_bridge_across_parallel_tracks_requires_observed_curvature():
+    # A 153-degree bridge would produce a fake short U/hair between two
+    # unrelated straight parallel strokes. S92 never selects it.
+    b=_line(50,85,34)
+    c=_line(50,85,46)
+    props,sel,_=propose_gap_links([
+        {"component_id":"hair_left","points_xy":b},
+        {"component_id":"hair_right","points_xy":c},
+    ])
+    assert sel==[]
+    assert all(p["bridge_turn_deg"]<=110 or
+               p["review_decision"]!="PRIORITY_GAP_REVIEW_NOT_PHYSICAL_ACCEPT"
+               for p in props)
