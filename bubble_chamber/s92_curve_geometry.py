@@ -230,6 +230,19 @@ def propose_gap_links(components:list[dict],
         return [],[],{"endpoints_considered":2*n,"gap_candidates":len(candidate_idx),
                        "gap_review_links":0,"ambiguous_ports":2*n,
                        "abstain_reason":"DENSE_ENDPOINT_NEIGHBORHOOD"}
+    # Approximate clearance from every OTHER observed line. Abort review-link
+    # formation if the source is too large to check: no unsafe silent shortcut.
+    sample_stride=max(1,int(math.ceil(sum(len(p) for p in pts)/750000.)))
+    support_coordinates=np.concatenate([p[::sample_stride] for p in pts],axis=0)
+    support_owners=np.concatenate([
+        np.full(len(p[::sample_stride]),k,dtype=np.int32)
+        for k,p in enumerate(pts)
+    ])
+    if len(support_coordinates)>1000000:
+        return [],[],{"endpoints_considered":2*n,"gap_candidates":len(candidate_idx),
+                       "gap_review_links":0,"ambiguous_ports":2*n,
+                       "abstain_reason":"SOURCE_SUPPORT_BUDGET_EXCEEDED"}
+    support_tree=cKDTree(support_coordinates)
     proposals=[]
     for u,v in sorted(candidate_idx):
         i,pa=divmod(u,2)
@@ -239,13 +252,25 @@ def propose_gap_links(components:list[dict],
         result=_link_geometry(pts[i],pa,pts[j],pb,cfg)
         if result is None:
             continue
+        bridge=np.asarray(result["inferred_bridge_points_xy"],float)
+        interior=bridge[3:-3]
+        nearby=support_tree.query_ball_point(interior,
+                                             r=cfg.third_fragment_clearance_px)
+        crossing=any(
+            any(support_owners[k] not in (i,j) for k in indices)
+            for indices in nearby
+        )
         result.update({
+            "crosses_other_observed_fragment":bool(crossing),
             "proposal_id":"s92_"+sha256(
                 f"{ids[i]}:{pa}|{ids[j]}:{pb}".encode()).hexdigest()[:20],
             "component_a":ids[i],"port_a":pa,"component_b":ids[j],"port_b":pb,
             "status":"UNKNOWN",
             "inferred_only":True,"physical_auto_join":False,
-            "review_decision":"UNDECIDED_CANDIDATE",
+            "review_decision":(
+                "THIRD_FRAGMENT_NEAR_GAP_ABSTAIN" if crossing
+                else "UNDECIDED_CANDIDATE"
+            ),
         })
         proposals.append(result)
     byport=defaultdict(list)
