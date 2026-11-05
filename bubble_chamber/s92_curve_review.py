@@ -190,6 +190,47 @@ def _preview(bmp:GrayBMP8,out:Path,cases:list[dict],limit:int)->list[dict]:
     return previews
 
 
+def _write_primary_centerline_tiles(out:Path,records:list[dict],
+                                    primary_source_ids:set[str])->dict:
+    """Separate display-only 1-px source-centerline layer, never edited S86 mask.
+
+    Original S86 mask may be thicker and contains candidate UNKNOWN foreground.
+    Drawing only original observed centerline coordinates here is a distinct,
+    explicitly non-physical visualization, not a resegmented truth mask.
+    """
+    folder=out/"priority_centerline_tiles"
+    folder.mkdir(mode=0o700,exist_ok=False)
+    details=[]
+    for rec in records:
+        x0,y0,x1,y1=map(int,rec["core_xyxy"])
+        layer=np.zeros((y1-y0,x1-x0),dtype=np.uint8)
+        kept=0
+        for fragment in rec["fragments"]:
+            if fragment["fragment_id"] not in primary_source_ids:
+                continue
+            xy=np.asarray(fragment["centerline_xy_source_px"],np.int64)
+            local=xy-np.array([x0,y0])
+            if np.any(local<0) or np.any(local[:,0]>=x1-x0) or np.any(local[:,1]>=y1-y0):
+                raise ValueError("Primary display line escaped frozen source core")
+            layer[local[:,1],local[:,0]]=255
+            kept+=1
+        rel=f"priority_centerline_tiles/{rec['tile_id']}.png"
+        ok,encoded=cv2.imencode(".png",layer)
+        if not ok:
+            raise OSError("Could not encode priority-only centerline PNG")
+        _write_private(out/rel,encoded.tobytes())
+        details.append({
+            "tile_id":rec["tile_id"],"display_only_file":rel,
+            "sha256":sha256((out/rel).read_bytes()).hexdigest(),
+            "retained_source_fragments":kept,
+            "observed_centerline_pixels":int(np.count_nonzero(layer)),
+            "no_inferred_pixels":True,
+        })
+    _write_private(out/"priority_centerline_tiles_manifest.json",_json(details))
+    return {"tiles":len(details),
+            "total_observed_centerline_pixels":sum(x["observed_centerline_pixels"] for x in details)}
+
+
 def _cases(components,classification,selected,limit):
     cases=[]
     order={
@@ -237,7 +278,7 @@ def _cases(components,classification,selected,limit):
 
 def run_s92(s86_directory:Path,private_output:Path,*,
             bmp_path:Path|None=None,cfg:TraceReviewConfig=TraceReviewConfig(),
-            preview_limit:int=20)->dict:
+            preview_limit:int=20,export_priority_tiles:bool=False)->dict:
     cfg.validate()
     s86_directory=Path(s86_directory).resolve()
     private_output=Path(private_output).resolve()
@@ -306,6 +347,7 @@ def run_s92(s86_directory:Path,private_output:Path,*,
         "display_priority_reasons":display_stats,
         "primary_view_observed_components":len(main_view),
         "deprioritized_components_retained":sum(not x["show_in_primary_view"] for x in annotated),
+        "priority_centerline_tiles_exported":bool(export_priority_tiles),
         "gap":gap_stats,
         "preview_count":0,
         "image_photometry_available":bmp is not None,
@@ -334,6 +376,13 @@ def run_s92(s86_directory:Path,private_output:Path,*,
         ("stitched_chain_hypotheses_unknown.ndjson",chains),
     ):
         _write_private(private_output/name,_ndjson(rows))
+    if export_priority_tiles:
+        primary_ids={
+            fid for item in main_view for fid in item["source_fragment_ids"]
+        }
+        report["display_only_centerline_layer"]=_write_primary_centerline_tiles(
+            private_output,records,primary_ids
+        )
     previews=_preview(bmp,private_output,
                       _cases(components,annotated,selected,preview_limit),
                       preview_limit) if bmp is not None and preview_limit else []
