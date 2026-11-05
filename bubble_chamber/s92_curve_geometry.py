@@ -26,6 +26,8 @@ class TraceReviewConfig:
     hairpin_max_chord_ratio: float = 0.70
     hairpin_min_turn_deg: float = 115.0
     sharp_tick_min_turn_deg: float = 55.0
+    angular_glyph_max_px: float = 55.0
+    angular_glyph_max_chord_ratio: float = 0.86
     spiral_min_px: float = 72.0
     spiral_min_turn_deg: float = 255.0
     spiral_turn_coherence: float = 0.72
@@ -42,7 +44,8 @@ class TraceReviewConfig:
     def validate(self):
         positive = ("resample_step_px","short_stroke_max_px","hairpin_max_px",
                     "hairpin_max_chord_ratio","hairpin_min_turn_deg",
-                    "sharp_tick_min_turn_deg","spiral_min_px","spiral_min_turn_deg",
+                    "sharp_tick_min_turn_deg","angular_glyph_max_px",
+                    "angular_glyph_max_chord_ratio","spiral_min_px","spiral_min_turn_deg",
                     "spiral_turn_coherence","min_gap_px","max_gap_px",
                     "max_gap_arc_ratio","max_gap_turn_deg","third_fragment_clearance_px",
                     "rival_margin","min_fragment_for_gap_px")
@@ -53,6 +56,7 @@ class TraceReviewConfig:
             not -1<=self.min_heading_cos<=1 or
             not 0<self.spiral_turn_coherence<=1 or
             not 0<self.hairpin_max_chord_ratio<=1 or
+            not 0<self.angular_glyph_max_chord_ratio<=1 or
             self.max_near_pairs<10 or
             self.spiral_min_turn_deg<=self.hairpin_min_turn_deg or
             self.max_gap_arc_ratio<=1):
@@ -107,7 +111,11 @@ def describe_trace(points,cfg:TraceReviewConfig=TraceReviewConfig()):
              chord_ratio<=cfg.hairpin_max_chord_ratio and
              coherence>=.55)
     short=length<=cfg.short_stroke_max_px
-    tick=(short and sharp>=cfg.sharp_tick_min_turn_deg)
+    tick=(not spiral and
+          ((short and sharp>=cfg.sharp_tick_min_turn_deg) or
+           (length<=cfg.angular_glyph_max_px and
+            sharp>=max(75.,cfg.sharp_tick_min_turn_deg) and
+            chord_ratio<=cfg.angular_glyph_max_chord_ratio)))
     flags=[]
     if spiral:
         flags.append("COILING_TRACE_KEEP_FOR_REVIEW")
@@ -119,7 +127,7 @@ def describe_trace(points,cfg:TraceReviewConfig=TraceReviewConfig()):
         flags.append("SHORT_STROKE_NOT_VERIFIED")
     if spiral:
         category="COILING_TRACE_REVIEW"
-    elif hairpin or short:
+    elif hairpin or short or tick:
         category="LOW_PRIORITY_POSSIBLE_ARTIFACT"
     else:
         category="EXTENDED_IMAGE_TRACE_CANDIDATE"
