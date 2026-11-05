@@ -76,6 +76,38 @@ def collapse_observed_components(records:list[dict])->tuple[list[dict],dict]:
     return output,stats
 
 
+def assign_display_priority(annotated:list[dict],
+                            chains:list[dict],
+                            *,rescue_min_length_px:float=48.)->dict:
+    """View filtering ONLY, never deleting a potentially real short track.
+
+    Source-only short strokes begin as low-priority. When a physically UNKNOWN
+    long chain could comprise multiple such dashes, keep those fragments in
+    the default image view, but mark the rescue as provisional.
+    """
+    if not np.isfinite(rescue_min_length_px) or rescue_min_length_px<=0:
+        raise ValueError("Invalid minimum stitched display length")
+    recovered=set()
+    for chain in chains:
+        estimated=chain["shape_if_all_gaps_real"]
+        if estimated["observed_length_px"]>=rescue_min_length_px:
+            recovered.update(chain["ordered_component_ids"])
+    summary=Counter()
+    for item in annotated:
+        low=item["shape_review_category"]=="LOW_PRIORITY_POSSIBLE_ARTIFACT"
+        rescued=low and item["component_id"] in recovered
+        display=(not low) or rescued
+        reason=("PROVISIONAL_GAP_CHAIN_RESCUE_NOT_GT" if rescued
+                else "REVIEW_DEPRIORITIZED_RETAINED" if low
+                else "COILING_REVIEW" if item["shape_review_category"]=="COILING_TRACE_REVIEW"
+                else "EXTENDED_REVIEW")
+        item["show_in_primary_view"]=bool(display)
+        item["display_reason"]=reason
+        item["original_source_untouched"]=True
+        summary[reason]+=1
+    return dict(summary)
+
+
 def photo_gap_proxy(bmp:GrayBMP8,interpolated_xy)->dict:
     """Photometric *advisory* only. Missing pixels are not guaranteed to be dark.
 
@@ -249,7 +281,17 @@ def run_s92(s86_directory:Path,private_output:Path,*,
         for p in proposals:
             p["source_image_gap_proxy"]=photo_gap_proxy(bmp,p["inferred_bridge_points_xy"])
     chains=construct_chain_hypotheses(components,selected,cfg)
+    display_stats=assign_display_priority(annotated,chains)
     counts=Counter(item["shape_review_category"] for item in annotated)
+    main_view=[
+        {"component_id":item["component_id"],
+         "source_fragment_ids":item["source_fragment_ids"],
+         "observed_only_centerline_xy":np.round(comp["points_xy"],3).tolist(),
+         "display_reason":item["display_reason"],
+         "status":"UNKNOWN","physical_auto_join":False}
+        for comp,item in zip(components,annotated)
+        if item["show_in_primary_view"]
+    ]
     report={
         "schema":SCHEMA,"status":"COMPLETE_PRIVATE_REVIEW_ONLY",
         "source_s86_manifest_sha256":source_manifest_sha,
@@ -261,6 +303,9 @@ def run_s92(s86_directory:Path,private_output:Path,*,
         "source_S87_stitched_components":seam_stats["stitched_image_components"],
         "image_shape_yx":manifest["image_shape_yx"],
         "shape_review_categories":dict(counts),
+        "display_priority_reasons":display_stats,
+        "primary_view_observed_components":len(main_view),
+        "deprioritized_components_retained":sum(not x["show_in_primary_view"] for x in annotated),
         "gap":gap_stats,
         "preview_count":0,
         "image_photometry_available":bmp is not None,
@@ -284,6 +329,7 @@ def run_s92(s86_directory:Path,private_output:Path,*,
     private_output.chmod(0o700)
     for name,rows in (
         ("observed_shape_review.ndjson",annotated),
+        ("priority_view_observed_only.ndjson",main_view),
         ("gap_proposals_unknown.ndjson",proposals),
         ("stitched_chain_hypotheses_unknown.ndjson",chains),
     ):
