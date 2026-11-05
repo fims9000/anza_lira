@@ -129,10 +129,13 @@ def _preview(bmp:GrayBMP8,out:Path,cases:list[dict],limit:int)->list[dict]:
         gray,location=bmp.crop(tuple(center.tolist()),size=size)
         x0,y0,_,_=location.original_xyxy
         overlay=cv2.cvtColor(gray,cv2.COLOR_GRAY2BGR)
-        pixel=np.rint(p-np.array([x0,y0])).astype("int32")
-        cv2.polylines(overlay,[pixel.reshape(-1,1,2)],False,
-                      (42,220,40) if case["type"]=="COILING" else (255,150,40),
-                      thickness=2,lineType=cv2.LINE_AA)
+        # Draw ONLY observed sections solid. Never depict an inferred gap
+        # as a continuous observed blue line.
+        for section in case.get("observed_sections",[p]):
+            pixel=np.rint(np.asarray(section,float)-np.array([x0,y0])).astype("int32")
+            cv2.polylines(overlay,[pixel.reshape(-1,1,2)],False,
+                          (42,220,40) if case["type"]=="COILING" else (255,150,40),
+                          thickness=2,lineType=cv2.LINE_AA)
         if case.get("bridge") is not None:
             gap=np.asarray(case["bridge"],float)
             gapxy=np.rint(gap-np.array([x0,y0])).astype("int32")
@@ -180,6 +183,9 @@ def _cases(components,classification,selected,limit):
             "points_xy":np.concatenate([
                 id_to_points[p["component_a"]],id_to_points[p["component_b"]]
             ],axis=0),
+            "observed_sections":[
+                id_to_points[p["component_a"]],id_to_points[p["component_b"]]
+            ],
             "bridge":p["inferred_bridge_points_xy"],
         })
     # Force category coverage before filling remaining preview budget.
