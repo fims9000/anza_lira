@@ -66,6 +66,11 @@ def test_private_full_bmp_s92_sees_dashes_and_keeps_raw_masks(tmp_path,monkeypat
     shapes=[json.loads(s) for s in (output/"observed_shape_review.ndjson").read_text().splitlines()]
     assert len(shapes)==report["observed_components_after_S87"]
     assert all(x["source_fragment_remains_available"] for x in shapes)
+    assert all(x["original_source_untouched"] is True for x in shapes)
+    assert len([x for x in shapes if x["show_in_primary_view"]])==report["primary_view_observed_components"]
+    view=[json.loads(s) for s in (output/"priority_view_observed_only.ndjson").read_text().splitlines()]
+    assert len(view)==report["primary_view_observed_components"]
+    assert all(x["status"]=="UNKNOWN" and x["physical_auto_join"] is False for x in view)
     proposals=[json.loads(s) for s in (output/"gap_proposals_unknown.ndjson").read_text().splitlines()]
     assert all(p["status"]=="UNKNOWN" and p["physical_auto_join"] is False for p in proposals)
     assert any(p["review_decision"]=="PRIORITY_GAP_REVIEW_NOT_PHYSICAL_ACCEPT" for p in proposals)
@@ -114,3 +119,25 @@ def test_s92_refuses_repository_or_nested_source_destination(tmp_path,monkeypatc
         run_s92(s86,Path(module.__file__).resolve().parents[1]/"WRONG_OUTPUT")
     with pytest.raises(ValueError,match="outside Git"):
         run_s92(s86,s86/"nested")
+
+
+def test_dashed_track_short_fragments_are_provisionally_rescued_not_permanently_hidden():
+    from bubble_chamber.s92_curve_review import assign_display_priority
+    items=[
+        {"component_id":"one","shape_review_category":"LOW_PRIORITY_POSSIBLE_ARTIFACT"},
+        {"component_id":"two","shape_review_category":"LOW_PRIORITY_POSSIBLE_ARTIFACT"},
+        {"component_id":"glyph","shape_review_category":"LOW_PRIORITY_POSSIBLE_ARTIFACT"},
+        {"component_id":"spiral","shape_review_category":"COILING_TRACE_REVIEW"},
+    ]
+    evidence=[{
+        "ordered_component_ids":["one","two"],
+        "shape_if_all_gaps_real":{"observed_length_px":55.},
+    }]
+    report=assign_display_priority(items,evidence,rescue_min_length_px=48)
+    assert report["PROVISIONAL_GAP_CHAIN_RESCUE_NOT_GT"]==2
+    assert items[0]["show_in_primary_view"] is True
+    assert items[1]["show_in_primary_view"] is True
+    assert items[2]["show_in_primary_view"] is False
+    assert items[2]["original_source_untouched"] is True
+    assert items[3]["show_in_primary_view"] is True
+    assert items[0]["display_reason"]=="PROVISIONAL_GAP_CHAIN_RESCUE_NOT_GT"
