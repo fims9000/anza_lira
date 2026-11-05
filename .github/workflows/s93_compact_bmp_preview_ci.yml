@@ -1,0 +1,50 @@
+name: S93 big BMP compact real-photo preview tests
+on:
+  push:
+    branches:
+      - feature/bubble-s93-one-command-real-preview-2026-11-05
+    paths:
+      - 'bubble_chamber/s93_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s93_*.py'
+      - 'tests/test_s93_*.py'
+      - '.github/workflows/s93_compact_bmp_preview_ci.yml'
+      - 'docs/bubble_chamber/S93_*.md'
+  pull_request:
+    branches:
+      - feature/bubble-s92-curves-gaps-spirals-2026-11-05
+    paths:
+      - 'bubble_chamber/s93_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s93_*.py'
+      - 'tests/test_s93_*.py'
+      - '.github/workflows/s93_compact_bmp_preview_ci.yml'
+      - 'docs/bubble_chamber/S93_*.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  s93-one-shot-private-bmp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only synthetic test dependencies
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: Run direct one-shot S86 S92 BMP preview regression
+        run: >-
+          python -m pytest -q
+          tests/test_s93_compact_real_overlay.py
+          tests/test_s92_private_whole_bmp.py
+          tests/test_s92_curve_geometry.py
+      - name: CLI and source import verification
+        run: |
+          python -m compileall -q bubble_chamber/s93_compact_real_overlay.py scripts/research/bubble_chamber/physicists_s93_one_command_preview.py
+          python scripts/research/bubble_chamber/physicists_s93_one_command_preview.py --help >/dev/null
+      - name: No private BMP, derived photos, trained models in branch
+        run: |
+          if git ls-files bubble_chamber/s93* tests/test_s93* docs/bubble_chamber/S93* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|ckpt|npy|npz|zip|7z)$'; then
+            echo 'Private research photos or trained weights must never be committed' >&2
+            exit 1
+          fi
