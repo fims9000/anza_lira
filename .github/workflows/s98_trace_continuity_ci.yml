@@ -1,0 +1,53 @@
+name: S98 reference-first visual trace continuity and missed joins
+on:
+  push:
+    branches:
+      - feature/bubble-s98-visual-track-continuity-audit-2026-11-06
+    paths:
+      - 'bubble_chamber/s98_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s98_*.py'
+      - 'tests/test_s98_*.py'
+      - '.github/workflows/s98_trace_continuity_ci.yml'
+      - 'docs/bubble_chamber/S98_*.md'
+  pull_request:
+    branches:
+      - feature/bubble-s97-independent-reference-benchmark-2026-11-06
+    paths:
+      - 'bubble_chamber/s98_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s98_*.py'
+      - 'tests/test_s98_*.py'
+      - '.github/workflows/s98_trace_continuity_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independently-drawn-visual-trace-continuity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install synthetic research requirements
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: S98 focused source-only positive track boundaries and synthetic original source BMP E2E
+        run: >-
+          python -m pytest -q
+          tests/test_s98_trace_continuity.py
+          tests/test_s98_reference_e2e.py
+          tests/test_s97_manual_reference.py
+          tests/test_s97_reference_benchmark.py
+          tests/test_s96_junction_graph.py
+          tests/test_s96_mask_junction_arms.py
+          --basetemp=$RUNNER_TEMP/s98_synthetic
+      - name: Validate public Python syntax and S98 runnable CLI
+        run: |
+          python -m compileall -q bubble_chamber/s98_trace_continuity.py bubble_chamber/s98_visual_report.py scripts/research/bubble_chamber/physicists_s98_trace_continuity.py
+          python scripts/research/bubble_chamber/physicists_s98_trace_continuity.py --help >/dev/null
+      - name: Block private expert labels, source BMP and model weights
+        run: |
+          if git ls-files bubble_chamber/s98* tests/test_s98* docs/bubble_chamber/S98* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json)$'; then
+            echo 'No private BMP, operator label, synthetic result photo or weights may enter PR' >&2
+            exit 1
+          fi
