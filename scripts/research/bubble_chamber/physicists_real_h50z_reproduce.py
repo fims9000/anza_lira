@@ -28,6 +28,9 @@ from bubble_chamber.real_h50z_compact_evidence import (
     package_verified_real_h50z,evaluate_blind_component_cases,
     verify_existing_sealed_evidence,
 )
+from bubble_chamber.s100_cross_review import (
+    run_s100_unlabeled_cross_review,verify_existing_s100_gallery
+)
 
 
 def _package(*,args,s86,s92,s95,s96,out_dir):
@@ -85,6 +88,10 @@ def main(argv=None):
                      help="S96 optional, omit if only morphology diagnosis is needed")
     run.add_argument("--mask-junction-audit",action="store_true",
                      help="Extra CPU original S86 binary skeleton 4-arm audit")
+    run.add_argument("--s100-cross-review",action="store_true",
+                     help="Also export S100 original-BMP geometric X-shapes without operator f1..f8")
+    run.add_argument("--s100-review-limit",type=int,default=12,
+                     help="Max native-source geometric X visual examples (0..48)")
     run.add_argument("--max-fragments-per-tile",type=int,default=2048)
     run.add_argument("--min-segment-length-px",type=float,default=4.)
     run.add_argument("--min-component-area",type=int,default=2)
@@ -141,6 +148,10 @@ def main(argv=None):
         raise ValueError("Checkpoint can only accompany actual trained AZUNet")
     if args.mask_junction_audit and args.skip_s96:
         raise ValueError("Mask-junction audit requires actual S96 stage")
+    if args.s100_cross_review and args.skip_s96:
+        raise ValueError("S100 unlabeled source-X review requires S96 stage")
+    if args.s100_cross_review and not 0<=args.s100_review_limit<=48:
+        raise ValueError("S100 source photo preview budget must be 0..48")
     # S93 handles strict SHA+params identity and fails closed when resuming.
     s93=root/"S93_SOURCES"
     run_one_command(
@@ -176,6 +187,34 @@ def main(argv=None):
     # from previously pasted conversational numbers.
     _package(args=args,s86=s86,s92=s92,s95=s95,s96=s96,
              out_dir=root/"COMPACT_REAL_EVIDENCE")
+    if args.s100_cross_review:
+        crosses=root/"S100_UNLABELED_X_CROSS_SHAPES"
+        if crosses.exists() and args.resume:
+            cross_result=verify_existing_s100_gallery(
+                bmp_path=args.bmp,s86_dir=s86,s92_dir=s92,
+                s95_dir=s95,s96_dir=s96,out_dir=crosses,
+                max_review_cases=args.s100_review_limit,
+                crop_size=min(512,max(160,args.crop_size))
+            )
+        else:
+            cross_result=run_s100_unlabeled_cross_review(
+                bmp_path=args.bmp,s86_dir=s86,s92_dir=s92,
+                s95_dir=s95,s96_dir=s96,private_out_dir=crosses,
+                case_name=args.case,
+                max_review_cases=args.s100_review_limit,
+                crop_size=min(512,max(160,args.crop_size))
+            )
+        print(json.dumps({
+            "S100_status":cross_result["status"],
+            "source_only_four_arm_geometric_X_count_not_true_fiducials":
+                cross_result["four_arm_geometric_X_review_candidates"],
+            "source_mask_virtual_arm_evidence_available":
+                cross_result["alternative_verified_S86_mask_junctions_scored"]>0,
+            "original_photo_posthoc_gallery":str(crosses/"index.html"),
+            "source_pixel_exact_cross_examples_zip":str(crosses/
+                cross_result["compact_source_real_image_evidence_zip"]),
+            "no_physical_particle_identity_established":True,
+        },ensure_ascii=False,indent=2))
 
 
 if __name__=="__main__":
