@@ -54,6 +54,20 @@ jobs:
         run: |
           python -m compileall -q bubble_chamber/s98_trace_continuity.py bubble_chamber/s98_visual_report.py scripts/research/bubble_chamber/physicists_s98_trace_continuity.py
           python scripts/research/bubble_chamber/physicists_s98_trace_continuity.py --help >/dev/null
+      - name: Export exact source-only Python snapshot for offline real-image verification
+        run: |
+          git archive --format=tar HEAD bubble_chamber scripts/research/bubble_chamber tests docs/bubble_chamber .github/workflows | gzip -n > s98_source_only.tar.gz
+          sha256sum s98_source_only.tar.gz > s98_source_only.sha256
+          ls -lh s98_source_only.tar.gz
+      - name: Upload source-only snapshot for reproducible local experimental runs
+        uses: actions/upload-artifact@v4
+        with:
+          name: s98-source-only-${{ github.sha }}
+          path: |
+            s98_source_only.tar.gz
+            s98_source_only.sha256
+          retention-days: 2
+          if-no-files-found: error
       - name: Block private expert labels, source BMP and model weights
         run: |
           if git ls-files bubble_chamber/s98* tests/test_s98* docs/bubble_chamber/S98* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json)$'; then
