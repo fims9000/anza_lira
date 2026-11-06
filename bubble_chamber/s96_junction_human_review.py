@@ -385,3 +385,89 @@ def compile_junction_review(pack,submitted):
         "never_convert_unreviewed_to_negative":True,
         "decisions":decisions,
     }
+
+
+
+def compile_two_reviewer_consensus(pack,review_a,review_b,*,reviewer_a="A",reviewer_b="B"):
+    """Independently reviewed 2D morphology agreement, never particle truth.
+
+    Disagreements stay UNRESOLVED and need a third blinded adjudication. Both
+    reviewers must receive exactly the same source-photo SHA and frozen S96
+    machine alternatives; no machine prediction enters the human consensus.
+    """
+    if (not isinstance(reviewer_a,str) or not isinstance(reviewer_b,str)
+        or not reviewer_a or not reviewer_b or reviewer_a==reviewer_b
+        or len(reviewer_a)>64 or len(reviewer_b)>64):
+        raise ValueError("Two distinct bounded reviewer identifiers are required")
+    first=compile_junction_review(pack,review_a)
+    second=compile_junction_review(pack,review_b)
+    one={x["case_id"]:x for x in first["decisions"]}
+    two={x["case_id"]:x for x in second["decisions"]}
+    by_case={x["case_id"]:x for x in pack["cases"]}
+    agreed=[]
+    conflicts=[]
+    uncertain=[]
+    single=[]
+    for cid in sorted(by_case):
+        a=one.get(cid)
+        b=two.get(cid)
+        if a is None and b is None:
+            continue
+        if a is None or b is None:
+            single.append(cid)
+            continue
+        good_structure=(a["human_structure"]!="UNDECIDABLE"
+                        and b["human_structure"]!="UNDECIDABLE")
+        four=by_case[cid]["observed_arm_count"]==4
+        good_pairing=(not four or
+                      (a["human_four_arm_pairing"]!="UNDECIDABLE"
+                       and b["human_four_arm_pairing"]!="UNDECIDABLE"))
+        if not (good_structure and good_pairing):
+            uncertain.append(cid)
+            continue
+        if (a["human_structure"]==b["human_structure"]
+            and a["human_four_arm_pairing"]==b["human_four_arm_pairing"]):
+            agreed.append({
+                "case_id":cid,
+                "visual_structure_consensus":a["human_structure"],
+                "visual_four_arm_pairing_consensus":(
+                    a["human_four_arm_pairing"] if four else None
+                ),
+                "human_visual_consensus_only":True,
+                "not_a_verified_physical_particle_identity":True,
+            })
+        else:
+            conflicts.append({
+                "case_id":cid,
+                "reviewer_a_structure":a["human_structure"],
+                "reviewer_b_structure":b["human_structure"],
+                "reviewer_a_four_arm":a["human_four_arm_pairing"],
+                "reviewer_b_four_arm":b["human_four_arm_pairing"],
+                "needs_independent_adjudication":True,
+            })
+    resolved=len(agreed)+len(conflicts)
+    return {
+        "schema":SCHEMA,
+        "status":"TWO_INDEPENDENT_2D_VISUAL_REVIEWERS_NOT_PHYSICS_GT",
+        "source_bmp_sha256":pack["source_bmp_sha256"],
+        "source_s96_report_sha256":pack["source_s96_report_sha256"],
+        "reviewer_a":reviewer_a,
+        "reviewer_b":reviewer_b,
+        "all_sampled_cases":len(by_case),
+        "reviewed_by_a":first["reviewed_cases"],
+        "reviewed_by_b":second["reviewed_cases"],
+        "both_reviewed":len(set(one)&set(two)),
+        "only_one_reviewer":len(single),
+        "uncertain_or_abstained_by_one":len(uncertain),
+        "both_decided_visual_cases":resolved,
+        "visual_consensus_cases":len(agreed),
+        "explicit_disagreements":len(conflicts),
+        "visual_agreement_rate_among_both_decided":(
+            len(agreed)/resolved if resolved else None
+        ),
+        "consensus_visual_junction_cases":agreed,
+        "disagreements_requiring_adjudication":conflicts,
+        "unresolved_review_case_ids":sorted(set(single+uncertain)),
+        "not_population_accuracy":True,
+        "not_native_physical_GT_or_particle_identification":True,
+    }
