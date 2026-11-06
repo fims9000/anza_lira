@@ -114,6 +114,11 @@ def type_all_observed_components(
         refs=operator_curve_support(source,operator_curves)
         coil=shape["shape_review_category"]=="COILING_TRACE_REVIEW"
         artifact=shape["shape_review_category"]=="LOW_PRIORITY_POSSIBLE_ARTIFACT"
+        flags=shape.get("review_flags",[])
+        angular_artifact=(artifact and any(x in flags for x in (
+            "COMPACT_HAIRPIN_ARTIFACT_POSSIBLE",
+            "SHORT_ANGULAR_GLYPH_POSSIBLE",
+        )))
         crowd=i in crowded
         # The operator's explicit track geometry is an inspected guide but
         # not proof every measured pixel belongs to a real particle.
@@ -126,16 +131,20 @@ def type_all_observed_components(
             klass="COILING_TRACE_CANDIDATE"
         elif best_ref or not artifact:
             klass="TRACK_LIKE_CANDIDATE"
-        elif artifact:
+        elif angular_artifact:
             klass="ARTIFACT_LIKE_CANDIDATE"
         else:
+            # Short smooth marks are undecidable from centerline geometry:
+            # hiding them as "garbage" would sacrifice true short tracks.
             klass="UNKNOWN"
         tags=[]
         if fids:tags.append("NEAR_HUMAN_CALIBRATION_CROSS")
         if starts:tags.append("NEAR_HUMAN_OPERATOR_VERTEX")
         if crowd:tags.append("MULTIPLE_IMAGE_FRAGMENTS_MEET_OR_CROSS")
         if coil:tags.append("COILED_2D_SHAPE_NO_CAUSE_IDENTIFIED")
-        if artifact:tags.append("SHORT_ANGULAR_OR_HAIRPIN_MAY_BE_TRUE_TRACK")
+        if artifact:tags.append("SHORT_OR_HAIRPIN_LINE_MAY_STILL_BE_TRUE_TRACK")
+        if artifact and not angular_artifact:
+            tags.append("SHORT_SMOOTH_LINE_UNKNOWN_DO_NOT_DELETE")
         if best_ref:tags.append("NEAR_SOURCE_LOCKED_OPERATOR_CURVE_GUIDE")
         if refs["status"]=="AMBIGUOUS_MULTIPLE_OPERATOR_GUIDES":
             tags.append("AMBIGUOUS_OPERATOR_TRACK_IDENTITY")
