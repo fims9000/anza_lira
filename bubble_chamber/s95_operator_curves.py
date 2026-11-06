@@ -60,29 +60,38 @@ def fit_measured_polyline(points, *, min_points=5, max_rms_px=5.):
     arc=np.r_[0.,np.cumsum(steps)]
     if arc[-1]<=0:
         raise ValueError("Degenerate operator measurements")
-    u=arc/arc[-1]
-    # Endpoints are expert-measured anchors: enforce them EXACTLY. A general
-    # unconstrained least-squares quadratic can drift away from the start/end.
-    # P(u)=(1-u)*start + u*end + bend*u*(1-u).
-    base=(1.-u[:,None])*p[0]+u[:,None]*p[-1]
-    basis=u*(1.-u)
-    bend=(basis[:,None]*(p-base)).sum(axis=0)/max(float(basis@basis),1e-12)
-    cx=np.array([p[0,0],p[-1,0]-p[0,0]+bend[0],-bend[0]])
-    cy=np.array([p[0,1],p[-1,1]-p[0,1]+bend[1],-bend[1]])
-    predicted=np.column_stack((_polyval_cba(cx,u),_polyval_cba(cy,u)))
-    rms=float(np.sqrt(np.mean(np.sum((predicted-p)**2,axis=1))))
+    candidates=[
+        ("measured_arclength_normalized",arc/arc[-1]),
+        ("measured_order_index_normalized",np.linspace(0.,1.,len(p))),
+    ]
+    # The index of a manual click is not necessarily proportional to physical
+    # arclength. Try both declared parameterizations; record which minimized
+    # fit residual, without implying calibrated physical time/distance.
+    results=[]
+    for name,u in candidates:
+        # Endpoints exactly anchored: P(u)=(1-u)start+u*end+K*u*(1-u).
+        base=(1.-u[:,None])*p[0]+u[:,None]*p[-1]
+        basis=u*(1.-u)
+        bend=(basis[:,None]*(p-base)).sum(axis=0)/max(float(basis@basis),1e-12)
+        cx=np.array([p[0,0],p[-1,0]-p[0,0]+bend[0],-bend[0]])
+        cy=np.array([p[0,1],p[-1,1]-p[0,1]+bend[1],-bend[1]])
+        predicted=np.column_stack((_polyval_cba(cx,u),_polyval_cba(cy,u)))
+        rms=float(np.sqrt(np.mean(np.sum((predicted-p)**2,axis=1))))
+        results.append((rms,name,cx,cy))
+    rms,parameterization,cx,cy=min(results,key=lambda x:(x[0],x[1]))
     return {
         "x_coefficients_c_b_a":cx.tolist(),
         "y_coefficients_c_b_a":cy.tolist(),
         "rms_to_measured_points_px":round(rms,5),
         "operator_measured_points":len(p),
+        "selected_parameterization":parameterization,
         "quadratic_fit_usable":bool(rms<=max_rms_px),
         "original_measured_polyline_xy":p.tolist(),
         "fit_is_not_operator_supplied_equation":True,
     }
 
 
-def sample_operator_record(row:dict,*,shape_yx,n:int=200,max_end_error_px:2.):
+def sample_operator_record(row:dict,*,shape_yx,n:int=200,max_end_error_px:float=2.):
     """Sample a manually supplied curve under a strict explicit format.
 
     Accepted kinds:
