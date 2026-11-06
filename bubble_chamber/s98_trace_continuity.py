@@ -176,6 +176,9 @@ def discover_human_trace_piece_boundaries(
                 continue
             a,b=sorted((left["component_id"],right["component_id"]))
             key=(a,b)
+            anchor_xy=np.mean(np.vstack((
+                samples[left["end"]],samples[right["begin"]]
+            )),axis=0)
             pair_id="s98_adj_"+sha256((a+"|"+b).encode()).hexdigest()[:20]
             option={
                 "pair_id":pair_id,
@@ -185,6 +188,7 @@ def discover_human_trace_piece_boundaries(
                 "reference_intermediate_gap_length_px":gap_px,
                 "human_stroke_sample_index_from":left["end"],
                 "human_stroke_sample_index_to":right["begin"],
+                "reference_boundary_anchor_xy_source":np.round(anchor_xy,4).tolist(),
                 "support_samples_before":left["support_samples"],
                 "support_samples_after":right["support_samples"],
                 "human_positive_visual_continuity_only":True,
@@ -200,6 +204,7 @@ def discover_human_trace_piece_boundaries(
                     "max_reference_intermediate_gap_px":0.,
                     "min_reference_intermediate_gap_px":float("inf"),
                     "sampled_visual_evidence_occurrences":0,
+                    "example_reference_boundary_anchor_xy_source":np.round(anchor_xy,4).tolist(),
                 }
             slot=boundary_index[key]
             slot["supporting_human_stroke_ids"].add(sid)
@@ -298,12 +303,7 @@ def measure_proposal_recovery(
     }
     if len(truth)!=len(reference_first["conditionally_assessable_piece_adjacencies"]):
         raise ValueError("Repeated S98 independent source adjacency")
-    source_ids={
-        cid for stroke in reference_first["per_human_stroke"]
-        for cid in stroke["unique_stable_observed_component_ids"]
-    }
-    source_ids.update(reference_first["source_components_touching_multiple_human_visual_instances"])
-    all_metrics=[]
+     all_metrics=[]
     selected_unions=set()
     by_method={}
     for name,rows in proposal_sets.items():
