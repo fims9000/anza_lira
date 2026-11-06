@@ -24,12 +24,14 @@ from .s96_junction_graph import (
     JunctionConfig,propose_four_arm_continuations,grouped_2d_instance_hypotheses,SCHEMA
 )
 from .s96_junction_human_review import prepare_blind_junction_review
+from .s96_mask_junction_arms import analyze_s86_mask_junctions
 
 
 def run_s96(s86_dir:Path,s95_dir:Path,out_dir:Path,*,
             bmp_path:Path|None=None,
             cfg:JunctionConfig=JunctionConfig(),
-            preview_limit:int=32,crop_size:int=320):
+            preview_limit:int=32,crop_size:int=320,
+            mask_junction_audit:bool=False):
     s86_dir=Path(s86_dir).resolve()
     s95_dir=Path(s95_dir).resolve()
     out_dir=Path(out_dir).resolve()
@@ -61,6 +63,9 @@ def run_s96(s86_dir:Path,s95_dir:Path,out_dir:Path,*,
     if overview["source_components_preserved"]!=len(paths):
         raise RuntimeError("S96 lost source centerline components")
     machine_counter=dict(Counter(j["junction_status"] for j in junctions))
+    mask_result=None
+    if mask_junction_audit:
+        mask_result=analyze_s86_mask_junctions(s86_dir,records,cfg=cfg)
     report={
         "schema":SCHEMA,
         "status":overview["status"],
@@ -80,6 +85,10 @@ def run_s96(s86_dir:Path,s95_dir:Path,out_dir:Path,*,
         },
         "source_s86_fragment_count":manifest["candidate_fragments"],
         "source_s86_skipped_tiles":manifest["tiles_with_fragment_extraction_skipped"],
+        "optional_alternative_mask_junction_audit":(
+            mask_result[4] if mask_result is not None else None
+        ),
+        "s96_original_centerlines_never_replaced_by_mask_virtual_arms":True,
         "source_observed_centerline_components":len(paths),
         "source_classes":dict(Counter(source_types.values())),
         "per_junction_machine_types":machine_counter,
@@ -109,6 +118,15 @@ def run_s96(s86_dir:Path,s95_dir:Path,out_dir:Path,*,
         ]),
     ):
         _write_private(out_dir/name,_ndjson(data))
+    if mask_result is not None:
+        arms,mask_junctions,mask_pairs,mask_chains,_=mask_result
+        for name,data in (
+            ("mask_derived_virtual_arms.ndjson",arms),
+            ("mask_derived_junctions.ndjson",mask_junctions),
+            ("mask_derived_visual_pairs_unknown.ndjson",mask_pairs),
+            ("mask_derived_visual_chains_unknown.ndjson",mask_chains),
+        ):
+            _write_private(out_dir/name,_ndjson(data))
     if sha256_file(s95_path)!=report["source_s95_report_sha256"]:
         raise ValueError("S95 source changed during S96 geometry analysis")
     if sha256_file(row_path)!=report["source_s95_types_sha256"]:
@@ -121,9 +139,27 @@ def run_s96(s86_dir:Path,s95_dir:Path,out_dir:Path,*,
         bmp_path=bmp_path,out_dir=out_dir/"review",
         max_cases=preview_limit,crop_size=crop_size,
     )
+    mask_review=None
+    if mask_result is not None:
+        # Separate reviewer from the original S86-centerline representation.
+        # Do not duplicate/count a virtual arm as an original source line.
+        mask_review=prepare_blind_junction_review(
+            junctions=mask_result[1],report=report,
+            source_sha=report["source_bmp_sha256"],
+            source_report_sha=sha256_file(out_dir/"report.json"),
+            bmp_path=bmp_path,out_dir=out_dir/"review_mask_derived",
+            max_cases=preview_limit,crop_size=crop_size,
+        )
     report_result={**report,
                    "private_junction_review_pack":str(out_dir/"review"/"review_pack.json"),
                    "private_blinded_review_page":str(out_dir/"review"/"index.html"),
                    "review_image_available":review["source_image_available"],
-                   "blinded_review_cases":review["sampled_cases"]}
+                   "blinded_review_cases":review["sampled_cases"],
+                   "mask_derived_blind_review_page":(
+                       str(out_dir/"review_mask_derived"/"index.html")
+                       if mask_review is not None else None
+                   ),
+                   "mask_derived_blind_review_cases":(
+                       mask_review["sampled_cases"] if mask_review is not None else None
+                   )}
     return report_result
