@@ -243,6 +243,7 @@ def run_one_command(
     max_gap_px:float=26.,
     preview_limit:int=12,
     resume:bool=False,
+    labels_path:Path|None=None,
 )->dict:
     """Reuse verified existing S86/S92 output; never silently overwrite."""
     bmp_path=Path(bmp_path).resolve()
@@ -252,6 +253,10 @@ def run_one_command(
         raise ValueError("Private result must be outside Git")
     if not bmp_path.is_file():
         raise FileNotFoundError(bmp_path)
+    if labels_path is not None:
+        labels_path=Path(labels_path).resolve()
+        if not labels_path.is_file():
+            raise FileNotFoundError(labels_path)
     if method not in ("s88-steerable","frangi","contrast","azunet"):
         raise ValueError("Unsupported source segmentation method")
     if method=="azunet" and checkpoint is None:
@@ -277,6 +282,7 @@ def run_one_command(
         "source_shape_yx":[bmp.height,bmp.width],
         "method":method,
         "checkpoint_sha256":sha256_file(checkpoint) if checkpoint else None,
+        "sparse_labels_sha256":sha256_file(labels_path) if labels_path else None,
         "max_side":max_side,
         "max_gap_px":max_gap_px,
         "preview_limit":preview_limit,
@@ -310,12 +316,14 @@ def run_one_command(
             raise ValueError("S92 unfinished; preserve evidence and choose a new output directory")
         s92_result=_read_json(s92_dir/"report.json")
         if (s92_result.get("status")!="COMPLETE_PRIVATE_REVIEW_ONLY"
-            or s92_result.get("source_bmp_sha256")!=source_sha):
+            or s92_result.get("source_bmp_sha256")!=source_sha
+            or s92_result.get("sparse_labels_sha256")!=identity["sparse_labels_sha256"]):
             raise ValueError("S92 resume provenance mismatch")
     else:
         s92_result=run_s92(
             s86_dir,s92_dir,bmp_path=bmp_path,cfg=cfg,
-            preview_limit=preview_limit,export_priority_tiles=False
+            preview_limit=preview_limit,export_priority_tiles=False,
+            labels_path=labels_path
         )
     if compact.exists():
         if not resume or not (compact/"compact_preview_manifest.json").is_file():

@@ -23,6 +23,10 @@ from .s87_seam_continuity import _read_source, assemble
 from .s92_curve_geometry import (
     TraceReviewConfig,construct_chain_hypotheses,describe_trace,propose_gap_links,
 )
+from .s94_sparse_keypoint_guard import (
+    parse_photo_labels, apply_sparse_keypoint_guard,
+    preserve_start_adjacent_short_marks,
+)
 
 SCHEMA="ANZA_LIRA_S92_REVERSIBLE_CURVE_AND_GAP_REVIEW_V1"
 
@@ -278,7 +282,8 @@ def _cases(components,classification,selected,limit):
 
 def run_s92(s86_directory:Path,private_output:Path,*,
             bmp_path:Path|None=None,cfg:TraceReviewConfig=TraceReviewConfig(),
-            preview_limit:int=20,export_priority_tiles:bool=False)->dict:
+            preview_limit:int=20,export_priority_tiles:bool=False,
+            labels_path:Path|None=None)->dict:
     cfg.validate()
     s86_directory=Path(s86_directory).resolve()
     private_output=Path(private_output).resolve()
@@ -318,11 +323,28 @@ def run_s92(s86_directory:Path,private_output:Path,*,
             "source_fragment_remains_available":True,
         })
     proposals,selected,gap_stats=propose_gap_links(components,cfg)
+    labels_sha=None
+    sparse_guard={"status":"NOT_PROVIDED","physical_auto_joins_authorized":False}
+    if labels_path is not None:
+        labels_path=Path(labels_path).resolve()
+        labels_sha=sha256_file(labels_path)
+        source_labels=json.loads(labels_path.read_text(encoding="utf-8-sig"))
+        matched=parse_photo_labels(
+            source_labels,manifest["source_bmp_name"],manifest["image_shape_yx"]
+        )
+        selected,sparse_guard=apply_sparse_keypoint_guard(
+            components,annotated,proposals,selected,matched
+        )
+        gap_stats["gap_review_links"]=len(selected)
     if bmp is not None:
         for p in proposals:
             p["source_image_gap_proxy"]=photo_gap_proxy(bmp,p["inferred_bridge_points_xy"])
     chains=construct_chain_hypotheses(components,selected,cfg)
     display_stats=assign_display_priority(annotated,chains)
+    if labels_path is not None:
+        restored=preserve_start_adjacent_short_marks(annotated)
+        sparse_guard["short_marks_restored_near_start_for_review"]=restored
+        display_stats=dict(Counter(x["display_reason"] for x in annotated))
     counts=Counter(item["shape_review_category"] for item in annotated)
     main_view=[
         {"component_id":item["component_id"],
@@ -339,6 +361,9 @@ def run_s92(s86_directory:Path,private_output:Path,*,
         "source_bmp_sha256":manifest["source_bmp_sha256"],
         "source_bmp_name":manifest["source_bmp_name"],
         "source_s86_method":manifest["config"]["method"],
+        "sparse_labels_sha256":labels_sha,
+        "sparse_keypoint_guard":sparse_guard,
+        "sparse_keypoints_are_not_track_masks":True,
         "source_fragments":sum(len(rec["fragments"]) for rec in records),
         "observed_components_after_S87":len(components),
         "source_S87_stitched_components":seam_stats["stitched_image_components"],
@@ -410,5 +435,7 @@ def run_s92(s86_directory:Path,private_output:Path,*,
     _write_private(private_output/"index.html",body.encode("utf8"))
     if bmp_path is not None and sha256_file(bmp_path)!=manifest["source_bmp_sha256"]:
         raise ValueError("Source BMP changed during S92 review")
+    if labels_path is not None and sha256_file(labels_path)!=labels_sha:
+        raise ValueError("Source labels changed during S92 review")
     _write_private(private_output/"report.json",_json(report))
     return report

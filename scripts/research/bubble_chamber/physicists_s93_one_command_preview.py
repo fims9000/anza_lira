@@ -27,6 +27,8 @@ def main(argv=None):
     parser.add_argument("--method",choices=("s88-steerable","frangi","contrast","azunet"),
                         default="s88-steerable",
                         help="Frozen source detector; s88 is a classical ridge detector, not trained ANZA")
+    parser.add_argument("--labels",type=Path,
+                        help="Optional original sparse labels.json to guard starts/fiducials (not segmentation GT)")
     parser.add_argument("--checkpoint",type=Path,
                         help="Required for real original AZUNet; never claim ANZA otherwise")
     parser.add_argument("--max-side",type=int,default=2048,
@@ -47,6 +49,7 @@ def main(argv=None):
         max_gap_px=args.max_gap_px,
         preview_limit=args.preview_limit,
         resume=args.resume,
+        labels_path=args.labels,
     )
     print(json.dumps(outcome,ensure_ascii=False,indent=2))
 
