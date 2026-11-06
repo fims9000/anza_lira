@@ -19,7 +19,9 @@ if str(ROOT) not in sys.path:
 from bubble_chamber.bitmap_tiles import sha256_file
 from bubble_chamber.s96_junction_graph import JunctionConfig
 from bubble_chamber.s96_junction_workflow import run_s96
-from bubble_chamber.s96_junction_human_review import compile_junction_review
+from bubble_chamber.s96_junction_human_review import (
+    compile_junction_review,compile_two_reviewer_consensus
+)
 
 
 def main(argv=None):
@@ -40,7 +42,48 @@ def main(argv=None):
     c.add_argument("--review-pack",type=Path,required=True)
     c.add_argument("--human-review-json",type=Path,required=True)
     c.add_argument("--private-out-json",type=Path,required=True)
+    d=commands.add_parser("consensus",help="independent two-rater visual 2D agreement")
+    d.add_argument("--review-pack",type=Path,required=True)
+    d.add_argument("--first-json",type=Path,required=True)
+    d.add_argument("--second-json",type=Path,required=True)
+    d.add_argument("--first-id",default="physicist_A")
+    d.add_argument("--second-id",default="physicist_B")
+    d.add_argument("--private-out-json",type=Path,required=True)
     args=p.parse_args(argv)
+    if args.action=="consensus":
+        out=args.private_out_json.resolve()
+        packfile=args.review_pack.resolve()
+        reviewers=[args.first_json.resolve(),args.second_json.resolve()]
+        if (out.exists() or out in reviewers or
+            out==ROOT or ROOT in out.parents or
+            packfile.parent in out.parents or reviewers[0]==reviewers[1]):
+            raise ValueError("Consensus must be NEW private output with distinct reviews")
+        frozen=[packfile,*reviewers]
+        checksums=[sha256_file(x) for x in frozen]
+        raw=[json.loads(x.read_text(encoding="utf-8-sig")) for x in frozen]
+        result=compile_two_reviewer_consensus(
+            raw[0],raw[1],raw[2],
+            reviewer_a=args.first_id,reviewer_b=args.second_id
+        )
+        if any(sha256_file(path)!=digest for path,digest in zip(frozen,checksums)):
+            raise ValueError("Source reviewer inputs changed during consensus")
+        result["source_review_pack_sha256"]=checksums[0]
+        result["source_independent_review_sha256s"]=checksums[1:]
+        out.parent.mkdir(parents=True,exist_ok=True)
+        out.parent.chmod(0o700)
+        with out.open("x",encoding="utf8") as handle:
+            json.dump(result,handle,ensure_ascii=False,indent=2,sort_keys=True)
+            handle.write("\n")
+        out.chmod(0o600)
+        print(json.dumps({
+            "status":result["status"],
+            "two_rater_agreed":result["visual_consensus_cases"],
+            "two_rater_disagreed":result["explicit_disagreements"],
+            "two_rater_undecided":result["uncertain_or_abstained_by_one"],
+            "agreed_visual_rate":result["visual_agreement_rate_among_both_decided"],
+            "private_out_json":str(out),
+        },ensure_ascii=False,indent=2))
+        return
     if args.action=="run":
         cfg=JunctionConfig(
             max_endpoint_center_radius_px=args.junction_radius,
