@@ -35,7 +35,7 @@ def test_human_parametric_parabola_has_exact_start_end_and_vertical_support():
     pts=np.asarray(guide["sampled_guide_xy_source"])
     assert np.allclose(pts[0],[300,40])
     assert np.allclose(pts[-1],[200,140])
-    assert pts[150,1]>140  # curved away from straight segment
+    assert pts[225,1]>140  # curved away from straight segment
     assert guide["not_a_dense_pixel_mask"] is True
     assert guide["operator_geometry_reference_only"] is True
     with pytest.raises(ValueError,match="start/end disagree"):
@@ -179,7 +179,10 @@ def test_all_types_include_hair_spiral_fiducial_bundle_and_unknown():
     ]
     ann=[{"component_id":c["component_id"],"shape_review_category":kind,
           "observed_length_px":len(c["points_xy"]),
-          "total_signed_turn_deg":0,"show_in_primary_view":False}
+          "total_signed_turn_deg":0,"show_in_primary_view":False,
+          "review_flags":(
+              ["SHORT_ANGULAR_GLYPH_POSSIBLE"] if c["component_id"]=="short" else []
+          )}
          for c,kind in zip(paths,shape_categories)]
     context=parse_photo_labels({
         "H50Z_030_01_405.bmp":{
