@@ -33,6 +33,8 @@ def main(argv=None):
     r.add_argument("--preview-limit",type=int,default=32)
     r.add_argument("--crop-size",type=int,default=320)
     r.add_argument("--junction-radius",type=float,default=12.)
+    r.add_argument("--mask-junction-audit",action="store_true",
+                   help="read-only S86 PNG skeleton Moore-junction virtual-arm analysis (extra CPU, no BMP required)")
     r.add_argument("--min-rival-margin",type=float,default=.12)
     c=commands.add_parser("compile",help="compile human choices without physical-truth claims")
     c.add_argument("--review-pack",type=Path,required=True)
@@ -47,7 +49,8 @@ def main(argv=None):
         out=run_s96(args.s86_dir,args.s95_dir,args.private_out_dir,
                     bmp_path=args.bmp,cfg=cfg,
                     preview_limit=args.preview_limit,
-                    crop_size=args.crop_size)
+                    crop_size=args.crop_size,
+                    mask_junction_audit=args.mask_junction_audit)
         print(json.dumps({
             "status":out["status"],
             "source_photo":out["source_bmp_name"],
@@ -57,6 +60,8 @@ def main(argv=None):
             "review_cases":out["blinded_review_cases"],
             "source_photo_available":out["review_image_available"],
             "private_review_page":out["private_blinded_review_page"],
+            "mask_derived_source_review":out["mask_derived_blind_review_page"],
+            "mask_derived_review_cases":out["mask_derived_blind_review_cases"],
             "not_physical_track_GT":out["true_particles_cannot_be_inferred_from_2D_alone"],
         },ensure_ascii=False,indent=2))
     else:
