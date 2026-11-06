@@ -36,12 +36,13 @@ jobs:
           python -m pytest -q
           tests/test_s96_junction_graph.py
           tests/test_s96_junction_workflow.py
+          tests/test_s96_mask_junction_arms.py
           tests/test_s95_gap_visual_review.py
           tests/test_s95_all_structure_review.py
           tests/test_s95_human_review.py
       - name: Parse and import both CLI actions
         run: |
-          python -m compileall -q bubble_chamber/s96_junction_graph.py bubble_chamber/s96_junction_human_review.py bubble_chamber/s96_junction_workflow.py scripts/research/bubble_chamber/physicists_s96_junctions.py
+          python -m compileall -q bubble_chamber/s96_junction_graph.py bubble_chamber/s96_mask_junction_arms.py bubble_chamber/s96_junction_human_review.py bubble_chamber/s96_junction_workflow.py scripts/research/bubble_chamber/physicists_s96_junctions.py
           python scripts/research/bubble_chamber/physicists_s96_junctions.py --help >/dev/null
           python scripts/research/bubble_chamber/physicists_s96_junctions.py run --help >/dev/null
           python scripts/research/bubble_chamber/physicists_s96_junctions.py compile --help >/dev/null
