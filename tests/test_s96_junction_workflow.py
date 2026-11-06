@@ -202,3 +202,102 @@ def test_cli_build_and_compile_immutable_private_review_receipts(tmp_path,monkey
     with pytest.raises(ValueError,match="NEW private"):
         main(["compile","--review-pack",str(packfile),
               "--human-review-json",str(data),"--private-out-json",str(rec)])
+
+
+
+def test_balanced_machine_junction_sampling_includes_rare_Y_and_dense_bundle():
+    from bubble_chamber.s96_junction_human_review import balanced_blind_junction_sample
+    source=[
+        {"junction_id":f"cross{i:03d}","ports":[0,1,2,3],
+         "provisional_pairs":[{},{}]}
+        for i in range(100)
+    ]
+    source.extend([
+        {"junction_id":"amb","ports":[0,1,2,3],"provisional_pairs":[]},
+        {"junction_id":"Y","ports":[0,1,2],"provisional_pairs":[]},
+        {"junction_id":"BUNDLE","ports":[0,1,2,3,4],"provisional_pairs":[]},
+    ])
+    chosen=balanced_blind_junction_sample(
+        source,source_sha="a"*64,max_cases=4
+    )
+    assert len(chosen)==4
+    assert {x["junction_id"] for x in chosen}>={"Y","BUNDLE","amb"}
+    assert [x["junction_id"] for x in chosen]==[
+        x["junction_id"] for x in balanced_blind_junction_sample(
+            list(reversed(source)),source_sha="a"*64,max_cases=4
+        )
+    ]
+    with pytest.raises(ValueError,match="Duplicate"):
+        balanced_blind_junction_sample(
+            source+[source[0]],source_sha="a"*64,max_cases=4
+        )
+
+
+def test_two_blinded_reviewer_visual_consensus_does_not_invent_physics_GT(
+    tmp_path,monkeypatch
+):
+    from bubble_chamber.s96_junction_human_review import compile_two_reviewer_consensus
+    bmp,s86,s92,s95=_stages(tmp_path,monkeypatch)
+    run_s96(s86,s95,tmp_path/"TWO_RATERS",bmp_path=bmp)
+    pack=json.loads((tmp_path/"TWO_RATERS"/"review"/"review_pack.json").read_text())
+    crossing=next(x for x in pack["cases"] if x["observed_arm_count"]==4)
+    first=_review_response(pack,pair=crossing["machine_pairing_HIDDEN_FROM_UI"])
+    first["decisions"][0]["case_id"]=crossing["case_id"]
+    independent=json.loads(json.dumps(first))
+    same=compile_two_reviewer_consensus(pack,first,independent)
+    assert same["both_reviewed"]==1
+    assert same["both_decided_visual_cases"]==1
+    assert same["visual_consensus_cases"]==1
+    assert same["visual_agreement_rate_among_both_decided"]==1.
+    assert same["not_native_physical_GT_or_particle_identification"] is True
+    assert same["consensus_visual_junction_cases"][0][
+        "not_a_verified_physical_particle_identity"
+    ] is True
+
+    independent["decisions"][0]["pairing"]=next(
+        p for p in ("AB|CD","AC|BD","AD|BC")
+        if p!=crossing["machine_pairing_HIDDEN_FROM_UI"]
+    )
+    mixed=compile_two_reviewer_consensus(pack,first,independent)
+    assert mixed["visual_consensus_cases"]==0
+    assert mixed["explicit_disagreements"]==1
+    assert mixed["disagreements_requiring_adjudication"][0][
+        "needs_independent_adjudication"
+    ]
+    uncertain=json.loads(json.dumps(independent))
+    uncertain["decisions"][0]["pairing"]="UNDECIDABLE"
+    skipped=compile_two_reviewer_consensus(pack,first,uncertain)
+    assert skipped["both_decided_visual_cases"]==0
+    assert skipped["uncertain_or_abstained_by_one"]==1
+    assert skipped["visual_agreement_rate_among_both_decided"] is None
+    with pytest.raises(ValueError,match="distinct"):
+        compile_two_reviewer_consensus(pack,first,first,
+                                       reviewer_a="same",reviewer_b="same")
+
+
+def test_two_reviewer_consensus_CLI_writes_sha_receipt(tmp_path,monkeypatch):
+    bmp,s86,s92,s95=_stages(tmp_path,monkeypatch)
+    run_s96(s86,s95,tmp_path/"REVIEW_ROOT",bmp_path=bmp)
+    packfile=tmp_path/"REVIEW_ROOT"/"review"/"review_pack.json"
+    pack=json.loads(packfile.read_text())
+    crossing=next(c for c in pack["cases"] if c["observed_arm_count"]==4)
+    human=_review_response(pack,pair=crossing["machine_pairing_HIDDEN_FROM_UI"])
+    human["decisions"][0]["case_id"]=crossing["case_id"]
+    first=tmp_path/"physicist_A.json"
+    second=tmp_path/"physicist_B.json"
+    for file in (first,second):
+        file.write_text(json.dumps(human),encoding="utf8")
+    out=tmp_path/"private_consensus.json"
+    main(["consensus","--review-pack",str(packfile),
+          "--first-json",str(first),"--second-json",str(second),
+          "--private-out-json",str(out)])
+    body=json.loads(out.read_text())
+    assert body["visual_consensus_cases"]==1
+    assert body["source_independent_review_sha256s"]==[
+        sha256_file(first),sha256_file(second)
+    ]
+    assert body["source_review_pack_sha256"]==sha256_file(packfile)
+    with pytest.raises(ValueError,match="NEW private"):
+        main(["consensus","--review-pack",str(packfile),
+              "--first-json",str(first),"--second-json",str(second),
+              "--private-out-json",str(out)])
