@@ -91,7 +91,7 @@ def test_predeclared_reviewer_budget_and_grid_dimensions_fail_closed():
     with pytest.raises(ValueError,match="integers"):
         select_blind_original_source_rois(**base,seed=1.5,roi_count=4)
     with pytest.raises(ValueError,match="invalid ROI"):
-        select_blind_original_source_rois(**base,tile_size=100,roi_count=4)
+        select_blind_original_source_rois(**{**base,"tile_size":100},roi_count=4)
 
 
 def test_original_source_human_morphology_and_missing_are_separate():
