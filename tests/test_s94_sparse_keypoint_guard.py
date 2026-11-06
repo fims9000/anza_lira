@@ -203,3 +203,19 @@ def test_s93_one_command_binds_labels_sha_and_rejects_tamper(tmp_path,monkeypatc
     with pytest.raises(ValueError,match="changed on resume"):
         run_one_command(bmp,out,method="contrast",max_side=512,
                         preview_limit=1,labels_path=meta,resume=True)
+
+
+def test_small_labels_only_cli_creates_immutable_audit(tmp_path):
+    from scripts.research.bubble_chamber.physicists_s94_labels_audit import main
+    source=_make_labels_file(tmp_path)
+    before_sha=sha256_file(source)
+    dest=tmp_path/"PRIVATE_REPORT"/"annotation_audit.json"
+    main(["--labels",str(source),"--private-out-json",str(dest)])
+    report=json.loads(dest.read_text(encoding="utf8"))
+    assert report["photos"]==2
+    assert report["starts"]==1
+    assert report["labels_sha256"]==before_sha
+    assert report["original_labels_left_unchanged"] is True
+    assert sha256_file(source)==before_sha
+    with pytest.raises(FileExistsError):
+        main(["--labels",str(source),"--private-out-json",str(dest)])
