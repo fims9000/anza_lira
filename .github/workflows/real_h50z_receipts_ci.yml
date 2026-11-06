@@ -1,0 +1,40 @@
+name: Verify saved H50Z S86-S96 real-source evidence receipts
+on:
+  push:
+    branches:
+      - feature/bubble-real-h50z-evidence-audit-2026-11-06
+    paths:
+      - 'bubble_chamber/real_bmp_run_receipts.py'
+      - 'scripts/research/bubble_chamber/physicists_verify_real_h50z_saved_results.py'
+      - 'tests/test_real_bmp_run_receipts.py'
+      - '.github/workflows/real_h50z_receipts_ci.yml'
+      - 'docs/bubble_chamber/REAL_H50Z_*.md'
+  pull_request:
+    branches:
+      - feature/bubble-s98-visual-track-continuity-audit-2026-11-06
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-source-stage-receipts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install lightweight segmentation/reconstruction dependencies
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: Verify actual serialized S86-S96 artifact chain on synthetic source
+        run: python -m pytest -q tests/test_real_bmp_run_receipts.py tests/test_s98_trace_continuity.py tests/test_s97_manual_reference.py
+      - name: Source code and CLI sanity
+        run: |
+          python -m compileall -q bubble_chamber/real_bmp_run_receipts.py scripts/research/bubble_chamber/physicists_verify_real_h50z_saved_results.py
+          python scripts/research/bubble_chamber/physicists_verify_real_h50z_saved_results.py --help >/dev/null
+      - name: Check no private real photo or expert annotation is committed
+        run: |
+          if git ls-files bubble_chamber/real_bmp* tests/test_real_bmp* docs/bubble_chamber/REAL_H50Z* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json)$'; then
+            echo 'No private BMP or machine/source receipt file may enter the public repository' >&2
+            exit 1
+          fi
