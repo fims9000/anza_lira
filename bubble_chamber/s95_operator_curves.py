@@ -61,9 +61,14 @@ def fit_measured_polyline(points, *, min_points=5, max_rms_px=5.):
     if arc[-1]<=0:
         raise ValueError("Degenerate operator measurements")
     u=arc/arc[-1]
-    design=np.column_stack((np.ones_like(u),u,u*u))
-    cx=np.linalg.lstsq(design,p[:,0],rcond=None)[0]
-    cy=np.linalg.lstsq(design,p[:,1],rcond=None)[0]
+    # Endpoints are expert-measured anchors: enforce them EXACTLY. A general
+    # unconstrained least-squares quadratic can drift away from the start/end.
+    # P(u)=(1-u)*start + u*end + bend*u*(1-u).
+    base=(1.-u[:,None])*p[0]+u[:,None]*p[-1]
+    basis=u*(1.-u)
+    bend=(basis[:,None]*(p-base)).sum(axis=0)/max(float(basis@basis),1e-12)
+    cx=np.array([p[0,0],p[-1,0]-p[0,0]+bend[0],-bend[0]])
+    cy=np.array([p[0,1],p[-1,1]-p[0,1]+bend[1],-bend[1]])
     predicted=np.column_stack((_polyval_cba(cx,u),_polyval_cba(cy,u)))
     rms=float(np.sqrt(np.mean(np.sum((predicted-p)**2,axis=1))))
     return {
