@@ -37,6 +37,7 @@ jobs:
           tests/test_s95_operator_curves_and_types.py
           tests/test_s95_all_structure_review.py
           tests/test_s95_human_review.py
+          tests/test_s95_gap_visual_review.py
           tests/test_s94_sparse_keypoint_guard.py
           tests/test_s93_compact_real_overlay.py
           tests/test_s92_private_whole_bmp.py
@@ -70,9 +71,10 @@ jobs:
           if-no-files-found: error
       - name: S95 CLI and syntax
         run: |
-          python -m compileall -q bubble_chamber/s95_operator_curves.py bubble_chamber/s95_all_structure_types.py bubble_chamber/s95_all_structures_review.py bubble_chamber/s95_human_review.py scripts/research/bubble_chamber/physicists_s95_all_classes.py scripts/research/bubble_chamber/physicists_s95_compile_human_review.py
+          python -m compileall -q bubble_chamber/s95_operator_curves.py bubble_chamber/s95_all_structure_types.py bubble_chamber/s95_all_structures_review.py bubble_chamber/s95_human_review.py bubble_chamber/s95_gap_visual_review.py scripts/research/bubble_chamber/physicists_s95_all_classes.py scripts/research/bubble_chamber/physicists_s95_compile_human_review.py scripts/research/bubble_chamber/physicists_s95_visual_gap_review.py
           python scripts/research/bubble_chamber/physicists_s95_all_classes.py --help >/dev/null
           python scripts/research/bubble_chamber/physicists_s95_compile_human_review.py --help >/dev/null
+          python scripts/research/bubble_chamber/physicists_s95_visual_gap_review.py --help >/dev/null
       - name: Keep private original films and operator guides out of the repo
         run: |
           if git ls-files bubble_chamber/s95* tests/test_s95* docs/bubble_chamber/S95* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json)$'; then
