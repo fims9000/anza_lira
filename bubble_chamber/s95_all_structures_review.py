@@ -36,7 +36,7 @@ def _read_ndjson(path):
     ]
 
 
-def _render_all(gray,components,typed,marks,curves,scale_x,scale_y):
+def _render_all(gray,components,typed,marks,curves,gaps,scale_x,scale_y):
     photo=cv2.cvtColor(gray,cv2.COLOR_GRAY2BGR)
     picture=photo.copy()
     height,width=gray.shape
@@ -52,6 +52,18 @@ def _render_all(gray,components,typed,marks,curves,scale_x,scale_y):
                           "COILING_TRACE_CANDIDATE",
                           "BUNDLE_OR_INTERSECTION_REVIEW",
                       ) else 1,lineType=cv2.LINE_AA)
+    for gap in gaps:
+        if gap.get("review_decision")!="PRIORITY_GAP_REVIEW_NOT_PHYSICAL_ACCEPT":
+            continue
+        if gap.get("physical_auto_join") is not False or gap.get("status")!="UNKNOWN":
+            raise ValueError("Unsafe physical annotation in S92 gap proposal")
+        points=np.asarray(gap["inferred_bridge_points_xy"],dtype=float)
+        coords=np.rint(points*np.array([scale_x,scale_y])).astype("int32")
+        for j in range(0,len(coords)-1,4):
+            end=min(j+2,len(coords)-1)
+            if end>j:
+                cv2.line(picture,tuple(coords[j]),tuple(coords[end]),
+                         (235,65,240),2,lineType=cv2.LINE_AA)
     for curve in curves:
         guide=np.asarray(curve["sampled_guide_xy_source"],float)
         # Yellow broken strokes = operator-supplied/fitted 2D guide, NEVER
@@ -169,6 +181,7 @@ def run_s95(
         components,annotations,keypoint_context=context,
         operator_curves=guides,
     )
+    gaps=_read_ndjson(s92_directory/"gap_proposals_unknown.ndjson")
     marks=human_mark_objects(context)
     report={
         "schema":SCHEMA,
@@ -180,6 +193,7 @@ def run_s95(
         "source_labels_sha256":labels_sha,
         "operator_curves_sha256":operator_sha,
         "operator_guides":len(guides),
+        "source_s92_gap_proposals":len(gaps),
         "human_annotation_marker_locations":len(marks),
         "all_extracted_line_categories":summary,
         "source_s86_extracted_fragments":manifest["candidate_fragments"],
@@ -201,7 +215,7 @@ def run_s95(
         gray,_=low_memory_gray_preview(bmp,max_side=max_side)
         h,w=gray.shape
         source,predicted=_render_all(
-            gray,components,objects,marks,guides,
+            gray,components,objects,marks,guides,gaps,
             w/bmp.width,h/bmp.height
         )
         montage=_captioned_montage(
@@ -217,6 +231,7 @@ def run_s95(
         ("all_source_fragment_types.ndjson",objects),
         ("human_operator_mark_locations.ndjson",marks),
         ("operator_2d_curve_guides.ndjson",guides),
+        ("all_gap_proposals_unknown.ndjson",gaps),
     ):
         _write_private(private_output/name,_ndjson(rows))
     if source is not None:
