@@ -287,7 +287,8 @@ def discover_human_trace_piece_boundaries(
 def measure_proposal_recovery(
     reference_first:dict,
     *,
-    proposal_sets:dict[str,list[dict]]
+    proposal_sets:dict[str,list[dict]],
+    source_observed_component_ids:set[str]|None=None,
 ):
     """Evaluate S92/S96 *selected* visual links against reference-first pairs.
 
@@ -317,6 +318,10 @@ def measure_proposal_recovery(
             a,b=p["component_a"],p["component_b"]
             if a==b:
                 raise ValueError("Self-join rejected")
+            if (source_observed_component_ids is not None
+                and (a not in source_observed_component_ids
+                     or b not in source_observed_component_ids)):
+                raise ValueError("S98 proposed join references unknown original S86 source component")
             # An edge may legitimately touch an unannotated source piece.
             # Only source membership of *matching labels* is assessed below;
             # unrelated unknown components are not certified negative.
