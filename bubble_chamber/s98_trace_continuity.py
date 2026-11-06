@@ -303,7 +303,7 @@ def measure_proposal_recovery(
     }
     if len(truth)!=len(reference_first["conditionally_assessable_piece_adjacencies"]):
         raise ValueError("Repeated S98 independent source adjacency")
-     all_metrics=[]
+    all_metrics=[]
     selected_unions=set()
     by_method={}
     for name,rows in proposal_sets.items():
