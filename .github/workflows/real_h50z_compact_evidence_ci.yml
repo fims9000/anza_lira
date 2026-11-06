@@ -1,0 +1,66 @@
+name: Reproduce private real-source H50Z machine stage and compact blind/posthoc ZIP evidence
+on:
+  push:
+    branches:
+      - feature/bubble-real-h50z-single-command-compact-evidence-2026-11-06
+    paths:
+      - 'bubble_chamber/real_h50z_compact_evidence.py'
+      - 'bubble_chamber/full_bmp_segmentation.py'
+      - 'tests/test_full_bmp_segmentation.py'
+      - 'scripts/research/bubble_chamber/physicists_real_h50z_reproduce.py'
+      - 'tests/test_real_h50z_compact_evidence.py'
+      - '.github/workflows/real_h50z_compact_evidence_ci.yml'
+      - 'docs/bubble_chamber/REAL_H50Z_COMPACT*.md'
+  pull_request:
+    branches:
+      - feature/bubble-s99-blind-morphology-validation-2026-11-06
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-photo-pixel-exact-private-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline source-image and geometry dependencies
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: Full local synthetic BMP S86 S92 S95 S96 → pixel-exact blinded photos → two ZIPs → human review tests
+        run: >-
+          python -m pytest -q
+          tests/test_real_h50z_compact_evidence.py
+          tests/test_full_bmp_segmentation.py
+          tests/test_real_bmp_run_receipts.py
+          tests/test_s99_blind_sampling_and_morphology.py
+          tests/test_s99_real_source_end_to_end.py
+          tests/test_s98_trace_continuity.py
+          tests/test_s97_manual_reference.py
+          tests/test_s97_reference_benchmark.py
+          tests/test_s96_junction_graph.py
+          tests/test_s96_junction_workflow.py
+          tests/test_s96_mask_junction_arms.py
+          tests/test_s95_all_structure_review.py
+          tests/test_s95_human_review.py
+          tests/test_s95_operator_curves_and_types.py
+          tests/test_s95_gap_visual_review.py
+          tests/test_s94_sparse_keypoint_guard.py
+          tests/test_s93_compact_real_overlay.py
+          tests/test_s92_private_whole_bmp.py
+          tests/test_s92_curve_geometry.py
+          --basetemp=$RUNNER_TEMP/h50z_real_source_bundle_synthetic
+      - name: Source code syntax and public one-command interface
+        run: |
+          python -m compileall -q bubble_chamber/real_h50z_compact_evidence.py scripts/research/bubble_chamber/physicists_real_h50z_reproduce.py
+          python scripts/research/bubble_chamber/physicists_real_h50z_reproduce.py --help >/dev/null
+          python scripts/research/bubble_chamber/physicists_real_h50z_reproduce.py run --help >/dev/null
+          python scripts/research/bubble_chamber/physicists_real_h50z_reproduce.py pack --help >/dev/null
+          python scripts/research/bubble_chamber/physicists_real_h50z_reproduce.py score --help >/dev/null
+      - name: Never upload original private H50Z BMP, model weights or human labels to CI
+        run: |
+          if git ls-files bubble_chamber/real_h50z* tests/test_real_h50z* docs/bubble_chamber/REAL_H50Z_COMPACT* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json|csv)$'; then
+            echo 'Private user photos, labels, source masks or weights cannot be committed' >&2
+            exit 1
+          fi
