@@ -301,6 +301,8 @@ def run_s100_unlabeled_cross_review(
         "S95_report_sha256":sha256_file(s95_dir/"report.json"),
         "S96_report_sha256":sha256_file(s96_dir/"report.json"),
         "actual_original_film_previews_exported":len(previews),
+        "requested_max_review_cases":max_review_cases,
+        "requested_crop_size_px":crop_size,
         "alternative_mask_source_integrity":mask_integrity,
         "S86_S92_S95_S96_real_saved_artifact_lineage_verified":True,
         "not_independent_fiducial_detection_accuracy":True,
@@ -360,3 +362,93 @@ def run_s100_unlabeled_cross_review(
             "compact_source_real_image_evidence_zip":archive.name,
             "compact_source_real_image_evidence_zip_sha256":sha256_file(archive),
             "compact_zip_compressed_bytes":archive.stat().st_size}
+
+
+
+def verify_existing_s100_gallery(
+    *,bmp_path:Path,s86_dir:Path,s92_dir:Path,
+    s95_dir:Path,s96_dir:Path,
+    out_dir:Path,max_review_cases:int,crop_size:int,
+):
+    """Reopen a COMPLETE native-photo S100 output without modifying inputs.
+
+    Original source pixels in every PNG and in the left half of every
+    overlay must exactly match the same SHA-verified uncompressed BMP.
+    Sealed zip must contain byte-identical members; no source-BMP leakage.
+    """
+    folder=Path(out_dir).resolve()
+    report_file=folder/"report.json"
+    preview_file=folder/"preview_receipts.json"
+    zip_path=folder/"S100_REAL_SOURCE_X_SHAPE_DIAGNOSIS_PRIVATE.zip"
+    mandatory=(report_file,preview_file,folder/"candidates.ndjson",
+               folder/"index.html",zip_path)
+    if any(not p.is_file() for p in mandatory):
+        raise ValueError("Existing S100 gallery is incomplete: use a NEW private output")
+    report=json.loads(report_file.read_text(encoding="utf-8"))
+    preview=json.loads(preview_file.read_text(encoding="utf-8"))
+    sha=sha256_file(bmp_path)
+    if (report.get("schema")!=SCHEMA
+        or report.get("status")!="SOURCE_SHA_VERIFIED_ORIGINAL_BMP_MACHINE_X_SHAPE_REVIEW_NOT_GT"
+        or report.get("source_bmp_sha256")!=sha
+        or report.get("source_bmp_name")!=Path(bmp_path).name
+        or report.get("S86_manifest_sha256")!=sha256_file(Path(s86_dir)/"manifest.json")
+        or report.get("S92_report_sha256")!=sha256_file(Path(s92_dir)/"report.json")
+        or report.get("S95_report_sha256")!=sha256_file(Path(s95_dir)/"report.json")
+        or report.get("S96_report_sha256")!=sha256_file(Path(s96_dir)/"report.json")
+        or report.get("requested_max_review_cases")!=max_review_cases
+        or report.get("requested_crop_size_px")!=crop_size
+        or preview.get("source_original_sha256")!=sha
+        or len(preview.get("cases",[]))!=report.get("actual_original_film_previews_exported")):
+        raise ValueError("Existing S100 source/model/crop evidence differs from exact BMP or source stages")
+    bmp=GrayBMP8(Path(bmp_path))
+    if [bmp.height,bmp.width]!=report.get("source_shape_yx",[
+        bmp.height,bmp.width
+    ]):
+        raise ValueError("S100 saved original source image dimensions differ")
+    for case in preview["cases"]:
+        x0,y0,x1,y1=case["source_xyxy"]
+        if (x1-x0!=crop_size or y1-y0!=crop_size
+            or x0<0 or y0<0 or x1>bmp.width or y1>bmp.height):
+            raise ValueError("S100 old crop went outside original photo")
+        o=folder/case["original_photo_png"]
+        p=folder/case["observed_source_overlay_png"]
+        if (folder not in o.resolve().parents or folder not in p.resolve().parents
+            or not o.is_file() or not p.is_file()
+            or sha256_file(o)!=case["original_photo_png_sha256"]
+            or sha256_file(p)!=case["observed_source_overlay_png_sha256"]):
+            raise ValueError("S100 old native photo overlay image has changed")
+        original=cv2.imread(str(o),cv2.IMREAD_GRAYSCALE)
+        overlay=cv2.imread(str(p),cv2.IMREAD_COLOR)
+        if (original is None or overlay is None
+            or original.shape!=(crop_size,crop_size)
+            or overlay.shape!=(crop_size,2*crop_size,3)):
+            raise ValueError("S100 previously exported native photos have invalid dimensions")
+        matched,_=bmp.crop(((x0+x1)/2.,(y0+y1)/2.),size=crop_size)
+        if (not np.array_equal(matched,original)
+            or not np.array_equal(
+                cv2.cvtColor(overlay[:,:crop_size],cv2.COLOR_BGR2GRAY),
+                matched
+            )):
+            raise ValueError("S100 saved original-image pixels differ from true source BMP")
+    allowed=[
+        p for p in folder.rglob("*")
+        if p.is_file() and p!=zip_path
+    ]
+    with ZipFile(zip_path) as z:
+        if z.testzip() is not None:
+            raise ValueError("S100 old compact ZIP CRC check failed")
+        names=set(z.namelist())
+        expected={str(p.relative_to(folder)) for p in allowed}
+        if names!=expected or any(x.lower().endswith(
+            (".bmp",".pt",".pth",".7z",".npy")) for x in names):
+            raise ValueError("S100 saved ZIP membership is incomplete or leaks a private BMP")
+        for p in allowed:
+            if z.read(str(p.relative_to(folder)))!=p.read_bytes():
+                raise ValueError("S100 compressed source image is not byte-identical")
+    return {
+        **report,
+        "compact_source_real_image_evidence_zip":zip_path.name,
+        "compact_source_real_image_evidence_zip_sha256":sha256_file(zip_path),
+        "compact_zip_compressed_bytes":zip_path.stat().st_size,
+        "saved_S100_original_source_images_reopened_and_pixel_exact":True,
+    }
