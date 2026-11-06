@@ -31,6 +31,15 @@ COLORS_BGR={
     "UNKNOWN":(165,165,165),
 }
 HUMAN_MARK_BGR=(205,25,230)
+HUMAN_UNCERTAIN_BGR=(160,160,160)
+HUMAN_LABELS={
+    "TRACK_LIKE":"H:TRACK",
+    "COILING_TRACK_LIKE":"H:COIL",
+    "FIDUCIAL_CROSS":"H:CROSS",
+    "ARTIFACT":"H:ARTIFACT",
+    "CROSSING_OR_BUNDLE":"H:BUNDLE",
+    "UNKNOWN":"H:UNKNOWN"
+}
 
 
 def _source_points_near_rect(points,rect):
@@ -69,10 +78,19 @@ def _overlay(gray,rect,components,typed,human):
             continue
         local=np.rint(pts-origin).astype(np.int32)
         # Human drawn strokes are a separate visual layer, never machine GT.
+        known=row["certainty"]=="CLEAR" and row["kind"]!="UNKNOWN"
+        color=HUMAN_MARK_BGR if known else HUMAN_UNCERTAIN_BGR
         cv2.polylines(
             canvas,[local.reshape(-1,1,2)],isClosed=False,
-            color=HUMAN_MARK_BGR,thickness=2,lineType=cv2.LINE_8
+            color=color,thickness=2,lineType=cv2.LINE_8
         )
+        caption=HUMAN_LABELS[row["kind"]] if known else "H:UNCERTAIN"
+        loc=(int(np.clip(local[0,0]+3,1,canvas.shape[1]-10)),
+             int(np.clip(local[0,1]-4,12,canvas.shape[0]-2)))
+        cv2.putText(canvas,caption,loc,cv2.FONT_HERSHEY_SIMPLEX,
+                    .34,(25,25,25),2,lineType=cv2.LINE_AA)
+        cv2.putText(canvas,caption,loc,cv2.FONT_HERSHEY_SIMPLEX,
+                    .34,color,1,lineType=cv2.LINE_AA)
     return canvas
 
 
@@ -151,7 +169,10 @@ def export_s99_posthoc_review(
         "и человеческими линиями поверх. Розовый — экспертная 2D линия; "
         "голубой — машинный трекоподобный след; зелёный — машинный завиток; "
         "жёлто-оранжевый — реперный крест; красный — артефакт/пересечение "
-        "(точная категория указана в JSON). Серый — неизвестно.</p>"
+        "(точная категория указана в JSON). Серый — неизвестно. "
+        "Подписи H:TRACK/H:COIL/H:ARTIFACT/H:CROSS/H:BUNDLE обозначают "
+        "ТОЛЬКО независимый человеческий визуальный класс; "
+        "H:UNCERTAIN не входит в количественную оценку.</p>"
         "<p><b>Не является подтверждением типов частиц, столкновений или "
         "полной точности всех пикселей изображения.</b> Показано только "
         "фиксированное число первых заранее выбранных ROI.</p>"
