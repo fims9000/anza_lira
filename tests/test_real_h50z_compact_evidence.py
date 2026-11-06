@@ -239,6 +239,25 @@ def test_single_command_real_source_pipeline_run_with_model_guard(
             "--max-per-class","1","--max-fragments-per-tile","512",
             "--min-component-area","1"
         ])
+    # Exact original source+model+parameter resume can safely reopen
+    # completed bundles without changing the machine/photo provenance.
+    before=sha256_file(root/"COMPACT_REAL_EVIDENCE"/"H50Z_BLIND_ORIGINAL_CROPS_PRIVATE.zip")
+    main([
+        "run","--bmp",str(bmp),"--work-root",str(root),
+        "--method","contrast","--skip-s96","--resume",
+        "--crop-size","128","--max-side","512",
+        "--max-per-class","1","--max-fragments-per-tile","512",
+        "--min-component-area","1"
+    ])
+    assert sha256_file(root/"COMPACT_REAL_EVIDENCE"/"H50Z_BLIND_ORIGINAL_CROPS_PRIVATE.zip")==before
+    with pytest.raises(ValueError,match="Existing private H50Z evidence"):
+        main([
+            "run","--bmp",str(bmp),"--work-root",str(root),
+            "--method","contrast","--skip-s96","--resume",
+            "--crop-size","256","--max-side","512",
+            "--max-per-class","1","--max-fragments-per-tile","512",
+            "--min-component-area","1"
+        ])
     with pytest.raises(ValueError,match="actual checkpoint"):
         main([
             "run","--bmp",str(bmp),
@@ -265,3 +284,27 @@ def test_partially_completed_or_wrong_blind_operator_csv_fails_closed(
             private_out_json=tmp_path/"MUST_NOT_EXIST.json"
         )
     assert not (tmp_path/"MUST_NOT_EXIST.json").exists()
+
+
+
+def test_changed_private_zip_is_refused_by_verified_resume(tmp_path,monkeypatch):
+    bmp,img,s86,s92,s95,s96=_sources(tmp_path,monkeypatch,include_s96=False)
+    root=tmp_path/"ORIGINAL_ONLY_AND_MACHINE_PRIVATE"
+    package_verified_real_h50z(
+        bmp_path=bmp,s86_dir=s86,s92_dir=s92,s95_dir=s95,
+        s96_dir=None,private_out_dir=root,crop_size=128,
+        max_per_class=1,case_id="SYNTHETIC_ONLY"
+    )
+    from bubble_chamber.real_h50z_compact_evidence import verify_existing_sealed_evidence
+    kwargs={
+        "source_bmp_path":bmp,"s86_dir":s86,"s92_dir":s92,
+        "s95_dir":s95,"s96_dir":None,"evidence_dir":root,
+        "case_id":"SYNTHETIC_ONLY","max_per_class":1,"crop_size":128
+    }
+    result=verify_existing_sealed_evidence(**kwargs)
+    assert result["status"]=="TWO_SEPARATE_VERIFIED_PRIVATE_H50Z_DIAGNOSTIC_ARCHIVES"
+    private_zip=root/"H50Z_BLIND_ORIGINAL_CROPS_PRIVATE.zip"
+    with private_zip.open("ab") as fd:
+        fd.write(b"TAMPERED")
+    with pytest.raises(ValueError,match="ZIP is absent or has changed"):
+        verify_existing_sealed_evidence(**kwargs)
