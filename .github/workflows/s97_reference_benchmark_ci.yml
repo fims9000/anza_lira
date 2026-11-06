@@ -1,0 +1,73 @@
+name: S97 independent human 2D trace benchmark and matched source-based baselines
+on:
+  push:
+    branches:
+      - feature/bubble-s97-independent-reference-benchmark-2026-11-06
+    paths:
+      - 'bubble_chamber/s97_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s97_*.py'
+      - 'tests/test_s97_*.py'
+      - '.github/workflows/s97_reference_benchmark_ci.yml'
+      - 'docs/bubble_chamber/S97_*.md'
+  pull_request:
+    branches:
+      - feature/bubble-s96-junction-alternatives-2026-11-06
+    paths:
+      - 'bubble_chamber/s97_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s97_*.py'
+      - 'tests/test_s97_*.py'
+      - '.github/workflows/s97_reference_benchmark_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-locked-human-positive-and-link-ambiguity-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Lightweight original-photo research dependencies
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: S97 human geometry, end-to-end actual synthetic BMP, matched methods and S92/S96 regression
+        run: >-
+          python -m pytest -q
+          tests/test_s97_manual_reference.py
+          tests/test_s97_reference_benchmark.py
+          tests/test_s96_junction_graph.py
+          tests/test_s96_mask_junction_arms.py
+          tests/test_s95_human_review.py
+          --basetemp=$RUNNER_TEMP/s97_synthetic_execution
+      - name: S97 CLI and source syntax
+        run: |
+          python -m compileall -q bubble_chamber/s97_manual_reference.py bubble_chamber/s97_reference_viewer.py bubble_chamber/s97_link_audit.py scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py
+          python scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py --help > /dev/null
+          python scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py prepare --help > /dev/null
+          python scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py evaluate --help > /dev/null
+      - name: Check independently annotated local HTML JavaScript syntax
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import re
+          root=Path(os.environ["RUNNER_TEMP"])/"s97_synthetic_execution"
+          match=next(iter(root.rglob("ORIGINAL_ONLY/index.html")),None)
+          if match is None:
+              match=next(iter(root.rglob("REF/index.html")),None)
+          if match is None:
+              raise RuntimeError("Missing original-only reference editor fixture")
+          scripts=re.findall(r"<script>(.*?)</script>",match.read_text(),re.S)
+          if len(scripts)!=1:
+              raise RuntimeError("S97 reference editor must have exactly one local JS script")
+          Path("s97_synthetic_reference_check.js").write_text(scripts[0])
+          PY
+          node --check s97_synthetic_reference_check.js
+          rm s97_synthetic_reference_check.js
+      - name: Prevent committing private original photos and expert annotations
+        run: |
+          if git ls-files bubble_chamber/s97* tests/test_s97* docs/bubble_chamber/S97* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json)$'; then
+            echo 'Private original photo, model weight, or human annotation in S97 source files' >&2
+            exit 1
+          fi
