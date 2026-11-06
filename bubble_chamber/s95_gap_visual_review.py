@@ -189,9 +189,12 @@ def build_visual_gap_pack(*,s95_dir:Path,s92_dir:Path,
         "human_track_identity_certified":False,
         "physics_auto_join_allowed":False,
     }
-    _write_private(out_dir/"review_pack.json",_json(pack))
+    if (sha256_file(source)!=pack["source_s95_report_sha256"]
+        or sha256_file(proposals_file)!=pack["source_s92_gap_proposals_sha256"]):
+        raise ValueError("Machine source changed during blind case generation")
     if bmp_path is not None and sha256_file(bmp_path)!=bmp_sha:
         raise ValueError("Source image changed during blind case generation")
+    _write_private(out_dir/"review_pack.json",_json(pack))
     _write_private(out_dir/"index.html",_build_review_page(pack).encode("utf-8"))
     return pack
 
@@ -202,6 +205,14 @@ def _js(obj):
 
 
 def _build_review_page(pack):
+    if not pack["cases"]:
+        return (
+            "<!doctype html><html lang='ru'><meta charset='utf-8'>"
+            "<title>No S92 gap proposals</title>"
+            "<h1>Нет геометрических предложений S92 для проверки</h1>"
+            "<p>Пустая выборка не доказывает отсутствие разрывов или "
+            "ошибочных соединений на изображении.</p></html>"
+        )
     client=[
         {"case_id":x["case_id"],
          "relative_case_photo":x.get("relative_case_photo")}
