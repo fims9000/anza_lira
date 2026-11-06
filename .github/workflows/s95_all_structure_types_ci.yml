@@ -41,6 +41,33 @@ jobs:
           tests/test_s93_compact_real_overlay.py
           tests/test_s92_private_whole_bmp.py
           tests/test_s92_curve_geometry.py
+          --basetemp=$RUNNER_TEMP/s95_synthetic_suite
+      - name: Export clearly marked synthetic software-demo image
+        run: |
+          set -eu
+          GENERATED="$(find "$RUNNER_TEMP/s95_synthetic_suite" -name S95_all_classes_comparison.jpg -print -quit)"
+          test -n "$GENERATED"
+          mkdir -p "$RUNNER_TEMP/s95_synthetic_visual"
+          python - "$GENERATED" "$RUNNER_TEMP/s95_synthetic_visual/S95_SYNTHETIC_SOFTWARE_TEST_NOT_H50Z.jpg" <<'PY'
+          import cv2
+          import sys
+          image=cv2.imread(sys.argv[1])
+          if image is None:
+              raise RuntimeError("Missing synthetic S95 contact sheet")
+          cv2.rectangle(image,(0,0),(image.shape[1],44),(20,20,20),-1)
+          cv2.putText(image,"SYNTHETIC SOFTWARE TEST - NOT REAL H50Z",
+                      (9,29),cv2.FONT_HERSHEY_SIMPLEX,0.65,(50,230,255),2,
+                      lineType=cv2.LINE_AA)
+          if not cv2.imwrite(sys.argv[2],image):
+              raise RuntimeError("Synthetic JPEG export failed")
+          PY
+      - name: Make artificial example available for reviewer preview only
+        uses: actions/upload-artifact@v4
+        with:
+          name: S95-SYNTHETIC-DEMO-NOT-REAL-H50Z
+          path: ${{ runner.temp }}/s95_synthetic_visual/S95_SYNTHETIC_SOFTWARE_TEST_NOT_H50Z.jpg
+          retention-days: 7
+          if-no-files-found: error
       - name: S95 CLI and syntax
         run: |
           python -m compileall -q bubble_chamber/s95_operator_curves.py bubble_chamber/s95_all_structure_types.py bubble_chamber/s95_all_structures_review.py bubble_chamber/s95_human_review.py scripts/research/bubble_chamber/physicists_s95_all_classes.py scripts/research/bubble_chamber/physicists_s95_compile_human_review.py
