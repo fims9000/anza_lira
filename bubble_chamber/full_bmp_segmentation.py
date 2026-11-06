@@ -382,6 +382,35 @@ def run_full_bmp(bmp_path: Path, out_dir: Path, cfg: FullBMPConfig = FullBMPConf
             record = _process_tile(bmp, core, cfg, out_dir, preview, az_model=model)
             _save_json_atomic(record_path, record)
         records.append(record)
+    # A FULLY completed S86 run must have byte-stable manifest provenance.
+    # Previous behavior rewrote the complete manifest on --resume with a
+    # different 'tiles_reused_on_this_run', invalidating every downstream
+    # S92/S95/S96 SHA-256 even though no source pixels had changed. Reuse
+    # only if ALL per-tile masks, fragments and required side artifacts
+    # have already passed verification above; return a transient count.
+    frozen_manifest = out_dir / 'manifest.json'
+    if resume and reused==len(records) and frozen_manifest.is_file():
+        original_manifest=json.loads(frozen_manifest.read_text(encoding='utf-8'))
+        if (any(original_manifest.get(k)!=v for k,v in identity.items())
+            or original_manifest.get('status')!='COMPLETE_MACHINE_ONLY'
+            or original_manifest.get('tile_count')!=len(records)
+            or original_manifest.get('candidate_foreground_pixels')!=sum(
+                rec['foreground_pixel_count'] for rec in records)
+            or original_manifest.get('candidate_fragments')!=sum(
+                rec['fragment_count'] for rec in records)
+            or original_manifest.get('tiles_with_fragment_extraction_skipped')!=sum(
+                rec['fragment_extraction_skip_reason'] is not None for rec in records)):
+            raise ValueError('Completed S86 manifest/source records disagree on resume')
+        required=['index.html','run_identity.json','tiles.ndjson',
+                  'fragments.ndjson','seam_advisories.ndjson']
+        if cfg.full_mask_npy:
+            required.append('full_candidate_mask.npy')
+        if any(not (out_dir / rel).is_file() for rel in required):
+            raise ValueError('Completed S86 output is missing a frozen required artifact')
+        if sha256_file(bmp_path)!=source_sha:
+            raise ValueError('S86 original BMP changed while reopening completed source')
+        return {**original_manifest,'tiles_reused_on_this_run':reused,
+                'frozen_source_manifest_bytes_preserved_on_resume':True}
     fragments_tmp = out_dir / 'fragments.ndjson.tmp'
     tiles_tmp = out_dir / 'tiles.ndjson.tmp'
     with fragments_tmp.open('w', encoding='utf-8') as frag_stream, \
