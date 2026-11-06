@@ -133,7 +133,8 @@ def test_s98_real_synthetic_BMP_reference_first_full_CLI_and_honest_zero_detecti
     assert len(report["candidates"])==2
     detected,undetected=report["candidates"]
     assert detected["model_name"]=="DETECTED"
-    assert detected["observed_source_centerline_positive_coverage"]>.94
+    # Intentional 14–16 px source gaps must lower geometric coverage.
+    assert .78<detected["observed_source_centerline_positive_coverage"]<.92
     assert detected["reference_first_source_piece_boundaries"][
         "assessable_unique_detected_piece_adjacencies"
     ]>=2
