@@ -54,6 +54,26 @@ def _lines(path,*,key=None):
     return count,seen,dict(category)
 
 
+def _count_selected_original_links(file,source_ids,*,selected_status):
+    """Audit machine-only 2D edges from exact serialized source inventories."""
+    count=0
+    selected=0
+    with Path(file).open(encoding="utf-8") as stream:
+        for number,line in enumerate(stream,1):
+            if not line.strip():
+                continue
+            edge=json.loads(line)
+            a,b=edge.get("component_a"),edge.get("component_b")
+            if a not in source_ids or b not in source_ids or a==b:
+                raise ValueError(f"Proposed source edge references non-original or self component at line {number}")
+            if edge.get("physical_auto_join") is not False or edge.get("status")!="UNKNOWN":
+                raise ValueError("Serialized machine edge asserts unsupported physical particle truth")
+            if edge.get("review_decision")==selected_status:
+                selected+=1
+            count+=1
+    return count,selected
+
+
 def _require_same(x,y,what):
     if x!=y:
         raise ValueError(f"Cross-stage disagreement: {what}: {x!r} != {y!r}")
@@ -144,6 +164,12 @@ def verify_stage_receipts(
     _require_same(s92_ids,observed_ids,"S92 exact original component ID set")
     gap_n,_,_=_lines(s92_dir/"gap_proposals_unknown.ndjson",
                      key="proposal_id")
+    _,selected_s92=_count_selected_original_links(
+        s92_dir/"gap_proposals_unknown.ndjson",observed_ids,
+        selected_status="PRIORITY_GAP_REVIEW_NOT_PHYSICAL_ACCEPT"
+    )
+    _require_same(selected_s92,s92_report["gap"]["gap_review_links"],
+                  "S92 selected gaps versus actual serialized candidate decisions")
     if "abstain_reason" not in s92_report["gap"]:
         _require_same(s92_report["gap"]["gap_candidates"],gap_n,
                       "S92 all geometric proposals")
@@ -219,6 +245,12 @@ def verify_stage_receipts(
                       "S96 original component preservation")
         jcount,_,_=_lines(s96_dir/"junction_hypotheses.ndjson",key="junction_id")
         pc,_,_=_lines(s96_dir/"visual_continuation_pairs_unknown.ndjson")
+        counted_edges,selected_s96=_count_selected_original_links(
+            s96_dir/"visual_continuation_pairs_unknown.ndjson",observed_ids,
+            selected_status="PROVISIONAL_2D_CROSSING_CONTINUATION"
+        )
+        _require_same(counted_edges,pc,"S96 exact serialized source edge count")
+        _require_same(selected_s96,pc,"S96 all emitted continuation pairs must be provisional")
         _require_same(jcount,geom.get("candidate_junctions",0),
                       "S96 junction hypothesis count")
         _require_same(pc,geom.get("provisional_visual_continuation_pairs",0),
