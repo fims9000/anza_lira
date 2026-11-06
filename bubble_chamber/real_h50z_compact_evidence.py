@@ -103,7 +103,7 @@ def _sample_crop(bmp,component,crop_size):
 
 def _overlaid_right(gray,location,selected,components,typemap):
     pic=cv2.cvtColor(gray,cv2.COLOR_GRAY2BGR)
-    x0,y0,x1,y1=location.xyxy
+    x0,y0,x1,y1=location.original_xyxy
     origin=np.array([x0,y0],float)
     for c in components:
         xy=np.asarray(c["points_xy"],float)
@@ -219,8 +219,8 @@ def package_verified_real_h50z(
         # Experts should view the original source image *and* this red dot
         # without seeing machine color-coded detection.
         mark=cv2.cvtColor(gray,cv2.COLOR_GRAY2BGR)
-        x=int(round(mid[0]-loc.xyxy[0]))
-        y=int(round(mid[1]-loc.xyxy[1]))
+        x=int(round(mid[0]-loc.original_xyxy[0]))
+        y=int(round(mid[1]-loc.original_xyxy[1]))
         cv2.circle(mark,(x,y),7,(190,190,190),1,lineType=cv2.LINE_8)
         neutral=blind/"original"/f"{local_id}_neutral_target.png"
         neutral_sha=_png(neutral,mark)
@@ -233,7 +233,7 @@ def package_verified_real_h50z(
         records_out.append({
             "sample_id":local_id,
             "source_component_id":cid,
-            "source_xyxy":list(loc.xyxy),
+            "source_xyxy":list(loc.original_xyxy),
             "observed_source_midpoint_xy":np.round(mid,4).tolist(),
             "source_original_png_sha256":orig_sha,
             "neutral_location_png_sha256":neutral_sha,
