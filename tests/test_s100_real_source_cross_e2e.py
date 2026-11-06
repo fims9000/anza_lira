@@ -203,3 +203,78 @@ def test_cross_photo_S96_source_mix_is_denied_before_image_export(
             private_out_dir=tmp_path/"MUST_NOT_EXPORT",
         )
     assert not (tmp_path/"MUST_NOT_EXPORT").exists()
+
+
+
+def test_full_one_command_original_bmp_s100_masks_and_sealed_reopen(
+    tmp_path,monkeypatch
+):
+    # Full public CLI end-to-end from just a private native BMP, no expert
+    # label, no pretrained model, no substituted fake "real H50Z" file.
+    bmp=tmp_path/"SYNTHETIC_X_FOR_SOFTWARE_REGRESSION_ONLY.bmp"
+    img=np.full((384,512),224,np.uint8)
+    cv2.line(img,(165,210),(255,210),27,1)
+    cv2.line(img,(210,165),(210,255),27,1)
+    assert cv2.imwrite(str(bmp),img)
+    from bubble_chamber import full_bmp_segmentation as f
+    monkeypatch.setattr(f,"predict_mask",lambda gray,cfg,az_model=None:gray<90)
+    from scripts.research.bubble_chamber.physicists_real_h50z_reproduce import main as one
+    root=tmp_path/"PRIVATE_H50Z_ONE_COMMAND_S100"
+    options=[
+        "run","--bmp",str(bmp),"--work-root",str(root),
+        "--method","contrast","--mask-junction-audit",
+        "--s100-cross-review","--s100-review-limit","4",
+        "--max-per-class","1","--crop-size","320",
+        "--max-side","512","--min-component-area","1",
+        "--max-fragments-per-tile","2048",
+    ]
+    source_sha=sha256_file(bmp)
+    one(options)
+    assert (root/"S93_SOURCES"/"S86"/"manifest.json").is_file()
+    assert (root/"S95_ALL_OBJECTS"/"report.json").is_file()
+    assert (root/"S96_JUNCTIONS"/"mask_derived_junctions.ndjson").is_file()
+    assert (root/"COMPACT_REAL_EVIDENCE"/"H50Z_BLIND_ORIGINAL_CROPS_PRIVATE.zip").is_file()
+    crosses=root/"S100_UNLABELED_X_CROSS_SHAPES"
+    z=crosses/"S100_REAL_SOURCE_X_SHAPE_DIAGNOSIS_PRIVATE.zip"
+    assert z.is_file()
+    report=json.loads((crosses/"report.json").read_text())
+    assert report["source_bmp_sha256"]==source_sha
+    assert report["four_arm_geometric_X_review_candidates"]>=1
+    assert report["requested_max_review_cases"]==4
+    assert report["requested_crop_size_px"]==320
+    hash_before=sha256_file(z)
+    manifest_before=sha256_file(root/"S93_SOURCES"/"S86"/"manifest.json")
+    one(options+["--resume"])
+    assert sha256_file(z)==hash_before
+    assert sha256_file(root/"S93_SOURCES"/"S86"/"manifest.json")==manifest_before
+    assert sha256_file(bmp)==source_sha
+    with pytest.raises(ValueError,match="Existing .*evidence"):
+        one(options+["--resume","--crop-size","304"])
+
+
+def test_s100_sealed_reopen_rejects_modified_machine_gallery_image(
+    tmp_path,monkeypatch
+):
+    bmp,img,s86,s92,s95,s96=_data(tmp_path,monkeypatch)
+    folder=tmp_path/"S100_FIRST"
+    r=run_s100_unlabeled_cross_review(
+        bmp_path=bmp,s86_dir=s86,s92_dir=s92,s95_dir=s95,s96_dir=s96,
+        private_out_dir=folder,max_review_cases=6,crop_size=320,
+    )
+    from bubble_chamber.s100_cross_review import verify_existing_s100_gallery
+    kwargs={
+        "bmp_path":bmp,"s86_dir":s86,"s92_dir":s92,"s95_dir":s95,
+        "s96_dir":s96,"out_dir":folder,
+        "max_review_cases":6,"crop_size":320
+    }
+    reopened=verify_existing_s100_gallery(**kwargs)
+    assert reopened["saved_S100_original_source_images_reopened_and_pixel_exact"]
+    assert reopened["compact_source_real_image_evidence_zip_sha256"]==r[
+        "compact_source_real_image_evidence_zip_sha256"
+    ]
+    page=json.loads((folder/"preview_receipts.json").read_text())
+    assert page["cases"]
+    image=folder/page["cases"][0]["original_photo_png"]
+    image.write_bytes(b"tampered original source picture")
+    with pytest.raises(ValueError,match="old native photo overlay image"):
+        verify_existing_s100_gallery(**kwargs)
