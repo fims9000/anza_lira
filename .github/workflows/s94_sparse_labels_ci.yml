@@ -1,0 +1,56 @@
+name: S94 sparse H50Z labels audit and protected bubble review
+on:
+  push:
+    branches:
+      - feature/bubble-s94-labels-guard-2026-11-06
+    paths:
+      - 'bubble_chamber/s94_*.py'
+      - 'bubble_chamber/s92_curve_review.py'
+      - 'bubble_chamber/s93_compact_real_overlay.py'
+      - 'scripts/research/bubble_chamber/physicists_s94_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s9[23]_*.py'
+      - 'tests/test_s94_*.py'
+      - '.github/workflows/s94_sparse_labels_ci.yml'
+      - 'docs/bubble_chamber/S94_*.md'
+  pull_request:
+    branches:
+      - feature/bubble-s93-one-command-real-preview-2026-11-05
+    paths:
+      - 'bubble_chamber/s94_*.py'
+      - 'bubble_chamber/s92_curve_review.py'
+      - 'bubble_chamber/s93_compact_real_overlay.py'
+      - 'scripts/research/bubble_chamber/physicists_s94_*.py'
+      - 'tests/test_s94_*.py'
+      - '.github/workflows/s94_sparse_labels_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  metadata-to-shape-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test-only dependencies
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: Validate sparse labels and affected S86/S87/S92/S93 contracts
+        run: >-
+          python -m pytest -q
+          tests/test_s94_sparse_keypoint_guard.py
+          tests/test_s93_compact_real_overlay.py
+          tests/test_s92_curve_geometry.py
+          tests/test_s92_private_whole_bmp.py
+          tests/test_s87_seam_continuity.py
+      - name: Syntax and metadata CLI
+        run: |
+          python -m compileall -q bubble_chamber/s94_sparse_keypoint_guard.py bubble_chamber/s92_curve_review.py bubble_chamber/s93_compact_real_overlay.py scripts/research/bubble_chamber/physicists_s94_labels_audit.py
+          python scripts/research/bubble_chamber/physicists_s94_labels_audit.py --help >/dev/null
+      - name: No private photos or labels copied into GitHub
+        run: |
+          if git ls-files bubble_chamber/s94* tests/test_s94* docs/bubble_chamber/S94* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json)$'; then
+            echo 'Do not upload private annotation data' >&2
+            exit 1
+          fi
