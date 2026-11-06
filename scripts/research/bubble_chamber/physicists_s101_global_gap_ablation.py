@@ -171,6 +171,50 @@ def run_s101_gap_ablation(
     return score
 
 
+
+def verify_existing_s101_source_gap_ablation(
+    *,s86_dir:Path,s92_dir:Path,existing_output_dir:Path,
+    config:GlobalGapConfig=GlobalGapConfig(),
+):
+    """Reopen a COMPLETE private S101 report, recompute all hypotheses read-only.
+
+    A completed --resume must not overwrite a source-locked result; recompute
+    expected output entirely in memory and require exact NDJSON and semantic
+    report equality. Original S86 masks, S92 SHA and source provenance are
+    rechecked before trusting the previously exported global alternatives.
+    """
+    out=Path(existing_output_dir).resolve()
+    doc=out/"report.json"
+    rowsfile=out/"global_gap_review_unknown.ndjson"
+    if not doc.is_file() or not rowsfile.is_file():
+        raise ValueError("S101 resume requires complete exact existing report and NDJSON")
+    manifest,observed,original,receipts=_checked_s92_source(s86_dir,s92_dir)
+    rows,expected=select_global_gap_path_review(
+        original,
+        original_source_component_ids={x["component_id"] for x in observed},
+        original_bmp_sha256=manifest["source_bmp_sha256"],
+        config=config
+    )
+    expected.update({
+        **receipts,
+        "source_original_photo_name":manifest["source_bmp_name"],
+        "source_S86_observed_components":len(observed),
+        "independent_S97_S98_human_reference_comparison":None,
+    })
+    if json.loads(doc.read_text(encoding="utf-8"))!=expected:
+        raise ValueError("S101 resume saved geometry report mismatches exact original source/config")
+    if rowsfile.read_bytes()!=_ndjson(rows):
+        raise ValueError("S101 resume saved alternatives changed or source candidates reordered")
+    for original_path,sha in (
+        (Path(s86_dir)/"manifest.json",receipts["source_s86_manifest_sha256"]),
+        (Path(s92_dir)/"report.json",receipts["source_s92_report_sha256"]),
+        (Path(s92_dir)/"gap_proposals_unknown.ndjson",receipts["source_s92_candidates_sha256"]),
+    ):
+        if sha256_file(original_path)!=sha:
+            raise ValueError("S101 original source changed during reopen")
+    return expected
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--s86-dir",type=Path,required=True)
