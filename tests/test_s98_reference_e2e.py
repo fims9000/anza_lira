@@ -150,7 +150,7 @@ def test_s98_real_synthetic_BMP_reference_first_full_CLI_and_honest_zero_detecti
     assert undetected["reference_first_model_link_recovery"] is None
     assert report["matched_observed_centerline_positive_coverage_pp"][0][
         "descriptive_delta_pp"
-    ]< -90.
+    ]< -75.  # Source has two intentional 14-16px gaps; 85% detected is expected.
     preview=report["posthoc_visual_case_preview"]["per_model"]
     assert preview["UNDETECTED"]["candidate_missing_link_claims_generated"] is False
     assert preview["DETECTED"]["total_reference_boundaries_unselected"]>=0
@@ -230,7 +230,7 @@ def test_s98_bad_model_labels_and_wrong_output_destination_are_blocked(
             "--s92","TWO="+str(s92),
             "--private-out-dir",str(tmp_path/"BAD_UNKNOWN")
         ])
-    with pytest.raises(ValueError,match="original S86/S97"):
+    with pytest.raises(ValueError,match="fresh PRIVATE"):
         run_audit(
             pack_dir=refdir,human_reference_json=human,
             candidates=[("ONE",source)],
