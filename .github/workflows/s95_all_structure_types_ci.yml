@@ -1,0 +1,83 @@
+name: S95 all observed bubble structures and operator quadratic guides
+on:
+  push:
+    branches:
+      - feature/bubble-s95-all-object-typing-operator-curves-2026-11-06
+    paths:
+      - 'bubble_chamber/s95_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s95_*.py'
+      - 'tests/test_s95_*.py'
+      - '.github/workflows/s95_all_structure_types_ci.yml'
+      - 'docs/bubble_chamber/S95_*.md'
+  pull_request:
+    branches:
+      - feature/bubble-s94-labels-guard-2026-11-06
+    paths:
+      - 'bubble_chamber/s95_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s95_*.py'
+      - 'tests/test_s95_*.py'
+      - '.github/workflows/s95_all_structure_types_ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-pixels-operator-curves-and-complete-typing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install synthetic research test dependencies only
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: S95 unit, synthetic all-objects image and S92-S94 regression
+        run: >-
+          python -m pytest -q
+          tests/test_s95_operator_curves_and_types.py
+          tests/test_s95_all_structure_review.py
+          tests/test_s95_human_review.py
+          tests/test_s95_gap_visual_review.py
+          tests/test_s94_sparse_keypoint_guard.py
+          tests/test_s93_compact_real_overlay.py
+          tests/test_s92_private_whole_bmp.py
+          tests/test_s92_curve_geometry.py
+          --basetemp=$RUNNER_TEMP/s95_synthetic_suite
+      - name: Export clearly marked synthetic software-demo image
+        run: |
+          set -eu
+          GENERATED="$(find "$RUNNER_TEMP/s95_synthetic_suite" -name S95_all_classes_comparison.jpg -print -quit)"
+          test -n "$GENERATED"
+          mkdir -p "$RUNNER_TEMP/s95_synthetic_visual"
+          python - "$GENERATED" "$RUNNER_TEMP/s95_synthetic_visual/S95_SYNTHETIC_SOFTWARE_TEST_NOT_H50Z.jpg" <<'PY'
+          import cv2
+          import sys
+          image=cv2.imread(sys.argv[1])
+          if image is None:
+              raise RuntimeError("Missing synthetic S95 contact sheet")
+          cv2.rectangle(image,(0,0),(image.shape[1],44),(20,20,20),-1)
+          cv2.putText(image,"SYNTHETIC SOFTWARE TEST - NOT REAL H50Z",
+                      (9,29),cv2.FONT_HERSHEY_SIMPLEX,0.65,(50,230,255),2,
+                      lineType=cv2.LINE_AA)
+          if not cv2.imwrite(sys.argv[2],image):
+              raise RuntimeError("Synthetic JPEG export failed")
+          PY
+      - name: Make artificial example available for reviewer preview only
+        uses: actions/upload-artifact@v4
+        with:
+          name: S95-SYNTHETIC-DEMO-NOT-REAL-H50Z
+          path: ${{ runner.temp }}/s95_synthetic_visual/S95_SYNTHETIC_SOFTWARE_TEST_NOT_H50Z.jpg
+          retention-days: 7
+          if-no-files-found: error
+      - name: S95 CLI and syntax
+        run: |
+          python -m compileall -q bubble_chamber/s95_operator_curves.py bubble_chamber/s95_all_structure_types.py bubble_chamber/s95_all_structures_review.py bubble_chamber/s95_human_review.py bubble_chamber/s95_gap_visual_review.py scripts/research/bubble_chamber/physicists_s95_all_classes.py scripts/research/bubble_chamber/physicists_s95_compile_human_review.py scripts/research/bubble_chamber/physicists_s95_visual_gap_review.py
+          python scripts/research/bubble_chamber/physicists_s95_all_classes.py --help >/dev/null
+          python scripts/research/bubble_chamber/physicists_s95_compile_human_review.py --help >/dev/null
+          python scripts/research/bubble_chamber/physicists_s95_visual_gap_review.py --help >/dev/null
+      - name: Keep private original films and operator guides out of the repo
+        run: |
+          if git ls-files bubble_chamber/s95* tests/test_s95* docs/bubble_chamber/S95* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json)$'; then
+            echo 'No private bubble photos, human geometry packages or model weights permitted' >&2
+            exit 1
+          fi
