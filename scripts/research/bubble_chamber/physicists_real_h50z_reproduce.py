@@ -31,6 +31,9 @@ from bubble_chamber.real_h50z_compact_evidence import (
 from bubble_chamber.s100_cross_review import (
     run_s100_unlabeled_cross_review,verify_existing_s100_gallery
 )
+from scripts.research.bubble_chamber.physicists_s101_global_gap_ablation import (
+    run_s101_gap_ablation,verify_existing_s101_source_gap_ablation,
+)
 
 
 def _package(*,args,s86,s92,s95,s96,out_dir):
@@ -92,6 +95,8 @@ def main(argv=None):
                      help="Also export S100 original-BMP geometric X-shapes without operator f1..f8")
     run.add_argument("--s100-review-limit",type=int,default=12,
                      help="Max native-source geometric X visual examples (0..48)")
+    run.add_argument("--s101-global-gap-ablation",action="store_true",
+                     help="Also compare global original-S92 2D gap paths vs frozen local greedy S92, no physical autoconnections")
     run.add_argument("--max-fragments-per-tile",type=int,default=2048)
     run.add_argument("--min-segment-length-px",type=float,default=4.)
     run.add_argument("--min-component-area",type=int,default=2)
@@ -187,6 +192,30 @@ def main(argv=None):
     # from previously pasted conversational numbers.
     _package(args=args,s86=s86,s92=s92,s95=s95,s96=s96,
              out_dir=root/"COMPACT_REAL_EVIDENCE")
+    if args.s101_global_gap_ablation:
+        gap=root/"S101_GLOBAL_GAP_PATH_ABLATION"
+        if gap.exists() and args.resume:
+            gap_result=verify_existing_s101_source_gap_ablation(
+                s86_dir=s86,s92_dir=s92,existing_output_dir=gap
+            )
+        else:
+            gap_result=run_s101_gap_ablation(
+                s86_dir=s86,s92_dir=s92,private_out_dir=gap
+            )
+        print(json.dumps({
+            "S101_status":gap_result["status"],
+            "source_S92_greedy_review_links":gap_result[
+                "source_S92_original_greedy_selected_count"
+            ],
+            "global_geometry_alternative_review_links":gap_result[
+                "S101_global_tentative_selected_count"
+            ],
+            "geometry_objective_change_not_physics_accuracy":gap_result[
+                "geometry_objective_delta"
+            ],
+            "source_same_photo_global_review":str(gap/"report.json"),
+            "physical_same_particle_established":False
+        },ensure_ascii=False,indent=2))
     if args.s100_cross_review:
         crosses=root/"S100_UNLABELED_X_CROSS_SHAPES"
         if crosses.exists() and args.resume:
