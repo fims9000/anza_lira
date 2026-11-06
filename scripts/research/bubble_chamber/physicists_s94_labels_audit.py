@@ -34,7 +34,7 @@ def main(argv=None):
     if not source.is_file():
         raise FileNotFoundError(source)
     checksum=sha256_file(source)
-    labels=json.loads(source.read_text(encoding="utf8-sig"))
+    labels=json.loads(source.read_text(encoding="utf-8-sig"))
     result=audit_label_collection(labels)
     result["labels_sha256"]=checksum
     result["source_name"]=source.name
