@@ -36,6 +36,21 @@ jobs:
           tests/test_s96_mask_junction_arms.py
           tests/test_real_bmp_run_receipts.py
           tests/test_real_h50z_compact_evidence.py
+          tests/test_full_bmp_segmentation.py
+          tests/test_s99_blind_sampling_and_morphology.py
+          tests/test_s99_real_source_end_to_end.py
+          tests/test_s98_trace_continuity.py
+          tests/test_s97_manual_reference.py
+          tests/test_s97_reference_benchmark.py
+          tests/test_s96_junction_workflow.py
+          tests/test_s95_all_structure_review.py
+          tests/test_s95_human_review.py
+          tests/test_s95_operator_curves_and_types.py
+          tests/test_s95_gap_visual_review.py
+          tests/test_s94_sparse_keypoint_guard.py
+          tests/test_s93_compact_real_overlay.py
+          tests/test_s92_private_whole_bmp.py
+          tests/test_s92_curve_geometry.py
           --basetemp=$RUNNER_TEMP/s100_unlabeled_native_2d_cross
       - name: CLI and implementation import sanity
         run: |
