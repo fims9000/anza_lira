@@ -157,6 +157,8 @@ def test_S97_prepare_evaluate_and_same_photo_baseline_both_S92_S96(
         "--candidate","S86_DETECTED="+str(selected),
         "--candidate","S86_EMPTY="+str(empty),
         "--s92-dir",str(s92),"--s96-dir",str(s96),
+        "--visual-preview-dir",str(tmp_path/"POSTHOC"),
+        "--visual-preview-tiles","2",
         "--private-out-json",str(report)
     ])
     body=json.loads(report.read_text())
@@ -179,6 +181,31 @@ def test_S97_prepare_evaluate_and_same_photo_baseline_both_S92_S96(
     assert body["source_candidate_receipts"][0]["s86_source_manifest_sha256"]==selected_sha
     assert sha256_file(selected/"manifest.json")==selected_sha
     assert sha256_file(bmp)==sha
+    vis=body["posthoc_error_maps_PRIVATE"]
+    assert vis["displayed_tiles"]==1
+    assert Path(vis["index_html"]).is_file()
+    assert vis["manifest_sha256"]==sha256_file(
+        tmp_path/"POSTHOC"/"posthoc_error_map_report.json"
+    )
+    post=json.loads((tmp_path/"POSTHOC"/"posthoc_error_map_report.json").read_text())
+    assert post["original_source_bmp_sha256"]==sha
+    assert post["posthoc_overlay_never_shown_during_original_reference_annotation"]
+    assert post["no_unreviewed_negative_pixel_GT"]
+    original_tile=cv2.imread(
+        str(tmp_path/"POSTHOC"/post["cards"][0]["unmodified_original_png"]),
+        cv2.IMREAD_GRAYSCALE
+    )
+    assert np.array_equal(original_tile,original)
+    for model in ("S86_DETECTED","S86_EMPTY"):
+        item=post["cards"][0]["model_maps"][model]
+        assert (tmp_path/"POSTHOC"/item["image"]).is_file()
+    assert post["cards"][0]["model_maps"]["S86_EMPTY"][
+        "human_positive_samples_missed_in_this_tile"
+    ]>100
+    assert post["cards"][0]["model_maps"]["S86_DETECTED"][
+        "human_positive_samples_covered_in_this_tile"
+    ]>100
+    assert sha256_file(refdir/"reference_pack.json")==sha256_file(packfile)
     with pytest.raises(ValueError,match="NEW private"):
         main([
             "evaluate","--pack-dir",str(refdir),
