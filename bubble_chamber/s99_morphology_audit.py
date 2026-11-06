@@ -146,8 +146,16 @@ def audit_s95_against_blind_source_strokes(
         })
         class_confusion[kind].update(models)
     summary={}
+    numerical_keys=(
+        "human_strokes","human_samples","detector_observed_samples",
+        "detector_unobserved_samples",
+        "geometrically_ambiguous_abstained_samples",
+        "expected_morphology_samples",
+        "machine_other_known_morphology_samples",
+        "machine_unknown_morphology_samples"
+    )
     for kind in EXPECTED_S95:
-        row=by_kind[kind]
+        row={key:by_kind[kind].get(key,0) for key in numerical_keys}
         total=row["human_samples"]
         detected=row["detector_observed_samples"]
         summary[kind]={
