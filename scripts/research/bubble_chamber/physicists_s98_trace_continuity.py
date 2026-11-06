@@ -152,7 +152,8 @@ def run_audit(*,
                 "private_proposal_pack_path":str(lookup[name]),
             }
         recovery=(measure_proposal_recovery(
-            conditional,proposal_sets=proposal_sets
+            conditional,proposal_sets=proposal_sets,
+            source_observed_component_ids={c["component_id"] for c in components}
         ) if proposal_sets else None)
         trial={
             "model_name":name,
