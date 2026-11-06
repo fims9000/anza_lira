@@ -122,7 +122,7 @@ def test_verify_CLI_generates_local_html_and_json_only_after_success(tmp_path,mo
     assert (output/"index.html").is_file()
     with pytest.raises(ValueError,match="NEW private"):
         main(["--case",case,"--private-out-dir",str(output)])
-    with pytest.raises(FileNotFoundError,match="source"):
+    with pytest.raises(FileNotFoundError,match="Missing original machine-stage directory"):
         main(["--case","MISSING|/unknown/S86|/unknown/S92|/unknown/S95",
               "--private-out-dir",str(tmp_path/"NO_RESULT")])
     assert not (tmp_path/"NO_RESULT").exists()
