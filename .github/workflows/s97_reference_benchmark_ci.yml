@@ -42,7 +42,7 @@ jobs:
           --basetemp=$RUNNER_TEMP/s97_synthetic_execution
       - name: S97 CLI and source syntax
         run: |
-          python -m compileall -q bubble_chamber/s97_manual_reference.py bubble_chamber/s97_reference_viewer.py bubble_chamber/s97_link_audit.py scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py
+          python -m compileall -q bubble_chamber/s97_manual_reference.py bubble_chamber/s97_reference_viewer.py bubble_chamber/s97_link_audit.py bubble_chamber/s97_visual_error_maps.py scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py
           python scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py --help > /dev/null
           python scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py prepare --help > /dev/null
           python scripts/research/bubble_chamber/physicists_s97_reference_benchmark.py evaluate --help > /dev/null
