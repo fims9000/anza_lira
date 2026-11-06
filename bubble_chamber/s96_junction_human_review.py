@@ -24,6 +24,43 @@ STRUCTURES=("CROSSING","THREE_ARM_BRANCH","BUNDLE_OR_OVERLAP",
 PAIRINGS=("AB|CD","AC|BD","AD|BC","NONE","UNDECIDABLE")
 
 
+def _sampling_stratum(j):
+    n=len(j["ports"])
+    if n==4:
+        return "FOUR_ARM_MATCHABLE" if len(j["provisional_pairs"])==2 else "FOUR_ARM_ABSTAINED"
+    if n==3:return "THREE_ARM_BRANCH"
+    if n>=5:return "DENSE_BUNDLE"
+    return "OTHER"
+
+
+def balanced_blind_junction_sample(junctions,*,source_sha,max_cases):
+    """Deterministic shape-stratified sample; selection never sees expert GT."""
+    bytype={}
+    known=set()
+    for j in junctions:
+        ident=j["junction_id"]
+        if ident in known:
+            raise ValueError("Duplicate candidate junction identity")
+        known.add(ident)
+        bytype.setdefault(_sampling_stratum(j),[]).append(j)
+    for key in bytype:
+        bytype[key].sort(key=lambda x:sha256(
+            (source_sha+":"+x["junction_id"]).encode()).hexdigest())
+    groups=[k for k in (
+        "FOUR_ARM_MATCHABLE","FOUR_ARM_ABSTAINED","THREE_ARM_BRANCH",
+        "DENSE_BUNDLE","OTHER"
+    ) if bytype.get(k)]
+    chosen=[]
+    while len(chosen)<max_cases and groups:
+        remaining=[]
+        for group in groups:
+            if bytype[group] and len(chosen)<max_cases:
+                chosen.append(bytype[group].pop(0))
+            if bytype[group]:remaining.append(group)
+        groups=remaining
+    return chosen
+
+
 def _photo_case_id(source_sha,junction_id):
     return "j_"+sha256((source_sha+":"+junction_id).encode()).hexdigest()[:20]
 
@@ -230,9 +267,11 @@ def prepare_blind_junction_review(*,junctions,report,source_sha,
         bmp=GrayBMP8(bmp_path)
         if [bmp.height,bmp.width]!=report["image_shape_yx"]:
             raise ValueError("Wrong original photograph dimensions for S96 review")
-    # Source-hash order prevents choosing only visually impressive crossings.
-    picked=sorted(junctions,key=lambda x:sha256(
-        (source_sha+":"+x["junction_id"]).encode()).hexdigest())[:max_cases]
+    # Sample distinct FOUR/THREE/BUNDLE failure modes, not just the most
+    # frequent class. The machine's preferred *pairing* remains blinded.
+    picked=balanced_blind_junction_sample(
+        junctions,source_sha=source_sha,max_cases=max_cases
+    )
     cases=[]
     out_dir.mkdir(mode=0o700,parents=True)
     out_dir.chmod(0o700)
@@ -267,7 +306,8 @@ def prepare_blind_junction_review(*,junctions,report,source_sha,
         "source_image_available":bmp is not None,
         "all_machine_junctions":len(junctions),
         "sampled_cases":len(cases),
-        "sampling":"DETERMINISTIC_SOURCE_HASH; no operator labels involved",
+        "sampling":"DETERMINISTIC_STRATIFIED_BY_OBSERVED_ARMS_AND_ABSTENTION; SOURCE_HASH_IN_STRATUM; NO_GT",
+        "sampled_strata_counts":dict(Counter(_sampling_stratum(x) for x in picked)),
         "cases":cases,
         "physical_trajectory_identity_verified":False,
     }
