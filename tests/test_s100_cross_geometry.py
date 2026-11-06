@@ -113,7 +113,7 @@ def test_spread_endpoint_tangent_and_malformed_source_fail_closed():
                                source_bmp_sha256="e"*64)
     with pytest.raises(ValueError,match="bounded"):
         XShapeConfig(min_axes_cross_angle_deg=99.).validate()
-    with pytest.raises(ValueError,match="source SHA"):
+    with pytest.raises(ValueError,match="source BMP SHA256"):
         score_x_shape_junction(_junction(),representation=SOURCE_ORIGINAL,
                                source_bmp_sha256="wrong")
 
