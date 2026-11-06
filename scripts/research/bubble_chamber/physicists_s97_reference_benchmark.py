@@ -102,6 +102,7 @@ def _read_compatible_candidate(path,pack):
 
 def _read_join_pack(path,kind,manifest_sha,pack):
     file=path/"report.json"
+    report_sha=sha256_file(file)
     payload=json.loads(file.read_text(encoding="utf-8"))
     if (payload.get("source_s86_manifest_sha256")!=manifest_sha
         or payload.get("source_bmp_sha256")!=pack["source_bmp_sha256"]):
@@ -117,9 +118,9 @@ def _read_join_pack(path,kind,manifest_sha,pack):
     source=path/filename
     checksum=sha256_file(source)
     edges=_json_lines(source)
-    if sha256_file(source)!=checksum or sha256_file(file)!=sha256_file(file):
+    if sha256_file(source)!=checksum or sha256_file(file)!=report_sha:
         raise ValueError("S92/S96 source changed during link-audit preparation")
-    return edges,sha256_file(file),checksum
+    return edges,report_sha,checksum
 
 
 def main(argv=None):
@@ -234,7 +235,9 @@ def main(argv=None):
         "source_bmp_name":pack["source_bmp_name"],
         "source_bmp_sha256":pack["source_bmp_sha256"],
         "image_shape_yx":pack["image_shape_yx"],
-        "reviewer_id":args.reference_json.name, # not a personal identifier
+        "operator_visual_reviewer_id_local_PRIVATE":json.loads(
+            reference_path.read_text(encoding="utf-8-sig")
+        )["reviewer_id"],
         "source_reference_pack_sha256":pack_sha,
         "source_operator_reference_json_sha256":annotation_sha,
         "source_positive_reference_reviewed_ROIs":len(pack["roi_xyxy_source"]),
