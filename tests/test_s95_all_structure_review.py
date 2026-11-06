@@ -160,3 +160,28 @@ def test_s95_operator_curves_none_not_same_as_absent_pixelGT(tmp_path,monkeypatc
     assert report["full_recall_not_verified"]
     assert report["collisions_neutron_origin_unknown"]
     assert report["all_objects_include_short_garbage_like_and_unknown"]
+
+
+def test_S95_one_command_keeps_7px_short_stroke_discarded_by_standard_S93(tmp_path,monkeypatch):
+    from scripts.research.bubble_chamber.physicists_s95_all_classes import main
+    from bubble_chamber.s93_compact_real_overlay import run_one_command
+    from bubble_chamber import full_bmp_segmentation as s86
+    monkeypatch.setattr(s86,"predict_mask",
+                        lambda gray,cfg,az_model=None:gray<80)
+    gray=np.full((384,512),210,dtype=np.uint8)
+    cv2.line(gray,(100,100),(107,100),30,1)
+    source=tmp_path/"H50Z_030_01_407.bmp"
+    assert cv2.imwrite(str(source),gray)
+    regular=run_one_command(source,tmp_path/"REGULAR",method="contrast",
+                            max_side=512,preview_limit=0)
+    assert regular["s86_candidate_fragments"]==0
+    high_root=tmp_path/"HIGH_RECALL_ALL_CLASSES"
+    main(["--bmp",str(source),"--method","contrast",
+          "--private-out-dir",str(high_root),"--max-side","512"])
+    report=json.loads((high_root/"S95_ALL_OBJECTS"/"report.json").read_text())
+    assert report["source_s86_extracted_fragments"]>=1
+    assert report["source_fragments_deleted"]==0
+    assert report["all_extracted_line_categories"]["typed_components"]>=1
+    assert (high_root/"S95_ALL_OBJECTS"/"S95_all_classes_comparison.jpg").is_file()
+    assert (high_root/"S95_ALL_OBJECTS"/"S95_human_review.html").is_file()
+    assert sha256_file(source)==report["source_bmp_sha256"]
