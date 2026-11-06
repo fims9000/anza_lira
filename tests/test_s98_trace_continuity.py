@@ -206,3 +206,62 @@ def test_source_budget_duplicate_id_bad_proposal_and_bad_settings_fail_closed():
         measure_proposal_recovery(x,proposal_sets={
             "S92_GAP":[proposal("a","a","S92_GAP")]
         })
+
+
+
+def test_full_curved_coil_reference_detects_disconnected_observed_arms_without_parabola():
+    # Curved coil is a growing polar spiral: cannot be represented by a
+    # single endpoint-constrained quadratic without losing its turning.
+    theta=np.linspace(0.,2.5*np.pi,140)
+    radius=9.+4.*theta
+    xy=np.column_stack((
+        160.+radius*np.cos(theta),
+        160.+radius*np.sin(theta),
+    ))
+    expert=[{
+        "stroke_id":"human_coiling","visual_instance_id":"VISUAL_COIL_1",
+        "kind":"COILING_TRACK_LIKE","certainty":"CLEAR",
+        "points_xy_source_px":xy.tolist()
+    }]
+    fragments=[
+        {"component_id":"arm1","points_xy":xy[:36].copy()},
+        {"component_id":"arm2","points_xy":xy[43:90].copy()},
+        {"component_id":"arm3","points_xy":xy[97:].copy()},
+    ]
+    scored=discover_human_trace_piece_boundaries(
+        human_strokes=expert,observed_components=fragments,
+        radius_px=1.8,min_run_support_px=3.,
+        max_unobserved_gap_along_trace_px=80
+    )
+    assert scored["human_clear_positive_strokes"]==1
+    assert scored["per_human_stroke"][0]["human_visible_type"]=="COILING_TRACK_LIKE"
+    assert scored["per_human_stroke"][0]["unique_stable_detected_pieces"]==3
+    assert scored["assessable_unique_detected_piece_adjacencies"]==2
+    assert {
+        frozenset((x["component_a"],x["component_b"]))
+        for x in scored["conditionally_assessable_piece_adjacencies"]
+    }=={frozenset(("arm1","arm2")),frozenset(("arm2","arm3"))}
+    # The algorithm is independent of any fitted quadratic, and does not
+    # infer a particle type, neutron cause or an accepted true physics join.
+    recovery=measure_proposal_recovery(
+        scored,proposal_sets={"S92_GAP":[]}
+    )
+    assert recovery["union_selected_conditional_coverage"]==0.
+    assert recovery["partial_human_visible_not_particle_GT"] is True
+
+
+def test_proposed_edge_outside_source_S86_fails_when_exact_source_inventory_provided():
+    scored=discover_human_trace_piece_boundaries(
+        human_strokes=[human("manual","visual")],
+        observed_components=[
+            source("sourceA",20,70,40),
+            source("sourceB",85,130,40),
+        ]
+    )
+    with pytest.raises(ValueError,match="unknown original S86 source"):
+        measure_proposal_recovery(
+            scored,proposal_sets={
+                "S92_GAP":[proposal("sourceA","invented","S92_GAP")]
+            },
+            source_observed_component_ids={"sourceA","sourceB"},
+        )
