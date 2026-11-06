@@ -111,3 +111,58 @@ def test_forged_S92_priorities_and_wrong_source_manifest_rejected_before_writes(
             s86_dir=s86,s92_dir=s92,private_out_dir=out
         )
     assert not out.exists()
+
+
+
+def test_independent_original_only_S97_2D_line_benchmark_is_same_source_locked(
+    tmp_path,monkeypatch
+):
+    from bubble_chamber.s97_reference_viewer import prepare_independent_source_rois
+    bmp,s86,s92=_make(tmp_path,monkeypatch)
+    root=tmp_path/"HUMAN_ONLY_ORIGINAL_SOURCE"
+    pack=prepare_independent_source_rois(
+        bmp,root,roi_xyxy_source=[[0,0,384,256]],tile_size=512
+    )
+    reference={
+        "schema":pack["schema"],
+        "source_bmp_name":pack["source_bmp_name"],
+        "source_bmp_sha256":pack["source_bmp_sha256"],
+        "image_shape_yx":pack["image_shape_yx"],
+        "roi_xyxy_source":pack["roi_xyxy_source"],
+        "source_reference_pack_sha256":sha256_file(root/"reference_pack.json"),
+        "image_was_unmodified_original":True,
+        "machine_proposals_visible_during_annotation":False,
+        "full_exhaustive_negative_segmentation":False,
+        "data_source":"INDEPENDENT_OPERATOR_ORIGINAL_BMP_ONLY",
+        "reference_semantics":"PARTIAL_VISIBLE_2D_STROKES_NO_PARTICLE_GT",
+        "reviewer_id":"synthetic_source_independent",
+        "strokes":[{
+            "stroke_id":"original_source_human",
+            "visual_instance_id":"2D_visually_same_trajectory_only",
+            "kind":"TRACK_LIKE","certainty":"CLEAR",
+            "points_xy_source_px":[[float(x),90.] for x in range(20,271,10)],
+            "note":"Generated synthetic physical-image-like stroke, no particle identity",
+        }]
+    }
+    human=tmp_path/"INDEPENDENT_SOURCE_STROKES.json"
+    human.write_text(json.dumps(reference),encoding="utf-8")
+    out=tmp_path/"S101_COMPARED_TO_HUMAN_VISUAL_SOURCE"
+    main([
+        "--s86-dir",str(s86),
+        "--s92-dir",str(s92),
+        "--s97-pack-dir",str(root),
+        "--s97-human-reference",str(human),
+        "--private-out-dir",str(out)
+    ])
+    report=json.loads((out/"report.json").read_text())
+    performance=report["independent_S97_S98_human_reference_comparison"]
+    assert performance["independent_human_source_pack_sha256"]==sha256_file(
+        root/"reference_pack.json"
+    )
+    assert performance["independent_human_annotations_sha256"]==sha256_file(human)
+    assert performance["conditional_visual_2D_source_piece_adjacency_only"]
+    assert performance["not_complete_physical_track_link_recall_or_precision"]
+    assert performance["assessable_human_positive_source_piece_boundaries"]>=1
+    assert performance["old_s92_selected_boundary_coverage"] is not None
+    assert performance["s101_global_selected_boundary_coverage"] is not None
+    assert report["no_claim_of_validation_improvement_without_independent_S97_S98_reference"]
