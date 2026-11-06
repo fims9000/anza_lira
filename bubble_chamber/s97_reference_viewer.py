@@ -180,7 +180,13 @@ function render(){
  updateDrawing();
 }
 function setMessage(message){el('status').textContent=message;}
-el('tile').onchange=()=>{currentTile=Number(el('tile').value);render();};
+el('tile').onchange=()=>{
+ const next=Number(el('tile').value);
+ if(current.length&&!confirm('Незавершённая линия будет потеряна. Перейти на другую плитку?')){
+  el('tile').value=String(currentTile);return;
+ }
+ currentTile=next;render();
+};
 el('drawing').addEventListener('click',event=>{
  const bounds=event.currentTarget.getBoundingClientRect();
  const t=TILES[currentTile];
@@ -256,11 +262,17 @@ el('import').onchange=async event=>{
    if(typeof row.stroke_id!=='string'||next.has(row.stroke_id)
       ||!KINDS.includes(row.kind)||!CERTAINTY.includes(row.certainty)
       ||typeof row.visual_instance_id!=='string'
+      ||row.visual_instance_id.length<1||row.visual_instance_id.length>96
+      ||typeof row.stroke_id!=='string'||row.stroke_id.length<1
+      ||row.stroke_id.length>100
       ||!Array.isArray(row.points_xy_source_px)
       ||row.points_xy_source_px.length<2
       ||typeof row.note!=='string'||row.note.length>600)
      throw Error('Неверная запись кривой или повтор ID');
    if(!TILES.some(t=>contains(t,row)))throw Error('Кривая выходит за выбранную область');
+   if(!row.points_xy_source_px.every(pt=>Array.isArray(pt)
+     &&pt.length===2&&pt.every(v=>typeof v==='number'&&Number.isFinite(v))))
+     throw Error('Некорректные координаты исходных точек');
    for(let j=1;j<row.points_xy_source_px.length;j++){
     const a=row.points_xy_source_px[j-1],b=row.points_xy_source_px[j];
     if(!Array.isArray(a)||!Array.isArray(b)||a.length!==2||b.length!==2
