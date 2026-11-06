@@ -60,7 +60,7 @@ def _sources(tmp,monkeypatch,*,include_s96=True):
     s96=None
     if include_s96:
         s96=tmp/"ACTUAL_SYNTHETIC_S96"
-        run_s96(s86,s95,s96,bmp_path=bmp,preview_limit=0)
+        run_s96(s86,s95,s96,bmp_path=bmp,preview_limit=1)
     return bmp,img,s86,s92,s95,s96
 
 
