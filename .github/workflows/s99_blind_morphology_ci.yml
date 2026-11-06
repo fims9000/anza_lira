@@ -35,6 +35,17 @@ jobs:
           tests/test_s98_trace_continuity.py
           tests/test_s97_manual_reference.py
           tests/test_s97_reference_benchmark.py
+          tests/test_s96_junction_graph.py
+          tests/test_s96_junction_workflow.py
+          tests/test_s96_mask_junction_arms.py
+          tests/test_s95_all_structure_review.py
+          tests/test_s95_human_review.py
+          tests/test_s95_operator_curves_and_types.py
+          tests/test_s95_gap_visual_review.py
+          tests/test_s94_sparse_keypoint_guard.py
+          tests/test_s93_compact_real_overlay.py
+          tests/test_s92_private_whole_bmp.py
+          tests/test_s92_curve_geometry.py
           --basetemp=$RUNNER_TEMP/s99_original_photo_geometry
       - name: Import and CLI smoke
         run: |
