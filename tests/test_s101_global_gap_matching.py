@@ -182,3 +182,65 @@ def test_empty_and_zero_reoptimizable_keep_undefined_improvement_not_fake_succes
     assert unsafe[0]["global_review_decision"]==EXCLUDED
     assert metadata["S101_global_tentative_selected_count"]==0
     assert metadata["preserved_unsafe_or_ambiguous_source_candidates"]==1
+
+
+
+def test_exact_branch_and_bound_matches_independent_bruteforce_for_seeded_graphs():
+    from itertools import combinations
+    import random
+
+    rng=random.Random(20261106)
+    universe=("A","B","C","D","E")
+    for case in range(16):
+        edges=[]
+        used_pairs=set()
+        while len(edges)<7:
+            a,b=sorted(rng.sample(universe,2))
+            pa,pb=rng.randrange(2),rng.randrange(2)
+            k=(a,pa,b,pb)
+            if k in used_pairs:continue
+            used_pairs.add(k)
+            edges.append(edge(
+                f"seed{case}_edge{len(edges)}",a,pa,b,pb,
+                round(rng.uniform(.2,.99),4)
+            ))
+        # Independent direct enumeration of every 2^7 subset: do not call
+        # S101's solver or union-find logic to construct expected objective.
+        best=0.
+        for n in range(len(edges)+1):
+            for idxs in combinations(range(len(edges)),n):
+                chosen=[edges[i] for i in idxs]
+                ports=[
+                    (e["component_a"],e["port_a"]) for e in chosen
+                ]+[
+                    (e["component_b"],e["port_b"]) for e in chosen
+                ]
+                if len(ports)!=len(set(ports)):
+                    continue
+                # Independent graph forest test using Euler's relation:
+                # for an undirected simple graph, a forest has |E| = |V|-cc.
+                graph={}
+                for e in chosen:
+                    a,b=e["component_a"],e["component_b"]
+                    graph.setdefault(a,set()).add(b)
+                    graph.setdefault(b,set()).add(a)
+                seen=set()
+                cc=0
+                for node in graph:
+                    if node in seen:continue
+                    cc+=1
+                    todo=[node]
+                    while todo:
+                        v=todo.pop()
+                        if v in seen:continue
+                        seen.add(v)
+                        todo.extend(graph[v]-seen)
+                if len(chosen)!=len(graph)-cc:
+                    continue
+                best=max(best,sum(x["geometry_score"] for x in chosen))
+        _,meta=select_global_gap_path_review(
+            edges,original_source_component_ids=set(universe),
+            original_bmp_sha256="a"*64
+        )
+        assert meta["s101_global_geometry_objective"]==pytest.approx(best,abs=1e-6)
+        assert meta["solver_mode_counts"]=={"EXACT_COMPONENT_PORT_LINEAR_FOREST":1}
