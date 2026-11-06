@@ -40,6 +40,12 @@ def main(argv=None):
     parser.add_argument("--checkpoint",type=Path,
                         help="For original source-locked AZUNet only")
     parser.add_argument("--max-side",type=int,default=2048)
+    parser.add_argument("--min-length-px",type=float,default=4.,
+                        help="High-recall S86 extraction includes >=4px strokes; much noisier than S93 default")
+    parser.add_argument("--min-component-area",type=int,default=2,
+                        help="Keep small original foreground components as candidates")
+    parser.add_argument("--max-fragments-per-tile",type=int,default=2048,
+                        help="Increase bounded extraction budget; inspect skipped S86 tiles")
     parser.add_argument("--resume-s93",action="store_true",
                         help="If S93 partially ran previously, safely resume it")
     args=parser.parse_args(argv)
@@ -55,6 +61,9 @@ def main(argv=None):
             args.bmp,out/"S93_SOURCES",method=args.method,
             checkpoint=args.checkpoint,labels_path=args.labels,
             max_side=args.max_side,resume=args.resume_s93,
+            min_segment_length_px=args.min_length_px,
+            min_component_area=args.min_component_area,
+            max_fragments_per_tile=args.max_fragments_per_tile,
         )
         s86=out/"S93_SOURCES"/"S86"
         s92=out/"S93_SOURCES"/"S92"
@@ -73,6 +82,7 @@ def main(argv=None):
         "source_photo":result["source_bmp_name"],
         "class_counts":result["all_extracted_line_categories"]["categories"],
         "all_components_preserved":result["source_fragments_deleted"]==0,
+        "s86_tiles_missing_fragment_extraction":result["source_s86_tiles_skipped"],
         "photo_overlay":(
             str(out/"S95_ALL_OBJECTS"/result["all_classes_comparison_file"])
             if result["all_classes_comparison_file"] else None
