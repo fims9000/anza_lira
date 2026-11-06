@@ -261,6 +261,10 @@ def run_s100_unlabeled_cross_review(
     if [bmp.height,bmp.width]!=manifest["image_shape_yx"]:
         raise ValueError("S100 original photo dimension receipt mismatch")
     picked=_pick_review_cases(candidates,max_review_cases)
+    if any(not(0<=x["center_xy_source"][0]<bmp.width and
+               0<=x["center_xy_source"][1]<bmp.height)
+           for x in picked):
+        raise ValueError("S100 proposed source junction center is outside original BMP")
     ids_by_mode={(SOURCE_ORIGINAL,x["junction_id"]):x for x in rows}
     ids_by_mode.update({(SOURCE_MASK,x["junction_id"]):x for x in masks})
     private_out_dir.mkdir(parents=True,mode=0o700)
@@ -295,6 +299,7 @@ def run_s100_unlabeled_cross_review(
     summary.update({
         "status":"SOURCE_SHA_VERIFIED_ORIGINAL_BMP_MACHINE_X_SHAPE_REVIEW_NOT_GT",
         "source_bmp_name":verified["original_bmp_name"],
+        "source_shape_yx":[bmp.height,bmp.width],
         "original_bmp_bytes_SHA_verified":True,
         "S86_manifest_sha256":sha256_file(s86_dir/"manifest.json"),
         "S92_report_sha256":sha256_file(s92_dir/"report.json"),
