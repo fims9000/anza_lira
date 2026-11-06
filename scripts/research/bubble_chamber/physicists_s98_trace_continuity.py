@@ -76,7 +76,7 @@ def run_audit(*,
         raise ValueError("Never write S98 results inside any original S86/S97 source")
     names=[n for n,_ in candidates]
     if not names or len(names)>8 or len(set(names))!=len(names):
-        raise ValueError("S98 needs 1..8 distinctly named candidate S86 runs")
+        raise ValueError("Duplicate or out-of-bounds S98 candidate names (1..8 distinct S86 runs required)")
     for name in names:
         _candidate_spec(name+"=/PRIVATE/"+"dummy")  # enforce safe ASCII run label
     if set(s92_packs)-set(names) or set(s96_packs)-set(names):
