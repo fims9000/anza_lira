@@ -108,8 +108,7 @@ def test_prepare_source_reference_is_original_lossless_private_and_shielded_from
     assert "Скачать независимую разметку" in page
     assert "S86" not in page or "машинных масок" in page.lower()
     assert sha256_file(bmp)==origsha
-    with pytest.raises(ValueError,match="NEW private"):
-        # Actual source-prep error text is "new PRIVATE", ignore case.
+    with pytest.raises(ValueError,match="new PRIVATE"):
         prepare_independent_source_rois(bmp,tmp_path/"REF")
 
 
