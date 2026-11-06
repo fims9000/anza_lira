@@ -24,6 +24,7 @@ from .s95_operator_curves import validate_operator_curve_package
 from .s95_all_structure_types import (
     PALETTE_BGR,type_all_observed_components,human_mark_objects,
 )
+from .s95_human_review import build_review_html
 
 SCHEMA="S95_PRIVATE_ALL_STRUCTURES_REVIEW_V1"
 
@@ -188,6 +189,8 @@ def run_s95(
         "status":"ALL_S86_EXTRACTED_FRAGMENTS_TYPED_MACHINE_REVIEW_ONLY",
         "source_bmp_name":source_name,
         "source_bmp_sha256":manifest["source_bmp_sha256"],
+        "image_shape_yx":shape,
+        "offline_human_review_file":"S95_human_review.html",
         "source_s86_manifest_sha256":manifest_sha,
         "source_s92_report_sha256":sha256_file(s92_directory/"report.json"),
         "source_labels_sha256":labels_sha,
@@ -259,6 +262,8 @@ def run_s95(
         "<p>Ничего из S86 не удалено. Видимые линии и реперы могут пересекаться. "
         "Пучок и завиток не означают подтверждённое столкновение или тип частицы.</p>"
         "<p>Категории: "+html.escape(str(summary["categories"]))+"</p>"
+        "<p><a href='S95_human_review.html'>Открыть ручную проверку: трек/артефакт/неясно, "
+        "крест/пучок/завиток/пересечение</a></p>"
         +("<img src='S95_all_classes_comparison.jpg' alt='real machine overlay'/>"
           if source is not None else
           "<p>Нет исходного BMP: экспортированы координаты и классификация без фото.</p>")
@@ -274,5 +279,19 @@ def run_s95(
         raise ValueError("Operator curve source changed mid-run")
     if bmp_path is not None and sha256_file(bmp_path)!=report["source_bmp_sha256"]:
         raise ValueError("Original source photo changed mid-run")
-    _write_private(private_output/"report.json",_json(report))
+    report_path=private_output/"report.json"
+    _write_private(report_path,_json(report))
+    reference_shape=source.shape[:2] if source is not None else shape
+    review_html=build_review_html(
+        source_report=report,
+        source_report_sha256=sha256_file(report_path),
+        objects=objects,components=components,
+        image_shape_yx=shape,
+        small_shape_yx=reference_shape,
+        source_image_available=source is not None,
+    )
+    _write_private(
+        private_output/"S95_human_review.html",
+        review_html.encode("utf8")
+    )
     return report
