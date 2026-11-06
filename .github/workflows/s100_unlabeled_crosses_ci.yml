@@ -1,0 +1,64 @@
+name: S100 source-locked unlabeled 2D X geometry on original H50Z mask/source arms
+on:
+  push:
+    branches:
+      - feature/bubble-s100-unlabeled-cross-shape-review-2026-11-06
+    paths:
+      - 'bubble_chamber/s100_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s100_*.py'
+      - 'tests/test_s100_*.py'
+      - '.github/workflows/s100_unlabeled_crosses_ci.yml'
+      - 'docs/bubble_chamber/S100_*.md'
+      - 'scripts/research/bubble_chamber/physicists_real_h50z_reproduce.py'
+  pull_request:
+    branches:
+      - feature/bubble-real-h50z-single-command-compact-evidence-2026-11-06
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-source-fiducial-agnostic-X:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install binary-mask and native-source geometry dependencies
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: Review autonomous geometric 4-arm crossing and actual original source pixel audit
+        run: >-
+          python -m pytest -q
+          tests/test_s100_cross_geometry.py
+          tests/test_s100_real_source_cross_e2e.py
+          tests/test_s96_junction_graph.py
+          tests/test_s96_mask_junction_arms.py
+          tests/test_real_bmp_run_receipts.py
+          tests/test_real_h50z_compact_evidence.py
+          tests/test_full_bmp_segmentation.py
+          tests/test_s99_blind_sampling_and_morphology.py
+          tests/test_s99_real_source_end_to_end.py
+          tests/test_s98_trace_continuity.py
+          tests/test_s97_manual_reference.py
+          tests/test_s97_reference_benchmark.py
+          tests/test_s96_junction_workflow.py
+          tests/test_s95_all_structure_review.py
+          tests/test_s95_human_review.py
+          tests/test_s95_operator_curves_and_types.py
+          tests/test_s95_gap_visual_review.py
+          tests/test_s94_sparse_keypoint_guard.py
+          tests/test_s93_compact_real_overlay.py
+          tests/test_s92_private_whole_bmp.py
+          tests/test_s92_curve_geometry.py
+          --basetemp=$RUNNER_TEMP/s100_unlabeled_native_2d_cross
+      - name: CLI and implementation import sanity
+        run: |
+          python -m compileall -q bubble_chamber/s100_cross_geometry.py bubble_chamber/s100_cross_review.py scripts/research/bubble_chamber/physicists_s100_unlabeled_cross_review.py
+          python scripts/research/bubble_chamber/physicists_s100_unlabeled_cross_review.py --help >/dev/null
+      - name: Never commit source photo, model weights or human labels to S100
+        run: |
+          if git ls-files bubble_chamber/s100* tests/test_s100* docs/bubble_chamber/S100* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json|csv)$'; then
+            echo 'No private H50Z photo or expert data in public S100 repository' >&2
+            exit 1
+          fi
