@@ -25,12 +25,21 @@ from bubble_chamber.s93_compact_real_overlay import run_one_command
 from bubble_chamber.s95_all_structures_review import run_s95
 from bubble_chamber.s96_junction_workflow import run_s96
 from bubble_chamber.real_h50z_compact_evidence import (
-    package_verified_real_h50z,evaluate_blind_component_cases
+    package_verified_real_h50z,evaluate_blind_component_cases,
+    verify_existing_sealed_evidence,
 )
 
 
 def _package(*,args,s86,s92,s95,s96,out_dir):
-    report=package_verified_real_h50z(
+    if out_dir.exists() and getattr(args,"resume",False):
+        report=verify_existing_sealed_evidence(
+            source_bmp_path=args.bmp,s86_dir=s86,s92_dir=s92,
+            s95_dir=s95,s96_dir=s96,evidence_dir=out_dir,
+            case_id=args.case,max_per_class=args.max_per_class,
+            crop_size=args.crop_size
+        )
+    else:
+        report=package_verified_real_h50z(
         bmp_path=args.bmp,
         s86_dir=s86,
         s92_dir=s92,
@@ -40,7 +49,7 @@ def _package(*,args,s86,s92,s95,s96,out_dir):
         max_per_class=args.max_per_class,
         crop_size=args.crop_size,
         case_id=args.case,
-    )
+        )
     print(json.dumps({
         "status":report["status"],
         "source_bmp_sha256":report["source_bmp_sha256"],
