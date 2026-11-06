@@ -32,6 +32,7 @@ from bubble_chamber.s97_link_audit import (
     map_observed_components_to_reference,audit_provisional_joins
 )
 from bubble_chamber.s97_reference_viewer import prepare_independent_source_rois
+from bubble_chamber.s97_visual_error_maps import export_posthoc_error_maps
 
 
 def _json_lines(path):
@@ -146,6 +147,9 @@ def main(argv=None):
     e.add_argument("--s96-dir",type=Path,
                    help="Optional original-fragment S96 links from FIRST candidate S86")
     e.add_argument("--radius-px",type=float,default=2.)
+    e.add_argument("--visual-preview-dir",type=Path,
+                   help="OPTIONAL new private output for POSTHOC original/photo error maps; never fed back to human annotation")
+    e.add_argument("--visual-preview-tiles",type=int,default=12)
     e.add_argument("--private-out-json",type=Path,required=True)
     args=parser.parse_args(argv)
 
@@ -183,6 +187,7 @@ def main(argv=None):
         pack_dir,reference_path
     )
     rows=[]
+    candidates_for_visuals=[]
     links={}
     baseline_components=baseline_manifest_sha=None
     source_receipts=[]
@@ -201,6 +206,8 @@ def main(argv=None):
         row["s86_observed_components"]=len(components)
         row["all_extracted_source_fragments_preserved_by_S87"]=True
         rows.append(row)
+        if args.visual_preview_dir is not None:
+            candidates_for_visuals.append((name,components))
         source_receipts.append({
             "candidate_name":name,
             "s86_source_manifest_sha256":manifest_sha,
@@ -229,6 +236,17 @@ def main(argv=None):
             block["source_proposal_report_sha256"]=report_sha
             block["source_proposal_list_sha256"]=edges_sha
             links[kind]=block
+    posthoc=None
+    if args.visual_preview_dir is not None:
+        posthoc=export_posthoc_error_maps(
+            pack_dir=pack_dir,pack=pack,
+            reference_strokes=human,
+            candidate_runs=candidates_for_visuals,
+            out_dir=args.visual_preview_dir,
+            radius_px=args.radius_px,
+            max_tiles=args.visual_preview_tiles,
+            source_reference_sha256=pack_sha,
+        )
     result={
         "schema":EVALUATION_SCHEMA,
         "status":"MATCHED_INDEPENDENT_2D_HUMAN_POSITIVE_BENCHMARK_PRIVATE_ONLY",
@@ -250,6 +268,13 @@ def main(argv=None):
         "per_candidate_matched_positive_coverage":rows,
         "descriptive_paired_model_contrasts":paired_coverage_contrasts(rows),
         "optional_visual_instance_provisional_link_audits":links,
+        "posthoc_error_maps_PRIVATE":(
+            {"index_html":str(args.visual_preview_dir.resolve()/"index.html"),
+             "manifest_sha256":sha256_file(
+                 args.visual_preview_dir.resolve()/"posthoc_error_map_report.json"
+             ),"displayed_tiles":posthoc["source_tiles_displayed"]}
+            if posthoc is not None else None
+        ),
         "evaluation_scope":"ONLY_CONFIDENT_EXPERT_POSITIVE_2D_ROI_STROKES",
         "not_full_photo_recall":True,
         "no_dense_negative_mask":True,
