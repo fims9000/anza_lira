@@ -95,7 +95,7 @@ def test_compact_source_verified_packages_open_blind_zip_without_leaking_class(
         text=zip.read("index.html").decode()
         assert "S95" not in text
         assert "machine category" not in text.lower()
-        assert "оригинальной" in text or "исходной" in text
+        assert "Машинный класс и центрлиния здесь намеренно НЕ показаны" in text
         view=csv.DictReader(io.StringIO(zip.read("review_template.csv").decode()))
         rows=list(view)
         assert len(rows)==data["blind_source_examples"]
