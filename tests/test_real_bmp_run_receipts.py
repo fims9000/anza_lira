@@ -133,3 +133,19 @@ def test_empty_or_duplicate_multifilm_labels_fail():
         summarize_verification([])
     with pytest.raises(ValueError,match="one or more"):
         summarize_verification([{"case":"same"},{"case":"same"}])
+
+
+
+def test_forged_priority_s92_link_count_is_not_claimed_real(tmp_path,monkeypatch):
+    bmp,s86,s92,s95,s96=_inputs(tmp_path,monkeypatch)
+    # This falsifies the exact risk in reported H50Z run counts:
+    # a hand-edited summary alone must never be accepted as "5,213 joins".
+    report=s92/"report.json"
+    previous=json.loads(report.read_text(encoding="utf8"))
+    previous["gap"]["gap_review_links"]+=1
+    report.write_text(json.dumps(previous),encoding="utf8")
+    with pytest.raises(ValueError,match="S92 selected gaps"):
+        verify_stage_receipts(
+            case_name="405_SYNTHETIC_ONLY",
+            s86_dir=s86,s92_dir=s92,s95_dir=s95,original_bmp=bmp
+        )
