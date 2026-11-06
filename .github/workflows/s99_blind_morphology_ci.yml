@@ -1,0 +1,50 @@
+name: S99 blind original-BMP ROI sampling and partial visual morphology evaluation
+on:
+  push:
+    branches:
+      - feature/bubble-s99-blind-morphology-validation-2026-11-06
+    paths:
+      - 'bubble_chamber/s99_*.py'
+      - 'scripts/research/bubble_chamber/physicists_s99_*.py'
+      - 'tests/test_s99_*.py'
+      - '.github/workflows/s99_blind_morphology_ci.yml'
+      - 'docs/bubble_chamber/S99_*.md'
+  pull_request:
+    branches:
+      - feature/bubble-real-h50z-evidence-audit-2026-11-06
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-original-only-photo-morphology:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install actual segmentation and image-geometry dependencies
+        run: python -m pip install numpy scipy scikit-image opencv-python-headless==4.13.0.92 networkx scikit-learn pytest
+      - name: Strict S99 original-source reference vs S95 observable morphology
+        run: >-
+          python -m pytest -q
+          tests/test_s99_blind_sampling_and_morphology.py
+          tests/test_s99_real_source_end_to_end.py
+          tests/test_real_bmp_run_receipts.py
+          tests/test_s98_trace_continuity.py
+          tests/test_s97_manual_reference.py
+          tests/test_s97_reference_benchmark.py
+          --basetemp=$RUNNER_TEMP/s99_original_photo_geometry
+      - name: Import and CLI smoke
+        run: |
+          python -m compileall -q bubble_chamber/s99_blind_sampling.py bubble_chamber/s99_morphology_audit.py bubble_chamber/s99_posthoc_gallery.py scripts/research/bubble_chamber/physicists_s99_blind_morphology.py
+          python scripts/research/bubble_chamber/physicists_s99_blind_morphology.py --help >/dev/null
+          python scripts/research/bubble_chamber/physicists_s99_blind_morphology.py prepare --help >/dev/null
+          python scripts/research/bubble_chamber/physicists_s99_blind_morphology.py evaluate --help >/dev/null
+      - name: Prevent committing real original BMP, expert annotations, and model checkpoints
+        run: |
+          if git ls-files bubble_chamber/s99* tests/test_s99* docs/bubble_chamber/S99* | grep -Ei '\.(bmp|png|jpg|jpeg|pt|pth|npy|npz|zip|7z|json)$'; then
+            echo 'Private film scans, annotations, or weights cannot be stored in S99 code PR' >&2
+            exit 1
+          fi
