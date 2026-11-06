@@ -42,7 +42,7 @@ def main(argv=None):
              if line.strip()]
     input_sha=sha256_file(input_file)
     machine_sha=sha256_file(report_file)
-    human=json.loads(input_file.read_text(encoding="utf8-sig"))
+    human=json.loads(input_file.read_text(encoding="utf-8-sig"))
     result=compile_human_review(human,report,machine_sha,objects)
     result["human_review_source_sha256"]=input_sha
     result["machine_S95_class_list_sha256"]=sha256_file(source_file)
