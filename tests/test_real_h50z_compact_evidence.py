@@ -219,6 +219,7 @@ def test_single_command_real_source_pipeline_run_with_model_guard(
     main([
         "run","--bmp",str(bmp),"--work-root",str(root),
         "--method","contrast","--skip-s96",
+        "--s101-global-gap-ablation",
         "--crop-size","128","--max-side","512",
         "--max-per-class","1","--max-fragments-per-tile","512",
         "--min-component-area","1"
@@ -227,6 +228,10 @@ def test_single_command_real_source_pipeline_run_with_model_guard(
     assert (root/"S93_SOURCES"/"S92"/"report.json").is_file()
     assert (root/"S95_ALL_OBJECTS"/"report.json").is_file()
     assert not (root/"S96_JUNCTIONS").exists()
+    s101=root/"S101_GLOBAL_GAP_PATH_ABLATION"/"report.json"
+    assert s101.is_file()
+    original_s101_sha=sha256_file(s101)
+    assert json.loads(s101.read_text())["inferred_2D_advisories_not_observed_BMP_pixels"]
     receipt=json.loads((root/"COMPACT_REAL_EVIDENCE"/"compact_evidence_receipt.json").read_text())
     assert receipt["status"]=="TWO_SEPARATE_VERIFIED_PRIVATE_H50Z_DIAGNOSTIC_ARCHIVES"
     assert receipt["source_bmp_sha256"]==sha256_file(bmp)
@@ -245,11 +250,13 @@ def test_single_command_real_source_pipeline_run_with_model_guard(
     main([
         "run","--bmp",str(bmp),"--work-root",str(root),
         "--method","contrast","--skip-s96","--resume",
+        "--s101-global-gap-ablation",
         "--crop-size","128","--max-side","512",
         "--max-per-class","1","--max-fragments-per-tile","512",
         "--min-component-area","1"
     ])
     assert sha256_file(root/"COMPACT_REAL_EVIDENCE"/"H50Z_BLIND_ORIGINAL_CROPS_PRIVATE.zip")==before
+    assert sha256_file(s101)==original_s101_sha
     with pytest.raises(ValueError,match="Existing private H50Z evidence"):
         main([
             "run","--bmp",str(bmp),"--work-root",str(root),
