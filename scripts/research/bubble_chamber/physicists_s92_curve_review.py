@@ -22,6 +22,7 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--s86-dir",type=Path,required=True)
     parser.add_argument("--bmp",type=Path,help="frozen original 8-bit BMP; optional for private previews")
+    parser.add_argument("--labels",type=Path,help="optional original H50Z labels.json with start/f1..f8 (sparse keypoints, NOT masks)")
     parser.add_argument("--private-out-dir",type=Path,required=True)
     parser.add_argument("--preview-limit",type=int,default=20)
     parser.add_argument("--priority-centerline-tiles",action="store_true",
@@ -33,7 +34,8 @@ def main(argv=None):
     cfg=TraceReviewConfig(**{**vars(base),"max_gap_px":args.max_gap})
     report=run_s92(args.s86_dir,args.private_out_dir,bmp_path=args.bmp,
                    cfg=cfg,preview_limit=args.preview_limit,
-                   export_priority_tiles=args.priority_centerline_tiles)
+                   export_priority_tiles=args.priority_centerline_tiles,
+                   labels_path=args.labels)
     print(json.dumps({
         k:report[k] for k in (
             "status","source_fragments","observed_components_after_S87",
