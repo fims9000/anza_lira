@@ -354,6 +354,72 @@ def package_verified_real_h50z(
     return summary
 
 
+
+def verify_existing_sealed_evidence(
+    *,source_bmp_path:Path,s86_dir:Path,s92_dir:Path,s95_dir:Path,
+    s96_dir:Path|None,evidence_dir:Path,
+    case_id:str,max_per_class:int,crop_size:int,
+):
+    """Safe resume of a COMPLETE already exported pair of private zip files.
+
+    Revalidate actual source S86/S92/S95(/S96), original BMP bytes and
+    signed-by-content SHA-256 zip receipts; never claim success from an
+    unsealed/partial/mismatched previous packaging attempt.
+    """
+    evidence_dir=Path(evidence_dir).resolve()
+    receipt=evidence_dir/"compact_evidence_receipt.json"
+    machine=evidence_dir/"02_machine_after_human_review"/"verified_machine_only_report.json"
+    if not receipt.is_file() or not machine.is_file():
+        raise ValueError(
+            "Incomplete earlier evidence export: original stages stay intact; "
+            "choose a NEW output or repair the private package manually"
+        )
+    current=verify_stage_receipts(
+        case_name=case_id,s86_dir=s86_dir,s92_dir=s92_dir,s95_dir=s95_dir,
+        s96_dir=s96_dir,original_bmp=source_bmp_path
+    )
+    report=json.loads(receipt.read_text(encoding="utf8"))
+    bundle=json.loads(machine.read_text(encoding="utf8"))
+    if (report.get("schema")!=SCHEMA
+        or report.get("status")!="TWO_SEPARATE_VERIFIED_PRIVATE_H50Z_DIAGNOSTIC_ARCHIVES"
+        or report.get("source_bmp_sha256")!=current["original_bmp_sha256"]
+        or report.get("source_bmp_name")!=current["original_bmp_name"]
+        or bundle.get("schema")!=SCHEMA
+        or bundle.get("status")!="REAL_SOURCE_SHA_VERIFIED_MACHINE_SELECTED_DIAGNOSTIC_CROPS_NOT_GT"
+        or bundle.get("case")!=case_id
+        or bundle.get("source_bmp_sha256")!=current["original_bmp_sha256"]
+        or bundle.get("max_per_machine_category")!=max_per_class
+        or bundle.get("crop_side_px")!=crop_size
+        or bundle.get("verified_full_S86_S92_S95_S96_saved_stage_receipts")!=current
+        or report.get("blind_source_examples")!=bundle.get("sampled_actual_machine_source_components")):
+        raise ValueError("Existing private H50Z evidence does not match original BMP/stages/sampling config")
+    if (set(report.get("archives",{}))!={"blind","posthoc_machine"}
+        or report["archives"]["blind"]["file"]!="H50Z_BLIND_ORIGINAL_CROPS_PRIVATE.zip"
+        or report["archives"]["posthoc_machine"]["file"]!="H50Z_MACHINE_AFTER_REVIEW_PRIVATE.zip"):
+        raise ValueError("Existing H50Z source-only vs machine ZIP manifest is malformed")
+    for label,item in report["archives"].items():
+        p=evidence_dir/item["file"]
+        if (not p.is_file() or sha256_file(p)!=item.get("sha256")
+            or p.stat().st_size!=item.get("compressed_bytes")):
+            raise ValueError("Existing H50Z private ZIP is absent or has changed bytes")
+        with ZipFile(p) as zf:
+            if zf.testzip() is not None:
+                raise ValueError("Existing H50Z ZIP CRC check failed")
+            members=set(zf.namelist())
+            if label=="blind":
+                if "review_template.csv" not in members or "index.html" not in members:
+                    raise ValueError("Existing H50Z blind reviewer package incomplete")
+                if any("overlay" in x or "machine" in x for x in members):
+                    raise ValueError("Existing blind source reviewer leaked machine overlays")
+            else:
+                if ("verified_machine_only_report.json" not in members
+                    or "source_machine_classes.csv" not in members):
+                    raise ValueError("Existing H50Z sealed machine after-review evidence incomplete")
+                if zf.read("verified_machine_only_report.json")!=machine.read_bytes():
+                    raise ValueError("Existing H50Z ZIP content differs from original saved report")
+    return report
+
+
 def evaluate_blind_component_cases(
     *,machine_report_path:Path,blind_review_csv:Path,private_out_json:Path,
 ):
