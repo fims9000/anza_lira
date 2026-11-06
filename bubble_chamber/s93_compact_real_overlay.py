@@ -244,6 +244,9 @@ def run_one_command(
     preview_limit:int=12,
     resume:bool=False,
     labels_path:Path|None=None,
+    min_segment_length_px:float=12.,
+    min_component_area:int=15,
+    max_fragments_per_tile:int=512,
 )->dict:
     """Reuse verified existing S86/S92 output; never silently overwrite."""
     bmp_path=Path(bmp_path).resolve()
@@ -265,6 +268,11 @@ def run_one_command(
         raise ValueError("Checkpoint only permitted for AZUNet")
     if preview_limit<0 or preview_limit>64:
         raise ValueError("Preview limit must be 0..64")
+    if (not math.isfinite(min_segment_length_px)
+        or min_segment_length_px<4 or min_segment_length_px>200
+        or not 1<=min_component_area<=100
+        or not 1<=max_fragments_per_tile<=4096):
+        raise ValueError("Invalid S86 candidate extraction sensitivity")
     if private_root.exists() and not resume:
         raise FileExistsError("Private output exists; pass --resume after confirming same BMP")
     private_root.mkdir(mode=0o700,parents=True,exist_ok=True)
@@ -286,6 +294,9 @@ def run_one_command(
         "max_side":max_side,
         "max_gap_px":max_gap_px,
         "preview_limit":preview_limit,
+        "min_segment_length_px":min_segment_length_px,
+        "min_component_area":min_component_area,
+        "max_fragments_per_tile":max_fragments_per_tile,
         "S86_config":("s88_calibration_2026_11_synthetic_not_real_GT"),
     }
     if run_identity.exists():
@@ -302,6 +313,9 @@ def run_one_command(
     config=FullBMPConfig(
         method=method,core_size=384,halo=48,preview_limit=0,
         s88_low_snr=.816,s88_high_snr=1.7,
+        min_segment_length_px=min_segment_length_px,
+        min_component_area=min_component_area,
+        max_fragments_per_tile=max_fragments_per_tile,
     )
     s86_result=run_full_bmp(
         bmp_path,s86_dir,config,checkpoint=checkpoint,resume=resume
