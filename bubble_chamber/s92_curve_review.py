@@ -328,7 +328,7 @@ def run_s92(s86_directory:Path,private_output:Path,*,
     if labels_path is not None:
         labels_path=Path(labels_path).resolve()
         labels_sha=sha256_file(labels_path)
-        source_labels=json.loads(labels_path.read_text(encoding="utf8-sig"))
+        source_labels=json.loads(labels_path.read_text(encoding="utf-8-sig"))
         matched=parse_photo_labels(
             source_labels,manifest["source_bmp_name"],manifest["image_shape_yx"]
         )
