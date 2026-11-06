@@ -51,8 +51,15 @@ def test_full_bmp_shards_are_exact_cover_and_resumable(tmp_path):
     assert '<html' in (out / 'index.html').read_text()
     assert (out / 'fragments.ndjson').is_file()
     assert (out / 'seam_advisories.ndjson').is_file()
+    first_manifest_sha=full.sha256_file(out / 'manifest.json')
+    first_tiles_sha=full.sha256_file(out / 'tiles.ndjson')
+    first_fragments_sha=full.sha256_file(out / 'fragments.ndjson')
     second = full.run_full_bmp(source, out, cfg, resume=True)
     assert second['tiles_reused_on_this_run'] == 9
+    assert second['frozen_source_manifest_bytes_preserved_on_resume'] is True
+    assert full.sha256_file(out / 'manifest.json') == first_manifest_sha
+    assert full.sha256_file(out / 'tiles.ndjson') == first_tiles_sha
+    assert full.sha256_file(out / 'fragments.ndjson') == first_fragments_sha
     with pytest.raises(FileExistsError):
         full.run_full_bmp(source, out, cfg)
     with pytest.raises(ValueError, match='identity mismatch'):
