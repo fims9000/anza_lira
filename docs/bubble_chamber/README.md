@@ -1,3 +1,9 @@
+# Текущее состояние пузырьковой камеры (08.11.2026)
+
+Актуальная единая ветка: `research/bubble-chamber-graph-lira`. Краткое русскоязычное описание S86–S101, шести типов объектов, запуска на H50Z, причины визуального мусора и ограничений физической модели — [CURRENT_STATUS_RU_2026_11_08.md](CURRENT_STATUS_RU_2026_11_08.md). Ни количество найденных штрихов, ни синтетические тесты сами по себе не подтверждают точность на реальных снимках.
+
+---
+
 # Bubble chamber pilot P0 (new independent research line)
 
 Based on the **2026-10-14 Varvara `research/coronary-connectivity-repair`** head (`80a7521c2000a9eced23b492cb7ecf082bf64b4a`). This **does not change** the coronary/CT28 study, its patients, splits, thresholds, or saved metrics.
