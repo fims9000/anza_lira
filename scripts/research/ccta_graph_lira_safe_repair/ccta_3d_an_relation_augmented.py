@@ -163,7 +163,7 @@ class FoldNeuralCTTransform:
                 )
                 inside_fraction=record["sampling_inside_volume_fraction"]
                 if inside_fraction<self.coverage_audit_threshold:
-                    # keep the same padding used for encoder training
+                    # Keep the same padded inputs used to train the encoders.
                     self.low_coverage_patches.append({
                         "scan_id":patient,
                         "scene_id":row.scene_id,
@@ -221,7 +221,8 @@ def train_augmented_neural_relation(
     loaded=augmentation.load_inputs(args)
     if set(loaded["plans"].scan_id.astype(int))!=(TRAIN_IDS|VAL_IDS):
         raise ValueError("Unexpected train/val patient set in selected K10/15 evidence")
-    # replay geometry folds against their original scores before replacing CT scores
+    # K10/15 replaces the PAIR fusion stream. Replay the original fold models
+    # against their own saved scores before substituting neural CT evidence.
     geometry_evidence=augmentation.load_inputs(argparse.Namespace(
         scene_dir=scene_dir,clean_evidence_dir=geometry_evidence_dir,
     ))
