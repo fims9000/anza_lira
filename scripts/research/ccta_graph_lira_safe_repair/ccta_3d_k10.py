@@ -55,6 +55,7 @@ class ScenePrediction:
     candidate_count_junction: int
     relation_distribution: tuple[float, float, float, float]
     decision_keys_under_perturbation: tuple[str, ...]
+    structural_abstention_reason: str | None = None
 
 
 def verified_model_pack(path: Path) -> tuple[dict, str]:
@@ -217,6 +218,18 @@ class K10Inference:
             consistency=float(consistency),
             threshold=EVAL_CONSISTENCY,
         )
+        abstention_reason = None
+        if not accepted:
+            if base.get("endpoint_patch_fov_abstain"):
+                abstention_reason = "endpoint_outside_neural_patch"
+            elif float(base["confidence"]) < EVAL_TAU:
+                abstention_reason = "relation_confidence_below_tau"
+            elif proposed == "NONE":
+                abstention_reason = "predicted_none"
+            elif selected != proposed or not base["compatibility_satisfied"]:
+                abstention_reason = "incompatible_or_missing_candidate_set"
+            else:
+                abstention_reason = "consistency_below_threshold"
         score_lookup = base_scores.set_index("candidate_id")
         utility = 0.0
         for kind, key in (("PAIR", base["pair_candidate_id"]),
@@ -241,4 +254,5 @@ class K10Inference:
             candidate_count_junction=int((candidate_frame.candidate_type == "JUNCTION").sum()),
             relation_distribution=tuple(float(v) for v in base["probabilities"]),
             decision_keys_under_perturbation=tuple(repeats),
+            structural_abstention_reason=abstention_reason,
         )

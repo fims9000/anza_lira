@@ -8,6 +8,8 @@
 
 Текущий контроль для дальнейшей работы: `varvara/anza_lira_local_results/ct28_copy_count_ablations/joint_check/fusion_10_relation_15/` (далее **K10/15**). Он выбран как баланс точных repair, нулевых ложных принятых repair и сохранения JUNCTION/BOTH. Отдельного второго «основного» варианта нет. Краткий машинный итог и копии validation predictions/metrics находятся в `selected_validation/`; полный model pack и train scores остаются в локальной игнорируемой Git папке `varvara/`.
 
+В [README CCTA3D](ccta3d/README.md) отдельно приведены выбор связей в 368 готовых validation-сценах и восстановление масок на четырёх окнах train-пациента 953 и 22 окнах пяти development-validation пациентов.
+
 | Уровень | Зафиксированная версия K10/15 |
 |---|---|
 | PAIR/JUNCTION geometry local | HGB; по 5 position-only train-копий на исходный candidate, clean вес 0.5, каждая копия 0.1. |
@@ -78,7 +80,7 @@ PAIR использует 7 geometry + 38 CT-признаков; JUNCTION — 9 
 | Selective policy и perturbations | Какие решения безопасно принять и насколько они устойчивы? | Coverage, exact/false among accepted, type/identity consistency | K10/15: 52 точных / 0 ложных после gate. |
 | Patient/anatomy audit | Результат устойчив между пациентами и подгруппами? | Per-patient, patient-cluster bootstrap, scene family, competitive/isolated | Сохранены для validation; пять пациентов ограничивают вывод. |
 | Path construction | Достигает ли путь выбранных ветвей и следует ли нужной анатомии? | Topological success, поддержка CT, branch-specific proximity/length | Новый path v2: 52/52 топологически успешны; для 12 JUNCTION arms средняя близость к нужной дуге при 0.75 мм выросла с 0.651 до 0.870. |
-| Финальная маска | Улучшились ли сегментация и связность? | Dice, clDice, skeleton recall | **Не выполнено**; структурные и path-метрики не подменяют эти показатели. |
+| Финальная маска | Улучшились ли сегментация и связность? | Dice, clDice, проверка новых связей по эталону | Оценена в отдельных прогонах CCTA3D по повреждённым маскам с автоматически найденными окнами. |
 
 **Основа таблицы:** это перечень этапов и их метрик, без сравнения моделей; текущие значения относятся к K10/15, ранний candidate-level baseline явно отмечен отдельно. Финального победителя по end-to-end сегментации пока нет.
 

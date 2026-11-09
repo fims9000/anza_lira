@@ -2,6 +2,8 @@
 
 **Версия:** 2026-11-03. Цель — получить ПЕРВЫЕ РЕАЛЬНЫЕ масочные результаты для 3D CNN и AZConv3d, а не ещё один синтетический CI. Эта инструкция проверяет только 17 train + 5 development-val пациентов. **Шесть CT28 held-out test ID не открывать.**
 
+Команды ниже описывают исходный CUDA-протокол. Локальный запуск завершён на Mac с обучением CNN и ANZA на MPS и оценкой development-validation на CPU. Фактические результаты и отличия от инструкции собраны в [README CCTA3D](../../artifacts/varvara/ct28_graph_lira/ccta3d/README.md).
+
 ## 0. Что потребуется
 
 Ветка: `feature/ccta3d-local-experiment-handoff-2026-11-03`.
@@ -53,7 +55,7 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
 
 - `oof_pair_conv3d/oof_protocol.json`, `oof_pair_anza3d/oof_protocol.json`, аналогично JUNCTION;
 - `relation_conv3d/relation_protocol.json` и `relation_anza3d/relation_protocol.json` со статусом `experimental_patient_OOF_15copy_augmented_relation_head`;
-- `train_953_three_model_comparison.json` и `.md`, а также `conv3d_repaired.nii.gz` и `anza3d_repaired.nii.gz`.
+- `train_953_three_model_comparison.json`, а также `conv3d_repaired.nii.gz` и `anza3d_repaired.nii.gz`.
 
 Наличие файлов **не гарантирует успех исследования**: нужно проверить количество принятых решений, причины abstain и сегментационные метрики. При отсутствии улучшения ANZA вывод не менять задним числом.
 
@@ -90,13 +92,15 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py \
 
 ## 4. Что собрать из результатов
 
-Из `matched_val_comparison.json` и соответствующих NIfTI/JSON каждого пациента нужно сделать:
+Статус дополнительных проверок после основного запуска:
 
-1. Patient-level PAIR top-1 и JUNCTION top-1; число positive/negative candidates и selective coverage/false accept;
-2. 3D Dice/clDice before/after, GT-inconsistent/unknown bridge pairs и precision добавленных voxels;
-3. распределение отказов, объём патчей, долю CT sampling inside, влияние 3 out-of-FOV perturbations;
-4. сравнительные результаты CNN/ANZA на нескольких train-only random seeds;
-5. минимум 3 **реально наблюдавшихся** клинически интерпретируемых failure cases, лучше с 3D Slicer snapshot.
+- [x] PAIR/JUNCTION top-1 по пациентам в OOF-протоколах и метки отдельных кандидатов в CSV. Принятые и ложные решения по готовым сценам в структурном отчёте.
+- [x] Dice/clDice до и после, GT-inconsistent/unknown bridge pairs, доля добавленных вокселей внутри эталона и причины отказов по маскам.
+- [x] Отдельная оценка трёх случаев из исторического FOV-аудита по скору, рангу и решению на validation с замороженными моделями.
+- [ ] Сравнение CNN и ANZA на нескольких train-only seeds. Полностью оценён seed `20261102`. Дополнительное обучение остановлено по просьбе пользователя.
+- [x] Разбор трёх наблюдавшихся ошибок с косыми срезами CT и эталонным контуром. Независимая клиническая проверка остаётся открытой.
+
+[Результаты остальных пунктов плана](../../artifacts/varvara/ct28_graph_lira/ccta3d/README.md#остальные-пункты-плана)
 
 Не смешивать два протокола: `clean` relation head и `augmented_15` должны иметь отдельные каталоги и manifest SHA. Файл `ccta_3d_val_an_compare.py` теперь проверяет, что train relation protocol в каждом принятом результате соответствует запрошенному, и отвергает смешение.
 
@@ -105,9 +109,8 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py \
 - [x] Код и тесты для real CT28 scene tables, CT-signal ablations и 3D patch FOV;
 - [x] Patient OOF и 15-copy neural relation head, полностью реализованы в коде;
 - [x] Явная PAIR identity `neural_pair` и strict protocol checks в val comparison;
-- [ ] **Реальный training на ImageCAS CT** — пока нет доступа к исходным медицинским NIfTI в текущей облачной среде;
-- [ ] CNN/ANZA vs K10 реальные full-mask NIfTI и paired patient-level метрики;
+- [x] Локальное обучение CNN/ANZA на ImageCAS CT и проверка consistency на контролируемых validation-сценах;
+- [x] Пилот полного объёма train-пациента 953;
+- [x] Сравнение полных масок на пяти development-validation пациентах;
 - [ ] Natural segmentation failures и экспертная проверка;
 - [ ] Однократный blind held-out test.
-
-**Для завершения исследования нужно выполнить локальные команды; запуск unit/CI на синтетических HU нельзя выдавать за реальную медицинскую оценку.**
