@@ -371,6 +371,8 @@ def run_volume(
         }
         if not prediction.accepted:
             item["reason"] = "K10_abstain"
+            if prediction.structural_abstention_reason is not None:
+                item["structural_abstention_reason"] = prediction.structural_abstention_reason
             report["decisions"].append(item)
             continue
         if scene.scene_id in invalid_global:

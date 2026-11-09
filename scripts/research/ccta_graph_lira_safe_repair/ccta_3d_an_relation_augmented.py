@@ -49,6 +49,7 @@ EVAL_REPETITIONS=15
 EVAL_SEED=20260920
 POSITION_NOISE_MM=.8
 TANGENT_NOISE_DEG=20.
+GEOMETRY_EVIDENCE=SELECTED.parents[1]/"geometry_reference"
 
 
 class FoldNeuralCTTransform:
@@ -56,17 +57,17 @@ class FoldNeuralCTTransform:
 
     def __init__(
         self,*,pair_dir:Path,junction_dir:Path,variant:str,device:str="cpu",
-        min_inside_fraction:float=.75,
+        coverage_audit_threshold:float=.75,
     ):
         if variant not in {"anza3d","conv3d"}:
             raise ValueError("Unknown neural encoder type")
-        if not 0<=min_inside_fraction<=1:
-            raise ValueError("CT patch acceptance fraction outside [0,1]")
+        if not 0<=coverage_audit_threshold<=1:
+            raise ValueError("CT patch coverage audit threshold outside [0,1]")
         if device.startswith("cuda") and not torch.cuda.is_available():
             raise ValueError("CUDA requested but unavailable")
         self.variant=variant
         self.device=device
-        self.min_inside_fraction=min_inside_fraction
+        self.coverage_audit_threshold=coverage_audit_threshold
         self.by_kind={}
         self.provenance={}
         configs=[]
@@ -123,6 +124,7 @@ class FoldNeuralCTTransform:
         self.tracked_candidate_scenes=0
         self.tracked_candidate_predictions=0
         self.out_of_patch_perturbation_candidates=0
+        self.low_coverage_patches=[]
 
     def __call__(
         self,patient:int,repetition:int,endpoints:pd.DataFrame,
@@ -159,8 +161,16 @@ class FoldNeuralCTTransform:
                 patch,record=extract_candidate_patch(
                     ct,affine,coords,self.patch_config
                 )
-                if record["sampling_inside_volume_fraction"]<self.min_inside_fraction:
-                    raise ValueError("Neural CT patch crosses unsupported CT volume boundary")
+                inside_fraction=record["sampling_inside_volume_fraction"]
+                if inside_fraction<self.coverage_audit_threshold:
+                    # Keep the same padded inputs used to train the encoders.
+                    self.low_coverage_patches.append({
+                        "scan_id":patient,
+                        "scene_id":row.scene_id,
+                        "candidate_id":row.candidate_id,
+                        "augmentation_index":repetition+1,
+                        "inside_fraction":inside_fraction,
+                    })
                 if not record["all_endpoints_inside_patch"]:
                     # Train-only perturbation baseline: retain the frozen
                     # 15-copy sample weighting, but explicitly account for
@@ -189,6 +199,7 @@ def train_augmented_neural_relation(
     *,
     pair_oof:Path,junction_oof:Path,variant:str,
     output_dir:Path,baseline_dir:Path=SELECTED,
+    geometry_evidence_dir:Path=GEOMETRY_EVIDENCE,
     scene_dir:Path=SCENES,
     archive_dir:Path=augmentation.DEFAULT_ARCHIVE_DIR,
     device:str="cpu",
@@ -210,7 +221,21 @@ def train_augmented_neural_relation(
     loaded=augmentation.load_inputs(args)
     if set(loaded["plans"].scan_id.astype(int))!=(TRAIN_IDS|VAL_IDS):
         raise ValueError("Unexpected train/val patient set in selected K10/15 evidence")
-    geometry_folds,max_error=selected_training.fold_models_for_patients(loaded)
+    # K10/15 replaces the PAIR fusion stream. Replay the original fold models
+    # against their own saved scores before substituting neural CT evidence.
+    geometry_evidence=augmentation.load_inputs(argparse.Namespace(
+        scene_dir=scene_dir,clean_evidence_dir=geometry_evidence_dir,
+    ))
+    if geometry_evidence["protocol"]["source_sha256"]!=loaded["protocol"]["source_sha256"]:
+        raise ValueError("Geometry reference and K10/15 use different scene sources")
+    evidence_columns=["scene_id","candidate_id","candidate_type","scan_id","split",
+                      "local_oof_fold","geometry_score","ct_score"]
+    if not geometry_evidence["scores"][evidence_columns].equals(loaded["scores"][evidence_columns]):
+        raise ValueError("Geometry reference does not reproduce the selected K10/15 input streams")
+    geometry_folds,max_error=selected_training.fold_models_for_patients(geometry_evidence)
+    geometry_protocol_sha=sha256(geometry_evidence["paths"]["protocol"])
+    geometry_scores_sha=sha256(geometry_evidence["paths"]["scores"])
+    del geometry_evidence
     transform=FoldNeuralCTTransform(
         pair_dir=pair_oof,junction_dir=junction_oof,
         variant=variant,device=device,
@@ -274,9 +299,17 @@ def train_augmented_neural_relation(
         "position_noise_mm":POSITION_NOISE_MM,
         "tangent_noise_deg":TANGENT_NOISE_DEG,
         "geometry_OOF_reproduction_max_abs_error":max_error,
+        "geometry_reference_protocol_sha256":geometry_protocol_sha,
+        "geometry_reference_scores_sha256":geometry_scores_sha,
         "neural_patient_OOF_provenance":transform.provenance,
         "neural_candidate_scores_created":transform.tracked_candidate_predictions,
         "train_augmented_candidate_patches_with_truncated_endpoint_heatmap":transform.out_of_patch_perturbation_candidates,
+        "train_augmented_patch_coverage":{
+            "policy":"existing_candidate_patch_padding",
+            "audit_threshold":transform.coverage_audit_threshold,
+            "below_threshold_count":len(transform.low_coverage_patches),
+            "below_threshold_patches":transform.low_coverage_patches,
+        },
         "frozen_identity_policy":"PAIR is controlled at inference by explicit identity source; JUNCTION geometry-only",
         "validation_metrics":metrics,
         "held_out_test_accessed":False,
@@ -300,6 +333,7 @@ def main():
     p.add_argument("--junction-oof",type=Path,required=True)
     p.add_argument("--variant",choices=("anza3d","conv3d"),required=True)
     p.add_argument("--baseline-dir",type=Path,default=SELECTED)
+    p.add_argument("--geometry-evidence-dir",type=Path,default=GEOMETRY_EVIDENCE)
     p.add_argument("--scene-dir",type=Path,default=SCENES)
     p.add_argument("--archive-dir",type=Path,default=augmentation.DEFAULT_ARCHIVE_DIR)
     p.add_argument("--device",default="cpu")
@@ -309,6 +343,7 @@ def main():
         pair_oof=a.pair_oof,junction_oof=a.junction_oof,
         variant=a.variant,output_dir=a.output_dir,
         baseline_dir=a.baseline_dir,scene_dir=a.scene_dir,
+        geometry_evidence_dir=a.geometry_evidence_dir,
         archive_dir=a.archive_dir,device=a.device,
     )
     print(json.dumps({
