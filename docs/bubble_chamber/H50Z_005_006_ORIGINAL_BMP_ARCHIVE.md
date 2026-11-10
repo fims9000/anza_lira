@@ -1,9 +1,10 @@
 # H50Z 005/006 — verified original BMP archive
 
 This file records two original, **unaltered** 8-bit grayscale H50Z photographs.
-The source images are NOT committed to the public repository: copyright,
-redistribution rights and the related scientific data-use conditions have not
-been established. Do not publish either image without authorization.
+The source images are not committed to regular Git because the verified ZIP
+is about 320 MiB, outside normal source-history limits. On 2026-11-10 the
+user stated that they have redistribution rights for these BMPs. That rights
+statement is user-provided and has not been independently verified.
 
 ## Source files
 
@@ -29,9 +30,10 @@ text files and commits but has no binary Release-asset upload action.
 GitHub regular Git blocks objects larger than 100 MiB and does not
 recommend putting scientific datasets in the source history.
 
-## Recommended GitHub upload (after rights approval)
+## Recommended GitHub Release upload
 
-Use a **draft release** so the dataset is not exposed publicly before review:
+Upload to a **draft release** first; after verifying the asset and description,
+the repository owner can publish the release:
 
 ```bash
 gh auth login
@@ -45,8 +47,8 @@ gh release upload h50z-005-006-data \
   --repo fims9000/anza_lira
 ```
 
-Keep the release **draft** until the source owner has explicitly permitted
-public redistribution. For entirely private storage, use a private repository
+The user stated redistribution permission; the owner may publish the verified
+release after the upload has been checked. For private storage, use a private repository
 or a controlled-access data store. Do not add the full ZIP or unpacked BMPs
 to regular Git, and do not split and commit large binaries merely to evade the
 per-file Git size limit.
