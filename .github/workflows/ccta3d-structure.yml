@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - experiment/ccta3d-topology-anisotropy-2026-11-11
+    paths:
+      - 'models/**'
+      - 'scripts/research/ccta_graph_lira_safe_repair/**'
+      - 'tests/test_ccta*'
+      - 'tests/test_ct28*'
+      - '.github/workflows/ccta3d-structure.yml'
   workflow_dispatch:
 
 concurrency:
