@@ -89,6 +89,41 @@ def _soft_min(values:torch.Tensor,temperature:float):
             +temperature*math.log(values.shape[-1]))
 
 
+class FuzzyConnectedness3d(nn.Module):
+    """Differentiable max-min 26-neighbor reachability from one selected end.
+
+    On a binary vessel mask, this is exactly connectivity after 'steps' waves.
+    On learned probabilities, the value is the strongest bottleneck along a
+    discrete 3D path. It does not distinguish branch identity at junctions.
+    """
+    def __init__(self,degree:int=3,steps:int=24):
+        super().__init__()
+        if degree not in (2,3) or steps<1 or steps>96:
+            raise ValueError("Invalid fuzzy connectedness parameters")
+        self.degree=degree
+        self.steps=steps
+
+    def forward(self,vessel_probability:torch.Tensor,heatmap:torch.Tensor):
+        if vessel_probability.shape!=heatmap.shape or heatmap.ndim!=4:
+            raise ValueError("Expected matched 3D vessel/endpoint probability fields")
+        b,d,h,w=vessel_probability.shape
+        peaks,valid=_peak_centers(heatmap,self.degree)
+        coords=peaks.round().long()
+        seed_index=coords[:,0,0]*h*w+coords[:,0,1]*w+coords[:,0,2]
+        source=F.one_hot(seed_index,num_classes=d*h*w).to(vessel_probability.dtype)
+        source=source.view(b,1,d,h,w)
+        vessel=vessel_probability[:,None]
+        reach=source*vessel
+        for _ in range(self.steps):
+            neigh=F.max_pool3d(reach,3,stride=1,padding=1)
+            reach=torch.maximum(reach,torch.minimum(vessel,neigh))
+        targets=coords[:,1:,0]*h*w+coords[:,1:,1]*w+coords[:,1:,2]
+        value=reach.reshape(b,-1).gather(1,targets)
+        output=value.min(dim=1).values
+        backup=vessel_probability.flatten(1).mean(dim=1)
+        return torch.where(valid,output,backup).clamp(1e-5,1-1e-5)
+
+
 class VesselBridgeReadout(nn.Module):
     """PAIR: best of 5 straight/curved routes; JUNCTION: weakest of 3 arms."""
     def __init__(self,degree:int,steps:int=11,curvature:float=1.6,
@@ -113,10 +148,14 @@ class VesselBridgeReadout(nn.Module):
         min_per_path=_soft_min(values,self.temperature)
         if self.degree==2:
             bridge=min_per_path.max(dim=1).values
-        else:
-            bridge=min_per_path.min(dim=1).values
-        backup=vessel_probability.flatten(1).mean(dim=1)
-        return torch.where(valid,bridge,backup).clamp(1e-5,1-1e-5)
+            backup=vessel_probability.flatten(1).mean(dim=1)
+            return torch.where(valid,bridge,backup).clamp(1e-5,1-1e-5)
+        # The centroid-star readout loses true Y-junctions when the hub is not
+        # the arithmetic mean of endpoints. Propagation over learned vessel
+        # support tests actual soft connectedness instead of a guessed hub.
+        return FuzzyConnectedness3d(degree=3,steps=24)(
+            vessel_probability,heatmap
+        )
 
 
 def soft_skeleton3d(mask:torch.Tensor,iterations:int=3):
