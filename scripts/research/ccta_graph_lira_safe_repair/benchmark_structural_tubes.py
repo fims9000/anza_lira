@@ -27,7 +27,7 @@ ROOT=Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0,str(ROOT))
 from models.ccta3d_candidate_encoder import Candidate3dEncoder,parameter_budget
-from models.structural_bridge3d import vessel_structure_loss,VesselBridgeReadout,_peak_centers
+from models.structural_bridge3d import vessel_structure_loss,VesselBridgeReadout,_peak_centers,_peak_centers_from_channels
 
 
 def _unit(v):
@@ -40,18 +40,18 @@ def _add_curve(centers,axis_points):
         centers.append(a*(1-t)+b*t)
 
 
-def make_phantoms(n:int,seed:int,kind:str,side:int=12):
+def make_phantoms(n:int,seed:int,kind:str,side:int=12,*,separate_endpoints:bool=False,close_junction:bool=False):
     if kind not in {"PAIR","JUNCTION"} or side<10:
         raise ValueError("Unsupported structural challenge")
     rng=np.random.default_rng(seed)
     grid=np.stack(np.meshgrid(*(np.arange(side,dtype=np.float32) for _ in range(3)),
                               indexing="ij"),axis=0)
-    patch=np.empty((n,2,side,side,side),dtype=np.float32)
+    patch=np.empty((n,4 if separate_endpoints else 2,side,side,side),dtype=np.float32)
     vessel_masks=np.empty((n,1,side,side,side),dtype=np.float32)
     y=np.arange(n,dtype=np.float32)%2
     rng.shuffle(y)
     for i,positive in enumerate(y):
-        for attempt in range(32):
+        for attempt in range(64 if close_junction and kind=="JUNCTION" else 32):
             center=np.full(3,(side-1)/2)+rng.normal(0,.24,3)
             u=_unit(rng.normal(size=3))
             ref=np.eye(3)[np.argmin(abs(u))]
@@ -77,7 +77,10 @@ def make_phantoms(n:int,seed:int,kind:str,side:int=12):
                     _add_curve(curve2,(ends[1],b))
                     curves.extend((curve1,curve2))
             else:
-                dirs=np.stack((u,-.5*u+.866*v,-.5*u-.866*v))
+                # For close-tip stress, the first two true junction ends are
+                # only ~2.2 voxels apart, BELOW the legacy 3-voxel NMS.
+                dirs=(np.stack((u,.8*u+.6*v,-u)) if close_junction else
+                      np.stack((u,-.5*u+.866*v,-.5*u-.866*v)))
                 ends=np.stack([center+direction*extent for direction in dirs])
                 for k,point in enumerate(ends):
                     if positive or k!=2:
@@ -114,11 +117,19 @@ def make_phantoms(n:int,seed:int,kind:str,side:int=12):
             intensity=gaussian_filter(intensity,sigma=.4)
             intensity=np.clip(intensity,-1.,1.)
             heat=np.zeros((side,side,side),dtype=np.float32)
+            separate=[]
             for point in ends:
                 r2=((grid-point[:,None,None,None])**2).sum(axis=0)
-                heat+=np.exp(-r2/(2*1.5**2)).astype(np.float32)
+                field=np.exp(-r2/(2*1.5**2)).astype(np.float32)
+                heat+=field
+                separate.append(field)
             patch[i,0]=intensity
-            patch[i,1]=heat.clip(0,1)
+            if separate_endpoints:
+                while len(separate)<3:
+                    separate.append(np.zeros_like(heat))
+                patch[i,1:]=np.stack(separate,axis=0)
+            else:
+                patch[i,1]=heat.clip(0,1)
             vessel_masks[i,0]=target
             # Validate synthetic relation identity from the ACTUAL voxelized
             # reference, not from generation intent. Previously ~20% of
@@ -134,9 +145,25 @@ def make_phantoms(n:int,seed:int,kind:str,side:int=12):
         else:
             raise RuntimeError(
                 f"Cannot generate topologically valid {kind} y={int(positive)} "
-                f"sample after 32 attempts"
+                f"sample after 64 attempts" if close_junction else f"sample after 32 attempts"
             )
     return patch,y,vessel_masks
+
+
+def heatmap_for_audit(x:np.ndarray)->np.ndarray:
+    if x.ndim!=5 or x.shape[1] not in (2,4):
+        raise ValueError("Expected two or four-channel patch input")
+    return x[:,1] if x.shape[1]==2 else np.clip(x[:,1:].sum(axis=1),0,1)
+
+
+def model_input_from_phantom(x:np.ndarray,variant:str)->np.ndarray:
+    if "_sep_" in variant:
+        if x.shape[1]!=4:
+            raise ValueError("Separate-tip model requires four-channel synthetic patches")
+        return x
+    if x.shape[1]==2:
+        return x
+    return np.concatenate((x[:,:1],heatmap_for_audit(x)[:,None]),axis=1)
 
 
 def simple_shortcut_audit(train,valid):
@@ -145,7 +172,7 @@ def simple_shortcut_audit(train,valid):
     valid_x,valid_y,_=valid
     def features(x):
         ct=x[:,0]
-        h=x[:,1]
+        h=heatmap_for_audit(x)
         middle=ct.shape[-1]//2
         return {
             "hu_mean":ct.mean(axis=(1,2,3)),
@@ -208,6 +235,8 @@ def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
 def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str):
     train_x,train_y,train_masks=train
     valid_x,valid_y,valid_masks=valid
+    train_x=model_input_from_phantom(train_x,variant)
+    valid_x=model_input_from_phantom(valid_x,variant)
     torch.manual_seed(seed)
     random.seed(seed)
     np.random.seed(seed)
@@ -297,19 +326,26 @@ def main():
     p.add_argument("--kinds",nargs="+",choices=("PAIR","JUNCTION"),default=["PAIR","JUNCTION"])
     p.add_argument("--device",default="cpu")
     p.add_argument("--intensity-control",choices=("raw","rank"),default="raw")
+    p.add_argument("--separate-endpoints",action="store_true")
+    p.add_argument("--close-junction",action="store_true")
     a=p.parse_args()
     if a.out.exists() or a.epochs<1 or a.train_samples<16 or a.val_samples<16:
         raise ValueError("Invalid benchmark request or existing output")
     if a.device.startswith("cuda") and not torch.cuda.is_available():
         raise ValueError("CUDA unavailable")
     torch.set_num_threads(2)
-    models=("conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure")
+    models=(("conv3d","anza3d","conv3d_structure","anza3d_structure",
+             "conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure")
+            if a.separate_endpoints else
+            ("conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure"))
     measurements=[]
     oracle={}
     shortcut={}
     for kind in a.kinds:
-        train=make_phantoms(a.train_samples,20261111,kind)
-        validation=make_phantoms(a.val_samples,20261911,kind)
+        train=make_phantoms(a.train_samples,20261111,kind,
+                            separate_endpoints=a.separate_endpoints,close_junction=a.close_junction)
+        validation=make_phantoms(a.val_samples,20261911,kind,
+                                 separate_endpoints=a.separate_endpoints,close_junction=a.close_junction)
         if a.intensity_control=="rank":
             train=(normalize_synthetic_hu_histograms(train[0]),train[1],train[2])
             validation=(normalize_synthetic_hu_histograms(validation[0]),validation[1],validation[2])
@@ -320,9 +356,11 @@ def main():
         # encoder can repair the structural geometry by learning better HU.
         degree=2 if kind=="PAIR" else 3
         with torch.no_grad():
-            oracle_p=VesselBridgeReadout(degree)(
+            oracle_p=VesselBridgeReadout(
+                degree,junction_strategy="adaptive_star"
+            )(
                 torch.from_numpy(validation[2][:,0]),
-                torch.from_numpy(validation[0][:,1]),
+                torch.from_numpy(validation[0][:,1:] if a.separate_endpoints else validation[0][:,1]),
             ).numpy()
         oracle[kind]={
             "AUROC":float(roc_auc_score(validation[1],oracle_p)),
@@ -333,7 +371,9 @@ def main():
         # Independent SciPy 26-connected-components diagnostic on the perfect
         # vessel reference. Distinguishes a bridge-readout failure from a
         # negative sample whose separate branch IDs are physically connected.
-        peaks,valid=_peak_centers(torch.from_numpy(validation[0][:,1]),degree)
+        peaks,valid=((_peak_centers_from_channels(torch.from_numpy(validation[0][:,1:]),degree))
+                     if a.separate_endpoints else
+                     _peak_centers(torch.from_numpy(validation[0][:,1]),degree))
         source_points=peaks.numpy().round().astype(int)
         connected=[]
         for idx in range(len(validation[1])):
@@ -366,6 +406,8 @@ def main():
         "train_size":a.train_samples,"val_size":a.val_samples,
         "epochs":a.epochs,"kinds":a.kinds,"seeds":a.seeds,"models":list(models),
         "synthetic_intensity_control":a.intensity_control,
+        "synthetic_endpoint_encoding":"separate" if a.separate_endpoints else "summed",
+        "close_junction_stress":bool(a.close_junction),
         "heldout_CT28_test_accessed":False,
         "measurements":measurements,
         "oracle_geometry":oracle,
