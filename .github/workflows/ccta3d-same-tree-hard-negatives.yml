@@ -23,6 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         input_control: [full_ct, endpoints_only]
+        objective: [bce, paired_ranking]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,15 +39,16 @@ jobs:
         run: |
           EXTRA=""
           if [ "${{ matrix.input_control }}" = "endpoints_only" ]; then EXTRA="--endpoints-only"; fi
+          if [ "${{ matrix.objective }}" = "paired_ranking" ]; then EXTRA="$EXTRA --paired-ranking-weight .5"; fi
           python scripts/research/ccta_graph_lira_safe_repair/benchmark_same_tree_identity.py \
-            --out "evidence/same_tree_${{ matrix.input_control }}/report.json" \
+            --out "evidence/same_tree_${{ matrix.input_control }}_${{ matrix.objective }}/report.json" \
             --train-trees 16 --val-trees 8 --epochs 3 --seeds 17 \
             --models conv3d_sep_structure anza3d_sep_structure anza3d_contrast_sep_structure \
             --device cpu --histogram-control $EXTRA
       - name: Archive independent Y-tree results
         uses: actions/upload-artifact@v4
         with:
-          name: ccta3d-same-tree-${{ matrix.input_control }}
-          path: evidence/same_tree_${{ matrix.input_control }}/
+          name: ccta3d-same-tree-${{ matrix.input_control }}-${{ matrix.objective }}
+          path: evidence/same_tree_${{ matrix.input_control }}_${{ matrix.objective }}/
           if-no-files-found: error
           retention-days: 21
