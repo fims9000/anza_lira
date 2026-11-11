@@ -93,6 +93,12 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
                 with torch.no_grad():
                     a=model(inputs)
                     b=model(inputs)
+                    no_hu=inputs.clone()
+                    no_hu[:,0]=0
+                    without_hu=model(no_hu)
+                    no_heatmap=inputs.clone()
+                    no_heatmap[:,1]=0
+                    without_heatmap=model(no_heatmap)
                 seconds=time.perf_counter()-started
                 if a.numel()!=1 or not torch.isfinite(a).all() or not torch.equal(a,b):
                     raise AssertionError("Model produced nonfinite/nondeterministic CT output")
@@ -100,7 +106,9 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
                     "frame":frame,"candidate_type":kind,"model":name,
                     "random_initialized":True,"logit":float(a.item()),
                     "score":float(a.sigmoid().item()),
-                    "inference_two_pass_seconds":seconds,
+                    "inference_four_pass_seconds":seconds,
+                    "abs_logit_change_without_hu":float((a-without_hu).abs().item()),
+                    "abs_logit_change_without_heatmap":float((a-without_heatmap).abs().item()),
                     "sampling_inside_volume_fraction":audit["sampling_inside_volume_fraction"],
                     "endpoint_patch_margin_mm":audit["endpoint_patch_margin_mm"],
                     "normalized_hu_minmax":[float(patch[0].min()),float(patch[0].max())],
@@ -116,6 +124,12 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
                     )
                     loss.backward()
                     grads=[p.grad for p in model.parameters() if p.requires_grad]
+                    entry["operator_gradient_norms"]={
+                        n:float(p.grad.abs().sum().item()) if p.grad is not None else None
+                        for n,p in model.named_parameters()
+                        if n.startswith("local.") and
+                        (n.endswith("weight") or n=="local.residual_logit")
+                    }
                     entry["train_step_loss"]=float(loss.item())
                     entry["backward_seconds"]=time.perf_counter()-started
                     entry["all_parameter_grads_finite"]=all(
