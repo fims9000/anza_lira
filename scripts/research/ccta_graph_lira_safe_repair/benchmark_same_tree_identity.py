@@ -159,6 +159,8 @@ def main()->None:
     p.add_argument("--histogram-control",action="store_true")
     p.add_argument("--endpoints-only",action="store_true",
                    help="Train identical models with CT channel masked, diagnostic only")
+    p.add_argument("--paired-ranking-weight",type=float,default=0.,
+                   help="Opt-in within-tree softplus ranking loss, alongside BCE and vessel loss")
     p.add_argument("--models",nargs="+",choices=(
         "conv3d_sep_structure","anza3d_sep_structure",
         "anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure",
@@ -200,6 +202,7 @@ def main()->None:
                 variant,"PAIR",train[:3],val[:3],epochs=args.epochs,
                 batch_size=8,seed=seed,device=args.device,
                 paired_validation=True,
+                paired_ranking_weight=args.paired_ranking_weight,
             )
             if values["paired_validation"]["n_trees"]!=args.val_trees:
                 raise AssertionError("Paired validation lost independent trees")
@@ -213,6 +216,7 @@ def main()->None:
         "train_meta":train[3],"validation_meta":val[3],
         "equal_histogram":bool(args.histogram_control),
         "endpoints_only":bool(args.endpoints_only),
+        "paired_ranking_weight":float(args.paired_ranking_weight),
         "models":list(models),"seeds":args.seeds,
         "oracle":_standalone_oracle(val[0],val[2]),
         "measurements":measurements,
