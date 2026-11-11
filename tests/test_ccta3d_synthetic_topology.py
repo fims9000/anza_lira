@@ -121,3 +121,28 @@ def test_legacy_and_lossless_tip_models_receive_same_synthetic_hu():
     assert np.allclose(summed[:,1],np.clip(separate[:,1:].sum(axis=1),0,1))
     with pytest.raises(ValueError,match="four-channel"):
         model_input_from_phantom(summed,"anza3d_sep_structure")
+
+
+def test_four_channel_hu_rank_and_scramble_controls_preserve_all_tips():
+    from benchmark_structural_tubes import (
+        normalize_synthetic_hu_histograms,permute_hu_voxels,
+    )
+    x,y,target=make_phantoms(16,20261111,"JUNCTION",
+                            separate_endpoints=True,close_junction=True)
+    ranked=normalize_synthetic_hu_histograms(x)
+    scrambled=permute_hu_voxels(ranked,seed=73)
+    assert ranked.shape==scrambled.shape==x.shape
+    assert np.array_equal(x[:,1:],ranked[:,1:])
+    assert np.array_equal(x[:,1:],scrambled[:,1:])
+    assert not np.array_equal(ranked[:,0],scrambled[:,0])
+    for a,b in ((ranked,x),(scrambled,ranked)):
+        assert a.shape==b.shape
+    hist=np.sort(ranked[:,0].reshape(len(x),-1),axis=1)
+    assert np.array_equal(hist[0],hist[-1])
+    assert np.array_equal(
+        np.sort(scrambled[:,0].reshape(len(x),-1),axis=1),hist
+    )
+    # Padded PAIR third endpoint is still exactly zero under both controls.
+    pair,_,_=make_phantoms(16,20261111,"PAIR",separate_endpoints=True)
+    assert not np.any(permute_hu_voxels(pair)[:,3])
+    assert not np.any(normalize_synthetic_hu_histograms(pair)[:,3])
