@@ -10,6 +10,7 @@ never used to choose epochs, thresholds or hyperparameters in this script.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
 import sys
@@ -234,7 +235,7 @@ def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
     return copied
 
 
-def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None,paired_validation:bool=False,paired_ranking_weight:float=0.):
+def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None,paired_validation:bool=False,paired_ranking_weight:float=0.,checkpoint_path:Path|None=None,independent_test=None):
     train_x,train_y,train_masks=train
     valid_x,valid_y,valid_masks=valid
     train_x=model_input_from_phantom(train_x,variant)
@@ -290,6 +291,23 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
             loss.backward()
             optimizer.step()
     model.eval()
+    checkpoint_sha=None
+    if checkpoint_path is not None:
+        checkpoint_path=Path(checkpoint_path)
+        if checkpoint_path.exists():
+            raise FileExistsError("Training checkpoint must never be overwritten")
+        checkpoint_path.parent.mkdir(parents=True,exist_ok=True)
+        torch.save(model.state_dict(),checkpoint_path)
+        checkpoint_sha=hashlib.sha256(checkpoint_path.read_bytes()).hexdigest()
+        reloaded=Candidate3dEncoder(variant,channels=6,candidate_type=kind).to(device)
+        reloaded.load_state_dict(torch.load(
+            checkpoint_path,map_location=device,weights_only=True
+        ),strict=True)
+        reloaded.eval()
+        with torch.no_grad():
+            probe=torch.from_numpy(valid_x[:min(2,len(valid_x))]).to(device)
+            if not torch.allclose(reloaded(probe),model(probe),atol=1e-6,rtol=1e-6):
+                raise AssertionError("Saved synthetic model failed strict reloading verification")
     scores=[];bridges=[]
     with torch.no_grad():
         for start_index in range(0,len(valid_y),batch_size):
@@ -346,6 +364,36 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
     predicted=p>=.5
     strict=p>=.85
     true=valid_y.astype(bool)
+    independent_metrics=None
+    if independent_test is not None:
+        test_x,test_y,_=independent_test
+        test_x=model_input_from_phantom(test_x,variant)
+        test_y=np.asarray(test_y)
+        if (len(test_y)<4 or len(test_y)%2 or
+            not np.array_equal(test_y[::2],np.ones(len(test_y)//2)) or
+            not np.array_equal(test_y[1::2],np.zeros(len(test_y)//2))):
+            raise ValueError("Independent test must consist of frozen true/false tree pairs")
+        test_p=[]
+        with torch.no_grad():
+            for i in range(0,len(test_y),batch_size):
+                tx=torch.from_numpy(test_x[i:i+batch_size]).to(device)
+                test_p.extend(torch.sigmoid(model(tx)).cpu().numpy().tolist())
+        test_p=np.asarray(test_p,dtype=float)
+        test_diff=test_p[::2]-test_p[1::2]
+        independent_metrics={
+            "status":"independent_synthetic_test_not_clinical",
+            "n_trees":len(test_diff),
+            "AUROC":float(roc_auc_score(test_y,test_p)),
+            "AUPRC":float(average_precision_score(test_y,test_p)),
+            "paired_correct":int((test_diff>0).sum()),
+            "paired_wrong":int((test_diff<0).sum()),
+            "paired_ties":int((test_diff==0).sum()),
+            "mean_correct_minus_wrong_score":float(test_diff.mean()),
+            "true_accepted_at_085":int((test_p[::2]>=.85).sum()),
+            "wrong_accepted_at_085":int((test_p[1::2]>=.85).sum()),
+            "score_true":test_p[::2].tolist(),
+            "score_false":test_p[1::2].tolist(),
+        }
     paired=None
     if paired_validation:
         if len(p)%2 or not np.array_equal(valid_y[::2],np.ones(len(p)//2)) or not np.array_equal(valid_y[1::2],np.zeros(len(p)//2)):
@@ -385,6 +433,15 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
         "calibration":calibration_metrics,
         "paired_validation":paired,
         "paired_ranking_weight":float(paired_ranking_weight),
+        "checkpoint":({
+            "filename":checkpoint_path.name,
+            "sha256":checkpoint_sha,
+            "verified_reload":True,
+            "format":"Candidate3dEncoder state_dict",
+            "variant":variant,"channels":6,"candidate_type":kind,
+            "voxel_mm":1.,
+        } if checkpoint_path is not None else None),
+        "independent_test":independent_metrics,
 
         "mean_bridge_positive":float(np.mean(np.asarray(bridges)[true])) if bridges else None,
         "mean_bridge_negative":float(np.mean(np.asarray(bridges)[~true])) if bridges else None,
