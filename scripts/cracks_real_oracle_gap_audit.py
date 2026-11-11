@@ -48,9 +48,11 @@ def paths_from_mask(mask):
             oy,ox=box[0].start,box[1].start
             yield [(y+oy,x+ox) for y,x in path]
 def split(section):
-    block=section//20
-    bucket=int.from_bytes(hashlib.sha256(f"cracks-real-gap-v1:{block}".encode()).digest()[:8],"big")%10
-    return ("test" if bucket in (0,1) else "calibration" if bucket==2 else "development",block)
+    # Five consecutive F3 sections are kept within one split.
+    # This is a revised exploratory protocol, frozen before any model fitting.
+    block=section//5
+    bucket=block%5
+    return ("test" if bucket==4 else "calibration" if bucket==3 else "development",block)
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--images",default="data/cracks/raw/images.zip")
@@ -58,9 +60,10 @@ def main():
     p.add_argument("--out",default="results/cracks_real_controlled_v1/oracle_mask_audit.json")
     p.add_argument("--max-sections",type=int,default=400)
     args=p.parse_args();out=Path(args.out);out.parent.mkdir(parents=True,exist_ok=True)
-    report={"protocol":"CRACKS_REAL_ORACLE_MASK_GAP_AUDIT_V1","full_ANZA_LIRA_e2e":False,
+    report={"protocol":"CRACKS_REAL_ORACLE_MASK_GAP_AUDIT_V2","full_ANZA_LIRA_e2e":False,
             "real_seismic_sections_used":False,"note":"Ground-truth mask used to choose and evaluate artificial gaps. Not a learned-model evaluation.",
-            "counts_by_split":{},"samples":[]}
+            "counts_by_split":{},"samples":[],
+            "split_is_posthoc_after_initial_zero_calibration":"yes: exploratory only, not an independent learned-model evaluation"}
     try:
         with zipfile.ZipFile(args.images) as im,zipfile.ZipFile(args.annotations) as an:
             images=sections(im);labels=sections(an,expert=True)
@@ -113,15 +116,34 @@ def main():
                     if components[e0]==components[e1]:
                         counters[("audit","still_connected_after_gap")]+=1
                         continue
+                    # Pure geometry control using oracle endpoints, NEVER model predictions.
+                    # The hidden centerline is accessed here only for post-decision scoring.
+                    length=int(max(abs(e1[0]-e0[0]),abs(e1[1]-e0[1])))+1
+                    steps=np.rint(np.linspace(np.asarray(e0,float),np.asarray(e1,float),length)).astype(int)
+                    pred=np.zeros_like(confident);gt=np.zeros_like(confident)
+                    for yy,xx in steps:
+                        if inside((yy,xx)):pred[yy,xx]=True
+                    for pt in path:
+                        if inside(pt):gt[pt]=True
+                    tol_gt=ndi.binary_dilation(gt,iterations=2)
+                    tol_pred=ndi.binary_dilation(pred,iterations=2)
+                    path_p=float(tol_gt[pred].mean()) if pred.any() else 0.
+                    path_r=float(tol_pred[gt].mean()) if gt.any() else 0.
+                    geom_success=(path_p>=0.8 and path_r>=0.8)
+                    counters[(split_name,"straight_oracle_path_success")]+=int(geom_success)
                     counters[(split_name,"gaps")]+=1;count+=1
                     report["samples"].append({"section":sid,"block":block,"split":split_name,"gap_pixels":len(middle_path),
                       "intervention_rectangle":[int(ymin),int(ymax),int(xmin),int(xmax)],
-                      "oracle_endpoints_distance":round(float(np.linalg.norm(np.array(e0)-np.array(e1))),3)})
+                      "oracle_endpoints_distance":round(float(np.linalg.norm(np.array(e0)-np.array(e1))),3),
+                      "oracle_straight_path_precision_tol2":round(path_p,4),
+                      "oracle_straight_path_recall_tol2":round(path_r,4),
+                      "oracle_straight_path_success":int(geom_success)})
                     if count>=2:break
             report["sections_with_image_and_expert_mask"]=len(ids)
             report["audit_rejections"]={k[1]:int(v) for k,v in counters.items() if k[0]=="audit"}
             report["real_seismic_sections_used"]=True
-            report["counts_by_split"]={s:{"sections":counters[(s,"sections")],"eligible_gaps":counters[(s,"gaps")]} for s in ["development","calibration","test"]}
+            report["counts_by_split"]={s:{"sections":counters[(s,"sections")],"eligible_gaps":counters[(s,"gaps")],
+                "oracle_straight_path_success":counters[(s,"straight_oracle_path_success")]} for s in ["development","calibration","test"]}
             report["status"]="ORACLE_MASK_AUDIT_COMPLETE"
     except Exception as exc:report["status"]="STOP_REAL_CRACKS_AUDIT";report["error"]=str(exc)
     out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf8")
