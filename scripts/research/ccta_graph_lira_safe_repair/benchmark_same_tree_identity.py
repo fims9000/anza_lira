@@ -189,9 +189,10 @@ def main()->None:
             values=fit(
                 variant,"PAIR",train[:3],val[:3],epochs=args.epochs,
                 batch_size=8,seed=seed,device=args.device,
+                paired_validation=True,
             )
-            # fit returns scores only as aggregate diagnostic; for paired
-            # tree-specific outcomes one must add a dedicated score export.
+            if values["paired_validation"]["n_trees"]!=args.val_trees:
+                raise AssertionError("Paired validation lost independent trees")
             measurements.append(values)
             print(json.dumps(values),flush=True)
     report={
