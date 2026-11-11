@@ -67,7 +67,8 @@ class NeuralCCTA3dInference(K10Inference):
         # Relation HGB still receives the unchanged geometry features plus
         # the learned neural CT feature, so do not overwrite geometry_score.
         self.identity_columns={
-            name:dict(columns) for name,columns in IDENTITY.items()
+            name:(dict(columns) if isinstance(columns,dict) else columns)
+            for name,columns in IDENTITY.items()
         }
         if pair_identity_source=="neural_pair_junction":
             self.identity_columns["ct_conditioned"]["JUNCTION"]="geometry_plus_ct_score"
