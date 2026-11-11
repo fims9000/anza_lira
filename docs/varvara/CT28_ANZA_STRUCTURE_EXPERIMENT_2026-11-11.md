@@ -47,6 +47,37 @@ CT28 subjects are unchanged. No medical CT volume is committed to the repository
    coronary segment labels: audit actual available labels on TRAIN before
    proposing segment-identity supervision.
 
+### Same-tree false continuation: new adversarial oracle
+
+The first binary-connectivity phantoms were too easy: positive vessels were
+connected and negatives often disconnected. This is NOT the full coronary
+branch-identity task.
+
+A second diagnostic `audit_connected_branch_oracle.py` now creates one
+unchanged, fully 26-connected 3D Y-shaped vessel tree per pair. It compares
+an intended straight-trunk continuation with a wrong shallow branch while
+**both candidate endpoints are in the same physical component**.
+The branch angle is swept over 15, 20, 25, 35, 50, 65, and 90 degrees.
+This is an explicit *branch-identity* label, not a connected-component label.
+
+An independent CPU reproduction of the geometry path readout on ideal masks
+showed a structural failure: with 15°, 20°, 25°, and 35° wrong branches,
+its false-candidate support was respectively around 0.862, 0.988, 1.000
+and 0.997, despite the incorrect continuation. A fixed 0.85 candidate
+threshold would accept all four wrong shallow branches. This was a
+standalone reproduced calculation of the readout equations, **not** a
+new medical evaluation or a complete pytest run. The matching GitHub
+workflow remains queued for independent verification.
+
+This demonstrates why neither perfect dense vessel segmentation nor a
+differentiable path bottleneck can, alone, establish coronary branch
+identity. Do not tune the same-tree synthetic angle grid until the results
+look favorable; retain these hard negatives as a falsification fixture.
+Train-only 3D tangent-orientation/branch-label consistency is a candidate
+future architectural extension but MUST be validated against the original
+CT28 train-only segment/tangent audit before implementation or claimed
+clinical gain.
+
 ## 2. Architecture after review
 
 ```text
