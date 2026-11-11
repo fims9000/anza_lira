@@ -135,27 +135,23 @@ class VesselBridgeReadout(nn.Module):
         self.steps=int(steps)
         self.curvature=float(curvature)
         self.temperature=float(temperature)
+        self.connectedness=FuzzyConnectedness3d(3,steps=24) if degree==3 else None
 
     def forward(self,vessel_probability:torch.Tensor,heatmap:torch.Tensor):
         if vessel_probability.shape!=heatmap.shape or heatmap.ndim!=4:
             raise ValueError("Vesselness and endpoint masks must be B,D,H,W")
         if not torch.isfinite(vessel_probability).all() or not torch.isfinite(heatmap).all():
             raise ValueError("Nonfinite structural evidence")
+        if self.degree==3:
+            # Reachability follows the learned vessel field and makes no
+            # assumption that the branchpoint lies at the endpoint centroid.
+            return self.connectedness(vessel_probability,heatmap)
         peaks,valid=_peak_centers(heatmap,self.degree)
-        paths=(_pair_paths(peaks,self.steps,self.curvature)
-               if self.degree==2 else _junction_paths(peaks,self.steps))
+        paths=_pair_paths(peaks,self.steps,self.curvature)
         values=_sample_paths(vessel_probability,paths)
-        min_per_path=_soft_min(values,self.temperature)
-        if self.degree==2:
-            bridge=min_per_path.max(dim=1).values
-            backup=vessel_probability.flatten(1).mean(dim=1)
-            return torch.where(valid,bridge,backup).clamp(1e-5,1-1e-5)
-        # The centroid-star readout loses true Y-junctions when the hub is not
-        # the arithmetic mean of endpoints. Propagation over learned vessel
-        # support tests actual soft connectedness instead of a guessed hub.
-        return FuzzyConnectedness3d(degree=3,steps=24)(
-            vessel_probability,heatmap
-        )
+        bridge=_soft_min(values,self.temperature).max(dim=1).values
+        backup=vessel_probability.flatten(1).mean(dim=1)
+        return torch.where(valid,bridge,backup).clamp(1e-5,1-1e-5)
 
 
 def soft_skeleton3d(mask:torch.Tensor,iterations:int=3):
