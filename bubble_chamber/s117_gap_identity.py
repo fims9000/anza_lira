@@ -25,6 +25,8 @@ class GapConfig:
     min_alignment: float = 0.80
     min_long_alignment: float = 0.91
     min_auto_alignment: float = 0.94
+    min_auto_multiscale_alignment: float = 0.90
+    multiscale_tangent_window_px: float = 70.0
     min_auto_support: float = 0.45
     min_auto_support_long: float = 0.58
     min_auto_score: float = 0.78
@@ -213,6 +215,13 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
             blocked_fraction = float(block[center[:, 1], center[:, 0]].mean())
             support = float((evidence[center[:, 1], center[:, 0]] >= evidence_thr).mean())
             rival = _rival_fraction(rival_tree, rival_owner, path, pa['i'], pb['i'])
+            # A locally straight 18-pixel join can conceal a switch at an
+            # observed crossing. Compare the underlying fragment directions
+            # over a longer arc before assigning one provisional identity.
+            ta_far = _endpoint(c[pa['i']]['xy'], pa['end'], cfg.multiscale_tangent_window_px)
+            tb_far = _endpoint(c[pb['i']]['xy'], pb['end'], cfg.multiscale_tangent_window_px)
+            far_align = (min(float(ta_far @ axis), float(tb_far @ (-axis)))
+                         if ta_far is not None and tb_far is not None else -1.0)
             score = (.42 * align + .33 * support +
                      .15 * max(0.0, 1.0 - lateral / cfg.max_auto_lateral_fraction) +
                      .10 * max(0.0, 1.0 - gap / cfg.max_gap_px) - .18 * rival)
@@ -225,6 +234,7 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
                               'endpoint_indices': list(ends),
                               'endpoint_ports': [f'{n}:{e}' for n, e in zip(ids, ends)],
                               'gap_px': round(gap, 2), 'alignment_min': round(align, 4),
+                              'multiscale_alignment_min': round(far_align, 4),
                               'photo_support_fraction': round(support, 4),
                               'rival_fraction': round(rival, 4),
                               'blocked_fraction': round(blocked_fraction, 4),
@@ -293,6 +303,7 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
         projection_limit = min(cfg.max_auto_endpoint_projection_px, 6.0 + 0.025 * e['gap_px'])
         eligible = (best and margin >= cfg.min_auto_margin and
                     e['alignment_min'] >= cfg.min_auto_alignment and
+                    e['multiscale_alignment_min'] >= cfg.min_auto_multiscale_alignment and
                     e['photo_support_fraction'] >= limit and
                     e['score'] >= cfg.min_auto_score and
                     e['rival_fraction'] <= cfg.max_auto_rival_fraction and
@@ -303,6 +314,8 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
         if choice != 'same' and not eligible:
             if not best or margin < cfg.min_auto_margin:
                 e['decision'] = 'REVIEW_ONLY_COMPETING_CONTINUATION'
+            elif e['multiscale_alignment_min'] < cfg.min_auto_multiscale_alignment:
+                e['decision'] = 'REVIEW_ONLY_MULTISCALE_DIRECTION_CHANGE'
             elif e['endpoint_projection_residual_px'] > projection_limit:
                 e['decision'] = 'REVIEW_ONLY_PARALLEL_OFFSET_OR_CURVATURE'
             elif not e['both_endpoints_source_supported']:
