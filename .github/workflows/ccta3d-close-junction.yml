@@ -35,13 +35,13 @@ jobs:
         run: |
           python -m pip install numpy scipy scikit-learn
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-      - name: Close (<3mm) synthetic JUNCTION 7-model matched comparison
+      - name: Close (<3mm) JUNCTION 10-model symmetric-tip DeepSets matched comparison
         run: |
           python scripts/research/ccta_graph_lira_safe_repair/benchmark_structural_tubes.py \
             --out evidence/ccta3d_close_junction_${{ matrix.intensity }}/report.json \
             --train-samples 96 --val-samples 48 --epochs 12 \
             --seeds 17 41 73 --kinds JUNCTION \
-            --close-junction --separate-endpoints \
+            --close-junction --separate-endpoints --deepsets \
             --intensity-control ${{ matrix.intensity }} --calibration-samples 48 --device cpu
       - name: Archive paired results and clinical-safety caveats
         uses: actions/upload-artifact@v4
