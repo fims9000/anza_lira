@@ -483,3 +483,23 @@ trained checkpoint artifacts are not mounted in this execution environment.
 Varvara must run the actual 17-train/5-dev experiments on the authorized
 machine. Do not infer clinical results from public CTA numeric smoke or
 synthetic AUROC.
+
+## Completed available-data training (2026-11-12; SYNTHETIC ONLY)
+
+The canonical train run is [GitHub Actions #43118173646](https://github.com/fims9000/anza_lira/actions/runs/43118173646), built from SHA `b5d6208caa85130086d954da77072933942b0835`.
+All **three** experiment jobs completed successfully, with 21 independently reload-verified model state dicts; SHA-256 hashes and predictions are archived as workflow artifacts.
+
+Data: synthetic paired same-26-connected-tree 24³ Y-vessels, identical CT and dense mask within true/false candidate pairs, equal endpoint distance. 64 train trees, 24 validation trees, *48 independent synthetic test trees*, 12 epochs; full image runs use 3 seeds (17,41,73); endpoint-only negative control uses seed17. Models have **6 internal channels**, not the actual CT28/clinical configuration. The synthetic ground-truth convention selects continuation through the trunk over turning onto the branch, which is NOT a universal clinical definition.
+
+| Test metric (mean 3 seeds; 48 trees) | CNN | ANZA | ANZA signed contrast |
+| --- | ---: | ---: | ---: |
+| Full synthetic HU, ordinary BCE AUROC | **0.787** | 0.709 | 0.750 |
+| Full HU, BCE correct same-tree PAIR | **43.3/48** | 36.7/48 | 38.0/48 |
+| Full HU, BCE + paired ranking AUROC | **0.847** | 0.756 | 0.805 |
+| Full HU, BCE + paired ranking correct PAIR | **46.0/48** | 41.3/48 | 41.3/48 |
+| Raw accepted at frozen 0.85 threshold | **0** | **0** | **0** |
+
+Paired tree bootstrap vs CNN, ordinary BCE: ANZA correct-rate difference -0.139, 95% CI [-0.208,-0.069]; signed-contrast -0.111, CI [-0.191,-0.035]. With train-only paired ranking: ANZA -0.097, CI [-0.160,-0.042]; signed contrast -0.097, CI [-0.153,-0.049]. The independent endpoint-only control gave almost random global AUROC (~0.51), confirming that the full-image gains on this fixture are not reproduced without HU.
+
+**Conclusions:** the larger, three-seed synthetic test **falsifies any claim that ANZA currently outperforms parameter-matched CNN** on this specific same-tree branch-identity task. Ranking improves performance but benefits CNN too. Signed transport did not reverse the ordering. No model accepted a correct or false connection at 0.85, so *no repaired-vessel benefit has been demonstrated*. Frozen CT28 inference, patient split, relation HGB and thresholds were not altered by this training. These synthetic six-channel weights must not be substituted for clinically trained CT28 weights, and neither real ImageCAS validation nor held-out clinical test was accessed.
+
