@@ -40,7 +40,8 @@ jobs:
           if [ "${{ matrix.input_control }}" = "endpoints_only" ]; then EXTRA="--endpoints-only"; fi
           python scripts/research/ccta_graph_lira_safe_repair/benchmark_same_tree_identity.py \
             --out "evidence/same_tree_${{ matrix.input_control }}/report.json" \
-            --train-trees 24 --val-trees 12 --epochs 4 --seeds 17 41 \
+            --train-trees 16 --val-trees 8 --epochs 3 --seeds 17 \
+            --models conv3d_sep_structure anza3d_sep_structure \
             --device cpu --histogram-control $EXTRA
       - name: Archive independent Y-tree results
         uses: actions/upload-artifact@v4
