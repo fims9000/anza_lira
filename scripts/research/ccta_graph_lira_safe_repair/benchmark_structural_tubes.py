@@ -235,7 +235,7 @@ def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
     return copied
 
 
-def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None,paired_validation:bool=False,paired_ranking_weight:float=0.,checkpoint_path:Path|None=None,independent_test=None):
+def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None,paired_validation:bool=False,paired_ranking_weight:float=0.,checkpoint_path:Path|None=None,independent_test=None,independent_paired_test:bool=True):
     train_x,train_y,train_masks=train
     valid_x,valid_y,valid_masks=valid
     train_x=model_input_from_phantom(train_x,variant)
@@ -369,30 +369,37 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
         test_x,test_y,_=independent_test
         test_x=model_input_from_phantom(test_x,variant)
         test_y=np.asarray(test_y)
-        if (len(test_y)<4 or len(test_y)%2 or
+        if len(test_y)<4 or set(np.unique(test_y))!={0.,1.}:
+            raise ValueError("Independent test needs at least four binary-labeled examples")
+        if independent_paired_test and (
+            len(test_y)%2 or
             not np.array_equal(test_y[::2],np.ones(len(test_y)//2)) or
-            not np.array_equal(test_y[1::2],np.zeros(len(test_y)//2))):
-            raise ValueError("Independent test must consist of frozen true/false tree pairs")
+            not np.array_equal(test_y[1::2],np.zeros(len(test_y)//2))
+        ):
+            raise ValueError("Independent paired test needs adjacent true/false tree pairs")
         test_p=[]
         with torch.no_grad():
             for i in range(0,len(test_y),batch_size):
                 tx=torch.from_numpy(test_x[i:i+batch_size]).to(device)
                 test_p.extend(torch.sigmoid(model(tx)).cpu().numpy().tolist())
         test_p=np.asarray(test_p,dtype=float)
-        test_diff=test_p[::2]-test_p[1::2]
+        test_diff=(test_p[::2]-test_p[1::2]) if independent_paired_test else None
+        positive=test_p[test_y==1]
+        negative=test_p[test_y==0]
         independent_metrics={
             "status":"independent_synthetic_test_not_clinical",
-            "n_trees":len(test_diff),
+            "n_examples":len(test_y),
+            "n_trees":(len(test_diff) if independent_paired_test else None),
             "AUROC":float(roc_auc_score(test_y,test_p)),
             "AUPRC":float(average_precision_score(test_y,test_p)),
-            "paired_correct":int((test_diff>0).sum()),
-            "paired_wrong":int((test_diff<0).sum()),
-            "paired_ties":int((test_diff==0).sum()),
-            "mean_correct_minus_wrong_score":float(test_diff.mean()),
-            "true_accepted_at_085":int((test_p[::2]>=.85).sum()),
-            "wrong_accepted_at_085":int((test_p[1::2]>=.85).sum()),
-            "score_true":test_p[::2].tolist(),
-            "score_false":test_p[1::2].tolist(),
+            "paired_correct":(int((test_diff>0).sum()) if independent_paired_test else None),
+            "paired_wrong":(int((test_diff<0).sum()) if independent_paired_test else None),
+            "paired_ties":(int((test_diff==0).sum()) if independent_paired_test else None),
+            "mean_correct_minus_wrong_score":(float(test_diff.mean()) if independent_paired_test else None),
+            "true_accepted_at_085":int((positive>=.85).sum()),
+            "wrong_accepted_at_085":int((negative>=.85).sum()),
+            "score_true":positive.tolist(),
+            "score_false":negative.tolist(),
         }
     paired=None
     if paired_validation:
