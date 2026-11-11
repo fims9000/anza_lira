@@ -235,6 +235,7 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
             scrambled_scores.extend(torch.sigmoid(model(batch)).cpu().tolist())
     p_scrambled=np.asarray(scrambled_scores)
     predicted=p>=.5
+    strict=p>=.85
     true=valid_y.astype(bool)
     return {
         "variant":variant,"candidate_kind":kind,"seed":seed,
@@ -249,6 +250,15 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
         "val_recall_at_05":float(np.sum(predicted&true)/max(1,np.sum(true))),
         "val_false_positive_count":int(np.sum(predicted&~true)),
         "val_true_positive_count":int(np.sum(predicted&true)),
+        "fixed_tau_085_true_accepted":int(np.sum(strict&true)),
+        "fixed_tau_085_false_accepted":int(np.sum(strict&~true)),
+        "fixed_tau_085_abstained":int(np.sum(~strict)),
+        "fixed_tau_085_precision":(
+            float(np.sum(strict&true)/np.sum(strict)) if strict.any() else None
+        ),
+        "fixed_tau_085_recall":float(np.sum(strict&true)/max(1,np.sum(true))),
+        "val_brier":float(np.mean(np.square(p-valid_y))),
+
         "mean_bridge_positive":float(np.mean(np.asarray(bridges)[true])) if bridges else None,
         "mean_bridge_negative":float(np.mean(np.asarray(bridges)[~true])) if bridges else None,
     }
