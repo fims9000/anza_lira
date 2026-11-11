@@ -64,3 +64,43 @@ def test_paired_ranking_loss_keeps_same_tree_pairs_in_minibatches():
             epochs=1,batch_size=4,seed=17,device="cpu",
             paired_ranking_weight=.5,
         )
+
+
+def test_synthetic_model_checkpoint_is_replayable_on_independent_test(tmp_path):
+    import hashlib
+    import torch
+    from benchmark_structural_tubes import fit
+    from models.ccta3d_candidate_encoder import Candidate3dEncoder
+    torch.set_num_threads(2)
+    train=make_paired_trees(4,20261111)
+    valid=make_paired_trees(4,20261911)
+    test=make_paired_trees(4,20261113)
+    path=tmp_path/"pretrained_cnn_seed17.pt"
+    m=fit(
+        "conv3d_sep_structure","PAIR",train[:3],valid[:3],
+        epochs=1,batch_size=4,seed=17,device="cpu",
+        paired_validation=True,independent_test=test[:3],
+        checkpoint_path=path,
+    )
+    assert path.is_file()
+    assert m["checkpoint"]["verified_reload"] is True
+    assert m["checkpoint"]["sha256"]==hashlib.sha256(path.read_bytes()).hexdigest()
+    assert m["independent_test"]["n_trees"]==4
+    assert m["independent_test"]["status"]=="independent_synthetic_test_not_clinical"
+    scores=m["independent_test"]["score_true"]+m["independent_test"]["score_false"]
+    assert all(0.<=p<=1. for p in scores)
+    candidate=Candidate3dEncoder(
+        "conv3d_sep_structure",channels=6,candidate_type="PAIR"
+    )
+    candidate.load_state_dict(torch.load(path,weights_only=True),strict=True)
+    candidate.eval()
+    with torch.no_grad():
+        actual=torch.sigmoid(candidate(torch.from_numpy(test[0]))).numpy()
+    assert np.allclose(actual[::2],m["independent_test"]["score_true"],atol=1e-6)
+    assert np.allclose(actual[1::2],m["independent_test"]["score_false"],atol=1e-6)
+    with pytest.raises(FileExistsError,match="never be overwritten"):
+        fit(
+            "conv3d_sep_structure","PAIR",train[:3],valid[:3],
+            epochs=1,batch_size=4,seed=17,device="cpu",
+            checkpoint_path=path,
+        )
