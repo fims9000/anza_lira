@@ -116,7 +116,11 @@ def endpoint_tangent_alignment(
         trace=cov.diagonal(dim1=1,dim2=2).sum(dim=1)
         along=torch.einsum("bi,bij,bj->b",direction,cov,direction)
         anisotropy=(along-trace/3.)/(2*trace/3.+1e-6)
-        parts.append(anisotropy.clamp(0,1))
+        # A hard [0,1] clamp blocked every gradient on adversarial Y-tree
+        # negatives (verified in CI). Learned vesselness needs a smooth,
+        # monotone directional score; this sigmoid is NOT calibrated as a
+        # medical acceptance probability.
+        parts.append(torch.sigmoid(4.*anisotropy))
     score=torch.stack(parts).mean(dim=0)
     return torch.where(valid,score,torch.zeros_like(score))
 
