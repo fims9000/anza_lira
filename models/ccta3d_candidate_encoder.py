@@ -84,7 +84,10 @@ class Candidate3dEncoder(nn.Module):
             # Identical dense supervision and geometric readout for matched CNN
             # and ANZA: only local operator/axial physical bias differs.
             self.vessel_head=nn.Conv3d(channels,1,1)
-            self.bridge_readout=VesselBridgeReadout(2 if candidate_type=="PAIR" else 3)
+            self.bridge_readout=VesselBridgeReadout(
+                2 if candidate_type=="PAIR" else 3,
+                junction_strategy=("adaptive_star" if candidate_type=="JUNCTION" else "centroid_star"),
+            )
             self.bridge_strength_logit=nn.Parameter(torch.tensor(-.5))
 
     def forward(self,x:torch.Tensor,*,return_structure:bool=False):
