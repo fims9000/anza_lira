@@ -17,7 +17,7 @@ CNN="conv3d_sep_structure"
 ANZA="anza3d_sep_structure"
 
 
-def fake_report(tmp_path,seed:int,*,extra_false=0,version="frozen-sha",complete=True):
+def fake_report(tmp_path,seed:int,*,extra_false=0,version="frozen-sha",complete=True,identity="neural_pair"):
     rows=[]
     for patient in PATIENTS:
         row={
@@ -40,7 +40,7 @@ def fake_report(tmp_path,seed:int,*,extra_false=0,version="frozen-sha",complete=
         "status":"complete_five_patient_matched_CCTA_dev_val",
         "patient_completed":5,"patient_failed_or_missing":0,
         "held_out_test_accessed":False,
-        "pair_identity_source":"neural_pair",
+        "pair_identity_source":identity,
         "relation_train_protocol":"experimental_patient_OOF_15copy_augmented_relation_head",
         "variant_pair":[CNN,ANZA],
         "tip_encoding":"separate",
@@ -74,3 +74,14 @@ def test_multi_seed_aggregation_rejects_partial_or_incompatible_evidence(tmp_pat
     runs[13]=fake_report(tmp_path,13,complete=False)
     with pytest.raises(ValueError,match="five development"):
         aggregate(runs)
+
+
+def test_neural_junction_identity_policy_must_match_across_three_patient_seeds(tmp_path):
+    three={s:fake_report(tmp_path,s,identity="neural_pair_junction")
+           for s in (11,12,13)}
+    result=aggregate(three)
+    assert result["candidate_identity_policy"]=="neural_pair_junction"
+    assert result["held_out_CT28_test_accessed"] is False
+    three[12]=fake_report(tmp_path,12,identity="neural_pair")
+    with pytest.raises(ValueError,match="incompatible"):
+        aggregate(three)
