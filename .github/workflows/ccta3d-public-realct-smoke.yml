@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - experiment/ccta3d-fixed-frame-2026-11-11
+      - experiment/ccta3d-topology-anisotropy-2026-11-11
   workflow_dispatch:
 
 jobs:
