@@ -151,7 +151,7 @@ def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size
                 meta=_load_json(out/"oof_protocol.json")
                 expected={"epochs":epochs,"batch_size":batch_size,"seed":seed,"device":device,"ranking_weight":ranking_weight}
                 actual=meta.get("fixed_train_hyperparameters",{})
-                if meta.get("fold_count")!=folds or any(actual.get(k)!=v for k,v in expected.items()):
+                if meta.get("fold_count")!=folds or any(actual.get(k,0. if k=="ranking_weight" else None)!=v for k,v in expected.items()):
                     raise ValueError("Existing OOF run uses different seed, folds, device or training budget")
                 continue
             build_oof(
