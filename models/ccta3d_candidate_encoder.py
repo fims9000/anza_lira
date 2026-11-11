@@ -23,11 +23,17 @@ class PermutationInvariantTipStem3d(nn.Module):
     no endpoint-ID/coordinate sorting shortcut can enter via distinct weights.
     PAIR carries a zero third tip channel and is normalized by degree=2.
     """
-    def __init__(self,channels:int,degree:int):
+    def __init__(self,channels:int,degree:int,*,nonlinear:bool=False):
         super().__init__()
         if degree not in (2,3):
             raise ValueError("Unsupported candidate degree")
         self.degree=degree
+        self.nonlinear=bool(nonlinear)
+        # Opt-in nonlinear DeepSets pooling breaks the unintended identity
+        # Σ Conv(tip_i) == Conv(Σ tip_i), which otherwise destroys all per-tip
+        # multiplicity information despite four input channels.
+        if nonlinear:
+            self.tip_second_moment_gain=nn.Parameter(torch.tensor(.15))
         self.ct=nn.Conv3d(1,channels,3,padding=1,bias=False)
         self.tip=nn.Conv3d(1,channels,3,padding=1,bias=False)
         self.norm=nn.GroupNorm(1,channels)
@@ -38,7 +44,14 @@ class PermutationInvariantTipStem3d(nn.Module):
         b,_,d,h,w=x.shape
         tips=x[:,1:].reshape(b*3,1,d,h,w)
         maps=self.tip(tips).reshape(b,3,-1,d,h,w)
-        encoded=(maps.sum(dim=1)/self.degree)
+        if self.nonlinear:
+            embedded=F.gelu(maps)
+            mean=embedded.sum(dim=1)/self.degree
+            second=(embedded.square()).sum(dim=1)/self.degree
+            encoded=mean+torch.tanh(self.tip_second_moment_gain)*second
+        else:
+            # Keep the old separate-tip prototype EXACTLY reproducible.
+            encoded=(maps.sum(dim=1)/self.degree)
         return F.gelu(self.norm(self.ct(x[:,:1])+encoded))
 
 
@@ -74,7 +87,9 @@ class Candidate3dEncoder(nn.Module):
     ):
         super().__init__()
         if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure",
-                           "anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure"}:
+                           "anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure",
+                           "conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure",
+                           "anza3d_noaxial_deepsets_sep_structure"}:
             raise ValueError("Unknown candidate model variant")
         if candidate_type not in {"PAIR","JUNCTION"}:
             raise ValueError("Unknown candidate relation type")
@@ -87,8 +102,10 @@ class Candidate3dEncoder(nn.Module):
         self.candidate_type=candidate_type
         self.structure_aware=variant.endswith("_structure")
         self.separate_endpoints="_sep_" in variant
+        self.nonlinear_tips="_deepsets_" in variant
         self.stem=(
-            PermutationInvariantTipStem3d(channels,2 if candidate_type=="PAIR" else 3)
+            PermutationInvariantTipStem3d(channels,2 if candidate_type=="PAIR" else 3,
+                                         nonlinear=self.nonlinear_tips)
             if self.separate_endpoints else
             nn.Sequential(
                 nn.Conv3d(2,channels,kernel_size=3,padding=1,bias=False),
@@ -101,7 +118,8 @@ class Candidate3dEncoder(nn.Module):
                 cfg or AZConv3dConfig(
                     modes=3,value_channels=6,kernel_size=3,
                     beta=.12,max_hyperbolicity=1.,
-                    axial_preference=(variant in {"anza3d_structure","anza3d_sep_structure"}),
+                    axial_preference=(variant in {"anza3d_structure","anza3d_sep_structure",
+                                                  "anza3d_deepsets_sep_structure"}),
                 )
             )
         else:
