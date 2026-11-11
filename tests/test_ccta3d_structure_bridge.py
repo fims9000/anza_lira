@@ -204,3 +204,55 @@ def test_connected_tree_does_not_imply_same_branch_identity():
     assert a.item()>.99 and b.item()>.99
     # "Wrong" here is a branch-identity decision, *not* an assertion that
     # its endpoints are in different physical components.
+
+
+@pytest.mark.parametrize("variant",[
+    "conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure"
+])
+def test_separate_tip_model_is_permutation_symmetric_and_has_finite_gradients(variant):
+    torch.manual_seed(123)
+    model=Candidate3dEncoder(variant,channels=6,candidate_type="JUNCTION")
+    x=torch.randn(1,4,8,8,8)
+    xyz=torch.stack(torch.meshgrid(
+        *(torch.arange(8,dtype=torch.float32) for _ in range(3)),indexing="ij"
+    ),dim=0)
+    for i,pos in enumerate([[2.,3.,3.],[4.,3.,3.],[3.,5.,3.]]):
+        delta=xyz-torch.tensor(pos)[:,None,None,None]
+        x[0,i+1]=torch.exp(-(delta**2).sum(dim=0)/(2*1.5**2))
+    model.eval()
+    with torch.no_grad():
+        score,vessel,bridge=model(x,return_structure=True)
+        perm=x[:,[0,3,1,2]]
+        score2,vessel2,bridge2=model(perm,return_structure=True)
+    assert torch.allclose(score,score2,rtol=1e-5,atol=1e-5)
+    assert torch.allclose(vessel,vessel2,rtol=1e-5,atol=1e-5)
+    assert torch.allclose(bridge,bridge2,rtol=1e-5,atol=1e-5)
+    model.train()
+    score,vessel,bridge=model(x,return_structure=True)
+    loss=(score.sigmoid().mean()+vessel.sigmoid().mean()+bridge.mean())
+    loss.backward()
+    grads=[p.grad for p in model.parameters() if p.requires_grad]
+    assert all(g is not None and torch.isfinite(g).all() for g in grads)
+
+
+def test_separate_pair_rejects_unintended_third_channel_and_raw_legacy_shape():
+    model=Candidate3dEncoder("conv3d_sep_structure",candidate_type="PAIR",channels=6)
+    with pytest.raises(ValueError,match="4-channel"):
+        model(torch.randn(1,2,8,8,8))
+    bad=torch.randn(1,4,8,8,8)
+    with pytest.raises(ValueError,match="third endpoint"):
+        model(bad)
+    good=torch.randn(1,4,8,8,8)
+    good[:,3]=0
+    result=model(good)
+    assert result.shape==(1,) and torch.isfinite(result).all()
+
+
+def test_separate_heatmap_missing_endpoint_abstains_not_mean_vessel():
+    from models.structural_bridge3d import VesselBridgeReadout
+    vessel=torch.ones(1,8,8,8)*.99
+    tips=torch.zeros(1,3,8,8,8)
+    tips[0,0,2,3,3]=1.
+    tips[0,1,5,3,3]=1.
+    result=VesselBridgeReadout(3,junction_strategy="adaptive_star")(vessel,tips)
+    assert result.item()<=1e-5*1.1
