@@ -188,7 +188,8 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
             if pa['i'] == pb['i']:
                 continue
             p, q = pa['xy'], pb['xy']
-            gap = float(np.linalg.norm(q-p))            if not cfg.min_gap_px <= gap <= cfg.max_gap_px:
+            gap = float(np.linalg.norm(q-p))
+            if not cfg.min_gap_px <= gap <= cfg.max_gap_px:
                 continue
             axis = (q-p) / gap
             ca = float(pa['outward'] @ axis)
@@ -316,7 +317,8 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
                 e['decision'] = 'REVIEW_ONLY_COMPETING_CONTINUATION'
             elif e['multiscale_alignment_min'] < cfg.min_auto_multiscale_alignment:
                 e['decision'] = 'REVIEW_ONLY_MULTISCALE_DIRECTION_CHANGE'
-            elif e['endpoint_projection_residual_px'] > projection_limit:                e['decision'] = 'REVIEW_ONLY_PARALLEL_OFFSET_OR_CURVATURE'
+            elif e['endpoint_projection_residual_px'] > projection_limit:
+                e['decision'] = 'REVIEW_ONLY_PARALLEL_OFFSET_OR_CURVATURE'
             elif not e['both_endpoints_source_supported']:
                 e['decision'] = 'REVIEW_ONLY_ENDPOINT_NOT_SOURCE_BACKED'
             elif e['blocked_fraction'] > cfg.max_blocked_fraction:
