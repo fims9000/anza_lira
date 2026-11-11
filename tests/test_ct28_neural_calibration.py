@@ -84,3 +84,23 @@ def test_unsealed_or_relabelled_calibration_json_rejected(tmp_path):
             load_calibrator(path)
     with pytest.raises(ValueError,match="finite"):
         fit_train_only_platt(np.full(len(x),np.nan),y,p)
+
+
+def test_independent_phantom_calibration_split_keeps_val_labels_out_of_fit():
+    from benchmark_structural_tubes import fit,make_phantoms
+    train=make_phantoms(16,20261111,"JUNCTION",separate_endpoints=True)
+    calibration=make_phantoms(16,20262027,"JUNCTION",separate_endpoints=True)
+    val=make_phantoms(16,20261911,"JUNCTION",separate_endpoints=True)
+    raw=fit(
+        "conv3d_sep_structure","JUNCTION",train,val,epochs=1,batch_size=8,
+        seed=17,device="cpu",calibration=calibration,
+    )
+    audit=raw["calibration"]
+    assert audit["status"]=="independent_synthetic_calibration_subset_not_medical"
+    assert audit["calibration_seed"]==20262027
+    assert audit["n_calibration_samples"]==16
+    assert audit["calibration_uses_validation_labels"] is False
+    assert raw["val_AUROC"]==pytest.approx(audit["val_calibrated_AUROC"])
+    assert audit["val_calibrated_tau085_true_accepted"]<=8
+    assert audit["val_calibrated_tau085_false_accepted"]<=8
+    assert audit["val_calibrated_tau085_abstained"]<=16
