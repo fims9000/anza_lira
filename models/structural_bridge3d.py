@@ -42,6 +42,28 @@ def _peak_centers(heat:torch.Tensor,degree:int,min_gap:float=3.0):
     return torch.stack(chosen,dim=1),valid
 
 
+def _peak_centers_from_channels(heatmap:torch.Tensor,degree:int):
+    """Decode individual 3D endpoint channels without cross-tip suppression.
+
+    Each candidate tip occupies its own Gaussian field. Exact endpoint
+    positions may be arbitrarily close; a suppression radius or global
+    summed-heatmap peak search would destroy PAIR/JUNCTION identity.
+    """
+    if heatmap.ndim!=5 or heatmap.shape[1]!=3 or degree not in (2,3):
+        raise ValueError("Separate endpoint heatmap must be B,3,D,H,W")
+    b,_,d,h,w=heatmap.shape
+    selected=heatmap[:,:degree].flatten(2)
+    peak,index=selected.max(dim=2)
+    z=index//(h*w)
+    y=(index//w)%h
+    x=index%w
+    centers=torch.stack((z,y,x),dim=-1).to(heatmap.dtype)
+    # A missing/cropped endpoint must abstain instead of fabricating
+    # a candidate position from the next strongest unrelated vessel.
+    valid=(peak>.05).all(dim=1)&torch.isfinite(peak).all(dim=1)
+    return centers,valid
+
+
 def _sample_paths(vessel:torch.Tensor,positions:torch.Tensor):
     if vessel.ndim!=4 or positions.ndim!=4 or positions.shape[-1]!=3:
         raise ValueError("Expected vessel B,D,H,W and path points B,P,S,3")
@@ -166,15 +188,27 @@ class VesselBridgeReadout(nn.Module):
                             else None)
 
     def forward(self,vessel_probability:torch.Tensor,heatmap:torch.Tensor):
-        if vessel_probability.shape!=heatmap.shape or heatmap.ndim!=4:
-            raise ValueError("Vesselness and endpoint masks must be B,D,H,W")
+        separate=heatmap.ndim==5
+        if vessel_probability.ndim!=4 or (
+            (not separate and vessel_probability.shape!=heatmap.shape) or
+            (separate and (heatmap.shape[0]!=vessel_probability.shape[0] or
+                           heatmap.shape[1]!=3 or
+                           heatmap.shape[2:]!=vessel_probability.shape[1:]))
+        ):
+            raise ValueError("Mismatched 3D vessel and summed/separate endpoint fields")
         if not torch.isfinite(vessel_probability).all() or not torch.isfinite(heatmap).all():
             raise ValueError("Nonfinite structural evidence")
+        if separate and self.junction_strategy=="fuzzy_reachability":
+            raise ValueError("Fuzzy connectivity diagnostic expects the legacy summed heatmap")
         if self.degree==3 and self.junction_strategy=="fuzzy_reachability":
             # Diagnostic only: raw component connectivity is NOT correct
             # branch identity. Oracle tests showed AUROC 0.5 for this task.
             return self.connectedness(vessel_probability,heatmap)
-        peaks,valid=_peak_centers(heatmap,self.degree)
+        peaks,valid=(
+            _peak_centers_from_channels(heatmap,self.degree)
+            if separate else
+            _peak_centers(heatmap,self.degree)
+        )
         if self.degree==3:
             if self.junction_strategy=="adaptive_star":
                 paths=_junction_adaptive_paths(peaks,self.steps)
@@ -191,7 +225,8 @@ class VesselBridgeReadout(nn.Module):
             paths=_pair_paths(peaks,self.steps,self.curvature)
             bottleneck=_soft_min(_sample_paths(vessel_probability,paths),self.temperature)
             bridge=bottleneck.max(dim=1).values
-        backup=vessel_probability.flatten(1).mean(dim=1)
+        backup=(torch.full_like(bridge,1e-5) if separate else
+                vessel_probability.flatten(1).mean(dim=1))
         return torch.where(valid,bridge,backup).clamp(1e-5,1-1e-5)
 
 
