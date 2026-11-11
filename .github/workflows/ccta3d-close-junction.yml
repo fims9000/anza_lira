@@ -11,6 +11,10 @@ on:
       - '.github/workflows/ccta3d-close-junction.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ccta3d-close-junction-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   close_junction:
     runs-on: ubuntu-latest
