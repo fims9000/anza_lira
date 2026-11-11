@@ -205,8 +205,8 @@ def normalize_synthetic_hu_histograms(input_patches:np.ndarray)->np.ndarray:
     1D HU histogram shortcuts. This is a *synthetic stress test only*, not
     a proposed medical HU preprocessing or production normalization.
     """
-    if input_patches.ndim!=5 or input_patches.shape[1]!=2:
-        raise ValueError("Expected candidate patch tensor B,2,D,H,W")
+    if input_patches.ndim!=5 or input_patches.shape[1] not in (2,4):
+        raise ValueError("Expected candidate patch tensor B,2-or-4,D,H,W")
     output=input_patches.copy()
     n=output[0,0].size
     # Centered in [-1,1], every patch receives identical sorted values.
@@ -222,8 +222,8 @@ def normalize_synthetic_hu_histograms(input_patches:np.ndarray)->np.ndarray:
 
 def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
     """Destroy 3D spatial continuity but preserve HU histogram and heatmap."""
-    if input_patches.ndim!=5 or input_patches.shape[1]!=2:
-        raise ValueError("Expected B,2,D,H,W patches")
+    if input_patches.ndim!=5 or input_patches.shape[1] not in (2,4):
+        raise ValueError("Expected B,2-or-4,D,H,W patches")
     rng=np.random.default_rng(seed)
     copied=input_patches.copy()
     for row in range(len(copied)):
