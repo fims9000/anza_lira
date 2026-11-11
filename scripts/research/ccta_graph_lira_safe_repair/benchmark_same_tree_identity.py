@@ -15,6 +15,7 @@ Run from repository root. No medical data accessed.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import sys
@@ -153,6 +154,8 @@ def main()->None:
     p.add_argument("--out",type=Path,required=True)
     p.add_argument("--train-trees",type=int,default=48)
     p.add_argument("--val-trees",type=int,default=24)
+    p.add_argument("--test-trees",type=int,default=0,help="Independent synthetic test trees, not used for training or selection")
+    p.add_argument("--save-checkpoints",action="store_true",help="Persist verified reloadable weights per variant/seed")
     p.add_argument("--epochs",type=int,default=8)
     p.add_argument("--seeds",nargs="+",type=int,default=[17,41])
     p.add_argument("--device",default="cpu")
@@ -168,7 +171,10 @@ def main()->None:
         "anza3d_contrast_sep_structure","anza3d_contrast_deepsets_sep_structure",
     ),help="Subset of predeclared matched models for smoke validation")
     args=p.parse_args()
-    if args.out.exists() or args.epochs<1 or args.train_trees<4 or args.val_trees<4:
+    if (args.out.exists() or args.epochs<1 or args.train_trees<4 or
+        args.val_trees<4 or (args.test_trees and args.test_trees<4) or
+        args.test_trees<0):
+
         raise ValueError("Bad or existing experiment output")
     if args.device.startswith("cuda") and not torch.cuda.is_available():
         raise ValueError("Requested CUDA unavailable")
@@ -177,6 +183,13 @@ def main()->None:
                             same_histogram=args.histogram_control)
     val=make_paired_trees(args.val_trees,20261911,
                           same_histogram=args.histogram_control)
+    # Third independent synthetic stream: held out from both optimization
+    # and hyperparameter choice. Model selection must be frozen beforehand.
+    test=(
+        make_paired_trees(args.test_trees,20261113,
+                          same_histogram=args.histogram_control)
+        if args.test_trees else None
+    )
     if args.endpoints_only:
         def without_ct(batch):
             features=batch[0].copy()
@@ -184,6 +197,8 @@ def main()->None:
             return (features,batch[1],batch[2],batch[3])
         train=without_ct(train)
         val=without_ct(val)
+        if test is not None:
+            test=without_ct(test)
     models=(
         "conv3d_sep_structure",
         "anza3d_sep_structure",
@@ -203,6 +218,11 @@ def main()->None:
                 batch_size=8,seed=seed,device=args.device,
                 paired_validation=True,
                 paired_ranking_weight=args.paired_ranking_weight,
+                independent_test=(test[:3] if test is not None else None),
+                checkpoint_path=(
+                    args.out.parent/"checkpoints"/f"{variant}_seed{seed}.pt"
+                    if args.save_checkpoints else None
+                ),
             )
             if values["paired_validation"]["n_trees"]!=args.val_trees:
                 raise AssertionError("Paired validation lost independent trees")
@@ -214,10 +234,17 @@ def main()->None:
         "training_tree_seed":20261111,
         "independent_validation_tree_seed":20261911,
         "train_meta":train[3],"validation_meta":val[3],
+        "test_meta":(test[3] if test is not None else None),
+        "independent_test_seed":(20261113 if test is not None else None),
         "equal_histogram":bool(args.histogram_control),
         "endpoints_only":bool(args.endpoints_only),
         "paired_ranking_weight":float(args.paired_ranking_weight),
         "models":list(models),"seeds":args.seeds,
+        "model_checkpoints_saved":bool(args.save_checkpoints),
+        "training_input_sha256":hashlib.sha256(train[0].tobytes()).hexdigest(),
+        "validation_input_sha256":hashlib.sha256(val[0].tobytes()).hexdigest(),
+        "test_input_sha256":(hashlib.sha256(test[0].tobytes()).hexdigest()
+                             if test is not None else None),
         "oracle":_standalone_oracle(val[0],val[2]),
         "measurements":measurements,
     }
