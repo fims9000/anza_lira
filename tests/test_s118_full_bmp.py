@@ -71,3 +71,14 @@ def test_operator_protected_mask_is_applied_and_frozen(tmp_path):
     bad=tmp_path/'invalid.png';cv2.imwrite(str(bad),np.zeros((10,10),np.uint8))
     with pytest.raises(ValueError,match='Protected mask shape'):
         run(bmp,tmp_path/'invalid_run',tile_size=96,protected=bad)
+
+
+def test_nonmultiple_full_image_grid_no_near_duplicate_edge_tile():
+    tiles=_tiles([0,0,9103,26317],2000,250)
+    assert len(tiles)==90
+    xs=sorted(set(z['xyxy'][0] for z in tiles))
+    ys=sorted(set(z['xyxy'][1] for z in tiles))
+    assert xs[-1]==7103 and ys[-1]==24317
+    assert all(250 <= 2000-(b-a) < 2000 for coords in (xs,ys) for a,b in zip(coords,coords[1:]))
+    assert min(b-a for coords in (xs,ys) for a,b in zip(coords,coords[1:]))>1000
+    assert len(xs)*len(ys)==len(tiles)
