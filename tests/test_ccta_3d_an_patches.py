@@ -113,3 +113,51 @@ def test_fixed_lps_patch_is_permutation_invariant_and_has_full_provenance():
     assert other["frame_mode"]=="fixed_lps"
     with pytest.raises(ValueError,match="frame_mode"):
         PatchConfig(frame_mode="unexpected")
+
+
+def test_separate_tip_patches_preserve_hu_and_resolve_sub_3mm_junction_tips():
+    from models.structural_bridge3d import _peak_centers_from_channels
+    import torch
+    ct=np.full((40,40,40),150.,dtype=np.float32)
+    affine=np.eye(4)
+    # Two correct junction tips are only 1.7 mm apart: below the legacy
+    # 3-voxel NMS suppression radius, and typical of true CT28 junctions.
+    ends=np.array([[-20.,-20.,20.],[-21.7,-20.,20.],[-20.,-22.,20.]])
+    config=PatchConfig(side=24,frame_mode="fixed_lps")
+    summed,base=extract_candidate_patch(ct,affine,ends,config)
+    separate,info=extract_candidate_patch(
+        ct,affine,ends,
+        PatchConfig(side=24,frame_mode="fixed_lps",endpoint_encoding="separate"),
+    )
+    assert summed.shape==(2,24,24,24)
+    assert separate.shape==(4,24,24,24)
+    assert np.array_equal(separate[0],summed[0])
+    assert np.allclose(np.minimum(1.,separate[1:].sum(axis=0)),
+                       summed[1],atol=1e-6)
+    assert info["endpoint_encoding"]=="separate"
+    assert info["candidate_degree"]==3
+    peaks,valid=_peak_centers_from_channels(torch.from_numpy(separate[None,1:]),3)
+    assert bool(valid.item())
+    center=np.mean(ends,axis=0)
+    sorted_ends=ends[np.lexsort((ends[:,2],ends[:,1],ends[:,0]))]
+    local=(sorted_ends-center)+(24-1)/2
+    np.testing.assert_allclose(peaks[0].numpy(),np.rint(local),atol=1.)
+    swapped,_=extract_candidate_patch(
+        ct,affine,ends[[2,0,1]],
+        PatchConfig(side=24,frame_mode="fixed_lps",endpoint_encoding="separate"),
+    )
+    assert np.array_equal(swapped,separate)
+
+
+def test_separate_tip_pair_uses_exactly_two_channels_and_zero_padded_third():
+    ct,affine,pts=synthetic_ct()
+    x,meta=extract_candidate_patch(
+        ct,affine,pts[:2],
+        PatchConfig(side=16,endpoint_encoding="separate",frame_mode="fixed_lps"),
+    )
+    assert x.shape==(4,16,16,16)
+    assert x[1].max()>.1 and x[2].max()>.1
+    assert np.count_nonzero(x[3])==0
+    assert meta["candidate_degree"]==2
+    with pytest.raises(ValueError,match="endpoint_encoding"):
+        PatchConfig(endpoint_encoding="nonexistent")

@@ -37,6 +37,8 @@ class AZConv3dConfig:
     fuzzy_temperature: float = 1.0
     anisotropy: bool = True
     fuzzy: bool = True
+    axial_preference: bool = False  # opt-in: penalize cross-axis transport more than along-axis
+    contrastive: bool = False  # opt-in: anisotropic neighbor-minus-center transport
 
     def __post_init__(self):
         if self.modes < 1 or self.kernel_size < 1 or self.kernel_size % 2 != 1:
@@ -163,7 +165,14 @@ class AZConv3d(nn.Module):
             fallback,
         )
         if self.cfg.anisotropy:
-            hyper=self.cfg.max_hyperbolicity*torch.tanh(self.hyperbolicity(x))
+            if self.cfg.axial_preference:
+                # G's axial eigenvalue is exp(2h), transverse is exp(-h).
+                # Negative h lowers cost ALONG u and raises it across u.
+                # It is an inductive bias, not a proof of topology preservation.
+                hyper=-self.cfg.max_hyperbolicity*torch.sigmoid(self.hyperbolicity(x))
+            else:
+                # Preserve the historical ANZA3D operator bit-for-bit.
+                hyper=self.cfg.max_hyperbolicity*torch.tanh(self.hyperbolicity(x))
         else:
             hyper=x.new_zeros((b,modes,d,h,w))
         projected=self.values(x)
@@ -190,7 +199,15 @@ class AZConv3d(nn.Module):
             )
             denominator=denominator+compatibility
             numerator=numerator+compatibility.unsqueeze(2)*neighbor_values.unsqueeze(1)
-        aggregated=(numerator/denominator.clamp_min(1e-12).unsqueeze(2)).reshape(
+        aggregated=numerator/denominator.clamp_min(1e-12).unsqueeze(2)
+        if self.cfg.contrastive:
+            # Original kernel computes a positive weighted local MEAN, which
+            # can over-smooth thin vessels. This opt-in graph-Laplacian-like
+            # term carries *signed contrast* between each center voxel and
+            # its anisotropically weighted neighborhood. On a constant
+            # volume it is exactly zero (up to roundoff).
+            aggregated=aggregated-projected[:,None]
+        aggregated=aggregated.reshape(
             b,modes*self.cfg.value_channels,d,h,w
         )
         return self.shortcut(x)+torch.sigmoid(self.residual_logit)*self.mix(aggregated)

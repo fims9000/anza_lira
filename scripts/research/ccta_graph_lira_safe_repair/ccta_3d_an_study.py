@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from ccta_3d_an_patch_cache import build_patient_cache, DEFAULT_CACHE
@@ -35,7 +36,7 @@ def _load_json(path:Path)->dict:
         return json.load(reader)
 
 
-def _verified_cache(cache:Path,patient:int,frame_mode:str="canonical")->bool:
+def _verified_cache(cache:Path,patient:int,frame_mode:str="canonical",with_vessel_targets:bool=False,endpoint_encoding:str="summed")->bool:
     path=cache/f"patches_{patient}.npz"
     report=cache/f"patches_{patient}.json"
     if not path.exists() and not report.exists():
@@ -46,8 +47,19 @@ def _verified_cache(cache:Path,patient:int,frame_mode:str="canonical")->bool:
     split="train" if patient in TRAIN else "val"
     if meta.get("patient_id")!=patient or meta.get("split")!=split or meta.get("cache_sha256")!=sha256(path):
         raise ValueError(f"Corrupted or patient/split-mismatched CT patch cache {patient}")
-    if meta.get("patch_protocol",{}).get("frame_mode","canonical")!=frame_mode:
-        raise ValueError(f"CT patch frame mode mismatch for patient {patient}")
+    expected=vars(PatchConfig(frame_mode=frame_mode,endpoint_encoding=endpoint_encoding))
+    recorded=meta.get("patch_protocol") or {}
+    for field,value in expected.items():
+        saved=recorded.get(field,"summed" if field=="endpoint_encoding" else None)
+        if saved!=value:
+            raise ValueError(
+                f"CT patch protocol {field} mismatch for patient {patient}: "
+                f"requested {value!r}, cached {saved!r}"
+            )
+    if patient in TRAIN and bool(meta.get("train_only_dense_supervision",False))!=with_vessel_targets:
+        raise ValueError(f"Train-only vessel target protocol mismatch for patient {patient}")
+    if patient in VAL and meta.get("train_only_dense_supervision",False):
+        raise ValueError("Validation vessel targets must not enter the candidate cache")
     return True
 
 
@@ -115,41 +127,63 @@ def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
     return True
 
 
-def ensure_patch_cache(cache:Path,frame_mode:str="canonical")->None:
+def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets:bool=False,endpoint_encoding:str="summed")->None:
     for patient in TRAIN+VAL:
-        if _verified_cache(cache,patient,frame_mode=frame_mode):
+        if _verified_cache(cache,patient,frame_mode=frame_mode,with_vessel_targets=with_vessel_targets,endpoint_encoding=endpoint_encoding):
             continue
         build_patient_cache(patient=patient,output_dir=cache,
-                            config=PatchConfig(frame_mode=frame_mode),
-                            include_val=patient in VAL)
+                            config=PatchConfig(frame_mode=frame_mode,endpoint_encoding=endpoint_encoding),
+                            include_val=patient in VAL,
+                            with_vessel_targets=with_vessel_targets and patient in TRAIN)
         print(f"CT28 3D patches complete: {patient}",flush=True)
 
 
-def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102)->None:
-    if not all(_verified_cache(cache,p,frame_mode=frame_mode) for p in TRAIN+VAL):
+def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102,variants:tuple[str,...]=("conv3d","anza3d"),endpoint_encoding:str="summed",ranking_weight:float=0.)->None:
+    structure=all(v.endswith("_structure") for v in variants)
+    if any(("_sep_" in variant)!=(endpoint_encoding=="separate") for variant in variants):
+        raise ValueError("Model variant and patch endpoint-encoding mismatch")
+    if not all(_verified_cache(cache,p,frame_mode=frame_mode,with_vessel_targets=structure,endpoint_encoding=endpoint_encoding) for p in TRAIN+VAL):
         raise ValueError("Frozen patient patch cache incomplete for requested frame mode")
     for kind in ("PAIR","JUNCTION"):
-        for variant in ("conv3d","anza3d"):
+        for variant in variants:
             out=root/f"oof_{kind.lower()}_{variant}"
             if _verified_oof(out,kind,variant):
                 meta=_load_json(out/"oof_protocol.json")
-                expected={"epochs":epochs,"batch_size":batch_size,"seed":seed,"device":device}
+                expected={"epochs":epochs,"batch_size":batch_size,"seed":seed,"device":device,"ranking_weight":ranking_weight}
                 actual=meta.get("fixed_train_hyperparameters",{})
-                if meta.get("fold_count")!=folds or any(actual.get(k)!=v for k,v in expected.items()):
+                if meta.get("fold_count")!=folds or any(actual.get(k,0. if k=="ranking_weight" else None)!=v for k,v in expected.items()):
                     raise ValueError("Existing OOF run uses different seed, folds, device or training budget")
                 continue
             build_oof(
                 cache_dir=cache,out_dir=out,candidate_type=kind,
                 variant=variant,train_patients=TRAIN,val_patients=VAL,
                 folds=folds,epochs=epochs,batch_size=batch_size,
-                seed=seed,device=device,
+                seed=seed,device=device,ranking_weight=ranking_weight,
             )
             print(f"Patient-OOF candidate evidence: {kind}/{variant}",flush=True)
 
 
-def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu")->None:
+def verify_upstream_ranking_protocol(root:Path,variants:tuple[str,...],expected_weight:float)->None:
+    """Refuse relations/volume generated with stale candidate ranking objective."""
+    if not math.isfinite(expected_weight) or expected_weight<0:
+        raise ValueError("Invalid train-only ranking weight")
+    for variant in variants:
+        for kind in ("PAIR","JUNCTION"):
+            output=root/f"oof_{kind.lower()}_{variant}"
+            if not _verified_oof(output,kind,variant):
+                raise ValueError(f"Missing verified upstream OOF for {kind}/{variant}")
+            meta=_load_json(output/"oof_protocol.json")
+            weight=meta.get("fixed_train_hyperparameters",{}).get("ranking_weight",0.)
+            if weight!=expected_weight:
+                raise ValueError(
+                    f"OOF {kind}/{variant} ranking-weight mismatch: "
+                    f"{weight} != {expected_weight}"
+                )
+
+
+def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu",variants:tuple[str,...]=("conv3d","anza3d"))->None:
     _relation_protocol(mode)
-    for variant in ("conv3d","anza3d"):
+    for variant in variants:
         path=root/f"relation_{variant}"
         if _verified_relation(path,variant,mode):
             continue
@@ -189,9 +223,10 @@ def ensure_pilot(root:Path,*,patient:int)->Path:
 
 def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str,
                             pair_identity_source:str="frozen_fusion",
-                            relation_mode:str="clean")->None:
+                            relation_mode:str="clean",
+                            variants:tuple[str,...]=("conv3d","anza3d"))->None:
     expected_protocol=_relation_protocol(relation_mode)
-    for variant in ("conv3d","anza3d"):
+    for variant in variants:
         repaired=root/f"{variant}_repaired.nii.gz"
         additions=root/f"{variant}_additions.nii.gz"
         decisions=root/f"{variant}_decisions.json"
@@ -238,12 +273,13 @@ def ensure_neural_inference(root:Path,*,pilot:Path,patient:int,device:str,
 
 def summarize(root:Path,*,pilot:Path,patient:int,
               pair_identity_source:str="frozen_fusion",
-              relation_mode:str="clean")->dict:
+              relation_mode:str="clean",
+              variants:tuple[str,...]=("conv3d","anza3d"))->dict:
     expected_protocol=_relation_protocol(relation_mode)
     k10_metrics=_load_json(pilot/"posthoc_metrics.json")
     inputs=_load_json(pilot/"decisions.json")
     records={}
-    for variant in ("K10","conv3d","anza3d"):
+    for variant in ("K10",*variants):
         m=k10_metrics if variant=="K10" else _load_json(root/f"{variant}_posthoc.json")
         decisions=inputs if variant=="K10" else _load_json(root/f"{variant}_decisions.json")
         if decisions.get("patient_label")!=str(patient) or m.get("patient_id")!=str(patient):
@@ -328,37 +364,64 @@ def main():
     parser.add_argument("--root",type=Path,default=DEFAULT_STUDY)
     parser.add_argument("--cache-dir",type=Path,default=DEFAULT_CACHE)
     parser.add_argument("--frame-mode",choices=("canonical","fixed_lps"),default="canonical")
+    parser.add_argument("--structure-models",action="store_true",help="Matched dense clDice+path CNN/ANZA variants")
+    parser.add_argument("--separate-endpoints",action="store_true",help="Lossless individually encoded PAIR/JUNCTION tips; paired symmetric CNN/ANZA")
+    parser.add_argument("--deepsets",action="store_true",help="Nonlinear symmetric per-tip moments; requires separate endpoints")
+    parser.add_argument("--include-noaxial-control",action="store_true",help="Third matched ANZA without forced axial metric")
     parser.add_argument("--patient-id",type=int,default=953)
-    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
+    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair","neural_pair_junction"),default="frozen_fusion")
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--epochs",type=int,default=8)
     parser.add_argument("--seed",type=int,default=20261102)
     parser.add_argument("--folds",type=int,default=5)
     parser.add_argument("--batch-size",type=int,default=8)
+    parser.add_argument("--ranking-weight",type=float,default=0.,help="Train-only same-scene candidate ranking ablation (0 preserves baseline)")
     args=parser.parse_args()
-    if args.frame_mode=="fixed_lps" and (args.cache_dir.resolve()==DEFAULT_CACHE.resolve() or args.root.resolve()==DEFAULT_STUDY.resolve()):
+    if (args.frame_mode=="fixed_lps" or args.structure_models or args.separate_endpoints) and (args.cache_dir.resolve()==DEFAULT_CACHE.resolve() or args.root.resolve()==DEFAULT_STUDY.resolve()):
         raise ValueError("Fixed LPS ablation requires separate --cache-dir and --root; keep historical runs immutable")
     if args.patient_id not in TRAIN:
         raise ValueError("Held-out or validation patient forbidden in end-to-end study")
+    if (args.separate_endpoints or args.include_noaxial_control) and not args.structure_models:
+        raise ValueError("Separate tips and no-axial ablation require --structure-models")
+    if args.deepsets and (not args.separate_endpoints or not args.structure_models):
+        raise ValueError("Nonlinear DeepSets tip stem needs --structure-models --separate-endpoints")
+    encoding="separate" if args.separate_endpoints else "summed"
+    if args.structure_models:
+        if args.deepsets:
+            variants=("conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure")
+            if args.include_noaxial_control:
+                variants=(*variants,"anza3d_noaxial_deepsets_sep_structure")
+        else:
+            variants=(("conv3d_sep_structure","anza3d_sep_structure") if args.separate_endpoints
+                      else ("conv3d_structure","anza3d_structure"))
+            if args.include_noaxial_control:
+                variants=(*variants,("anza3d_noaxial_sep_structure" if args.separate_endpoints
+                                     else "anza3d_noaxial_structure"))
+    else:
+        variants=("conv3d","anza3d")
+    if not math.isfinite(args.ranking_weight) or args.ranking_weight<0:
+        raise ValueError("Ranking-weight must be a finite nonnegative number")
     args.root.mkdir(parents=True,exist_ok=True)
     if args.stage in ("patches","all"):
-        ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode)
+        ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode,with_vessel_targets=args.structure_models,endpoint_encoding=encoding)
     if args.stage in ("oof","all"):
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
-                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed)
+                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants,endpoint_encoding=encoding,ranking_weight=args.ranking_weight)
+    if args.stage in ("relations","volume","all"):
+        verify_upstream_ranking_protocol(args.root,variants,args.ranking_weight)
     if args.stage in ("relations","all"):
-        ensure_relations(args.root,mode=args.relation_training,device=args.device)
+        ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants)
     pilot=None
     if args.stage in ("pilot","volume","all"):
         pilot=ensure_pilot(args.root,patient=args.patient_id)
     if args.stage in ("volume","all"):
         ensure_neural_inference(args.root,pilot=pilot,patient=args.patient_id,device=args.device,
                                 pair_identity_source=args.pair_identity_source,
-                                relation_mode=args.relation_training)
+                                relation_mode=args.relation_training,variants=variants)
         result=summarize(args.root,pilot=pilot,patient=args.patient_id,
                          pair_identity_source=args.pair_identity_source,
-                         relation_mode=args.relation_training)
+                         relation_mode=args.relation_training,variants=variants)
         print(json.dumps(result,ensure_ascii=False,indent=2))
     else:
         print(json.dumps({"status":"stage_complete","stage":args.stage},indent=2))

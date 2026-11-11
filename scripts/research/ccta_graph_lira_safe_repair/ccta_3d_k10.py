@@ -232,11 +232,20 @@ class K10Inference:
                 abstention_reason = "consistency_below_threshold"
         score_lookup = base_scores.set_index("candidate_id")
         utility = 0.0
+        # For frozen K10/15 this is EXACTLY the historical PAIR=fusion and
+        # JUNCTION=geometry utility. The experimental neural subclass may
+        # explicitly opt into ANN JUNCTION identity, in which case the
+        # reported utility MUST use the same stream as candidate selection.
+        identity_fields = getattr(self, "identity_utility_columns", {
+            "PAIR": "geometry_plus_ct_score",
+            "JUNCTION": "geometry_score",
+        })
         for kind, key in (("PAIR", base["pair_candidate_id"]),
                           ("JUNCTION", base["junction_candidate_id"])):
             if key is not None:
-                field = "geometry_plus_ct_score" if kind == "PAIR" else "geometry_score"
-                utility += float(np.log(max(1e-8, score_lookup.loc[key, field])))
+                utility += float(np.log(max(
+                    1e-8,score_lookup.loc[key,identity_fields[kind]]
+                )))
         return ScenePrediction(
             scene_id=scene.scene_id,
             raw_relation=str(base["raw_relation"]),

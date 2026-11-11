@@ -22,6 +22,7 @@ class PatchConfig:
     hu_min: float = -300.0
     hu_max: float = 1200.0
     frame_mode: str = "canonical"  # frozen historical behavior; optional fixed LPS ablation
+    endpoint_encoding: str = "summed"  # experimental separate 3-tip representation
 
     def __post_init__(self):
         if self.side < 8 or self.side > 64 or self.side % 2:
@@ -34,6 +35,8 @@ class PatchConfig:
             raise ValueError("Invalid patch physical scales")
         if self.frame_mode not in {"canonical", "fixed_lps"}:
             raise ValueError("frame_mode must be canonical or fixed_lps")
+        if self.endpoint_encoding not in {"summed","separate"}:
+            raise ValueError("endpoint_encoding must be summed or separate")
 
 
 def local_frame(endpoints_lps: np.ndarray, frame_mode: str = "canonical") -> tuple[np.ndarray,np.ndarray]:
@@ -113,16 +116,29 @@ def extract_candidate_patch(
     )
     squared=np.zeros((config.side,)*3,dtype=np.float32)
     heat=np.zeros_like(squared)
+    separate=[]
     for pos in local.T:
         squared[:]=sum((grid[axis]-pos[axis])**2 for axis in range(3))
-        heat+=np.exp(-squared/(2*config.endpoint_sigma_mm**2))
+        field=np.exp(-squared/(2*config.endpoint_sigma_mm**2))
+        heat+=field
+        separate.append(field.astype(np.float32))
     heat=np.clip(heat,0,1)
-    out=np.stack((normalized,heat),axis=0).astype(np.float32)
+    if config.endpoint_encoding=="separate":
+        # Exactly three dedicated tip channels; PAIR gets an all-zero third.
+        # Original sorted endpoint order is only a storage convention.
+        # The experimental neural stem/readout MUST be permutation invariant.
+        while len(separate)<3:
+            separate.append(np.zeros_like(heat))
+        out=np.stack((normalized,*separate),axis=0).astype(np.float32)
+    else:
+        # Preserve the historical two-channel input bit-for-bit.
+        out=np.stack((normalized,heat),axis=0).astype(np.float32)
     if not np.isfinite(out).all():
         raise ValueError("Nonfinite CCTA candidate patch")
     return out,{
         "candidate_degree":len(endpoints_lps),
         "frame_mode":config.frame_mode,
+        "endpoint_encoding":config.endpoint_encoding,
         "sampling_inside_volume_fraction":float(valid.mean()),
         "patch_center_lps_mm":center.tolist(),
         "voxel_mm":config.voxel_mm,
