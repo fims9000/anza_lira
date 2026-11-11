@@ -18,7 +18,13 @@ from scipy.optimize import minimize
 from scipy.special import expit
 from sklearn.metrics import roc_auc_score
 
-from extract_ct28_scene_candidate_features import EXPECTED_PATIENT_IDS
+def _ct28_train_ids()->set[int]:
+    # Import dataset metadata ONLY for clinical patient validation.
+    # Pure numeric phantom calibration must remain usable without pandas,
+    # nibabel, ImageCAS, CT28 artifacts or medical infrastructure.
+    from extract_ct28_scene_candidate_features import EXPECTED_PATIENT_IDS
+    return EXPECTED_PATIENT_IDS["train"]
+
 
 
 @dataclass(frozen=True)
@@ -90,7 +96,7 @@ def fit_train_only_platt(scores,labels,patients)->tuple[PlattTemperature,dict]:
     groups=np.asarray(patients)
     if len(p)!=len(y) or len(y)!=len(groups):
         raise ValueError("Calibration score/label/patient arrays do not align")
-    allowed=EXPECTED_PATIENT_IDS["train"]
+    allowed=_ct28_train_ids()
     if any(int(group) not in allowed for group in groups):
         raise ValueError("Calibration must contain only CT28 train patients")
     if len(set(y))!=2 or len(set(groups))<2:
@@ -127,7 +133,7 @@ def patient_crossfit_platt(scores,labels,patients):
     groups=np.asarray(patients)
     if len(scores)!=len(labels) or len(scores)!=len(groups):
         raise ValueError("Misaligned patient calibration arrays")
-    if any(int(p) not in EXPECTED_PATIENT_IDS["train"] for p in groups):
+    if any(int(p) not in _ct28_train_ids() for p in groups):
         raise ValueError("Patient OOF calibration cannot use val/test patients")
     output=np.full(len(scores),np.nan,dtype=float)
     receipts=[]
@@ -159,7 +165,7 @@ def load_calibrator(path:Path)->PlattTemperature:
         or receipt.get("held_out_CT28_test_accessed") is not False):
         raise ValueError("Unapproved or unsealed candidate calibration artifact")
     ids=receipt.get("train_patient_ids",[])
-    if not ids or any(int(x) not in EXPECTED_PATIENT_IDS["train"] for x in ids):
+    if not ids or any(int(x) not in _ct28_train_ids() for x in ids):
         raise ValueError("Untrusted calibration patient provenance")
     return PlattTemperature(**receipt["parameters"])
 
