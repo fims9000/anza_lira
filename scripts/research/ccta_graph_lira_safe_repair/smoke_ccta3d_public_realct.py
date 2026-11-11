@@ -125,9 +125,6 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
                         _,dense,bridge=model(inputs,return_structure=True)
                     entry["unsupervised_bridge_support"]=float(bridge.item())
                     entry["random_dense_vessel_probability_mean"]=float(torch.sigmoid(dense).mean().item())
-                # End entry; no medical reference or clinical label is available.
-                _unused_end_marker={
-                }
                 if kind=="PAIR" and frame=="canonical":
                     model.train()
                     model.zero_grad(set_to_none=True)
