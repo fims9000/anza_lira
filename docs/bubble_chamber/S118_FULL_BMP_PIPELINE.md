@@ -34,6 +34,8 @@ PYTHONPATH=. OPENBLAS_NUM_THREADS=1 python scripts/research/bubble_chamber/run_s
   --bbox 3600:6000:5400:7600 --tile-size 1200 --overlap 600 --max-tiles 4 --resume
 ```
 
+An aligned user-supplied fiducial/cross exclusion mask can be passed as `--protected-mask /PRIVATE/operator_exclusions.png`. Its SHA-256 is frozen on resume and pixels are excluded from S114 and S117 grouping. This is **not** automatic cross detection or semantic cross classification.
+
 Omit `--bbox` and `--max-tiles` to process all tiles of the whole BMP (not yet performance-tested to completion on this image). The pipeline currently uses **CPU OpenCV**, not CUDA. Do not interpret the output as an ANZA GPU inference run.
 
 The pipeline writes `RUN_CONFIG.json`, per-tile `S115_CURVES.json` and `S117_GROUPS.json`, `S118_MANIFEST_NNNNN.json`, `S118_STITCH_NNNNN/S118_STITCH_NOT_GT.json`, `S118_VECTOR_REVIEW.svg`, and a run report. BMP and human annotations never appear in these source-only outputs. On resume, input source SHA-256 and all stored local-curve provenance are checked. A partial tile checkpoint is rejected, not silently overwritten.
