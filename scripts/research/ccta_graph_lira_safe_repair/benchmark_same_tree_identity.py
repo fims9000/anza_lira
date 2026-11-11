@@ -217,7 +217,7 @@ def main()->None:
     args.out.parent.mkdir(parents=True,exist_ok=True)
     args.out.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
     print(json.dumps({"status":report["status"],"n_runs":len(measurements),
-                      "oracle":report["oracle"]},flush=True))
+                      "oracle":report["oracle"]}),flush=True)
 
 
 if __name__=="__main__":
