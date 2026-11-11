@@ -14,7 +14,8 @@ from models.structural_bridge3d import VesselBridgeReadout
 def test_same_connected_gt_contains_directionally_wrong_pair_candidates():
     image,tips,y,connected=generate(n=4,seed=20261111)
     assert image.shape==(8,24,24,24)
-    assert tips.shape==(8,2,24,24,24)
+    assert tips.shape==(8,3,24,24,24)
+    assert np.count_nonzero(tips[:,2])==0
     assert y.tolist()==[1,0,1,0,1,0,1,0]
     assert connected.all()
     for j in range(0,len(image),2):
