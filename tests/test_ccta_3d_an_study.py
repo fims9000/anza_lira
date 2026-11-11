@@ -131,3 +131,25 @@ def test_cached_patch_sha_valid_but_wrong_voxel_fov_is_rejected(tmp_path):
     (tmp_path/"patches_953.json").write_text(json.dumps(meta))
     assert _verified_cache(tmp_path,953,frame_mode="fixed_lps",
                            endpoint_encoding="separate",with_vessel_targets=True)
+
+
+def test_late_relation_or_volume_stage_refuses_mixed_ranking_objective(tmp_path,monkeypatch):
+    import ccta_3d_an_study as study
+    variant="conv3d_sep_structure"
+    monkeypatch.setattr(study,"_verified_oof",lambda path,kind,v:True)
+    for kind in ("PAIR","JUNCTION"):
+        out=tmp_path/f"oof_{kind.lower()}_{variant}"
+        out.mkdir()
+        (out/"oof_protocol.json").write_text(json.dumps({
+            "fixed_train_hyperparameters":{"ranking_weight":.5}
+        }))
+    study.verify_upstream_ranking_protocol(tmp_path,(variant,),.5)
+    with pytest.raises(ValueError,match="ranking-weight mismatch"):
+        study.verify_upstream_ranking_protocol(tmp_path,(variant,),0.)
+    with pytest.raises(ValueError,match="Invalid train-only"):
+        study.verify_upstream_ranking_protocol(tmp_path,(variant,),float("nan"))
+    (tmp_path/f"oof_junction_{variant}"/"oof_protocol.json").write_text(json.dumps({
+        "fixed_train_hyperparameters":{"ranking_weight":0.}
+    }))
+    with pytest.raises(ValueError,match="ranking-weight mismatch"):
+        study.verify_upstream_ranking_protocol(tmp_path,(variant,),.5)
