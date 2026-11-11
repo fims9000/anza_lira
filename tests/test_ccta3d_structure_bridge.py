@@ -178,3 +178,29 @@ def test_adaptive_hub_has_finite_gradients_and_equal_cnn_anza_contract():
         assert net.bridge_readout.junction_strategy=="adaptive_star"
     with pytest.raises(ValueError,match="strategy"):
         VesselBridgeReadout(3,junction_strategy="nonexistent")
+
+
+def test_connected_tree_does_not_imply_same_branch_identity():
+    """Adversarial PAIR case: two candidate paths share one connected tree.
+
+    The false pair crosses a Y bifurcation from one anatomical branch onto
+    another. A connectivity-only oracle cannot determine whether the repair
+    should join these endpoints; a separate branch identity contract is needed.
+    """
+    from models.structural_bridge3d import FuzzyConnectedness3d
+    from scipy.ndimage import label as cc_label
+    import numpy as np
+
+    mask=torch.zeros((1,12,12,12))
+    mask[:,2:10,6,6]=1.
+    mask[:,6,6:10,6]=1.
+    good_heat=_heat([[2.,6.,6.],[9.,6.,6.]])
+    wrong_heat=_heat([[2.,6.,6.],[6.,9.,6.]])
+    comp,_=cc_label(mask[0].numpy()>0,np.ones((3,3,3),dtype=np.uint8))
+    assert comp[2,6,6]==comp[9,6,6]==comp[6,9,6]>0
+    connected=FuzzyConnectedness3d(degree=2,steps=24)
+    a=connected(mask,good_heat)
+    b=connected(mask,wrong_heat)
+    assert a.item()>.99 and b.item()>.99
+    # "Wrong" here is a branch-identity decision, *not* an assertion that
+    # its endpoints are in different physical components.
