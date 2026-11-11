@@ -18,7 +18,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter,label as cc_label
 from sklearn.metrics import average_precision_score,roc_auc_score
 from torch import nn
 from torch.utils.data import DataLoader,TensorDataset
@@ -27,7 +27,7 @@ ROOT=Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0,str(ROOT))
 from models.ccta3d_candidate_encoder import Candidate3dEncoder,parameter_budget
-from models.structural_bridge3d import vessel_structure_loss,VesselBridgeReadout
+from models.structural_bridge3d import vessel_structure_loss,VesselBridgeReadout,_peak_centers
 
 
 def _unit(v):
@@ -205,6 +205,19 @@ def main():
             "positive_mean":float(oracle_p[validation[1]==1].mean()),
             "negative_mean":float(oracle_p[validation[1]==0].mean()),
         }
+        # Independent SciPy 26-connected-components diagnostic on the perfect
+        # vessel reference. Distinguishes a bridge-readout failure from a
+        # negative sample whose separate branch IDs are physically connected.
+        peaks,valid=_peak_centers(torch.from_numpy(validation[0][:,1]),degree)
+        source_points=peaks.numpy().round().astype(int)
+        connected=[]
+        for idx in range(len(validation[1])):
+            component,_=cc_label(validation[2][idx,0]>0,np.ones((3,3,3),dtype=np.uint8))
+            sampled=[int(component[tuple(v)]) for v in source_points[idx]]
+            connected.append(bool(valid[idx]) and all(x>0 and x==sampled[0] for x in sampled))
+        connected=np.asarray(connected,dtype=bool)
+        oracle[kind]["GT_component_connected_fraction_positive"]=float(connected[validation[1]==1].mean())
+        oracle[kind]["GT_component_connected_fraction_negative"]=float(connected[validation[1]==0].mean())
         print(json.dumps({"oracle":kind,**oracle[kind]}),flush=True)
         for seed in a.seeds:
             for variant in models:
