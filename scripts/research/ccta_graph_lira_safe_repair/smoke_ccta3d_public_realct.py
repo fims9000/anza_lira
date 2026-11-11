@@ -69,12 +69,14 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
     }
     dev=torch.device(device)
     torch.manual_seed(20261111)
-    model_names=("conv3d","anza3d","conv3d_structure","anza3d_structure")
+    model_names=("conv3d","anza3d","conv3d_structure","anza3d_structure",
+                 "conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure")
     models={(kind,name):Candidate3dEncoder(name,candidate_type=kind).to(dev)
             for kind in endpoints for name in model_names}
     capacity={
         "historical":parameter_budget(models["PAIR","anza3d"],models["PAIR","conv3d"]),
         "structure":parameter_budget(models["PAIR","anza3d_structure"],models["PAIR","conv3d_structure"]),
+        "separate_structure":parameter_budget(models["PAIR","anza3d_sep_structure"],models["PAIR","conv3d_sep_structure"]),
     }
     results=[]
     previews=[]
@@ -91,9 +93,22 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
                 raise AssertionError("CT patch not sufficiently inside the physical scan")
             if patch[0].min()<-1.00001 or patch[0].max()>1.00001:
                 raise AssertionError("HU normalization outside [-1,1]")
-            inputs=torch.from_numpy(patch[None]).to(dev)
+            sep_patch,sep_audit=extract_candidate_patch(
+                data,affine,points,
+                PatchConfig(side=side,frame_mode=frame,endpoint_encoding="separate")
+            )
+            if sep_patch.shape!=(4,side,side,side):
+                raise AssertionError("Separate-tip CT patch has wrong shape")
+            if not np.array_equal(patch[0],sep_patch[0]) or not np.allclose(
+                patch[1],np.clip(sep_patch[1:].sum(axis=0),0,1),atol=1e-6
+            ):
+                raise AssertionError("Different physical CT patch for matched endpoint encodings")
+            if sep_audit["sampling_inside_volume_fraction"]!=audit["sampling_inside_volume_fraction"]:
+                raise AssertionError("Physical CT support changed between endpoint encodings")
             for name in model_names:
                 model=models[kind,name]
+                active=sep_patch if model.separate_endpoints else patch
+                inputs=torch.from_numpy(active[None]).to(dev)
                 model.eval()
                 started=time.perf_counter()
                 with torch.no_grad():
@@ -103,13 +118,14 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
                     no_hu[:,0]=0
                     without_hu=model(no_hu)
                     no_heatmap=inputs.clone()
-                    no_heatmap[:,1]=0
+                    no_heatmap[:,1:]=0
                     without_heatmap=model(no_heatmap)
                 seconds=time.perf_counter()-started
                 if a.numel()!=1 or not torch.isfinite(a).all() or not torch.equal(a,b):
                     raise AssertionError("Model produced nonfinite/nondeterministic CT output")
                 entry={
                     "frame":frame,"candidate_type":kind,"model":name,
+                    "endpoint_encoding":"separate" if model.separate_endpoints else "summed",
                     "random_initialized":True,"logit":float(a.item()),
                     "score":float(a.sigmoid().item()),
                     "inference_four_pass_seconds":seconds,
@@ -117,8 +133,8 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
                     "abs_logit_change_without_heatmap":float((a-without_heatmap).abs().item()),
                     "sampling_inside_volume_fraction":audit["sampling_inside_volume_fraction"],
                     "endpoint_patch_margin_mm":audit["endpoint_patch_margin_mm"],
-                    "normalized_hu_minmax":[float(patch[0].min()),float(patch[0].max())],
-                    "heatmap_nonzero":int(np.count_nonzero(patch[1])),
+                    "normalized_hu_minmax":[float(active[0].min()),float(active[0].max())],
+                    "heatmap_nonzero":int(np.count_nonzero(active[1:])),
                 }
                 if model.structure_aware:
                     with torch.no_grad():
