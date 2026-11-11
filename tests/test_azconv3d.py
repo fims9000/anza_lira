@@ -95,3 +95,41 @@ def test_invalid_settings_and_shape_rejected():
         x=torch.ones(1,1,4,4,4)
         x[0,0,0,0,0]=float("nan")
         model(x)
+
+
+def test_contrastive_anisotropic_operator_annihilates_constant_feature_field():
+    torch.manual_seed(128)
+    model=AZConv3d(3,3,AZConv3dConfig(
+        modes=2,value_channels=4,kernel_size=3,contrastive=True,
+        axial_preference=True,
+    ))
+    with torch.no_grad():
+        model.mix.bias.zero_()
+    image=torch.full((1,3,7,7,7),.35)
+    output=model(image)
+    # Weighted difference between neighbor and center is zero even at
+    # patch boundaries; the unchanged shortcut therefore returns x.
+    assert torch.allclose(output,image,atol=1e-6,rtol=0)
+
+
+def test_contrastive_and_historical_operator_are_parameter_matched_ablation():
+    torch.manual_seed(128)
+    baseline=AZConv3d(3,3,AZConv3dConfig(
+        modes=2,value_channels=4,kernel_size=3,
+        axial_preference=True,
+    ))
+    contrast=AZConv3d(3,3,AZConv3dConfig(
+        modes=2,value_channels=4,kernel_size=3,
+        contrastive=True,axial_preference=True,
+    ))
+    contrast.load_state_dict(baseline.state_dict(),strict=True)
+    x=torch.randn(1,3,6,6,6,requires_grad=True)
+    old=baseline(x)
+    new=contrast(x)
+    assert old.shape==new.shape
+    assert not torch.allclose(old,new,rtol=1e-5,atol=1e-5)
+    assert count_trainable(contrast)==count_trainable(baseline)
+    new.square().mean().backward()
+    assert x.grad is not None and torch.isfinite(x.grad).all()
+    assert contrast.values.weight.grad is not None
+    assert contrast.values.weight.grad.abs().sum()>0
