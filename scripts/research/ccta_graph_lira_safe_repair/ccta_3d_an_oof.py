@@ -29,6 +29,7 @@ import numpy as np
 import torch
 from sklearn.model_selection import GroupKFold
 from torch import nn
+from torch.nn import functional as F
 from torch.utils.data import DataLoader,TensorDataset
 
 from models.ccta3d_candidate_encoder import Candidate3dEncoder
@@ -46,6 +47,28 @@ def sha256(path:Path)->str:
     return h.hexdigest()
 
 
+def frozen_same_scene_pairs(
+    labels:np.ndarray,scene_ids:np.ndarray,*,seed:int
+)->list[tuple[int,int]]:
+    """Fixed train-only positive/negative candidates from the SAME scene."""
+    y=np.asarray(labels)
+    scenes=np.asarray(scene_ids)
+    if y.ndim!=1 or scenes.ndim!=1 or len(y)!=len(scenes):
+        raise ValueError("Ranking scene IDs must align with fitted candidate rows")
+    if not set(np.unique(y))<= {0,1}:
+        raise ValueError("Ranking requires binary train labels")
+    rng=np.random.default_rng(seed)
+    pairs=[]
+    for scene in sorted(set(str(x) for x in scenes)):
+        ids=np.flatnonzero(scenes==scene)
+        pos=ids[y[ids]==1]
+        neg=ids[y[ids]==0]
+        for p in pos:
+            if len(neg):
+                pairs.append((int(p),int(rng.choice(neg))))
+    return pairs
+
+
 def fit_score(
     train_x:np.ndarray,train_y:np.ndarray,
     inference_x:np.ndarray,
@@ -53,6 +76,7 @@ def fit_score(
     variant:str,epochs:int,batch_size:int,learning_rate:float,
     seed:int,device:str,voxel_mm:float,
     candidate_type:str="PAIR",train_vessel_targets:np.ndarray|None=None,
+    train_scene_ids:np.ndarray|None=None,ranking_weight:float=0.,
 )->tuple[torch.nn.Module,np.ndarray,dict]:
     if not {0,1}<=set(np.unique(train_y)):
         raise ValueError("Each training fold must contain both candidate classes")
@@ -72,6 +96,14 @@ def fit_score(
         raise ValueError("Structural 3D training requires aligned dense train-only vessel targets")
     if not structure_aware and train_vessel_targets is not None:
         raise ValueError("Do not supply dense vessel labels to baseline training")
+    if not np.isfinite(ranking_weight) or ranking_weight<0:
+        raise ValueError("Same-scene ranking weight must be nonnegative finite")
+    pairs=(
+        frozen_same_scene_pairs(train_y,train_scene_ids,seed=seed)
+        if ranking_weight>0 and train_scene_ids is not None else []
+    )
+    if ranking_weight>0 and not pairs:
+        raise ValueError("Ranking objective needs train-only same-scene positive/negative pairs")
     model=Candidate3dEncoder(variant,voxel_mm=voxel_mm,candidate_type=candidate_type).to(device)
     tensors=[torch.from_numpy(train_x),torch.from_numpy(train_y)]
     if structure_aware:
@@ -92,17 +124,29 @@ def fit_score(
     for epoch in range(epochs):
         model.train()
         total=0.0
-        for batch in loader:
-            x=batch[0].to(device);y=batch[1].to(device)
+        for batch_no,batch in enumerate(loader):
+            original_x=batch[0].to(device)
+            y=batch[1].to(device)
+            if pairs:
+                pos,neg=pairs[(epoch*len(loader)+batch_no)%len(pairs)]
+                comparison=torch.from_numpy(train_x[[pos,neg]]).to(device)
+                x=torch.cat((original_x,comparison),dim=0)
+            else:
+                x=original_x
             optimizer.zero_grad(set_to_none=True)
             if structure_aware:
                 logits,dense_logits,path_prob=model(x,return_structure=True)
                 vessel_truth=batch[2].to(device)
-                loss=(criterion(logits,y)
-                      +.35*vessel_structure_loss(dense_logits,vessel_truth,skeleton_iterations=2)
-                      +.15*criterion(torch.logit(path_prob),y))
+                loss=(criterion(logits[:len(y)],y)
+                      +.35*vessel_structure_loss(dense_logits[:len(y)],vessel_truth,skeleton_iterations=2)
+                      +.15*criterion(torch.logit(path_prob[:len(y)]),y))
             else:
-                loss=criterion(model(x),y)
+                logits=model(x)
+                loss=criterion(logits[:len(y)],y)
+            if pairs:
+                # The extra logits are positive and negative candidates
+                # from the same training scene, never a held-out patient.
+                loss=loss+ranking_weight*F.softplus(.3-(logits[-2]-logits[-1]))
             loss.backward()
             optimizer.step()
             total+=float(loss.item())*len(y)
@@ -121,6 +165,9 @@ def fit_score(
         "score_examples":len(inference_x),
         "train_positives":n_pos,
         "epoch_losses":history,
+        "ranking_weight":float(ranking_weight),
+        "training_scene_rank_pair_count":len(pairs),
+        "ranking_uses_validation_labels":False,
         "structure_training":({"dense_loss_weight":.35,"path_loss_weight":.15,
                                "skeleton_iterations":2} if structure_aware else None),
         "wall_seconds":time.perf_counter()-started,
@@ -142,6 +189,7 @@ def build_oof(
     seed:int=20261102,
     device:str="cpu",
     allow_subset:bool=False,
+    ranking_weight:float=0.,
 )->dict:
     if candidate_type not in {"PAIR","JUNCTION"} or variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
         raise ValueError("Unknown candidate/model type")
@@ -155,6 +203,8 @@ def build_oof(
         raise ValueError("Full OOF requires all 17 train and 5 validation patients")
     if folds<2 or folds>len(train_patients) or epochs<1 or batch_size<1 or learning_rate<=0:
         raise ValueError("Invalid patient OOF training configuration")
+    if not np.isfinite(ranking_weight) or ranking_weight<0:
+        raise ValueError("Invalid scene-ranking weight")
     if device.startswith("cuda") and not torch.cuda.is_available():
         raise ValueError("CUDA unavailable")
     if out_dir.exists():
@@ -208,6 +258,8 @@ def build_oof(
             learning_rate=learning_rate,seed=seed,device=device,
             voxel_mm=patch_voxel_mm,candidate_type=candidate_type,
             train_vessel_targets=(train_targets[fit_idx] if structured else None),
+            train_scene_ids=np.asarray([entry["scene_id"] for entry in train_examples])[fit_idx],
+            ranking_weight=ranking_weight,
         )
         oof[hold_idx]=scores
         held_assignments[hold_idx]=fold
@@ -229,6 +281,8 @@ def build_oof(
         learning_rate=learning_rate,seed=seed,device=device,
         voxel_mm=patch_voxel_mm,candidate_type=candidate_type,
         train_vessel_targets=train_targets if structured else None,
+        train_scene_ids=np.asarray([entry["scene_id"] for entry in train_examples]),
+        ranking_weight=ranking_weight,
     )
     checkpoint=out_dir/f"{candidate_type}_{variant}_fulltrain.pt"
     torch.save(model.state_dict(),checkpoint)
@@ -271,6 +325,7 @@ def build_oof(
         "fixed_train_hyperparameters":{
             "epochs":epochs,"batch_size":batch_size,
             "learning_rate":learning_rate,"seed":seed,"device":device,
+            "ranking_weight":float(ranking_weight),
         },
         "train_OOF_metrics":classify_metrics(train_y,oof),
         "train_OOF_scene_top1_identity":candidate_scene_ranking_metrics(
@@ -311,6 +366,7 @@ def main():
     parser.add_argument("--learning-rate",type=float,default=.001)
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--seed",type=int,default=20261102)
+    parser.add_argument("--ranking-weight",type=float,default=0.)
     args=parser.parse_args()
     report=build_oof(
         cache_dir=args.cache_dir,out_dir=args.output_dir,
@@ -319,6 +375,7 @@ def main():
         val_patients=sorted(EXPECTED_PATIENT_IDS["val"]),
         folds=args.folds,epochs=args.epochs,batch_size=args.batch_size,
         learning_rate=args.learning_rate,seed=args.seed,device=args.device,
+        ranking_weight=args.ranking_weight,
     )
     print(json.dumps({
         "status":report["status"],
