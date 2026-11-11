@@ -280,3 +280,49 @@ def test_gaussian_tip_moments_are_subvoxel_stable_for_close_3d_junction():
     assert torch.allclose(q[0],shifted,atol=.04,rtol=0)
     assert (q-p).abs().max().item()<.3
     assert torch.dist(p[0,0],p[0,1]).item()<3.
+
+
+@pytest.mark.parametrize("variant",[
+    "conv3d_deepsets_sep_structure",
+    "anza3d_deepsets_sep_structure",
+    "anza3d_noaxial_deepsets_sep_structure",
+])
+def test_nonlinear_tip_stem_is_symmetric_and_distinguishes_equal_sum_tip_sets(variant):
+    """Old 4-channel stem linearly collapsed separate endpoints to one map."""
+    torch.manual_seed(11)
+    model=Candidate3dEncoder(variant,channels=6,candidate_type="JUNCTION")
+    legacy=Candidate3dEncoder(
+        "anza3d_sep_structure" if variant.startswith("anza3d") else "conv3d_sep_structure",
+        channels=6,candidate_type="JUNCTION",
+    )
+    q=torch.stack(torch.meshgrid(*(torch.arange(8,dtype=torch.float32)
+                                   for _ in range(3)),indexing="ij"))
+    field=torch.exp(-((q-3.5)**2).sum(0)/(2*1.3**2))
+    a=torch.zeros(1,4,8,8,8)
+    b=a.clone()
+    a[:,0]=b[:,0]=torch.randn(1,8,8,8)*.25
+    for i,m in enumerate((1.,.25,.25)):
+        a[:,i+1]=field*m
+    for i,m in enumerate((.5,.5,.5)):
+        b[:,i+1]=field*m
+    assert torch.allclose(a[:,1:].sum(dim=1),b[:,1:].sum(dim=1),atol=1e-7)
+    model.eval();legacy.eval()
+    with torch.no_grad():
+        old_a=legacy.stem(a)
+        old_b=legacy.stem(b)
+        new_a=model.stem(a)
+        new_b=model.stem(b)
+        shuffled=model.stem(a[:,[0,3,1,2]])
+    assert torch.allclose(old_a,old_b,atol=1e-6,rtol=1e-6)
+    assert (new_a-new_b).abs().max().item()>1e-5,(
+        "Nonlinear tip moments must retain distinct per-tip multisets"
+    )
+    assert torch.allclose(new_a,shuffled,atol=1e-6,rtol=1e-6)
+    assert model.nonlinear_tips
+    assert model.parameter_count()==legacy.parameter_count()+1
+    model.train()
+    loss=model.stem(a).square().mean()
+    loss.backward()
+    gain=model.stem.tip_second_moment_gain
+    assert gain.grad is not None and torch.isfinite(gain.grad).all()
+    assert abs(gain.grad.item())>1e-10
