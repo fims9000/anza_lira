@@ -24,7 +24,10 @@ sys.path.insert(0,str(ROOT))
 from models.structural_bridge3d import VesselBridgeReadout,FuzzyConnectedness3d
 
 
-def generate(n:int=12,seed:int=20261111,side:int=24):
+BRANCH_ANGLES_DEGREES=(15,20,25,35,50,65,90)
+
+
+def generate(n:int=14,seed:int=20261111,side:int=24):
     if n<4 or side<20:
         raise ValueError("Expected >=4 synthetic Y-shaped samples and side>=20")
     rng=np.random.default_rng(seed)
@@ -36,13 +39,17 @@ def generate(n:int=12,seed:int=20261111,side:int=24):
     merged=[]
     components_same=[]
     for i in range(n):
+        angle=BRANCH_ANGLES_DEGREES[i%len(BRANCH_ANGLES_DEGREES)]
+        theta=np.deg2rad(angle)
         # Every label pair shares EXACT SAME vessel image and only candidate
         # endpoints differ. Permutation/contrast can never encode class.
         turn=float(rng.uniform(-.4,.4))
         trunk_a=np.array([4.,mid+turn,mid],dtype=float)
         trunk_b=np.array([side-5.,mid+turn,mid],dtype=float)
         junction=np.array([mid,mid+turn,mid],dtype=float)
-        spur_b=np.array([mid,side-5.,mid+turn],dtype=float)
+        # Realistically ambiguous hard branch: at shallow angles it nearly
+        # follows the trunk and may look like a valid continuation.
+        spur_b=junction+np.array([7.*np.cos(theta),7.*np.sin(theta),0.])
         density=np.zeros((side,side,side),dtype=np.float32)
         for p,q in ((trunk_a,trunk_b),(junction,spur_b)):
             for t in np.linspace(0,1,115):
@@ -68,7 +75,7 @@ def generate(n:int=12,seed:int=20261111,side:int=24):
     return np.stack(probs),np.stack(merged),np.asarray(ys),np.asarray(components_same)
 
 
-def run(output:Path,n:int=12,seed:int=20261111):
+def run(output:Path,n:int=14,seed:int=20261111):
     if output.exists():
         raise FileExistsError("Immutable oracle report already exists")
     vessel,tips,y,connected=generate(n=n,seed=seed)
@@ -81,6 +88,10 @@ def run(output:Path,n:int=12,seed:int=20261111):
             v,h.sum(dim=1).clamp(0,1)
         ).numpy()
     metrics={}
+    angle_groups={}
+    for i in range(n):
+        angle=BRANCH_ANGLES_DEGREES[i%len(BRANCH_ANGLES_DEGREES)]
+        angle_groups.setdefault(str(angle),[]).append(2*i+1)
     for name,p in (("separate_tip_path_oracle",new),
                    ("summed_tip_path_oracle",old),
                    ("component_connectedness_oracle",binary)):
@@ -91,6 +102,13 @@ def run(output:Path,n:int=12,seed:int=20261111):
             "mean_false":float(p[y==0].mean()),
             "false_accepted_at_085":int(((p>=.85)&(y==0)).sum()),
             "true_accepted_at_085":int(((p>=.85)&(y==1)).sum()),
+            "false_branch_by_angle_degrees":{
+                angle:{
+                    "n":len(index),
+                    "mean_false_score":float(p[index].mean()),
+                    "false_accepted_at_085":int((p[index]>=.85).sum()),
+                } for angle,index in angle_groups.items()
+            },
         }
     result={
         "status":"same_connected_tree_branch_identity_ORACLE_only",
@@ -98,6 +116,7 @@ def run(output:Path,n:int=12,seed:int=20261111):
         "n_candidates":len(y),
         "all_candidate_endpoints_in_one_gt_component":bool(connected.all()),
         "fixed_train_seed":seed,
+        "branch_angle_grid_degrees":list(BRANCH_ANGLES_DEGREES),
         "held_out_ct28_test_accessed":False,
         "clinical_data_used":False,
         "notes":"This is a hand-constructed directional-continuation label, not universal coronary branch truth.",
@@ -112,6 +131,6 @@ def run(output:Path,n:int=12,seed:int=20261111):
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
     parser.add_argument("--out",type=Path,required=True)
-    parser.add_argument("--n",type=int,default=12)
+    parser.add_argument("--n",type=int,default=14)
     args=parser.parse_args()
     run(args.out,args.n)
