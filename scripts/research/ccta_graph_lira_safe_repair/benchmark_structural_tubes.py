@@ -21,6 +21,7 @@ import torch
 from scipy.ndimage import gaussian_filter,label as cc_label
 from sklearn.metrics import average_precision_score,roc_auc_score
 from torch import nn
+from torch.nn import functional as F
 from torch.utils.data import DataLoader,TensorDataset
 
 ROOT=Path(__file__).resolve().parents[3]
