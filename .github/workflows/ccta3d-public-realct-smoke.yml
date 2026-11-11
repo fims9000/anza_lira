@@ -1,0 +1,43 @@
+name: CCTA 3D ANZA vs CNN public CT numeric smoke
+
+on:
+  push:
+    branches:
+      - experiment/ccta3d-fixed-frame-2026-11-11
+  workflow_dispatch:
+
+jobs:
+  real-ct-smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch and real CT reader
+        run: |
+          python -m pip install numpy scipy pynrrd pillow
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Download public 3D Slicer CTA-cardio sample and validate checksum
+        run: |
+          mkdir -p "$RUNNER_TEMP/cta"
+          curl --retry 3 --connect-timeout 20 --max-time 300 -fL \
+            "https://github.com/Slicer/SlicerTestingData/releases/download/SHA256/3b0d4eb1a7d8ebb0c5a89cc0504640f76a030b4e869e33ff34c564c3d3b88ad2" \
+            -o "$RUNNER_TEMP/cta/CTA-cardio.nrrd"
+          echo "3b0d4eb1a7d8ebb0c5a89cc0504640f76a030b4e869e33ff34c564c3d3b88ad2  $RUNNER_TEMP/cta/CTA-cardio.nrrd" | sha256sum -c -
+      - name: Run CNN and ANZA forward/backward on SAME real CT HU patches
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/smoke_ccta3d_public_realct.py \
+            --volume "$RUNNER_TEMP/cta/CTA-cardio.nrrd" \
+            --out evidence/ccta3d_public_realct_smoke \
+            --side 24 --device cpu
+      - name: Publish small non-PHI numerical report and cropped MIP previews
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccta3d-public-realct-model-smoke
+          path: evidence/ccta3d_public_realct_smoke/
+          if-no-files-found: error
+          retention-days: 21

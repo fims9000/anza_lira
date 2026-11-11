@@ -160,10 +160,11 @@ def main():
     parser.add_argument("--out-dir",type=Path,default=DEFAULT_CACHE)
     parser.add_argument("--patch-side",type=int,default=24)
     parser.add_argument("--voxel-mm",type=float,default=1.0)
+    parser.add_argument("--frame-mode",choices=("canonical","fixed_lps"),default="canonical")
     args=parser.parse_args()
     if len(args.patients)!=len(set(args.patients)):
         raise ValueError("Duplicate requested patient")
-    config=PatchConfig(side=args.patch_side,voxel_mm=args.voxel_mm)
+    config=PatchConfig(side=args.patch_side,voxel_mm=args.voxel_mm,frame_mode=args.frame_mode)
     for patient in args.patients:
         result=build_patient_cache(
             patient=patient,scenes_dir=args.scene_dir,archive=args.archive_dir,

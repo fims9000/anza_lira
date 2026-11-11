@@ -1,0 +1,39 @@
+name: CT28 fixed-frame ablation preflight
+
+on:
+  push:
+    branches:
+      - experiment/ccta3d-fixed-frame-2026-11-11
+  workflow_dispatch:
+
+jobs:
+  geometry-audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install geometry audit dependencies
+        run: python -m pip install pytest numpy scipy pandas scikit-learn joblib
+      - name: Regression tests for frozen and fixed-LPS frames
+        run: |
+          python -m pytest -q tests/test_ccta_3d_an_patches.py
+          python -m py_compile scripts/research/ccta_graph_lira_safe_repair/audit_ccta3d_frame_stability.py
+      - name: Exact CT28 val perturbation frame audit (no patient CT opened)
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/audit_ccta3d_frame_stability.py \
+            --split val \
+            --seed 20260920 \
+            --repetitions 15 \
+            --output evidence/ccta3d_fixed_frame/val_frame_audit.json
+      - name: Upload transparent per-candidate geometry evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccta3d-fixed-frame-geometry-audit
+          path: evidence/ccta3d_fixed_frame/
+          retention-days: 21
+          if-no-files-found: error

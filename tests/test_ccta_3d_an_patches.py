@@ -83,3 +83,33 @@ def test_3d_endpoint_heatmap_coverage_is_explicit_in_physical_mm():
     _,meta2=extract_candidate_patch(ct,affine,pts,large)
     assert meta2["all_endpoints_inside_patch"]
     assert meta2["endpoint_patch_margin_mm"]>0
+
+
+def test_fixed_lps_frame_is_stable_under_order_flip_and_small_jitter():
+    # The historical canonical frame can rotate almost 180 degrees when the
+    # x-coordinate order of two endpoints changes after a tiny perturbation.
+    first=np.array([[-.1,0.,0.],[.1,5.,0.]],dtype=np.float64)
+    jittered=np.array([[.1,0.,0.],[-.1,5.,0.]],dtype=np.float64)
+    _,original=local_frame(first)
+    _,perturbed=local_frame(jittered)
+    canonical_angle=np.degrees(np.arccos(np.clip(
+        (np.trace(original.T@perturbed)-1.)/2.,-1.,1.
+    )))
+    assert canonical_angle>170.
+    _,fixed=local_frame(first,"fixed_lps")
+    _,fixed_jittered=local_frame(jittered,"fixed_lps")
+    assert np.array_equal(fixed,np.eye(3))
+    assert np.array_equal(fixed_jittered,fixed)
+
+
+def test_fixed_lps_patch_is_permutation_invariant_and_has_full_provenance():
+    ct,affine,pts=synthetic_ct()
+    cfg=PatchConfig(side=16,frame_mode="fixed_lps")
+    original,audit=extract_candidate_patch(ct,affine,pts,cfg)
+    shuffled,other=extract_candidate_patch(ct,affine,pts[[2,0,1]],cfg)
+    assert np.array_equal(original,shuffled)
+    assert audit["frame_mode"]=="fixed_lps"
+    assert audit["orientation_det"]==pytest.approx(1.)
+    assert other["frame_mode"]=="fixed_lps"
+    with pytest.raises(ValueError,match="frame_mode"):
+        PatchConfig(frame_mode="unexpected")

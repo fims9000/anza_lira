@@ -7,6 +7,7 @@ on:
       - feature/ccta3d-ct-signal-2026-11-03
       - feature/ct28-relation-matched-ablation-2026-11-03
       - feature/ccta3d-local-experiment-handoff-2026-11-03
+      - experiment/ccta3d-fixed-frame-2026-11-11
   pull_request:
     branches:
       - feature/ccta-3d-runtime-2026-11-02
