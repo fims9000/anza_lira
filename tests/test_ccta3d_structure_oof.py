@@ -30,9 +30,27 @@ def _sample(n=4,side=8):
     return x,y,truth
 
 
-@pytest.mark.parametrize("variant",["conv3d_structure","anza3d_structure"])
+
+def _maybe_separate(x:np.ndarray,kind:str,variant:str)->np.ndarray:
+    if "_sep_" not in variant:
+        return x
+    b,_,side,_,_=x.shape
+    xyz=np.stack(np.meshgrid(*(np.arange(side) for _ in range(3)),indexing="ij"))
+    pts=[[1.,side//2,side//2],[side-2.,side//2,side//2]]
+    if kind=="JUNCTION":
+        pts.append([side//2,2.,side//2])
+    out=np.zeros((b,4,side,side,side),dtype=np.float32)
+    out[:,0]=x[:,0]
+    for i,p in enumerate(pts):
+        dist=((xyz-np.asarray(p)[:,None,None,None])**2).sum(axis=0)
+        out[:,1+i]=np.exp(-dist/(2*1.5**2))
+    return out
+
+
+@pytest.mark.parametrize("variant",["conv3d_structure","anza3d_structure","conv3d_sep_structure","anza3d_sep_structure"])
 def test_structural_fit_requires_train_only_dense_targets_and_produces_scores(variant):
     data,labels,targets=_sample()
+    data=_maybe_separate(data,"PAIR",variant)
     with pytest.raises(ValueError,match="train-only vessel"):
         fit_score(data,labels,data,variant=variant,epochs=1,batch_size=2,
                   learning_rate=.001,seed=10,device="cpu",voxel_mm=1.,
@@ -73,7 +91,7 @@ def test_dense_mask_uses_same_physical_patch_transform_and_binary_dtype():
     assert output.sum()>0
 
 
-@pytest.mark.parametrize("variant",["conv3d_structure","anza3d_structure"])
+@pytest.mark.parametrize("variant",["conv3d_structure","anza3d_structure","conv3d_sep_structure","anza3d_sep_structure"])
 @pytest.mark.parametrize("kind",["PAIR","JUNCTION"])
 def test_complete_patient_oof_structure_model_checkpoint_reload(
     tmp_path,variant,kind
@@ -89,6 +107,7 @@ def test_complete_patient_oof_structure_model_checkpoint_reload(
     cache=tmp_path/"cache"
     cache.mkdir()
     base_x,base_y,base_mask=_sample()
+    base_x=_maybe_separate(base_x,kind,variant)
     for p in [*patients,val_patient]:
         is_train=p in patients
         npz=cache/f"patches_{p}.npz"
@@ -112,7 +131,8 @@ def test_complete_patient_oof_structure_model_checkpoint_reload(
             "patient_id":p,
             "split":"train" if is_train else "val",
             "cache_sha256":digest,
-            "patch_protocol":{"side":8,"voxel_mm":1.0,"frame_mode":"fixed_lps"},
+            "patch_protocol":{"side":8,"voxel_mm":1.0,"frame_mode":"fixed_lps",
+                              "endpoint_encoding":"separate" if "_sep_" in variant else "summed"},
             "model_input_contains_ground_truth":False,
             "endpoint_outside_patch_count":0,
             "input_control_mode":"full_ct",
