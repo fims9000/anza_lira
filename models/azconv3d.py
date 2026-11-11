@@ -37,6 +37,7 @@ class AZConv3dConfig:
     fuzzy_temperature: float = 1.0
     anisotropy: bool = True
     fuzzy: bool = True
+    axial_preference: bool = False  # opt-in: penalize cross-axis transport more than along-axis
 
     def __post_init__(self):
         if self.modes < 1 or self.kernel_size < 1 or self.kernel_size % 2 != 1:
@@ -163,7 +164,14 @@ class AZConv3d(nn.Module):
             fallback,
         )
         if self.cfg.anisotropy:
-            hyper=self.cfg.max_hyperbolicity*torch.tanh(self.hyperbolicity(x))
+            if self.cfg.axial_preference:
+                # G's axial eigenvalue is exp(2h), transverse is exp(-h).
+                # Negative h lowers cost ALONG u and raises it across u.
+                # It is an inductive bias, not a proof of topology preservation.
+                hyper=-self.cfg.max_hyperbolicity*torch.sigmoid(self.hyperbolicity(x))
+            else:
+                # Preserve the historical ANZA3D operator bit-for-bit.
+                hyper=self.cfg.max_hyperbolicity*torch.tanh(self.hyperbolicity(x))
         else:
             hyper=x.new_zeros((b,modes,d,h,w))
         projected=self.values(x)
