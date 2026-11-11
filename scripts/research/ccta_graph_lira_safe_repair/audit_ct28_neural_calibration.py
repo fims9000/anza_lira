@@ -128,7 +128,7 @@ def audit(
         "n_val_candidates_scored_without_labels":int(data.split.eq("val").sum()),
         "training_patients":sorted(train_ids),
         "validation_patients_scored_only":sorted(val_ids),
-        "validation_labels_read":False,
+        "validation_labels_used_for_fit":False,
         "held_out_CT28_test_accessed":False,
         "train_only_crossfit_brier":float(np.mean((oof_calibrated-truth)**2)),
         "train_only_raw_brier":float(np.mean((raw-truth)**2)),
@@ -164,7 +164,7 @@ def main():
         "training_patients":len(report["training_patients"]),
         "raw_brier":report["train_only_raw_brier"],
         "patient_crossfit_brier":report["train_only_crossfit_brier"],
-        "val_labels_read":report["validation_labels_read"],
+        "val_labels_read":report["validation_labels_used_for_fit"],
     },indent=2))
 
 
