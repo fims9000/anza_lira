@@ -116,6 +116,62 @@ remain available as ablations; no historical checkpoint is overwritten.
 - Five development-validation masks are post-hoc metrics only; held-out
   patients are not opened. All generated files are SHA-bound and create-only.
 
+### Latest stricter three-seed close-tip challenge (verified CI)
+
+GitHub Actions run 43104818037 trained seven matched baselines
+for 12 epochs across three fixed seeds, on true JUNCTION tips closer than
+3 mm. This is an **unseen synthetic generator**, still not ImageCAS.
+
+| Protocol | CNN separate-tip AUROC | ANZA separate-tip AUROC | ANZA no-axial AUROC |
+|---|---:|---:|---:|
+| Raw synthetic HU | **1.000** | 0.954 | 0.953 |
+| Rank-matched identical HU histograms | **0.953** | 0.902 | 0.899 |
+
+HU-voxel-shuffled control falls to roughly chance, so the models do respond
+to spatial evidence. However, at **candidate score >=0.85 none of the
+tested models accepted a true or false junction**. This means a strong
+candidate ranking alone does not yield useful accepted repairs.
+
+These results supersede earlier easier 0.852-vs-0.790 ANZA-favored
+synthetic conclusions. On the better close-tip stress test the CNN wins,
+and axial hyperbolicity has no isolated demonstrated benefit.
+
+**Do not change tau=0.85 merely to claim a win.** We added a
+strictly **train-only, patient-crossfit and monotone probability calibration
+diagnostic**. It preserves ranking (positive slope) and never uses a
+development-validation label to fit its scale. Numerical calibration on
+a separate synthetic calibration set is now a tested ablation. The
+existing 84-feature relation HGB, original K10 and production inference
+are NOT automatically changed by this research diagnostic.
+
+After producing the two local patient-OOF model packs, inspect calibration
+for both types and both compared architectures:
+
+\`\`\`bash
+VARIANT=anza3d_sep_structure
+ROOT=varvara/anza_lira_local_results/ct28_sep_fixedlps_seed_20261102
+
+python scripts/research/ccta_graph_lira_safe_repair/audit_ct28_neural_calibration.py \
+  --kind PAIR --variant "$VARIANT" \
+  --oof-dir "$ROOT/oof_pair_$VARIANT" \
+  --out "$ROOT/calibration_pair_$VARIANT"
+
+python scripts/research/ccta_graph_lira_safe_repair/audit_ct28_neural_calibration.py \
+  --kind JUNCTION --variant "$VARIANT" \
+  --oof-dir "$ROOT/oof_junction_$VARIANT" \
+  --out "$ROOT/calibration_junction_$VARIANT"
+\`\`\`
+
+Repeat for \`conv3d_sep_structure\` and the other fixed seeds, each in a
+new immutable output directory. Outputs include 17-train-patient
+leave-one-patient-out calibrated scores, five-val-patient prediction-only
+scores, train-only Brier measurements, SHA provenance and an immutable
+JSON calibrator. The five-val ground-truth labels are not used in fitting
+the calibrator. These **sidecars are not active clinical HGB inputs**;
+promotion requires a separately trained relation head using correctly
+crossfitted calibrated train features, followed by full 5-patient
+mask evaluation at frozen thresholds.
+
 ## 3. Critical additional correction: learned junction identity
 
 In the original K10/15 decision path, the final PAIR candidate is chosen by
