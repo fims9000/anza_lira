@@ -94,7 +94,7 @@ def main():
     parser.add_argument("--relation-dir",type=Path,required=True)
     parser.add_argument("--pair-oof",type=Path,required=True)
     parser.add_argument("--junction-oof",type=Path,required=True)
-    parser.add_argument("--variant",choices=("conv3d","anza3d"),required=True)
+    parser.add_argument("--variant",choices=("conv3d","anza3d","conv3d_structure","anza3d_structure"),required=True)
     parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--path-protocol",type=Path,default=DEFAULT_PATH)
