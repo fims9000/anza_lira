@@ -125,19 +125,24 @@ def ensure_patch_cache(cache:Path,frame_mode:str="canonical")->None:
         print(f"CT28 3D patches complete: {patient}",flush=True)
 
 
-def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical")->None:
+def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102)->None:
     if not all(_verified_cache(cache,p,frame_mode=frame_mode) for p in TRAIN+VAL):
         raise ValueError("Frozen patient patch cache incomplete for requested frame mode")
     for kind in ("PAIR","JUNCTION"):
         for variant in ("conv3d","anza3d"):
             out=root/f"oof_{kind.lower()}_{variant}"
             if _verified_oof(out,kind,variant):
+                meta=_load_json(out/"oof_protocol.json")
+                expected={"epochs":epochs,"batch_size":batch_size,"seed":seed,"device":device}
+                actual=meta.get("fixed_train_hyperparameters",{})
+                if meta.get("fold_count")!=folds or any(actual.get(k)!=v for k,v in expected.items()):
+                    raise ValueError("Existing OOF run uses different seed, folds, device or training budget")
                 continue
             build_oof(
                 cache_dir=cache,out_dir=out,candidate_type=kind,
                 variant=variant,train_patients=TRAIN,val_patients=VAL,
                 folds=folds,epochs=epochs,batch_size=batch_size,
-                device=device,
+                seed=seed,device=device,
             )
             print(f"Patient-OOF candidate evidence: {kind}/{variant}",flush=True)
 
@@ -328,6 +333,7 @@ def main():
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--epochs",type=int,default=8)
+    parser.add_argument("--seed",type=int,default=20261102)
     parser.add_argument("--folds",type=int,default=5)
     parser.add_argument("--batch-size",type=int,default=8)
     args=parser.parse_args()
@@ -340,7 +346,7 @@ def main():
         ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode)
     if args.stage in ("oof","all"):
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
-                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode)
+                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed)
     if args.stage in ("relations","all"):
         ensure_relations(args.root,mode=args.relation_training,device=args.device)
     pilot=None
