@@ -212,7 +212,7 @@ def main():
     if a.device.startswith("cuda") and not torch.cuda.is_available():
         raise ValueError("CUDA unavailable")
     torch.set_num_threads(2)
-    models=("conv3d","anza3d","conv3d_structure","anza3d_structure")
+    models=("conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure")
     measurements=[]
     oracle={}
     for kind in a.kinds:
