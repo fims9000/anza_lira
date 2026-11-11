@@ -359,12 +359,15 @@ def main():
     p.add_argument("--device",default="cpu")
     p.add_argument("--intensity-control",choices=("raw","rank"),default="raw")
     p.add_argument("--separate-endpoints",action="store_true")
+    p.add_argument("--deepsets",action="store_true",help="Include nonlinear symmetric-tip CNN/ANZA ablation")
     p.add_argument("--close-junction",action="store_true")
     p.add_argument("--calibration-samples",type=int,default=0,help="Separate phantom calibration subset, NEVER val")
     a=p.parse_args()
     if (a.out.exists() or a.epochs<1 or a.train_samples<16 or a.val_samples<16
         or (a.calibration_samples!=0 and a.calibration_samples<16)):
         raise ValueError("Invalid benchmark request or existing output")
+    if a.deepsets and not a.separate_endpoints:
+        raise ValueError("DeepSets tip experiment needs --separate-endpoints")
     if a.device.startswith("cuda") and not torch.cuda.is_available():
         raise ValueError("CUDA unavailable")
     torch.set_num_threads(2)
@@ -372,6 +375,10 @@ def main():
              "conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure")
             if a.separate_endpoints else
             ("conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure"))
+    if a.deepsets:
+        models=(*models,"conv3d_deepsets_sep_structure",
+                "anza3d_deepsets_sep_structure",
+                "anza3d_noaxial_deepsets_sep_structure")
     measurements=[]
     oracle={}
     shortcut={}
@@ -447,6 +454,7 @@ def main():
         "synthetic_intensity_control":a.intensity_control,
         "synthetic_endpoint_encoding":"separate" if a.separate_endpoints else "summed",
         "close_junction_stress":bool(a.close_junction),
+        "deepsets_symmetric_tip_moments":bool(a.deepsets),
         "independent_synthetic_calibration_sample_count":a.calibration_samples,
         "heldout_CT28_test_accessed":False,
         "measurements":measurements,
