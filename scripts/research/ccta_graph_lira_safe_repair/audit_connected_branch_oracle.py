@@ -21,7 +21,7 @@ from sklearn.metrics import roc_auc_score,average_precision_score
 
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT))
-from models.structural_bridge3d import VesselBridgeReadout,FuzzyConnectedness3d
+from models.structural_bridge3d import VesselBridgeReadout,FuzzyConnectedness3d,endpoint_tangent_alignment
 
 
 BRANCH_ANGLES_DEGREES=(15,20,25,35,50,65,90)
@@ -85,6 +85,7 @@ def run(output:Path,n:int=14,seed:int=20261111):
         v=torch.from_numpy(vessel)
         h=torch.from_numpy(tips)
         new=VesselBridgeReadout(2)(v,h).numpy()
+        tangent=endpoint_tangent_alignment(v,h).numpy()
         old=VesselBridgeReadout(2)(v,h.sum(dim=1).clamp(0,1)).numpy()
         binary=FuzzyConnectedness3d(2,steps=32)(
             v,h.sum(dim=1).clamp(0,1)
@@ -94,7 +95,8 @@ def run(output:Path,n:int=14,seed:int=20261111):
     for i in range(n):
         angle=BRANCH_ANGLES_DEGREES[i%len(BRANCH_ANGLES_DEGREES)]
         angle_groups.setdefault(str(angle),[]).append(2*i+1)
-    for name,p in (("separate_tip_path_oracle",new),
+    for name,p in (("local_endpoint_tangent_oracle",tangent),
+                   ("separate_tip_path_oracle",new),
                    ("summed_tip_path_oracle",old),
                    ("component_connectedness_oracle",binary)):
         metrics[name]={
@@ -104,6 +106,9 @@ def run(output:Path,n:int=14,seed:int=20261111):
             "mean_false":float(p[y==0].mean()),
             "false_accepted_at_085":int(((p>=.85)&(y==0)).sum()),
             "true_accepted_at_085":int(((p>=.85)&(y==1)).sum()),
+            "paired_correct_over_wrong":int((p[::2]>p[1::2]).sum()),
+            "paired_wrong_over_correct":int((p[::2]<p[1::2]).sum()),
+            "paired_ties":int((p[::2]==p[1::2]).sum()),
             "false_branch_by_angle_degrees":{
                 angle:{
                     "n":len(index),
