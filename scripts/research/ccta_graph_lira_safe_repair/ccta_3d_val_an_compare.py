@@ -187,17 +187,24 @@ def summarize_matched_validation(
     structure_models:bool=False,
     separate_endpoints:bool=False,
     noaxial_control:bool=False,
+    deepsets:bool=False,
 )->tuple[dict,list[dict]]:
     if bootstrap<100:
         raise ValueError("At least 100 patient-resampled bootstrap draws required")
     expected_relation_protocol=_relation_protocol(relation_training)
-    if (separate_endpoints or noaxial_control) and not structure_models:
-        raise ValueError("Separate-tip and no-axial comparison require structure models")
+    if (separate_endpoints or noaxial_control or deepsets) and not structure_models:
+        raise ValueError("Separate-tip, DeepSets and no-axial comparison require structure models")
+    if deepsets and not separate_endpoints:
+        raise ValueError("DeepSets comparison requires separate endpoint channels")
     if not structure_models:
         cnn_name,anza_name="conv3d","anza3d"
+    elif deepsets:
+        cnn_name="conv3d_deepsets_sep_structure"
+        anza_name=("anza3d_noaxial_deepsets_sep_structure" if noaxial_control
+                   else "anza3d_deepsets_sep_structure")
     elif separate_endpoints:
         cnn_name="conv3d_sep_structure"
-        anza_name=("anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure" if noaxial_control
+        anza_name=("anza3d_noaxial_sep_structure" if noaxial_control
                    else "anza3d_sep_structure")
     else:
         cnn_name="conv3d_structure"
@@ -291,6 +298,7 @@ def summarize_matched_validation(
         "variant_pair":[cnn_name,anza_name],
         "tip_encoding":"separate" if separate_endpoints else "summed",
         "noaxial_control":bool(noaxial_control),
+        "deepsets_tip_encoder":bool(deepsets),
         "relation_train_protocol":expected_relation_protocol,
         "patient_completed":len(complete),
         "patient_failed_or_missing":5-len(complete),
@@ -364,17 +372,24 @@ def main():
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
     parser.add_argument("--structure-models",action="store_true")
     parser.add_argument("--separate-endpoints",action="store_true")
+    parser.add_argument("--deepsets",action="store_true",help="Nonlinear symmetric tip multiset encoder; requires separate tips")
     parser.add_argument("--noaxial-control",action="store_true",help="Compare matched CNN with ANZA having free, not forced-axial, metric")
     parser.add_argument("--bootstrap",type=int,default=10000)
     args=parser.parse_args()
     verify_validation_freeze(args.freeze)
-    if (args.separate_endpoints or args.noaxial_control) and not args.structure_models:
-        raise ValueError("Separate-tip and no-axial comparison require --structure-models")
+    if (args.separate_endpoints or args.noaxial_control or args.deepsets) and not args.structure_models:
+        raise ValueError("Separate-tip, DeepSets and no-axial comparison require --structure-models")
+    if args.deepsets and not args.separate_endpoints:
+        raise ValueError("DeepSets comparison requires --separate-endpoints")
     if not args.structure_models:
         selected_variants=("conv3d","anza3d")
+    elif args.deepsets:
+        selected_variants=("conv3d_deepsets_sep_structure",
+                           "anza3d_noaxial_deepsets_sep_structure" if args.noaxial_control
+                           else "anza3d_deepsets_sep_structure")
     elif args.separate_endpoints:
         selected_variants=("conv3d_sep_structure",
-                           "anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure" if args.noaxial_control
+                           "anza3d_noaxial_sep_structure" if args.noaxial_control
                            else "anza3d_sep_structure")
     else:
         selected_variants=("conv3d_structure",
@@ -410,6 +425,7 @@ def main():
         structure_models=args.structure_models,
         separate_endpoints=args.separate_endpoints,
         noaxial_control=args.noaxial_control,
+        deepsets=args.deepsets,
     )
     write_matched(args.output_root,report,rows)
     print(json.dumps({
