@@ -108,3 +108,26 @@ def test_pair_identity_modes_cannot_reuse_one_another_volume_outputs(tmp_path):
     report=summarize(tmp_path,pilot=pilot,patient=953,
                      pair_identity_source="neural_pair")
     assert report["pair_identity_source"]=="neural_pair"
+
+
+def test_cached_patch_sha_valid_but_wrong_voxel_fov_is_rejected(tmp_path):
+    import hashlib
+    from ccta_3d_an_patches import PatchConfig
+    file=tmp_path/"patches_953.npz"
+    file.write_bytes(b"synthetic-cache-receipt-no-clinical-data")
+    protocol=vars(PatchConfig(frame_mode="fixed_lps",endpoint_encoding="separate"))
+    protocol["side"]=16  # violates study contract side=24
+    meta={
+        "patient_id":953,"split":"train",
+        "cache_sha256":hashlib.sha256(file.read_bytes()).hexdigest(),
+        "patch_protocol":protocol,
+        "train_only_dense_supervision":True,
+    }
+    (tmp_path/"patches_953.json").write_text(json.dumps(meta))
+    with pytest.raises(ValueError,match="protocol side mismatch"):
+        _verified_cache(tmp_path,953,frame_mode="fixed_lps",
+                        endpoint_encoding="separate",with_vessel_targets=True)
+    protocol["side"]=24
+    (tmp_path/"patches_953.json").write_text(json.dumps(meta))
+    assert _verified_cache(tmp_path,953,frame_mode="fixed_lps",
+                           endpoint_encoding="separate",with_vessel_targets=True)
