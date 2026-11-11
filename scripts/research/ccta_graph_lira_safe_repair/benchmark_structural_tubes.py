@@ -51,74 +51,91 @@ def make_phantoms(n:int,seed:int,kind:str,side:int=12):
     y=np.arange(n,dtype=np.float32)%2
     rng.shuffle(y)
     for i,positive in enumerate(y):
-        center=np.full(3,(side-1)/2)+rng.normal(0,.24,3)
-        u=_unit(rng.normal(size=3))
-        ref=np.eye(3)[np.argmin(abs(u))]
-        v=_unit(np.cross(u,ref))
-        w=_unit(np.cross(u,v))
-        extent=rng.uniform(3.1,3.7)
-        curves=[]
-        if kind=="PAIR":
-            ends=np.stack((center-u*extent,center+u*extent))
-            if positive:
-                curve=[center-u*extent]
-                bend=rng.uniform(-1.1,1.1)*v+rng.uniform(-.8,.8)*w
-                for t in np.linspace(0,1,41):
-                    curve.append(ends[0]*(1-t)+ends[1]*t+np.sin(np.pi*t)*bend)
-                curves.append(curve)
-            else:
-                # Similar endpoints and gross vessel volume, but the two
-                # visible arms divert to separate off-axis branches.
-                a=center-u*1.4+v*2.3
-                b=center+u*1.4-v*2.3
-                curve1=[];curve2=[]
-                _add_curve(curve1,(ends[0],a))
-                _add_curve(curve2,(ends[1],b))
-                curves.extend((curve1,curve2))
-        else:
-            dirs=np.stack((u,-.5*u+.866*v,-.5*u-.866*v))
-            ends=np.stack([center+direction*extent for direction in dirs])
-            for k,point in enumerate(ends):
-                if positive or k!=2:
-                    terminal=center
+        for attempt in range(32):
+            center=np.full(3,(side-1)/2)+rng.normal(0,.24,3)
+            u=_unit(rng.normal(size=3))
+            ref=np.eye(3)[np.argmin(abs(u))]
+            v=_unit(np.cross(u,ref))
+            w=_unit(np.cross(u,v))
+            extent=rng.uniform(3.1,3.7)
+            curves=[]
+            if kind=="PAIR":
+                ends=np.stack((center-u*extent,center+u*extent))
+                if positive:
+                    curve=[center-u*extent]
+                    bend=rng.uniform(-1.1,1.1)*v+rng.uniform(-.8,.8)*w
+                    for t in np.linspace(0,1,41):
+                        curve.append(ends[0]*(1-t)+ends[1]*t+np.sin(np.pi*t)*bend)
+                    curves.append(curve)
                 else:
-                    # A hard negative must genuinely fail to join the
-                    # other two arms. Previously this arm ended at
-                    # center+2.6*w+1.3*v; its thick vessel mask remained
-                    # 26-connected, so labels claimed FALSE while the
-                    # ground-truth geometry showed TRUE connectedness.
-                    # Redirect the third arm tangentially *away* from
-                    # the hub, maintaining similar line length without
-                    # creating a coincident central branch.
-                    terminal=point+w*extent
-                curve=[]
-                _add_curve(curve,(point,terminal))
-                curves.append(curve)
-        vessel=np.zeros((side,side,side),dtype=np.float32)
-        for curve in curves:
-            for point in curve:
+                    # Similar endpoints and gross vessel volume, but the two
+                    # visible arms divert to separate off-axis branches.
+                    a=center-u*1.4+v*2.3
+                    b=center+u*1.4-v*2.3
+                    curve1=[];curve2=[]
+                    _add_curve(curve1,(ends[0],a))
+                    _add_curve(curve2,(ends[1],b))
+                    curves.extend((curve1,curve2))
+            else:
+                dirs=np.stack((u,-.5*u+.866*v,-.5*u-.866*v))
+                ends=np.stack([center+direction*extent for direction in dirs])
+                for k,point in enumerate(ends):
+                    if positive or k!=2:
+                        terminal=center
+                    else:
+                        # A hard negative must genuinely fail to join the
+                        # other two arms. Previously this arm ended at
+                        # center+2.6*w+1.3*v; its thick vessel mask remained
+                        # 26-connected, so labels claimed FALSE while the
+                        # ground-truth geometry showed TRUE connectedness.
+                        # Redirect the third arm tangentially *away* from
+                        # the hub, maintaining similar line length without
+                        # creating a coincident central branch.
+                        terminal=point+w*extent
+                    curve=[]
+                    _add_curve(curve,(point,terminal))
+                    curves.append(curve)
+            vessel=np.zeros((side,side,side),dtype=np.float32)
+            for curve in curves:
+                for point in curve:
+                    r2=((grid-point[:,None,None,None])**2).sum(axis=0)
+                    vessel=np.maximum(vessel,np.exp(-r2/(2*.8**2)).astype(np.float32))
+            # Distractors are present with the SAME distribution in both classes.
+            if rng.random()<.5:
+                start=center+3.5*w+rng.uniform(-1,1)*v
+                direction=_unit(rng.normal(size=3))
+                for t in np.linspace(-2,2,22):
+                    point=start+direction*t
+                    r2=((grid-point[:,None,None,None])**2).sum(axis=0)
+                    vessel=np.maximum(vessel,np.exp(-r2/(2*.65**2)).astype(np.float32))
+            target=(vessel>.42).astype(np.float32)
+            background=rng.normal(-.75,.10,size=target.shape).astype(np.float32)
+            intensity=rng.uniform(.8,1.)*vessel+background
+            intensity=gaussian_filter(intensity,sigma=.4)
+            intensity=np.clip(intensity,-1.,1.)
+            heat=np.zeros((side,side,side),dtype=np.float32)
+            for point in ends:
                 r2=((grid-point[:,None,None,None])**2).sum(axis=0)
-                vessel=np.maximum(vessel,np.exp(-r2/(2*.8**2)).astype(np.float32))
-        # Distractors are present with the SAME distribution in both classes.
-        if rng.random()<.5:
-            start=center+3.5*w+rng.uniform(-1,1)*v
-            direction=_unit(rng.normal(size=3))
-            for t in np.linspace(-2,2,22):
-                point=start+direction*t
-                r2=((grid-point[:,None,None,None])**2).sum(axis=0)
-                vessel=np.maximum(vessel,np.exp(-r2/(2*.65**2)).astype(np.float32))
-        target=(vessel>.42).astype(np.float32)
-        background=rng.normal(-.75,.10,size=target.shape).astype(np.float32)
-        intensity=rng.uniform(.8,1.)*vessel+background
-        intensity=gaussian_filter(intensity,sigma=.4)
-        intensity=np.clip(intensity,-1.,1.)
-        heat=np.zeros((side,side,side),dtype=np.float32)
-        for point in ends:
-            r2=((grid-point[:,None,None,None])**2).sum(axis=0)
-            heat+=np.exp(-r2/(2*1.5**2)).astype(np.float32)
-        patch[i,0]=intensity
-        patch[i,1]=heat.clip(0,1)
-        vessel_masks[i,0]=target
+                heat+=np.exp(-r2/(2*1.5**2)).astype(np.float32)
+            patch[i,0]=intensity
+            patch[i,1]=heat.clip(0,1)
+            vessel_masks[i,0]=target
+            # Validate synthetic relation identity from the ACTUAL voxelized
+            # reference, not from generation intent. Previously ~20% of
+            # negative JUNCTION tubes were accidentally 26-connected.
+            components,_=cc_label(target>0.5,np.ones((3,3,3),dtype=np.uint8))
+            locations=np.rint(ends).astype(int)
+            if (locations<0).any() or (locations>=side).any():
+                continue
+            ids=[int(components[tuple(v)]) for v in locations]
+            observed=all(k>0 and k==ids[0] for k in ids)
+            if observed==bool(positive):
+                break
+        else:
+            raise RuntimeError(
+                f"Cannot generate topologically valid {kind} y={int(positive)} "
+                f"sample after 32 attempts"
+            )
     return patch,y,vessel_masks
 
 
