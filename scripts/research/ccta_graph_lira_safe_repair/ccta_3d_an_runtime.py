@@ -121,6 +121,12 @@ class NeuralCCTA3dInference(K10Inference):
                 raise ValueError("Cannot deploy endpoint-only or scrambled-CT model as full 3D CCTA")
             if meta.get("held_out_test_accessed") is not False:
                 raise ValueError("Unsealed medical test evidence in OOF pack")
+            if variant.endswith("_structure"):
+                evidence=meta.get("structure_objective") or {}
+                if (evidence.get("vessel_supervision")!="train_only" or
+                    not all(item.get("train_only_dense_supervision") is True
+                            for item in meta.get("train_patch_sources",[]))):
+                    raise ValueError("Structure encoder missing train-only vessel supervision provenance")
             scores=directory/f"{kind}_{variant}_oof_val.csv"
             if sha256(scores)!=expected_source or sha256(scores)!=meta["score_sha256"]:
                 raise ValueError("OOF source SHA changed after relation training")
