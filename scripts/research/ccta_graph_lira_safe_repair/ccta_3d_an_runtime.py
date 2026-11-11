@@ -55,7 +55,7 @@ class NeuralCCTA3dInference(K10Inference):
         pair_identity_source:str="frozen_fusion",
     ):
         super().__init__(models,pack_sha=pack_sha)
-        if variant not in {"anza3d","conv3d"}:
+        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure"}:
             raise ValueError("Unknown 3D neural encoder variant")
         if not 0<=min_inside_fraction<=1:
             raise ValueError("Invalid minimum CT patch in-volume fraction")
@@ -132,7 +132,7 @@ class NeuralCCTA3dInference(K10Inference):
                 raise ValueError("Train and validation candidate-patch protocols differ")
             patch_configs.append(cfg)
             neural=Candidate3dEncoder(
-                variant,voxel_mm=float(cfg["voxel_mm"])
+                variant,voxel_mm=float(cfg["voxel_mm"]),candidate_type=kind
             )
             state=torch.load(weights,map_location="cpu",weights_only=True)
             neural.load_state_dict(state,strict=True)
