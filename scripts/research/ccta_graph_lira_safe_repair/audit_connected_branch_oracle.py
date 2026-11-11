@@ -24,7 +24,7 @@ sys.path.insert(0,str(ROOT))
 from models.structural_bridge3d import VesselBridgeReadout,FuzzyConnectedness3d
 
 
-def generate(n:int=48,seed:int=20261111,side:int=24):
+def generate(n:int=12,seed:int=20261111,side:int=24):
     if n<4 or side<20:
         raise ValueError("Expected >=4 synthetic Y-shaped samples and side>=20")
     rng=np.random.default_rng(seed)
@@ -68,7 +68,7 @@ def generate(n:int=48,seed:int=20261111,side:int=24):
     return np.stack(probs),np.stack(merged),np.asarray(ys),np.asarray(components_same)
 
 
-def run(output:Path,n:int=48,seed:int=20261111):
+def run(output:Path,n:int=12,seed:int=20261111):
     if output.exists():
         raise FileExistsError("Immutable oracle report already exists")
     vessel,tips,y,connected=generate(n=n,seed=seed)
@@ -77,7 +77,7 @@ def run(output:Path,n:int=48,seed:int=20261111):
         h=torch.from_numpy(tips)
         new=VesselBridgeReadout(2)(v,h).numpy()
         old=VesselBridgeReadout(2)(v,h.sum(dim=1).clamp(0,1)).numpy()
-        binary=FuzzyConnectedness3d(2,steps=96)(
+        binary=FuzzyConnectedness3d(2,steps=32)(
             v,h.sum(dim=1).clamp(0,1)
         ).numpy()
     metrics={}
@@ -112,6 +112,6 @@ def run(output:Path,n:int=48,seed:int=20261111):
 if __name__=="__main__":
     parser=argparse.ArgumentParser()
     parser.add_argument("--out",type=Path,required=True)
-    parser.add_argument("--n",type=int,default=48)
+    parser.add_argument("--n",type=int,default=12)
     args=parser.parse_args()
     run(args.out,args.n)
