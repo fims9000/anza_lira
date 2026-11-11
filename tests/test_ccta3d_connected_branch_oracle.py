@@ -60,3 +60,37 @@ def test_shallow_in_tree_false_branch_can_pass_path_085_oracle_despite_same_tree
         "If this changes, report improved oracle branch specificity instead "
         "of silently deleting the adversarial case"
     )
+
+
+def test_oracle_local_tangent_separates_wrong_turn_with_same_connected_gt():
+    from models.structural_bridge3d import endpoint_tangent_alignment
+    from audit_connected_branch_oracle import BRANCH_ANGLES_DEGREES
+    vessel,tips,y,same=generate(
+        n=len(BRANCH_ANGLES_DEGREES),seed=20261111
+    )
+    assert same.all()
+    truth=torch.from_numpy(vessel)
+    endpoints=torch.from_numpy(tips)
+    with torch.no_grad():
+        score=endpoint_tangent_alignment(truth,endpoints)
+    assert torch.isfinite(score).all()
+    assert torch.all((score>=0)&(score<=1))
+    # Stronger directional evidence for the straight branch even though
+    # all candidate endpoints belong to the SAME physical vessel tree.
+    assert (score[::2]>score[1::2]).sum().item()>=6
+
+
+def test_local_tangent_is_permutation_invariant_and_differentiable():
+    from models.structural_bridge3d import endpoint_tangent_alignment
+    vessel,tips,_,_=generate(n=4,seed=20261111)
+    raw=torch.from_numpy(vessel.copy()).requires_grad_(True)
+    heat=torch.from_numpy(tips.copy())
+    score=endpoint_tangent_alignment(raw,heat)
+    swapped=endpoint_tangent_alignment(raw,heat[:,[1,0,2]])
+    assert torch.allclose(score,swapped,atol=1e-5,rtol=1e-5)
+    grad=torch.autograd.grad(score.sum(),raw)[0]
+    assert torch.isfinite(grad).all()
+    assert grad.abs().sum()>0
+    missing=heat.clone()
+    missing[:,1]=0
+    assert torch.all(endpoint_tangent_alignment(raw.detach(),missing)==0)
