@@ -71,7 +71,9 @@ def generate(n:int=14,seed:int=20261111,side:int=24):
             components_same.append(int(same))
             ys.append(label)
             probs.append(mask)
-            merged.append(np.stack(tips))
+            # Paired separate-tip format always has THREE channels;
+            # PAIR third tip is an exact zero (never fake a third endpoint).
+            merged.append(np.stack((tips[0],tips[1],np.zeros_like(tips[0]))))
     return np.stack(probs),np.stack(merged),np.asarray(ys),np.asarray(components_same)
 
 
