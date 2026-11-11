@@ -59,7 +59,7 @@ class FoldNeuralCTTransform:
         self,*,pair_dir:Path,junction_dir:Path,variant:str,device:str="cpu",
         coverage_audit_threshold:float=.75,
     ):
-        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure"}:
+        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
             raise ValueError("Unknown neural encoder type")
         if not 0<=coverage_audit_threshold<=1:
             raise ValueError("CT patch coverage audit threshold outside [0,1]")
@@ -204,7 +204,7 @@ def train_augmented_neural_relation(
     archive_dir:Path=augmentation.DEFAULT_ARCHIVE_DIR,
     device:str="cpu",
 )->dict:
-    if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure"}:
+    if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
         raise ValueError("Unknown encoder")
     if output_dir.exists():
         raise FileExistsError("Never overwrite existing neural relation experiment")
@@ -331,7 +331,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--pair-oof",type=Path,required=True)
     p.add_argument("--junction-oof",type=Path,required=True)
-    p.add_argument("--variant",choices=("anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure"),required=True)
+    p.add_argument("--variant",choices=("anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"),required=True)
     p.add_argument("--baseline-dir",type=Path,default=SELECTED)
     p.add_argument("--geometry-evidence-dir",type=Path,default=GEOMETRY_EVIDENCE)
     p.add_argument("--scene-dir",type=Path,default=SCENES)
