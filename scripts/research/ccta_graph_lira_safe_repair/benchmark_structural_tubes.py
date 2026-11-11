@@ -233,7 +233,7 @@ def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
     return copied
 
 
-def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None):
+def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None,paired_validation:bool=False):
     train_x,train_y,train_masks=train
     valid_x,valid_y,valid_masks=valid
     train_x=model_input_from_phantom(train_x,variant)
@@ -320,6 +320,21 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
     predicted=p>=.5
     strict=p>=.85
     true=valid_y.astype(bool)
+    paired=None
+    if paired_validation:
+        if len(p)%2 or not np.array_equal(valid_y[::2],np.ones(len(p)//2)) or not np.array_equal(valid_y[1::2],np.zeros(len(p)//2)):
+            raise ValueError("Paired validation requires adjacent positive/negative from same frozen tree")
+        margins=p[::2]-p[1::2]
+        paired={
+            "n_trees":len(margins),
+            "positive_wins":int((margins>0).sum()),
+            "negative_wins":int((margins<0).sum()),
+            "ties":int((margins==0).sum()),
+            "mean_correct_minus_wrong_score":float(margins.mean()),
+            "median_correct_minus_wrong_score":float(np.median(margins)),
+            "wrong_branch_accepted_at_085":int((p[1::2]>=.85).sum()),
+            "correct_branch_accepted_at_085":int((p[::2]>=.85).sum()),
+        }
     return {
         "variant":variant,"candidate_kind":kind,"seed":seed,
         "parameter_count":model.parameter_count(),
@@ -342,6 +357,7 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
         "fixed_tau_085_recall":float(np.sum(strict&true)/max(1,np.sum(true))),
         "val_brier":float(np.mean(np.square(p-valid_y))),
         "calibration":calibration_metrics,
+        "paired_validation":paired,
 
         "mean_bridge_positive":float(np.mean(np.asarray(bridges)[true])) if bridges else None,
         "mean_bridge_negative":float(np.mean(np.asarray(bridges)[~true])) if bridges else None,
