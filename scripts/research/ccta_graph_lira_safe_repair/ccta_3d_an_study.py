@@ -347,6 +347,7 @@ def main():
     parser.add_argument("--frame-mode",choices=("canonical","fixed_lps"),default="canonical")
     parser.add_argument("--structure-models",action="store_true",help="Matched dense clDice+path CNN/ANZA variants")
     parser.add_argument("--separate-endpoints",action="store_true",help="Lossless individually encoded PAIR/JUNCTION tips; paired symmetric CNN/ANZA")
+    parser.add_argument("--deepsets",action="store_true",help="Nonlinear symmetric per-tip moments; requires separate endpoints")
     parser.add_argument("--include-noaxial-control",action="store_true",help="Third matched ANZA without forced axial metric")
     parser.add_argument("--patient-id",type=int,default=953)
     parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair","neural_pair_junction"),default="frozen_fusion")
@@ -363,13 +364,20 @@ def main():
         raise ValueError("Held-out or validation patient forbidden in end-to-end study")
     if (args.separate_endpoints or args.include_noaxial_control) and not args.structure_models:
         raise ValueError("Separate tips and no-axial ablation require --structure-models")
+    if args.deepsets and (not args.separate_endpoints or not args.structure_models):
+        raise ValueError("Nonlinear DeepSets tip stem needs --structure-models --separate-endpoints")
     encoding="separate" if args.separate_endpoints else "summed"
     if args.structure_models:
-        variants=(("conv3d_sep_structure","anza3d_sep_structure") if args.separate_endpoints
-                  else ("conv3d_structure","anza3d_structure"))
-        if args.include_noaxial_control:
-            variants=(*variants,("anza3d_noaxial_sep_structure" if args.separate_endpoints
-                                 else "anza3d_noaxial_structure"))
+        if args.deepsets:
+            variants=("conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure")
+            if args.include_noaxial_control:
+                variants=(*variants,"anza3d_noaxial_deepsets_sep_structure")
+        else:
+            variants=(("conv3d_sep_structure","anza3d_sep_structure") if args.separate_endpoints
+                      else ("conv3d_structure","anza3d_structure"))
+            if args.include_noaxial_control:
+                variants=(*variants,("anza3d_noaxial_sep_structure" if args.separate_endpoints
+                                     else "anza3d_noaxial_structure"))
     else:
         variants=("conv3d","anza3d")
     args.root.mkdir(parents=True,exist_ok=True)
