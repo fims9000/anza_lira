@@ -1,0 +1,42 @@
+name: CCTA 3D synthetic histogram-matched topology challenge
+
+on:
+  push:
+    branches:
+      - experiment/ccta3d-topology-anisotropy-2026-11-11
+    paths:
+      - 'scripts/research/ccta_graph_lira_safe_repair/benchmark_structural_tubes.py'
+      - 'models/structural_bridge3d.py'
+      - 'models/ccta3d_candidate_encoder.py'
+      - '.github/workflows/ccta3d-tubes-rank.yml'
+  workflow_dispatch:
+
+jobs:
+  paired_rank_hu_benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install reproducible CPU science stack
+        run: |
+          python -m pip install numpy scipy scikit-learn
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Train five matched 3D CNN/ANZA models with equal HU histograms
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/benchmark_structural_tubes.py \
+            --out evidence/ccta3d_histogram_matched/report.json \
+            --train-samples 96 --val-samples 48 --epochs 12 \
+            --seeds 17 41 73 --kinds PAIR JUNCTION \
+            --intensity-control rank --device cpu
+      - name: Upload model, oracle, scalar and shuffled-HU evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccta3d-histogram-matched-topology
+          path: evidence/ccta3d_histogram_matched/
+          if-no-files-found: error
+          retention-days: 21
