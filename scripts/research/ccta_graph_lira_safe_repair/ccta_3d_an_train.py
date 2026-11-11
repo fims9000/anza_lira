@@ -85,6 +85,7 @@ def load_type(
             "patient_id":patient,"cache_sha256":digest(path),
             "patch_protocol":receipt["patch_protocol"],
             "input_control_mode":receipt.get("input_control_mode","full_ct"),
+            "train_only_dense_supervision":bool(receipt.get("train_only_dense_supervision",False)),
             "endpoint_outside_patch_count":receipt.get("endpoint_outside_patch_count"),
             "minimum_endpoint_patch_margin_mm":receipt.get("minimum_endpoint_patch_margin_mm"),
         })
