@@ -5,7 +5,16 @@ on:
     branches:
       - experiment/ccta3d-fixed-frame-2026-11-11
       - experiment/ccta3d-topology-anisotropy-2026-11-11
+    paths:
+      - 'models/**'
+      - 'scripts/research/ccta_graph_lira_safe_repair/smoke_ccta3d_public_realct.py'
+      - 'scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_patches.py'
+      - '.github/workflows/ccta3d-public-realct-smoke.yml'
   workflow_dispatch:
+
+concurrency:
+  group: ccta3d-public-realct-smoke-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   real-ct-smoke:
