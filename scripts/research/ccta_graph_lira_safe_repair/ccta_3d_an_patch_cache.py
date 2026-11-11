@@ -182,12 +182,14 @@ def main():
     parser.add_argument("--patch-side",type=int,default=24)
     parser.add_argument("--voxel-mm",type=float,default=1.0)
     parser.add_argument("--frame-mode",choices=("canonical","fixed_lps"),default="canonical")
+    parser.add_argument("--endpoint-encoding",choices=("summed","separate"),default="summed")
     parser.add_argument("--with-vessel-targets",action="store_true")
     parser.add_argument("--segmentation-dir",type=Path,default=SEGMENTATIONS)
     args=parser.parse_args()
     if len(args.patients)!=len(set(args.patients)):
         raise ValueError("Duplicate requested patient")
-    config=PatchConfig(side=args.patch_side,voxel_mm=args.voxel_mm,frame_mode=args.frame_mode)
+    config=PatchConfig(side=args.patch_side,voxel_mm=args.voxel_mm,frame_mode=args.frame_mode,
+                       endpoint_encoding=args.endpoint_encoding)
     for patient in args.patients:
         result=build_patient_cache(
             patient=patient,scenes_dir=args.scene_dir,archive=args.archive_dir,
