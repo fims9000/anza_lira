@@ -48,6 +48,8 @@ jobs:
             tests/test_ccta_3d_an_oof.py \
             tests/test_ccta_3d_an_study.py \
             tests/test_ccta_3d_an_runtime.py \
+            tests/test_ccta_3d_k10.py \
+            tests/test_ccta_3d_cli.py \
             tests/test_ccta_3d_an_relation.py \
             tests/test_ccta_3d_val_an_compare.py
       - name: Verify frozen CT28 3D endpoint peak recovery
