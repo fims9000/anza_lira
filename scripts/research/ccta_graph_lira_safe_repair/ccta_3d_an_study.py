@@ -35,7 +35,7 @@ def _load_json(path:Path)->dict:
         return json.load(reader)
 
 
-def _verified_cache(cache:Path,patient:int,frame_mode:str="canonical",with_vessel_targets:bool=False)->bool:
+def _verified_cache(cache:Path,patient:int,frame_mode:str="canonical",with_vessel_targets:bool=False,endpoint_encoding:str="summed")->bool:
     path=cache/f"patches_{patient}.npz"
     report=cache/f"patches_{patient}.json"
     if not path.exists() and not report.exists():
@@ -48,6 +48,8 @@ def _verified_cache(cache:Path,patient:int,frame_mode:str="canonical",with_vesse
         raise ValueError(f"Corrupted or patient/split-mismatched CT patch cache {patient}")
     if meta.get("patch_protocol",{}).get("frame_mode","canonical")!=frame_mode:
         raise ValueError(f"CT patch frame mode mismatch for patient {patient}")
+    if meta.get("patch_protocol",{}).get("endpoint_encoding","summed")!=endpoint_encoding:
+        raise ValueError(f"CT patch endpoint-encoding mismatch for patient {patient}")
     if patient in TRAIN and bool(meta.get("train_only_dense_supervision",False))!=with_vessel_targets:
         raise ValueError(f"Train-only vessel target protocol mismatch for patient {patient}")
     if patient in VAL and meta.get("train_only_dense_supervision",False):
@@ -119,20 +121,22 @@ def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
     return True
 
 
-def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets:bool=False)->None:
+def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets:bool=False,endpoint_encoding:str="summed")->None:
     for patient in TRAIN+VAL:
-        if _verified_cache(cache,patient,frame_mode=frame_mode,with_vessel_targets=with_vessel_targets):
+        if _verified_cache(cache,patient,frame_mode=frame_mode,with_vessel_targets=with_vessel_targets,endpoint_encoding=endpoint_encoding):
             continue
         build_patient_cache(patient=patient,output_dir=cache,
-                            config=PatchConfig(frame_mode=frame_mode),
+                            config=PatchConfig(frame_mode=frame_mode,endpoint_encoding=endpoint_encoding),
                             include_val=patient in VAL,
                             with_vessel_targets=with_vessel_targets and patient in TRAIN)
         print(f"CT28 3D patches complete: {patient}",flush=True)
 
 
-def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102,variants:tuple[str,...]=("conv3d","anza3d"))->None:
+def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102,variants:tuple[str,...]=("conv3d","anza3d"),endpoint_encoding:str="summed")->None:
     structure=all(v.endswith("_structure") for v in variants)
-    if not all(_verified_cache(cache,p,frame_mode=frame_mode,with_vessel_targets=structure) for p in TRAIN+VAL):
+    if any(("_sep_" in variant)!=(endpoint_encoding=="separate") for variant in variants):
+        raise ValueError("Model variant and patch endpoint-encoding mismatch")
+    if not all(_verified_cache(cache,p,frame_mode=frame_mode,with_vessel_targets=structure,endpoint_encoding=endpoint_encoding) for p in TRAIN+VAL):
         raise ValueError("Frozen patient patch cache incomplete for requested frame mode")
     for kind in ("PAIR","JUNCTION"):
         for variant in variants:
@@ -337,6 +341,8 @@ def main():
     parser.add_argument("--cache-dir",type=Path,default=DEFAULT_CACHE)
     parser.add_argument("--frame-mode",choices=("canonical","fixed_lps"),default="canonical")
     parser.add_argument("--structure-models",action="store_true",help="Matched dense clDice+path CNN/ANZA variants")
+    parser.add_argument("--separate-endpoints",action="store_true",help="Lossless individually encoded PAIR/JUNCTION tips; paired symmetric CNN/ANZA")
+    parser.add_argument("--include-noaxial-control",action="store_true",help="Third matched ANZA without forced axial metric")
     parser.add_argument("--patient-id",type=int,default=953)
     parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
@@ -346,17 +352,27 @@ def main():
     parser.add_argument("--folds",type=int,default=5)
     parser.add_argument("--batch-size",type=int,default=8)
     args=parser.parse_args()
-    if (args.frame_mode=="fixed_lps" or args.structure_models) and (args.cache_dir.resolve()==DEFAULT_CACHE.resolve() or args.root.resolve()==DEFAULT_STUDY.resolve()):
+    if (args.frame_mode=="fixed_lps" or args.structure_models or args.separate_endpoints) and (args.cache_dir.resolve()==DEFAULT_CACHE.resolve() or args.root.resolve()==DEFAULT_STUDY.resolve()):
         raise ValueError("Fixed LPS ablation requires separate --cache-dir and --root; keep historical runs immutable")
     if args.patient_id not in TRAIN:
         raise ValueError("Held-out or validation patient forbidden in end-to-end study")
-    variants=(("conv3d_structure","anza3d_structure") if args.structure_models else ("conv3d","anza3d"))
+    if (args.separate_endpoints or args.include_noaxial_control) and not args.structure_models:
+        raise ValueError("Separate tips and no-axial ablation require --structure-models")
+    encoding="separate" if args.separate_endpoints else "summed"
+    if args.structure_models:
+        variants=(("conv3d_sep_structure","anza3d_sep_structure") if args.separate_endpoints
+                  else ("conv3d_structure","anza3d_structure"))
+        if args.include_noaxial_control:
+            variants=(*variants,("anza3d_noaxial_sep_structure" if args.separate_endpoints
+                                 else "anza3d_noaxial_structure"))
+    else:
+        variants=("conv3d","anza3d")
     args.root.mkdir(parents=True,exist_ok=True)
     if args.stage in ("patches","all"):
-        ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode,with_vessel_targets=args.structure_models)
+        ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode,with_vessel_targets=args.structure_models,endpoint_encoding=encoding)
     if args.stage in ("oof","all"):
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
-                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants)
+                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants,endpoint_encoding=encoding)
     if args.stage in ("relations","all"):
         ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants)
     pilot=None
