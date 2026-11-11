@@ -148,3 +148,33 @@ def test_fuzzy_reachability_propagates_finite_gradients():
     score.sum().backward()
     assert torch.isfinite(vessel.grad).all()
     assert vessel.grad.abs().sum().item()>0
+
+
+def test_adaptive_three_arm_hub_recovers_offset_junction_but_rejects_missing_arm():
+    """True branch hub displaced from the endpoint centroid by two voxels."""
+    ends=[[2.,6.,6.],[9.,6.,6.],[6.,9.,6.]]
+    centroid=torch.tensor(ends).mean(dim=0).tolist()
+    hub=[centroid[0],centroid[1]-2.,centroid[2]]
+    arms=[(p,hub) for p in ends]
+    heat=_heat(ends)
+    vessel=_tube(arms)
+    old=VesselBridgeReadout(3,junction_strategy="centroid_star")(vessel,heat)
+    adaptive=VesselBridgeReadout(3,junction_strategy="adaptive_star")(vessel,heat)
+    rejected=VesselBridgeReadout(3,junction_strategy="adaptive_star")(
+        _tube(arms,missing_arm=2),heat
+    )
+    assert adaptive.item()>old.item()+.05,(old.item(),adaptive.item())
+    assert adaptive.item()>rejected.item()+.10,(adaptive.item(),rejected.item())
+
+
+def test_adaptive_hub_has_finite_gradients_and_equal_cnn_anza_contract():
+    vessel=torch.randn(1,12,12,12,requires_grad=True).sigmoid()
+    heat=_heat([[2.,6.,6.],[9.,6.,6.],[6.,9.,6.]])
+    out=VesselBridgeReadout(3,junction_strategy="adaptive_star")(vessel,heat)
+    grad=torch.autograd.grad(out.sum(),vessel,allow_unused=False)[0]
+    assert torch.isfinite(grad).all() and grad.abs().sum()>0
+    for variant in ("conv3d_structure","anza3d_structure","anza3d_noaxial_structure"):
+        net=Candidate3dEncoder(variant,candidate_type="JUNCTION",channels=6)
+        assert net.bridge_readout.junction_strategy=="adaptive_star"
+    with pytest.raises(ValueError,match="strategy"):
+        VesselBridgeReadout(3,junction_strategy="nonexistent")
