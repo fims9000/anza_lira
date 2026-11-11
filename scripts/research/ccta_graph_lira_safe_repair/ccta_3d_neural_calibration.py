@@ -53,6 +53,31 @@ def _labels(y)->np.ndarray:
     return labels
 
 
+def fit_monotone_numeric(scores,labels)->PlattTemperature:
+    """Generic positive-slope calibrator, for nonclinical synthetic controls.
+
+    This fitting function is intentionally oblivious to CT28 identities. It
+    is used on an independent synthetic calibration split, while all *real*
+    CT28 callers must go through fit_train_only_platt with patient checks.
+    """
+    p=_scores(scores)
+    y=_labels(labels)
+    if len(p)!=len(y) or len(np.unique(y))!=2:
+        raise ValueError("Monotone calibration needs aligned samples of both classes")
+    logits=np.log(p/(1-p))
+    def objective(params):
+        slope,bias=params
+        a=slope*logits+bias
+        return float(np.mean(np.logaddexp(0.,a)-y*a)
+                     +1e-3*(slope-1.)**2+1e-4*bias*bias)
+    result=minimize(objective,np.array([1.,0.]),method="L-BFGS-B",
+                    bounds=((.001,10.),(-20.,20.)),
+                    options={"maxiter":150})
+    if not result.success or not np.isfinite(result.fun):
+        raise RuntimeError("Monotone calibration optimization failed")
+    return PlattTemperature(float(result.x[0]),float(result.x[1]))
+
+
 def fit_train_only_platt(scores,labels,patients)->tuple[PlattTemperature,dict]:
     """Monotone Platt correction from *train-only*, patient-grouped OOF scores.
 
@@ -70,21 +95,7 @@ def fit_train_only_platt(scores,labels,patients)->tuple[PlattTemperature,dict]:
         raise ValueError("Calibration must contain only CT28 train patients")
     if len(set(y))!=2 or len(set(groups))<2:
         raise ValueError("Calibration needs both labels and multiple train patients")
-    logits=np.log(p/(1-p))
-    # Constrained monotone slope ensures bad rankings cannot be "repaired"
-    # by swapping positive/negative outputs after inspecting labels.
-    def objective(params):
-        slope,bias=params
-        a=slope*logits+bias
-        # Numerical stable logistic loss + weak shrinkage to identity.
-        return float(np.mean(np.logaddexp(0.,a)-y*a)
-                     +1e-3*(slope-1.)**2+1e-4*bias*bias)
-    result=minimize(objective,np.array([1.,0.]),method="L-BFGS-B",
-                    bounds=((.001,10.),(-20.,20.)),
-                    options={"maxiter":150})
-    if not result.success or not np.isfinite(result.fun):
-        raise RuntimeError("Patient-train-only monotone calibration optimization failed")
-    scaler=PlattTemperature(float(result.x[0]),float(result.x[1]))
+    scaler=fit_monotone_numeric(p,y)
     after=scaler.predict(p)
     provenance={
         "status":"train_only_monotone_neural_candidate_calibration",
