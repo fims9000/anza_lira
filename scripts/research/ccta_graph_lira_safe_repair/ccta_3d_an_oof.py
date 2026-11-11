@@ -32,8 +32,9 @@ from torch import nn
 from torch.utils.data import DataLoader,TensorDataset
 
 from models.ccta3d_candidate_encoder import Candidate3dEncoder
+from models.structural_bridge3d import vessel_structure_loss
 from ccta_3d_an_patch_cache import DEFAULT_CACHE
-from ccta_3d_an_train import load_type, classify_metrics, candidate_scene_ranking_metrics
+from ccta_3d_an_train import load_type, load_train_type_with_vessel_targets, classify_metrics, candidate_scene_ranking_metrics
 from extract_ct28_scene_candidate_features import EXPECTED_PATIENT_IDS
 
 
@@ -51,6 +52,7 @@ def fit_score(
     *,
     variant:str,epochs:int,batch_size:int,learning_rate:float,
     seed:int,device:str,voxel_mm:float,
+    candidate_type:str="PAIR",train_vessel_targets:np.ndarray|None=None,
 )->tuple[torch.nn.Module,np.ndarray,dict]:
     if not {0,1}<=set(np.unique(train_y)):
         raise ValueError("Each training fold must contain both candidate classes")
@@ -61,9 +63,18 @@ def fit_score(
     np.random.seed(seed)
     torch.backends.cudnn.deterministic=True
     torch.backends.cudnn.benchmark=False
-    model=Candidate3dEncoder(variant,voxel_mm=voxel_mm).to(device)
+    structure_aware=variant.endswith("_structure")
+    if structure_aware and (train_vessel_targets is None or
+                            train_vessel_targets.shape!=(len(train_y),1,*train_x.shape[2:])):
+        raise ValueError("Structural 3D training requires aligned dense train-only vessel targets")
+    if not structure_aware and train_vessel_targets is not None:
+        raise ValueError("Do not supply dense vessel labels to baseline training")
+    model=Candidate3dEncoder(variant,voxel_mm=voxel_mm,candidate_type=candidate_type).to(device)
+    tensors=[torch.from_numpy(train_x),torch.from_numpy(train_y)]
+    if structure_aware:
+        tensors.append(torch.from_numpy(train_vessel_targets))
     loader=DataLoader(
-        TensorDataset(torch.from_numpy(train_x),torch.from_numpy(train_y)),
+        TensorDataset(*tensors),
         batch_size=batch_size,shuffle=True,
         generator=torch.Generator().manual_seed(seed),
     )
@@ -78,10 +89,17 @@ def fit_score(
     for epoch in range(epochs):
         model.train()
         total=0.0
-        for x,y in loader:
-            x=x.to(device);y=y.to(device)
+        for batch in loader:
+            x=batch[0].to(device);y=batch[1].to(device)
             optimizer.zero_grad(set_to_none=True)
-            loss=criterion(model(x),y)
+            if structure_aware:
+                logits,dense_logits,path_prob=model(x,return_structure=True)
+                vessel_truth=batch[2].to(device)
+                loss=(criterion(logits,y)
+                      +.35*vessel_structure_loss(dense_logits,vessel_truth,skeleton_iterations=2)
+                      +.15*criterion(torch.logit(path_prob),y))
+            else:
+                loss=criterion(model(x),y)
             loss.backward()
             optimizer.step()
             total+=float(loss.item())*len(y)
@@ -100,6 +118,8 @@ def fit_score(
         "score_examples":len(inference_x),
         "train_positives":n_pos,
         "epoch_losses":history,
+        "structure_training":({"dense_loss_weight":.35,"path_loss_weight":.15,
+                               "skeleton_iterations":2} if structure_aware else None),
         "wall_seconds":time.perf_counter()-started,
     }
 
@@ -120,7 +140,7 @@ def build_oof(
     device:str="cpu",
     allow_subset:bool=False,
 )->dict:
-    if candidate_type not in {"PAIR","JUNCTION"} or variant not in {"anza3d","conv3d"}:
+    if candidate_type not in {"PAIR","JUNCTION"} or variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure"}:
         raise ValueError("Unknown candidate/model type")
     train_known=EXPECTED_PATIENT_IDS["train"]
     val_known=EXPECTED_PATIENT_IDS["val"]
@@ -137,9 +157,18 @@ def build_oof(
     if out_dir.exists():
         raise FileExistsError("OOF experiment output is immutable")
 
-    train_x,train_y,train_examples,train_sources=load_type(
-        cache_dir,train_patients,split="train",candidate_type=candidate_type
-    )
+    structured=variant.endswith("_structure")
+    train_targets=None
+    if structured:
+        train_x,train_y,train_targets,train_examples,train_sources=(
+            load_train_type_with_vessel_targets(
+                cache_dir,train_patients,candidate_type=candidate_type
+            )
+        )
+    else:
+        train_x,train_y,train_examples,train_sources=load_type(
+            cache_dir,train_patients,split="train",candidate_type=candidate_type
+        )
     val_x,val_y,val_examples,val_sources=load_type(
         cache_dir,val_patients,split="val",candidate_type=candidate_type
     )
@@ -170,7 +199,8 @@ def build_oof(
             train_x[fit_idx],train_y[fit_idx],train_x[hold_idx],
             variant=variant,epochs=epochs,batch_size=batch_size,
             learning_rate=learning_rate,seed=seed,device=device,
-            voxel_mm=patch_voxel_mm,
+            voxel_mm=patch_voxel_mm,candidate_type=candidate_type,
+            train_vessel_targets=(train_targets[fit_idx] if structured else None),
         )
         oof[hold_idx]=scores
         held_assignments[hold_idx]=fold
@@ -190,7 +220,8 @@ def build_oof(
         train_x,train_y,val_x,variant=variant,
         epochs=epochs,batch_size=batch_size,
         learning_rate=learning_rate,seed=seed,device=device,
-        voxel_mm=patch_voxel_mm,
+        voxel_mm=patch_voxel_mm,candidate_type=candidate_type,
+        train_vessel_targets=train_targets if structured else None,
     )
     checkpoint=out_dir/f"{candidate_type}_{variant}_fulltrain.pt"
     torch.save(model.state_dict(),checkpoint)
@@ -221,6 +252,9 @@ def build_oof(
                 })
     report={
         "status":"train_patient_OOF_experimental_CT_evidence_not_promoted_K10",
+        "structure_objective":({"vessel_supervision":"train_only",
+                               "dense_loss_weight":.35,"path_loss_weight":.15,
+                               "cldice_skeleton_iterations":2} if structured else None),
         "variant":variant,
         "candidate_type":candidate_type,
         "n_train_patients":len(train_patients),
