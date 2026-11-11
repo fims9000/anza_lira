@@ -143,7 +143,7 @@ def build_oof(
     device:str="cpu",
     allow_subset:bool=False,
 )->dict:
-    if candidate_type not in {"PAIR","JUNCTION"} or variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure"}:
+    if candidate_type not in {"PAIR","JUNCTION"} or variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
         raise ValueError("Unknown candidate/model type")
     train_known=EXPECTED_PATIENT_IDS["train"]
     val_known=EXPECTED_PATIENT_IDS["val"]
