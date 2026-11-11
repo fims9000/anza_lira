@@ -32,7 +32,7 @@ jobs:
           python scripts/research/ccta_graph_lira_safe_repair/benchmark_structural_tubes.py \
             --out evidence/ccta3d_tube_benchmark/report.json \
             --train-samples 96 --val-samples 48 \
-            --epochs 8 --seeds 17 41 --kinds PAIR JUNCTION \
+            --epochs 12 --seeds 17 41 73 --kinds PAIR JUNCTION \
             --device cpu
       - name: Publish per-seed metrics without claiming medical superiority
         uses: actions/upload-artifact@v4
