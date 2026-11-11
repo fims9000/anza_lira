@@ -28,6 +28,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0,str(ROOT))
 from models.ccta3d_candidate_encoder import Candidate3dEncoder,parameter_budget
 from models.structural_bridge3d import vessel_structure_loss,VesselBridgeReadout,_peak_centers,_peak_centers_from_channels
+from ccta_3d_neural_calibration import fit_monotone_numeric
 
 
 def _unit(v):
@@ -232,7 +233,7 @@ def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
     return copied
 
 
-def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str):
+def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None):
     train_x,train_y,train_masks=train
     valid_x,valid_y,valid_masks=valid
     train_x=model_input_from_phantom(train_x,variant)
@@ -274,6 +275,36 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
                 output=model(tensor)
             scores.extend(torch.sigmoid(output).cpu().tolist())
     p=np.asarray(scores)
+    calibration_metrics=None
+    if calibration is not None:
+        calibration_x,calibration_y,_=calibration
+        calibration_x=model_input_from_phantom(calibration_x,variant)
+        calibration_raw=[]
+        with torch.no_grad():
+            for start_index in range(0,len(calibration_y),batch_size):
+                input=torch.from_numpy(
+                    calibration_x[start_index:start_index+batch_size]
+                ).to(device)
+                calibration_raw.extend(torch.sigmoid(model(input)).cpu().tolist())
+        scale=fit_monotone_numeric(np.asarray(calibration_raw),calibration_y)
+        predicted_calibrated=scale.predict(p)
+        fixed_calibrated=predicted_calibrated>=.85
+        calibration_metrics={
+            "status":"independent_synthetic_calibration_subset_not_medical",
+            "n_calibration_samples":len(calibration_y),
+            "calibration_seed":20262027,
+            "monotone_platt_slope":scale.slope,
+            "monotone_platt_intercept":scale.intercept,
+            "val_calibrated_AUROC":float(roc_auc_score(valid_y,predicted_calibrated)),
+            "val_calibrated_brier":float(np.mean((predicted_calibrated-valid_y)**2)),
+            "val_calibrated_tau085_true_accepted":int(np.sum(fixed_calibrated&(valid_y==1))),
+            "val_calibrated_tau085_false_accepted":int(np.sum(fixed_calibrated&(valid_y==0))),
+            "val_calibrated_tau085_abstained":int(np.sum(~fixed_calibrated)),
+            "calibration_uses_validation_labels":False,
+            "held_out_ct28_test_accessed":False,
+        }
+        if abs(calibration_metrics["val_calibrated_AUROC"]-roc_auc_score(valid_y,p))>1e-8:
+            raise AssertionError("Positive-slope calibration changed candidate ranking")
     # Deliberately preserve each HU histogram, randomize only its 3D location.
     # A model still scoring highly has learned a shortcut rather than tracing
     # anatomy; this control has the SAME frozen positive/negative labels.
@@ -310,6 +341,7 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
         ),
         "fixed_tau_085_recall":float(np.sum(strict&true)/max(1,np.sum(true))),
         "val_brier":float(np.mean(np.square(p-valid_y))),
+        "calibration":calibration_metrics,
 
         "mean_bridge_positive":float(np.mean(np.asarray(bridges)[true])) if bridges else None,
         "mean_bridge_negative":float(np.mean(np.asarray(bridges)[~true])) if bridges else None,
@@ -328,8 +360,10 @@ def main():
     p.add_argument("--intensity-control",choices=("raw","rank"),default="raw")
     p.add_argument("--separate-endpoints",action="store_true")
     p.add_argument("--close-junction",action="store_true")
+    p.add_argument("--calibration-samples",type=int,default=0,help="Separate phantom calibration subset, NEVER val")
     a=p.parse_args()
-    if a.out.exists() or a.epochs<1 or a.train_samples<16 or a.val_samples<16:
+    if (a.out.exists() or a.epochs<1 or a.train_samples<16 or a.val_samples<16
+        or (a.calibration_samples!=0 and a.calibration_samples<16)):
         raise ValueError("Invalid benchmark request or existing output")
     if a.device.startswith("cuda") and not torch.cuda.is_available():
         raise ValueError("CUDA unavailable")
@@ -346,9 +380,14 @@ def main():
                             separate_endpoints=a.separate_endpoints,close_junction=a.close_junction)
         validation=make_phantoms(a.val_samples,20261911,kind,
                                  separate_endpoints=a.separate_endpoints,close_junction=a.close_junction)
+        calib=(make_phantoms(a.calibration_samples,20262027,kind,
+                            separate_endpoints=a.separate_endpoints,close_junction=a.close_junction)
+               if a.calibration_samples else None)
         if a.intensity_control=="rank":
             train=(normalize_synthetic_hu_histograms(train[0]),train[1],train[2])
             validation=(normalize_synthetic_hu_histograms(validation[0]),validation[1],validation[2])
+            if calib is not None:
+                calib=(normalize_synthetic_hu_histograms(calib[0]),calib[1],calib[2])
         shortcut[kind]=simple_shortcut_audit(train,validation)
         print(json.dumps({"simple_shortcuts":kind,"features":shortcut[kind]}),flush=True)
         # Upper bound: run the geometric bridge readout on EXACT VESSEL TRUTH.
@@ -396,7 +435,7 @@ def main():
         for seed in a.seeds:
             for variant in models:
                 result=fit(variant,kind,train,validation,epochs=a.epochs,
-                           batch_size=8,seed=seed,device=a.device)
+                           batch_size=8,seed=seed,device=a.device,calibration=calib)
                 measurements.append(result)
                 print(json.dumps(result,ensure_ascii=False),flush=True)
     report={
@@ -408,6 +447,7 @@ def main():
         "synthetic_intensity_control":a.intensity_control,
         "synthetic_endpoint_encoding":"separate" if a.separate_endpoints else "summed",
         "close_junction_stress":bool(a.close_junction),
+        "independent_synthetic_calibration_sample_count":a.calibration_samples,
         "heldout_CT28_test_accessed":False,
         "measurements":measurements,
         "oracle_geometry":oracle,
