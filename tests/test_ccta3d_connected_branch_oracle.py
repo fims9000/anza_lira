@@ -83,14 +83,16 @@ def test_oracle_local_tangent_separates_wrong_turn_with_same_connected_gt():
 def test_local_tangent_is_permutation_invariant_and_differentiable():
     from models.structural_bridge3d import endpoint_tangent_alignment
     vessel,tips,_,_=generate(n=4,seed=20261111)
-    raw=torch.from_numpy(vessel.copy()).requires_grad_(True)
+    # Backpropagation must be tested on INTERIOR learned probabilities,
+    # not exact 0/1 oracle labels (which sit on clipping boundaries).
+    raw=(.1+.8*torch.from_numpy(vessel.copy())).requires_grad_(True)
     heat=torch.from_numpy(tips.copy())
     score=endpoint_tangent_alignment(raw,heat)
     swapped=endpoint_tangent_alignment(raw,heat[:,[1,0,2]])
     assert torch.allclose(score,swapped,atol=1e-5,rtol=1e-5)
     grad=torch.autograd.grad(score.sum(),raw)[0]
     assert torch.isfinite(grad).all()
-    assert grad.abs().sum()>0
+    assert grad.abs().sum()>0,(score.detach().tolist(),float(grad.abs().sum()))
     missing=heat.clone()
     missing[:,1]=0
     assert torch.all(endpoint_tangent_alignment(raw.detach(),missing)==0)
