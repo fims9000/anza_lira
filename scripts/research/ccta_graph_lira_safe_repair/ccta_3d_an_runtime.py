@@ -59,9 +59,19 @@ class NeuralCCTA3dInference(K10Inference):
             raise ValueError("Unknown 3D neural encoder variant")
         if not 0<=min_inside_fraction<=1:
             raise ValueError("Invalid minimum CT patch in-volume fraction")
-        if pair_identity_source not in {"frozen_fusion","neural_pair"}:
-            raise ValueError("PAIR identity source must be frozen_fusion or neural_pair")
+        if pair_identity_source not in {"frozen_fusion","neural_pair","neural_pair_junction"}:
+            raise ValueError("PAIR identity source must be frozen_fusion, neural_pair or neural_pair_junction")
         self.pair_identity_source=pair_identity_source
+        # Keep geometry-only path immutable. In the NEW explicit experiment
+        # the learned JUNCTION candidate score also chooses local branch ID.
+        # Relation HGB still receives the unchanged geometry features plus
+        # the learned neural CT feature, so do not overwrite geometry_score.
+        self.identity_columns={
+            name:dict(columns) for name,columns in IDENTITY.items()
+        }
+        if pair_identity_source=="neural_pair_junction":
+            self.identity_columns["ct_conditioned"]["JUNCTION"]="geometry_plus_ct_score"
+        self.identity_utility_columns=self.identity_columns["ct_conditioned"]
         self.variant=variant
         self.device=device
         self.patch_config=patch_config
@@ -212,11 +222,13 @@ class NeuralCCTA3dInference(K10Inference):
                 if not np.isfinite(value) or not 0<=value<=1:
                     raise ValueError("Nonfinite neural CT candidate score")
                 scores.loc[scores.index[index],"ct_score"]=float(value)
-                if kind=="PAIR" and self.pair_identity_source=="neural_pair":
+                if ((kind=="PAIR" and self.pair_identity_source in {"neural_pair","neural_pair_junction"})
+                    or (kind=="JUNCTION" and self.pair_identity_source=="neural_pair_junction")):
                     # Explicit image-encoder identity experiment. The original
                     # K10/15 geometry+CT PAIR identity remains the default.
-                    # Keep the historical column and chooser contract, but
-                    # replace its numerical evidence for PAIR *only*.
+                    # Keep original geometry_score for frozen relation model
+                    # features. Explicitly replace selected branch identity
+                    # evidence for PAIR and optionally JUNCTION only.
                     scores.loc[scores.index[index],"geometry_plus_ct_score"]=float(value)
 
         plan=pd.DataFrame([{
@@ -229,7 +241,7 @@ class NeuralCCTA3dInference(K10Inference):
             plan,candidates,scores,self.models,EVAL_TAU
         )
         decisions=graph.select_scene_decisions(
-            plan,candidates,scores,predictions,IDENTITY
+            plan,candidates,scores,predictions,self.identity_columns
         )
         if any_endpoint_outside_patch:
             # Conservative selective repair: a candidate whose endpoint is
