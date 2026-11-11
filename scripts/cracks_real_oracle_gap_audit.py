@@ -77,24 +77,49 @@ def main():
                 counters[(split_name,"sections")]+=1
                 count=0
                 for path in paths_from_mask(confident & ~ndi.binary_dilation(uncertain,iterations=5)):
-                    if len(path)<60:continue
+                    if len(path)<60:
+                        counters[("audit","short_line")]+=1
+                        continue
                     middle=len(path)//2;middle_path=path[middle-6:middle+6]
                     coords=np.asarray(middle_path)
                     ymin,ymax=coords[:,0].min()-3,coords[:,0].max()+4
                     xmin,xmax=coords[:,1].min()-3,coords[:,1].max()+4
-                    if ymin<0 or xmin<0 or ymax>confident.shape[0] or xmax>confident.shape[1]:continue
+                    if ymin<0 or xmin<0 or ymax>confident.shape[0] or xmax>confident.shape[1]:
+                        counters[("audit","out_of_image")]+=1
+                        continue
                     outside=confident[ymin:ymax,xmin:xmax].copy()
-                    if uncertain[ymin:ymax,xmin:xmax].any():continue
+                    if uncertain[ymin:ymax,xmin:xmax].any():
+                        counters[("audit","ambiguous_annotation_near_gap")]+=1
+                        continue
                     masked=confident.copy();masked[ymin:ymax,xmin:xmax]=False
-                    e0=path[middle-7];e1=path[middle+6]
+                    # Anchor endpoints must remain outside the whole padded rectangle.
+                    inside=lambda pt:ymin<=pt[0]<ymax and xmin<=pt[1]<xmax
+                    left=next((pt for pt in reversed(path[:middle]) if not inside(pt)),None)
+                    right=next((pt for pt in path[middle:] if not inside(pt)),None)
+                    if left is None or right is None:
+                        counters[("audit","anchors_missing")]+=1
+                        continue
+                    e0,e1=left,right
+                    path_support=np.zeros_like(confident)
+                    for point in path:path_support[point]=True
+                    permitted=ndi.binary_dilation(path_support,iterations=5)
+                    if np.any(outside & ~permitted[ymin:ymax,xmin:xmax]):
+                        counters[("audit","other_trace_in_gap")]+=1
+                        continue
                     components,_=ndi.label(masked,structure=np.ones((3,3),np.uint8))
-                    if not components[e0] or not components[e1] or components[e0]==components[e1]:continue
+                    if not components[e0] or not components[e1]:
+                        counters[("audit","anchors_not_visible")]+=1
+                        continue
+                    if components[e0]==components[e1]:
+                        counters[("audit","still_connected_after_gap")]+=1
+                        continue
                     counters[(split_name,"gaps")]+=1;count+=1
                     report["samples"].append({"section":sid,"block":block,"split":split_name,"gap_pixels":len(middle_path),
                       "intervention_rectangle":[int(ymin),int(ymax),int(xmin),int(xmax)],
                       "oracle_endpoints_distance":round(float(np.linalg.norm(np.array(e0)-np.array(e1))),3)})
                     if count>=2:break
             report["sections_with_image_and_expert_mask"]=len(ids)
+            report["audit_rejections"]={k[1]:int(v) for k,v in counters.items() if k[0]=="audit"}
             report["real_seismic_sections_used"]=True
             report["counts_by_split"]={s:{"sections":counters[(s,"sections")],"eligible_gaps":counters[(s,"gaps")]} for s in ["development","calibration","test"]}
             report["status"]="ORACLE_MASK_AUDIT_COMPLETE"
