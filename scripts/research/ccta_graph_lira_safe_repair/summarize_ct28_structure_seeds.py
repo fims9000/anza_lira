@@ -41,7 +41,7 @@ def aggregate(reports:dict[int,Path])->dict:
             or pair[0] not in {"conv3d_structure","conv3d_sep_structure"}
             or pair[1] not in {
                 "anza3d_structure","anza3d_sep_structure",
-                "anza3d_noaxial_structure","anza3d_noaxial_sep_structure"
+                "anza3d_noaxial_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"
             }
             or report.get("pair_identity_source") not in {"neural_pair","neural_pair_junction"}
             or report.get("relation_train_protocol")!=
