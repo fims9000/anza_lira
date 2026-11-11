@@ -1,0 +1,51 @@
+name: CCTA3D paired same-tree hard negatives (not medical)
+on:
+  push:
+    branches:
+      - experiment/ccta3d-topology-anisotropy-2026-11-11
+    paths:
+      - 'models/**'
+      - 'scripts/research/ccta_graph_lira_safe_repair/benchmark_same_tree_identity.py'
+      - 'scripts/research/ccta_graph_lira_safe_repair/benchmark_structural_tubes.py'
+      - 'tests/test_same_tree_identity_benchmark.py'
+      - '.github/workflows/ccta3d-same-tree-hard-negatives.yml'
+  workflow_dispatch:
+concurrency:
+  group: ccta3d-same-tree-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  hard_negatives:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        input_control: [full_ct, endpoints_only]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numeric test dependencies
+        run: |
+          python -m pip install numpy scipy scikit-learn pytest
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Verify paired branch contract
+        run: python -m pytest -q tests/test_same_tree_identity_benchmark.py
+      - name: Train symmetric CNN and ANZA models on same connected tree
+        run: |
+          EXTRA=""
+          if [ "${{ matrix.input_control }}" = "endpoints_only" ]; then EXTRA="--endpoints-only"; fi
+          python scripts/research/ccta_graph_lira_safe_repair/benchmark_same_tree_identity.py \
+            --out "evidence/same_tree_${{ matrix.input_control }}/report.json" \
+            --train-trees 24 --val-trees 12 --epochs 4 --seeds 17 41 \
+            --device cpu --histogram-control $EXTRA
+      - name: Archive independent Y-tree results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccta3d-same-tree-${{ matrix.input_control }}
+          path: evidence/same_tree_${{ matrix.input_control }}/
+          if-no-files-found: error
+          retention-days: 21
