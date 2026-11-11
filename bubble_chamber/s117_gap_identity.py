@@ -188,8 +188,7 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
             if pa['i'] == pb['i']:
                 continue
             p, q = pa['xy'], pb['xy']
-            gap = float(np.linalg.norm(q-p))
-            if not cfg.min_gap_px <= gap <= cfg.max_gap_px:
+            gap = float(np.linalg.norm(q-p))            if not cfg.min_gap_px <= gap <= cfg.max_gap_px:
                 continue
             axis = (q-p) / gap
             ca = float(pa['outward'] @ axis)
@@ -215,9 +214,10 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
             blocked_fraction = float(block[center[:, 1], center[:, 0]].mean())
             support = float((evidence[center[:, 1], center[:, 0]] >= evidence_thr).mean())
             rival = _rival_fraction(rival_tree, rival_owner, path, pa['i'], pb['i'])
-            # A locally straight 18-pixel join can conceal a switch at an
-            # observed crossing. Compare the underlying fragment directions
-            # over a longer arc before assigning one provisional identity.
+            # Local 18-px tangent can follow an accidental junction switch:
+            # a locally straight 15-px bridge may connect two globally
+            # different track arms. Longer-baseline tangent disagreement is
+            # a reason to abstain, not to invent an observation or identity.
             ta_far = _endpoint(c[pa['i']]['xy'], pa['end'], cfg.multiscale_tangent_window_px)
             tb_far = _endpoint(c[pb['i']]['xy'], pb['end'], cfg.multiscale_tangent_window_px)
             far_align = (min(float(ta_far @ axis), float(tb_far @ (-axis)))
@@ -316,8 +316,7 @@ def associate_long_gaps(curves, gray, response=None, blocked=None,
                 e['decision'] = 'REVIEW_ONLY_COMPETING_CONTINUATION'
             elif e['multiscale_alignment_min'] < cfg.min_auto_multiscale_alignment:
                 e['decision'] = 'REVIEW_ONLY_MULTISCALE_DIRECTION_CHANGE'
-            elif e['endpoint_projection_residual_px'] > projection_limit:
-                e['decision'] = 'REVIEW_ONLY_PARALLEL_OFFSET_OR_CURVATURE'
+            elif e['endpoint_projection_residual_px'] > projection_limit:                e['decision'] = 'REVIEW_ONLY_PARALLEL_OFFSET_OR_CURVATURE'
             elif not e['both_endpoints_source_supported']:
                 e['decision'] = 'REVIEW_ONLY_ENDPOINT_NOT_SOURCE_BACKED'
             elif e['blocked_fraction'] > cfg.max_blocked_fraction:
