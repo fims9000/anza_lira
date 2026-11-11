@@ -35,3 +35,27 @@ def test_branch_specific_oracle_does_not_confuse_undirected_connectedness():
     assert scores.shape==y.shape
     # Do NOT assert that 5 hardcoded straight paths always classify 3D
     # branch identity: that is exactly the scientific question under test.
+
+
+def test_shallow_in_tree_false_branch_can_pass_path_085_oracle_despite_same_tree():
+    """Regression of structural failure: 25° wrong branch is nearly collinear."""
+    from audit_connected_branch_oracle import BRANCH_ANGLES_DEGREES
+    vessel,tips,y,same=generate(
+        n=len(BRANCH_ANGLES_DEGREES),seed=20261111
+    )
+    assert same.all()
+    # i=2 -> 25 degrees, candidate indices 4 true, 5 false.
+    i=BRANCH_ANGLES_DEGREES.index(25)
+    with torch.no_grad():
+        support=VesselBridgeReadout(2)(
+            torch.from_numpy(vessel[2*i:2*i+2]),
+            torch.from_numpy(tips[2*i:2*i+2]),
+        ).numpy()
+    assert y[2*i:2*i+2].tolist()==[1,0]
+    # Ground truth topology is identical for the two candidate endpoints.
+    assert np.array_equal(vessel[2*i],vessel[2*i+1])
+    assert support[0]>.9
+    assert support[1]>.85,(
+        "If this changes, report improved oracle branch specificity instead "
+        "of silently deleting the adversarial case"
+    )
