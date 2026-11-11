@@ -1,0 +1,7 @@
+numpy
+scipy
+opencv-python
+networkx
+Pillow
+lxml
+pytest
