@@ -38,3 +38,29 @@ def test_paired_y_tree_rejects_invalid_configuration():
         make_paired_trees(2,20261111)
     with pytest.raises(ValueError):
         make_paired_trees(8,20261111,angle_low_deg=80,angle_high_deg=30)
+
+
+def test_paired_ranking_loss_keeps_same_tree_pairs_in_minibatches():
+    from benchmark_structural_tubes import fit
+    import torch
+    torch.set_num_threads(2)
+    train=make_paired_trees(8,20261111)
+    val=make_paired_trees(4,20261911)
+    report=fit(
+        "conv3d_sep_structure","PAIR",train[:3],val[:3],
+        epochs=1,batch_size=4,seed=17,device="cpu",
+        paired_validation=True,paired_ranking_weight=.5,
+    )
+    assert report["paired_ranking_weight"]==.5
+    assert report["paired_validation"]["n_trees"]==4
+    assert sum(report["paired_validation"][k]
+               for k in ("positive_wins","negative_wins","ties"))==4
+    assert np.isfinite(report["paired_validation"]["mean_correct_minus_wrong_score"])
+    bad=(train[0],train[1].copy(),train[2])
+    bad[1][1]=1
+    with pytest.raises(ValueError,match="adjacent positive-negative"):
+        fit(
+            "conv3d_sep_structure","PAIR",bad,val[:3],
+            epochs=1,batch_size=4,seed=17,device="cpu",
+            paired_ranking_weight=.5,
+        )
