@@ -6,6 +6,10 @@ on:
       - experiment/ccta3d-topology-anisotropy-2026-11-11
   workflow_dispatch:
 
+concurrency:
+  group: ccta3d-structure-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   structural-numerics:
     runs-on: ubuntu-latest
@@ -31,6 +35,7 @@ jobs:
             tests/test_ccta3d_structure_oof.py \
             tests/test_ccta3d_synthetic_topology.py \
             tests/test_ct28_branch_identity_audit.py \
+            tests/test_ct28_close_tip_readout.py \
             tests/test_ccta_3d_an_patch_cache.py \
             tests/test_ccta_3d_an_oof.py \
             tests/test_ccta_3d_an_study.py \
@@ -41,6 +46,10 @@ jobs:
         run: |
           python scripts/research/ccta_graph_lira_safe_repair/audit_structure_peak_recovery.py \
             --out evidence/ccta3d_structure_peaks/audit.json --frame-mode fixed_lps
+      - name: Validate true CT28 PAIR/JUNCTION close-tip readout errors
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/audit_ct28_close_tip_readout.py \
+            --out evidence/ccta3d_structure_peaks/true_candidate_subvoxel.json
       - name: Archive peak-recovery QA
         uses: actions/upload-artifact@v4
         with:
@@ -58,5 +67,6 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_patch_cache.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_structure_targets.py \
             scripts/research/ccta_graph_lira_safe_repair/audit_ct28_anatomical_segments.py \
+            scripts/research/ccta_graph_lira_safe_repair/audit_ct28_close_tip_readout.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation_augmented.py
