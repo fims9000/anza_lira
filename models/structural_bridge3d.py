@@ -53,14 +53,24 @@ def _peak_centers_from_channels(heatmap:torch.Tensor,degree:int):
         raise ValueError("Separate endpoint heatmap must be B,3,D,H,W")
     b,_,d,h,w=heatmap.shape
     selected=heatmap[:,:degree].flatten(2)
-    peak,index=selected.max(dim=2)
-    z=index//(h*w)
-    y=(index//w)%h
-    x=index%w
-    centers=torch.stack((z,y,x),dim=-1).to(heatmap.dtype)
-    # A missing/cropped endpoint must abstain instead of fabricating
-    # a candidate position from the next strongest unrelated vessel.
-    valid=(peak>.05).all(dim=1)&torch.isfinite(peak).all(dim=1)
+    peak=selected.max(dim=2).values
+    # Each channel is ONE known Gaussian. Its squared-intensity centroid
+    # recovers a continuous subvoxel tip coordinate even when two tips are
+    # closer than 3 mm and their maxima occupy nearby/identical voxels.
+    # Unlike integer argmax, a .2-mm position perturbation need not jump by
+    # a complete voxel. Zero-padding remains a fail-closed invalid tip.
+    weights=selected.clamp_min(0.).square()
+    weight_sum=weights.sum(dim=2)
+    coords=torch.stack(torch.meshgrid(
+        torch.arange(d,device=heatmap.device,dtype=heatmap.dtype),
+        torch.arange(h,device=heatmap.device,dtype=heatmap.dtype),
+        torch.arange(w,device=heatmap.device,dtype=heatmap.dtype),
+        indexing="ij",
+    ),dim=-1).reshape(-1,3)
+    centers=torch.einsum("bkn,nc->bkc",weights,coords)/weight_sum.clamp_min(1e-8)[...,None]
+    # A missing/cropped endpoint must abstain rather than replacing it
+    # by an unrelated high-vesselness image statistic.
+    valid=(peak>.05).all(dim=1)&(weight_sum>1e-5).all(dim=1)&torch.isfinite(peak).all(dim=1)
     return centers,valid
 
 
