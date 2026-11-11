@@ -46,10 +46,15 @@ def _verified_cache(cache:Path,patient:int,frame_mode:str="canonical",with_vesse
     split="train" if patient in TRAIN else "val"
     if meta.get("patient_id")!=patient or meta.get("split")!=split or meta.get("cache_sha256")!=sha256(path):
         raise ValueError(f"Corrupted or patient/split-mismatched CT patch cache {patient}")
-    if meta.get("patch_protocol",{}).get("frame_mode","canonical")!=frame_mode:
-        raise ValueError(f"CT patch frame mode mismatch for patient {patient}")
-    if meta.get("patch_protocol",{}).get("endpoint_encoding","summed")!=endpoint_encoding:
-        raise ValueError(f"CT patch endpoint-encoding mismatch for patient {patient}")
+    expected=vars(PatchConfig(frame_mode=frame_mode,endpoint_encoding=endpoint_encoding))
+    recorded=meta.get("patch_protocol") or {}
+    for field,value in expected.items():
+        saved=recorded.get(field,"summed" if field=="endpoint_encoding" else None)
+        if saved!=value:
+            raise ValueError(
+                f"CT patch protocol {field} mismatch for patient {patient}: "
+                f"requested {value!r}, cached {saved!r}"
+            )
     if patient in TRAIN and bool(meta.get("train_only_dense_supervision",False))!=with_vessel_targets:
         raise ValueError(f"Train-only vessel target protocol mismatch for patient {patient}")
     if patient in VAL and meta.get("train_only_dense_supervision",False):
