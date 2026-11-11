@@ -159,6 +159,11 @@ def main()->None:
     p.add_argument("--histogram-control",action="store_true")
     p.add_argument("--endpoints-only",action="store_true",
                    help="Train identical models with CT channel masked, diagnostic only")
+    p.add_argument("--models",nargs="+",choices=(
+        "conv3d_sep_structure","anza3d_sep_structure",
+        "anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure",
+        "anza3d_deepsets_sep_structure",
+    ),help="Subset of predeclared matched models for smoke validation")
     args=p.parse_args()
     if args.out.exists() or args.epochs<1 or args.train_trees<4 or args.val_trees<4:
         raise ValueError("Bad or existing experiment output")
@@ -183,6 +188,8 @@ def main()->None:
         "conv3d_deepsets_sep_structure",
         "anza3d_deepsets_sep_structure",
     )
+    if args.models:
+        models=tuple(args.models)
     measurements=[]
     for seed in args.seeds:
         for variant in models:
