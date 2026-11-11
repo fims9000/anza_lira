@@ -139,6 +139,9 @@ def audit(
         "source_frozen_candidates_sha256":sha256(scenes_dir/"scene_candidates_train_val.csv"),
         "calibrated_csv_sha256":sha256(scored_path),
         "patient_crossfit_provenance":patient_receipts,
+        "not_fully_nested_calibration":True,
+        "distribution_shift_caveat":"Train scores come from fold encoders, while val/runtime scores come from a full-train encoder. Temperature transfer is not guaranteed.",
+        "nested_leakage_caveat":"Own labels are excluded directly from each calibrator, but other OOF encoder weights can depend indirectly on the held patient's training data.",
         "warning":"Descriptive train-only calibration; no HGB, inference, K10 or frozen threshold has been modified.",
     }
     (out_dir/"calibration_audit.json").write_text(
