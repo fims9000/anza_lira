@@ -119,3 +119,28 @@ def test_soft_cldice_has_finite_value_on_sparse_and_empty_vessel_targets():
     assert loss.item()>0 and torch.isfinite(loss)
     loss.backward()
     assert torch.isfinite(pred.grad).all()
+
+
+def test_exact_3d_reachability_separates_connected_and_disconnected_junction():
+    from models.structural_bridge3d import FuzzyConnectedness3d
+    heat=_heat([[2.,6.,6.],[9.,6.,6.],[6.,9.,6.]])
+    mask=torch.zeros((1,12,12,12))
+    mask[:,2:10,6,6]=1
+    mask[:,6,6:10,6]=1
+    strong=FuzzyConnectedness3d(3,steps=24)(mask,heat)
+    broken=mask.clone()
+    broken[:,6,7:9,6]=0
+    weak=FuzzyConnectedness3d(3,steps=24)(broken,heat)
+    assert strong.item()>.99
+    assert weak.item()<.01
+
+
+def test_fuzzy_reachability_propagates_finite_gradients():
+    from models.structural_bridge3d import FuzzyConnectedness3d
+    heat=_heat([[2.,6.,6.],[9.,6.,6.],[6.,9.,6.]])
+    vessel=torch.randn(1,12,12,12,requires_grad=True)
+    probability=vessel.sigmoid()
+    score=FuzzyConnectedness3d(3,steps=24)(probability,heat)
+    score.sum().backward()
+    assert torch.isfinite(vessel.grad).all()
+    assert vessel.grad.abs().sum().item()>0
