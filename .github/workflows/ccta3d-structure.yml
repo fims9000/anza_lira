@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
       - name: Install CPU research dependencies
         run: |
-          python -m pip install pytest numpy scipy pandas scikit-learn nibabel joblib
+          python -m pip install pytest numpy scipy pandas scikit-learn scikit-image nibabel joblib
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Run structural branch and historical numerical regression
         run: |
