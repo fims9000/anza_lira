@@ -33,7 +33,7 @@ jobs:
           python scripts/research/ccta_graph_lira_safe_repair/smoke_ccta3d_public_realct.py \
             --volume "$RUNNER_TEMP/cta/CTA-cardio.nrrd" \
             --out evidence/ccta3d_public_realct_smoke \
-            --side 16 --device cpu
+            --side 24 --device cpu
       - name: Publish small non-PHI numerical report and cropped MIP previews
         uses: actions/upload-artifact@v4
         with:
