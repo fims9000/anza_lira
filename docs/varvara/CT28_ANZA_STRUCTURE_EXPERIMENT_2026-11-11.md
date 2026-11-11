@@ -20,8 +20,10 @@ endpoint Gaussian heatmap) and the SAME extra train-only 3D vessel masks.
 - BOTH structure variants produce a train-supervised dense vessel probability.
   Auxiliary loss: 0.35 * (balanced BCE + Dice + differentiable clDice).
 - BOTH produce an explicit differentiable path support score. PAIR evaluates
-  a straight and four modestly curved candidate paths; JUNCTION requires
-  three arms to reach an approximate common hub. The link BCE receives
+  a straight and four modestly curved candidate paths; JUNCTION checks
+  three arms toward a provisional hub. Raw 26-neighbor reachability remains
+  a diagnostic ablation only: correct component topology does not identify
+  correct branches. The link BCE receives
   0.15 weight. The classification logit contains a positive-weight continuity
   score. This still does NOT guarantee branch identity or correct topology.
 - The CNN-Structure variant has exactly the same dense head, route readout,
