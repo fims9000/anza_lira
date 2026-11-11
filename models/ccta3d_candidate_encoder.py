@@ -16,6 +16,32 @@ from .azconv3d import AZConv3d, AZConv3dConfig, count_trainable
 from .structural_bridge3d import VesselBridgeReadout
 
 
+class PermutationInvariantTipStem3d(nn.Module):
+    """One HU projection plus the SAME convolution on each endpoint channel.
+
+    The sum across tips makes the network invariant to their storage order:
+    no endpoint-ID/coordinate sorting shortcut can enter via distinct weights.
+    PAIR carries a zero third tip channel and is normalized by degree=2.
+    """
+    def __init__(self,channels:int,degree:int):
+        super().__init__()
+        if degree not in (2,3):
+            raise ValueError("Unsupported candidate degree")
+        self.degree=degree
+        self.ct=nn.Conv3d(1,channels,3,padding=1,bias=False)
+        self.tip=nn.Conv3d(1,channels,3,padding=1,bias=False)
+        self.norm=nn.GroupNorm(1,channels)
+
+    def forward(self,x:torch.Tensor)->torch.Tensor:
+        if x.ndim!=5 or x.shape[1]!=4:
+            raise ValueError("Separate-tip stem requires HU + three endpoints")
+        b,_,d,h,w=x.shape
+        tips=x[:,1:].reshape(b*3,1,d,h,w)
+        maps=self.tip(tips).reshape(b,3,-1,d,h,w)
+        encoded=(maps.sum(dim=1)/self.degree)
+        return F.gelu(self.norm(self.ct(x[:,:1])+encoded))
+
+
 class CompactConv3d(nn.Module):
     """Depthwise 3x3x3 + pointwise 1x1 with residual, matched order of size."""
     def __init__(self, channels: int):
@@ -47,7 +73,8 @@ class Candidate3dEncoder(nn.Module):
         candidate_type:str="PAIR",
     ):
         super().__init__()
-        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure"}:
+        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure",
+                           "anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure"}:
             raise ValueError("Unknown candidate model variant")
         if candidate_type not in {"PAIR","JUNCTION"}:
             raise ValueError("Unknown candidate relation type")
@@ -59,9 +86,14 @@ class Candidate3dEncoder(nn.Module):
         self.variant=variant
         self.candidate_type=candidate_type
         self.structure_aware=variant.endswith("_structure")
-        self.stem=nn.Sequential(
-            nn.Conv3d(2,channels,kernel_size=3,padding=1,bias=False),
-            nn.GroupNorm(1,channels),nn.GELU(),
+        self.separate_endpoints="_sep_" in variant
+        self.stem=(
+            PermutationInvariantTipStem3d(channels,2 if candidate_type=="PAIR" else 3)
+            if self.separate_endpoints else
+            nn.Sequential(
+                nn.Conv3d(2,channels,kernel_size=3,padding=1,bias=False),
+                nn.GroupNorm(1,channels),nn.GELU(),
+            )
         )
         if variant.startswith("anza3d"):
             self.local=AZConv3d(
@@ -69,7 +101,7 @@ class Candidate3dEncoder(nn.Module):
                 cfg or AZConv3dConfig(
                     modes=3,value_channels=6,kernel_size=3,
                     beta=.12,max_hyperbolicity=1.,
-                    axial_preference=(variant=="anza3d_structure"),
+                    axial_preference=(variant in {"anza3d_structure","anza3d_sep_structure"}),
                 )
             )
         else:
@@ -91,8 +123,13 @@ class Candidate3dEncoder(nn.Module):
             self.bridge_strength_logit=nn.Parameter(torch.tensor(-.5))
 
     def forward(self,x:torch.Tensor,*,return_structure:bool=False):
-        if x.ndim!=5 or x.shape[1]!=2:
-            raise ValueError("Expected 2-channel CCTA/endpoint 3D patch")
+        expected_channels=4 if self.separate_endpoints else 2
+        if x.ndim!=5 or x.shape[1]!=expected_channels:
+            raise ValueError(f"Expected {expected_channels}-channel CCTA/endpoint 3D patch")
+        if self.separate_endpoints and self.candidate_type=="PAIR" and not bool(
+            (x[:,3].abs()<1e-7).all()
+        ):
+            raise ValueError("PAIR third endpoint channel must be empty")
         h=self.stem(x)
         if self.variant.startswith("anza3d"):
             # Resampled CT patches have an isotropic physical voxel grid
@@ -108,7 +145,7 @@ class Candidate3dEncoder(nn.Module):
             return relation_logits
         vessel_logits=self.vessel_head(h)
         vessel_prob=torch.sigmoid(vessel_logits[:,0])
-        path_support=self.bridge_readout(vessel_prob,x[:,1])
+        path_support=self.bridge_readout(vessel_prob,x[:,1:] if self.separate_endpoints else x[:,1])
         # The positive coefficient makes more supported continuity raise the
         # candidate score. Dense mask supervision prevents a trivial all-ones
         # vessel field; raw classification BCE remains active.
