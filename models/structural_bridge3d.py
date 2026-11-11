@@ -141,7 +141,13 @@ def vessel_structure_loss(logits:torch.Tensor,truth:torch.Tensor,
     if not torch.isfinite(truth).all() or bool(((truth<0)|(truth>1)).any()):
         raise ValueError("Nonfinite/out-of-range vessel target")
     p=torch.sigmoid(logits)
-    bce=F.binary_cross_entropy_with_logits(logits,truth)
+    # Thin coronary vessels occupy a tiny fraction of the patch. Without
+    # balancing the dense BCE, an all-background prediction can dominate the
+    # auxiliary task and make the topology bridge readout effectively constant.
+    positives=truth.sum()
+    negatives=truth.numel()-positives
+    pos_weight=(negatives/positives.clamp_min(1.)).clamp(1.,32.).detach()
+    bce=F.binary_cross_entropy_with_logits(logits,truth,pos_weight=pos_weight)
     dims=(1,2,3,4)
     intersect=(p*truth).sum(dim=dims)
     dice=(2*intersect+1e-5)/(p.sum(dim=dims)+truth.sum(dim=dims)+1e-5)
