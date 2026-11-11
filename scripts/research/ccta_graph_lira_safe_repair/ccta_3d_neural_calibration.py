@@ -125,8 +125,11 @@ def fit_train_only_platt(scores,labels,patients)->tuple[PlattTemperature,dict]:
 def patient_crossfit_platt(scores,labels,patients):
     """Each train patient scored using calibration fitted on other patients.
 
-    The calibration provenance is not independent clinical evidence; it only
-    ensures a training patient's own labels do not set its probability scale.
+    The calibration provenance is not independent clinical evidence. It
+    excludes the held patient's labels from the *calibration optimizer* only.
+    Other patients' original OOF encoders may themselves have been trained
+    using this patient's training data. Fully nested calibration would require
+    refitting all base encoders inside a new outer patient split.
     """
     scores=_scores(scores)
     labels=_labels(labels)
