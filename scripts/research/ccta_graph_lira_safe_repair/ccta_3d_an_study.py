@@ -126,7 +126,7 @@ def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
     return True
 
 
-def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets:bool=False,endpoint_encoding:str="summed",ranking_weight:float=0.)->None:
+def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets:bool=False,endpoint_encoding:str="summed")->None:
     for patient in TRAIN+VAL:
         if _verified_cache(cache,patient,frame_mode=frame_mode,with_vessel_targets=with_vessel_targets,endpoint_encoding=endpoint_encoding):
             continue
@@ -137,7 +137,7 @@ def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets
         print(f"CT28 3D patches complete: {patient}",flush=True)
 
 
-def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102,variants:tuple[str,...]=("conv3d","anza3d"),endpoint_encoding:str="summed")->None:
+def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102,variants:tuple[str,...]=("conv3d","anza3d"),endpoint_encoding:str="summed",ranking_weight:float=0.)->None:
     structure=all(v.endswith("_structure") for v in variants)
     if any(("_sep_" in variant)!=(endpoint_encoding=="separate") for variant in variants):
         raise ValueError("Model variant and patch endpoint-encoding mismatch")
