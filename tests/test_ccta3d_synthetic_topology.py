@@ -46,3 +46,26 @@ def test_positive_and_negative_have_same_input_heatmap_protocol():
     assert positives.shape==negatives.shape
     assert (positives.sum(axis=(1,2,3))>0).all()
     assert (negatives.sum(axis=(1,2,3))>0).all()
+
+
+def test_permuted_hu_control_preserves_intensity_histogram_and_endpoint_heatmap():
+    from benchmark_structural_tubes import permute_hu_voxels
+    x,_,_=make_phantoms(10,20262001,"PAIR")
+    modified=permute_hu_voxels(x,seed=12345)
+    assert np.array_equal(modified[:,1],x[:,1])
+    assert np.array_equal(np.sort(modified[:,0].reshape(10,-1),axis=1),
+                          np.sort(x[:,0].reshape(10,-1),axis=1))
+    assert not np.array_equal(modified[:,0],x[:,0])
+    assert np.array_equal(modified,permute_hu_voxels(x,seed=12345))
+
+
+def test_single_scalar_shortcut_orientation_frozen_using_train_only():
+    from benchmark_structural_tubes import simple_shortcut_audit
+    train=make_phantoms(32,20261111,"JUNCTION")
+    valid=make_phantoms(24,20261911,"JUNCTION")
+    controls=simple_shortcut_audit(train,valid)
+    assert "hu_mean" in controls and "heatmap_mean" in controls
+    for values in controls.values():
+        assert values["orientation_frozen_from_train"] in (-1,1)
+        assert 0<=values["holdout_AUROC"]<=1
+        assert 0<=values["holdout_AUPRC"]<=1
