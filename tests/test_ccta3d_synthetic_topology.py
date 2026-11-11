@@ -89,3 +89,35 @@ def test_rank_matched_hu_histograms_eliminate_scalar_shortcuts_without_changing_
     assert np.all((remapped[:,0]>=-1)&(remapped[:,0]<=1))
     with pytest.raises(ValueError,match="candidate patch"):
         normalize_synthetic_hu_histograms(x[:,0])
+
+
+def test_separate_tip_close_junction_synthetic_has_valid_sub3mm_endpoints_and_topology():
+    from models.structural_bridge3d import _peak_centers_from_channels
+    import torch
+    patches,labels,masks=make_phantoms(
+        24,20261111,"JUNCTION",separate_endpoints=True,close_junction=True
+    )
+    assert patches.shape==(24,4,12,12,12)
+    peaks,valid=_peak_centers_from_channels(torch.from_numpy(patches[:,1:]),3)
+    assert bool(valid.all())
+    pts=peaks.numpy()
+    distances=np.linalg.norm(pts[:,0]-pts[:,1],axis=1)
+    assert np.mean(distances<3.)>.6
+    for i,expected in enumerate(labels.astype(bool)):
+        components,_=cc_label(masks[i,0]>.5,np.ones((3,3,3),dtype=np.uint8))
+        indices=pts[i].round().astype(int)
+        ids=[int(components[tuple(p)]) for p in indices]
+        assert all(k>0 and k==ids[0] for k in ids)==expected
+
+
+def test_legacy_and_lossless_tip_models_receive_same_synthetic_hu():
+    from benchmark_structural_tubes import model_input_from_phantom
+    x,_,_=make_phantoms(10,20261111,"JUNCTION",separate_endpoints=True,close_junction=True)
+    separate=model_input_from_phantom(x,"anza3d_sep_structure")
+    summed=model_input_from_phantom(x,"conv3d_structure")
+    assert separate.shape==(10,4,12,12,12)
+    assert summed.shape==(10,2,12,12,12)
+    assert np.array_equal(summed[:,0],separate[:,0])
+    assert np.allclose(summed[:,1],np.clip(separate[:,1:].sum(axis=1),0,1))
+    with pytest.raises(ValueError,match="four-channel"):
+        model_input_from_phantom(summed,"anza3d_sep_structure")
