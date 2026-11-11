@@ -61,7 +61,7 @@ def check_val_pilot(
 
 
 def pair_experiment_paths(study:Path,variant:str)->tuple[Path,Path,Path]:
-    if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure"}:
+    if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure"}:
         raise ValueError("Unknown neural encoder variant")
     return (
         study/f"relation_{variant}",
@@ -360,7 +360,7 @@ def main():
     parser.add_argument("--output-root",type=Path,default=DEFAULT_COMPARE)
     parser.add_argument("--run",action="store_true")
     parser.add_argument("--device",default="cpu")
-    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
+    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair","neural_pair_junction"),default="frozen_fusion")
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
     parser.add_argument("--structure-models",action="store_true")
     parser.add_argument("--separate-endpoints",action="store_true")
