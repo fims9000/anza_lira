@@ -256,3 +256,27 @@ def test_separate_heatmap_missing_endpoint_abstains_not_mean_vessel():
     tips[0,1,5,3,3]=1.
     result=VesselBridgeReadout(3,junction_strategy="adaptive_star")(vessel,tips)
     assert result.item()<=1e-5*1.1
+
+
+def test_gaussian_tip_moments_are_subvoxel_stable_for_close_3d_junction():
+    from models.structural_bridge3d import _peak_centers_from_channels
+    coords=torch.stack(torch.meshgrid(
+        *(torch.arange(12,dtype=torch.float32) for _ in range(3)),indexing="ij"
+    ),dim=0)
+    reference=torch.tensor([[5.2,6.1,6.0],[7.1,6.1,6.0],[6.0,8.2,6.0]])
+    def construct(centers):
+        fields=[]
+        for p in centers:
+            fields.append(torch.exp(-((coords-p[:,None,None,None])**2).sum(0)/(2*1.5**2)))
+        return torch.stack(fields)[None]
+    original=construct(reference)
+    shifted=reference.clone()
+    shifted[0,0]+=.2
+    moved=construct(shifted)
+    p,valid=_peak_centers_from_channels(original,3)
+    q,valid2=_peak_centers_from_channels(moved,3)
+    assert bool(valid.item() and valid2.item())
+    assert torch.allclose(p[0],reference,atol=.04,rtol=0)
+    assert torch.allclose(q[0],shifted,atol=.04,rtol=0)
+    assert (q-p).abs().max().item()<.3
+    assert torch.dist(p[0,0],p[0,1]).item()<3.
