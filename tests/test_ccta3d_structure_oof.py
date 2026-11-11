@@ -166,3 +166,44 @@ def test_complete_patient_oof_structure_model_checkpoint_reload(
     with torch.no_grad():
         pred=loaded(torch.from_numpy(base_x[:1]))
     assert pred.shape==(1,) and torch.isfinite(pred).all()
+
+
+def test_same_scene_pair_indices_are_deterministic_and_never_cross_scenes():
+    from ccta_3d_an_oof import frozen_same_scene_pairs
+    y=np.asarray([1,0,0,1,0,1,0,0],dtype=np.float32)
+    scenes=np.asarray(["p953_s1","p953_s1","p953_s1",
+                       "p955_s1","p955_s1","p956_s1","p956_s1","p956_s2"])
+    pairs=frozen_same_scene_pairs(y,scenes,seed=17)
+    assert pairs==frozen_same_scene_pairs(y,scenes,seed=17)
+    assert len(pairs)==3
+    for pos,neg in pairs:
+        assert y[pos]==1 and y[neg]==0
+        assert scenes[pos]==scenes[neg]
+    with pytest.raises(ValueError,match="align"):
+        frozen_same_scene_pairs(y,scenes[:-1],seed=17)
+
+
+def test_ranking_objective_is_train_only_and_additive_to_structural_losses():
+    from ccta_3d_an_oof import fit_score
+    x,y,targets=_sample(n=4)
+    result=fit_score(
+        x,y,x,variant="conv3d_structure",epochs=1,batch_size=2,
+        learning_rate=.001,seed=20261102,device="cpu",voxel_mm=1.,
+        candidate_type="PAIR",train_vessel_targets=targets,
+        train_scene_ids=np.asarray(["scene_A","scene_A","scene_B","scene_B"]),
+        ranking_weight=.5,
+    )
+    model,confidence,report=result
+    assert model.structure_aware
+    assert confidence.shape==(4,)
+    assert report["ranking_weight"]==.5
+    assert report["training_scene_rank_pair_count"]==2
+    assert report["ranking_uses_validation_labels"] is False
+    with pytest.raises(ValueError,match="train-only same-scene"):
+        fit_score(
+            x,y,x,variant="conv3d_structure",epochs=1,batch_size=2,
+            learning_rate=.001,seed=20261102,device="cpu",voxel_mm=1.,
+            train_vessel_targets=targets,
+            train_scene_ids=np.asarray(["a","b","c","d"]),
+            ranking_weight=.5,
+        )
