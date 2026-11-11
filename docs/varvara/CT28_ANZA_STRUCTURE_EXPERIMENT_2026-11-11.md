@@ -85,6 +85,29 @@ remain available as ablations; no historical checkpoint is overwritten.
 - Five development-validation masks are post-hoc metrics only; held-out
   patients are not opened. All generated files are SHA-bound and create-only.
 
+## 3. Critical additional correction: learned junction identity
+
+In the original K10/15 decision path, the final PAIR candidate is chosen by
+`geometry_plus_ct_score` but the final JUNCTION candidate by
+`geometry_score`. The earlier neural runtime replaced `ct_score` for
+the relation classifier and optionally PAIR identity, **but never JUNCTION
+identity**. Thus even a perfect local ANZA JUNCTION ranking could not change
+the chosen physical bifurcation. This is a direct architectural limitation.
+
+The research branch now offers `--pair-identity-source neural_pair_junction`:
+the learned JUNCTION probability is also placed in the experiment-only
+`geometry_plus_ct_score` identity stream for JUNCTION. The original
+`geometry_score` remains untouched and the 84-feature relation HGB still
+receives the same geometrical evidence plus experimental CT evidence. The
+historical `frozen_fusion` and `neural_pair` policies remain available.
+
+The new policy affects physical candidate identity, 15-repeat consistency
+and the logged selection utility. **This is not a guaranteed improvement**:
+a high AUROC neural JUNCTION model can still make unsafe false connections.
+Compare both ANN types under identical policies and the 0.85 relation gate.
+The three-seed summary refuses mixing `neural_pair` and
+`neural_pair_junction` reports.
+
 ## 3. Local prerequisites for Varvara
 
 Switch to the experimental branch:
@@ -147,7 +170,7 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
   --cache-dir "$CACHE" --root "$ROOT" \
   --seed "$SEED" --device "$DEVICE" \
   --epochs 8 --folds 5 --batch-size 2 \
-  --relation-training augmented_15 --pair-identity-source neural_pair \
+  --relation-training augmented_15 --pair-identity-source neural_pair_junction \
   --patient-id 953
 ```
 
@@ -178,7 +201,7 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py \
   --study-root "$ROOT" \
   --output-root "varvara/anza_lira_local_results/ct28_sep_val_${SEED}" \
   --device "$DEVICE" --relation-training augmented_15 \
-  --pair-identity-source neural_pair
+  --pair-identity-source neural_pair_junction
 ```
 
 Ablation (CNN-Structure against ANZA without forced axial preference);
@@ -191,7 +214,7 @@ python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_val_an_compare.py \
   --study-root "$ROOT" \
   --output-root "varvara/anza_lira_local_results/ct28_sep_noaxial_val_${SEED}" \
   --device "$DEVICE" --relation-training augmented_15 \
-  --pair-identity-source neural_pair
+  --pair-identity-source neural_pair_junction
 ```
 
 Finally, aggregate three immutable primary reports (not the ablation outputs):
@@ -208,6 +231,12 @@ The aggregator refuses missing patients, mixed model pairs, altered K10
 frozen baselines and incompatible relations. It flags clDice wins that
 also increase erroneous interbranch bridges instead of promoting
 high recall with unacceptable damage.
+
+**Primary new topology experiment** uses neural PAIR+JUNCTION identity because
+otherwise the JUNCTION model cannot choose a different physical branch.
+Also run `neural_pair` as a separately frozen historical identity-policy
+control with a distinct output root if computational resources allow. Do not
+mix the two policies in one multi-seed report.
 
 ## 6. Exact measurements required in Varvara's report
 
