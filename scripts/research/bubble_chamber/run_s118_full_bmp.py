@@ -68,7 +68,7 @@ def _atomic_json(path, data):
 
 
 def run(bmp:Path, out:Path, bbox=None, tile_size=1200, overlap=300,
-        max_tiles=None, resume=False):
+        max_tiles=None, resume=False, protected:Path|None=None):
     bmp=bmp.resolve()
     if max_tiles is not None and max_tiles<1:raise ValueError('max_tiles must be positive')
     if out.exists() and any(out.iterdir()) and not resume:
@@ -76,6 +76,14 @@ def run(bmp:Path, out:Path, bbox=None, tile_size=1200, overlap=300,
     # Retain original pixel values; do not substitute a contrast-stretched PNG.
     gray=cv2.imread(str(bmp),cv2.IMREAD_GRAYSCALE)
     if gray is None:raise FileNotFoundError(bmp)
+    blocked_full=None
+    protected_sha=None
+    if protected is not None:
+        protected=protected.resolve()
+        blocked_full=cv2.imread(str(protected),cv2.IMREAD_GRAYSCALE)
+        if blocked_full is None:raise FileNotFoundError(protected)
+        if blocked_full.shape!=gray.shape:raise ValueError('Protected mask shape disagrees with source BMP')
+        protected_sha=_sha(protected)
     height,width=gray.shape
     box=list(bbox) if bbox is not None else [0,0,width,height]
     if box[2]>width or box[3]>height:raise ValueError('BBox exceeds BMP dimensions')
@@ -83,7 +91,8 @@ def run(bmp:Path, out:Path, bbox=None, tile_size=1200, overlap=300,
     digest=_sha(bmp)
     config={'source_image_id':bmp.name,'source_image_sha256':digest,
             'shape_hw':[height,width],'bbox_xyxy':box,'tile_size':tile_size,
-            'overlap':overlap,'grid_count':len(grid),'pipeline':'S114_S115_S117_S118_SOURCE_ONLY'}
+            'overlap':overlap,'grid_count':len(grid),'pipeline':'S114_S115_S117_S118_SOURCE_ONLY',
+            'protected_mask_sha256':protected_sha}
     out.mkdir(parents=True,exist_ok=True)
     settings=out/'RUN_CONFIG.json'
     if settings.exists():
@@ -109,16 +118,18 @@ def run(bmp:Path, out:Path, bbox=None, tile_size=1200, overlap=300,
             raise ValueError('Incomplete checkpoint detected: '+tag+' (remove partial tile manually after diagnosis)')
         else:
             crop=gray[y0:y1,x0:x1]
-            s114=reconstruct(crop)
+            blocked_crop=blocked_full[y0:y1,x0:x1].astype(bool) if blocked_full is not None else None
+            s114=reconstruct(crop,protected=blocked_crop)
             s115=associate_observed_junctions(s114['tracks'],s114['skeleton'])
             curves=s115['curves']
-            local=associate_long_gaps(curves,crop,response=s114['response'])
+            local=associate_long_gaps(curves,crop,response=s114['response'],blocked=blocked_crop)
             payload={'roi':tag,'xyxy':rec['xyxy'],'curves':curves,
                      'stage':'S115_OBSERVED_GEOMETRY_NOT_GT'}
             _atomic_json(curves_file,payload)
             local['provenance']={'source_curves_sha256':_sha(curves_file),
                                  'source_image_sha256':digest,
                                  'source_tile_xyxy':rec['xyxy'],
+                                 'protected_mask_sha256':protected_sha,
                                  'manual_GT_used_for_inference':False}
             _atomic_json(links_file,local)
             status='PROCESSED_FROM_BMP'
@@ -161,6 +172,7 @@ if __name__=='__main__':
     parser.add_argument('--overlap',type=int,default=300)
     parser.add_argument('--max-tiles',type=int)
     parser.add_argument('--resume',action='store_true')
+    parser.add_argument('--protected-mask',type=Path,help='Optional aligned operator exclusion mask (never exported)')
     args=parser.parse_args()
     box=tuple(map(int,args.bbox.split(':'))) if args.bbox else None
-    run(args.bmp,args.out,box,args.tile_size,args.overlap,args.max_tiles,args.resume)
+    run(args.bmp,args.out,box,args.tile_size,args.overlap,args.max_tiles,args.resume,args.protected_mask)
