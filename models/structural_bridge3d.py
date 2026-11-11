@@ -84,6 +84,29 @@ def _junction_paths(peaks:torch.Tensor,steps:int):
             hub[:,:,None,:]*t[None,None,:,None])
 
 
+def _junction_adaptive_paths(peaks:torch.Tensor,steps:int,hub_radius_voxels:float=2.0):
+    """3-arm routes to 27 nearby possible hubs instead of a single centroid.
+
+    Return [B,27*3,S,3]. The 3 arms for each hub are scored jointly; a
+    single nearby non-branch vessel cannot satisfy all three.
+    """
+    if peaks.ndim!=3 or peaks.shape[1:]!=(3,3):
+        raise ValueError("Adaptive JUNCTION expects B,3,3 endpoint coordinates")
+    device,dtype=peaks.device,peaks.dtype
+    scale=float(hub_radius_voxels)
+    offsets=torch.stack(torch.meshgrid(
+        *(torch.tensor([-scale,0.,scale],device=device,dtype=dtype)
+          for _ in range(3)),indexing="ij"
+    ),dim=-1).reshape(27,3)
+    centroid=peaks.mean(dim=1,keepdim=True)
+    hubs=centroid+offsets[None]
+    t=torch.linspace(0,1,steps,device=device,dtype=dtype)
+    origins=peaks[:,None,:,None,:]       # B,1,3,1,3
+    targets=hubs[:,:,None,None,:]        # B,27,1,1,3
+    paths=origins*(1-t)[None,None,None,:,None]+targets*t[None,None,None,:,None]
+    return paths.reshape(len(peaks),27*3,steps,3)
+
+
 def _soft_min(values:torch.Tensor,temperature:float):
     return (-temperature*torch.logsumexp(-values/temperature,dim=-1)
             +temperature*math.log(values.shape[-1]))
@@ -131,7 +154,7 @@ class VesselBridgeReadout(nn.Module):
         super().__init__()
         if degree not in (2,3) or steps<3 or curvature<0 or temperature<=0:
             raise ValueError("Invalid path readout configuration")
-        if junction_strategy not in {"centroid_star","fuzzy_reachability"}:
+        if junction_strategy not in {"centroid_star","adaptive_star","fuzzy_reachability"}:
             raise ValueError("Unknown JUNCTION structure strategy")
         self.degree=int(degree)
         self.steps=int(steps)
@@ -153,9 +176,17 @@ class VesselBridgeReadout(nn.Module):
             return self.connectedness(vessel_probability,heatmap)
         peaks,valid=_peak_centers(heatmap,self.degree)
         if self.degree==3:
-            paths=_junction_paths(peaks,self.steps)
-            bottleneck=_soft_min(_sample_paths(vessel_probability,paths),self.temperature)
-            bridge=bottleneck.min(dim=1).values
+            if self.junction_strategy=="adaptive_star":
+                paths=_junction_adaptive_paths(peaks,self.steps)
+                bottleneck=_soft_min(
+                    _sample_paths(vessel_probability,paths),self.temperature
+                ).reshape(len(peaks),27,3)
+                # All three arms must admit the *same* junction hub.
+                bridge=bottleneck.min(dim=2).values.max(dim=1).values
+            else:
+                paths=_junction_paths(peaks,self.steps)
+                bottleneck=_soft_min(_sample_paths(vessel_probability,paths),self.temperature)
+                bridge=bottleneck.min(dim=1).values
         else:
             paths=_pair_paths(peaks,self.steps,self.curvature)
             bottleneck=_soft_min(_sample_paths(vessel_probability,paths),self.temperature)
