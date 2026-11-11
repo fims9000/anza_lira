@@ -43,14 +43,15 @@ def aggregate(reports:dict[int,Path])->dict:
                 "anza3d_structure","anza3d_sep_structure",
                 "anza3d_noaxial_structure","anza3d_noaxial_sep_structure"
             }
-            or report.get("pair_identity_source")!="neural_pair"
+            or report.get("pair_identity_source") not in {"neural_pair","neural_pair_junction"}
             or report.get("relation_train_protocol")!=
                 "experimental_patient_OOF_15copy_augmented_relation_head"):
             raise ValueError(f"Seed {seed}: incomplete, non-structural or mismatched clinical evaluation protocol")
         current=(tuple(pair),report.get("protocol_sha256"),
                  report.get("relation_train_protocol"),
                  report.get("tip_encoding","summed"),
-                 bool(report.get("noaxial_control",False)))
+                 bool(report.get("noaxial_control",False)),
+                 report.get("pair_identity_source"))
         if signature is None:
             signature=current
         elif signature!=current:
@@ -113,6 +114,7 @@ def aggregate(reports:dict[int,Path])->dict:
         "relation_training":signature[2],
         "tip_encoding":signature[3],
         "noaxial_control":signature[4],
+        "candidate_identity_policy":signature[5],
         "held_out_CT28_test_accessed":False,
         "per_seed":evidence,
         "ANZA_better_cldice_seed_count":sum(x>0 for x in scores),
