@@ -61,7 +61,7 @@ def check_val_pilot(
 
 
 def pair_experiment_paths(study:Path,variant:str)->tuple[Path,Path,Path]:
-    if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure"}:
+    if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
         raise ValueError("Unknown neural encoder variant")
     return (
         study/f"relation_{variant}",
@@ -197,7 +197,7 @@ def summarize_matched_validation(
         cnn_name,anza_name="conv3d","anza3d"
     elif separate_endpoints:
         cnn_name="conv3d_sep_structure"
-        anza_name=("anza3d_noaxial_sep_structure" if noaxial_control
+        anza_name=("anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure" if noaxial_control
                    else "anza3d_sep_structure")
     else:
         cnn_name="conv3d_structure"
@@ -374,7 +374,7 @@ def main():
         selected_variants=("conv3d","anza3d")
     elif args.separate_endpoints:
         selected_variants=("conv3d_sep_structure",
-                           "anza3d_noaxial_sep_structure" if args.noaxial_control
+                           "anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure" if args.noaxial_control
                            else "anza3d_sep_structure")
     else:
         selected_variants=("conv3d_structure",
