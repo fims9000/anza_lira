@@ -113,7 +113,9 @@ def test_complete_patient_oof_structure_model_checkpoint_reload(
         npz=cache/f"patches_{p}.npz"
         # Repeated spatial data across patients is a *numerical integration*
         # fixture only; it must never be cited as a patient generalization test.
-        x=(base_x+.01*(p%5)).astype(np.float16)
+        x=base_x.copy()
+        x[:,0]+=.01*(p%5)  # Only real HU shifts, never alter Gaussian tip channels
+        x=x.astype(np.float16)
         candidate_ids=[f"{kind}:e{j}" for j in range(4)]
         scene_ids=[f"p{p}_s{j//2}" for j in range(4)]
         arrays={
