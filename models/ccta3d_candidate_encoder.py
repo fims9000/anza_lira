@@ -13,6 +13,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from .azconv3d import AZConv3d, AZConv3dConfig, count_trainable
+from .structural_bridge3d import VesselBridgeReadout
 
 
 class CompactConv3d(nn.Module):
@@ -43,26 +44,32 @@ class Candidate3dEncoder(nn.Module):
         self,variant:str="anza3d",channels:int=12,
         cfg:AZConv3dConfig|None=None,
         voxel_mm:float=1.,
+        candidate_type:str="PAIR",
     ):
         super().__init__()
-        if variant not in {"anza3d","conv3d"}:
-            raise ValueError("variant must be anza3d or conv3d")
+        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure"}:
+            raise ValueError("Unknown candidate model variant")
+        if candidate_type not in {"PAIR","JUNCTION"}:
+            raise ValueError("Unknown candidate relation type")
         if channels<3:
             raise ValueError("channels must be >=3")
         if not math.isfinite(voxel_mm) or voxel_mm <= 0:
             raise ValueError("Physical patch voxel size must be positive finite mm")
         self.voxel_mm=float(voxel_mm)
         self.variant=variant
+        self.candidate_type=candidate_type
+        self.structure_aware=variant.endswith("_structure")
         self.stem=nn.Sequential(
             nn.Conv3d(2,channels,kernel_size=3,padding=1,bias=False),
             nn.GroupNorm(1,channels),nn.GELU(),
         )
-        if variant=="anza3d":
+        if variant.startswith("anza3d"):
             self.local=AZConv3d(
                 channels,channels,
                 cfg or AZConv3dConfig(
                     modes=3,value_channels=6,kernel_size=3,
                     beta=.12,max_hyperbolicity=1.,
+                    axial_preference=self.structure_aware,
                 )
             )
         else:
@@ -73,19 +80,40 @@ class Candidate3dEncoder(nn.Module):
             nn.Linear(channels,channels),nn.GELU(),
             nn.Linear(channels,1),
         )
+        if self.structure_aware:
+            # Identical dense supervision and geometric readout for matched CNN
+            # and ANZA: only local operator/axial physical bias differs.
+            self.vessel_head=nn.Conv3d(channels,1,1)
+            self.bridge_readout=VesselBridgeReadout(2 if candidate_type=="PAIR" else 3)
+            self.bridge_strength_logit=nn.Parameter(torch.tensor(-.5))
 
-    def forward(self,x:torch.Tensor)->torch.Tensor:
+    def forward(self,x:torch.Tensor,*,return_structure:bool=False):
         if x.ndim!=5 or x.shape[1]!=2:
             raise ValueError("Expected 2-channel CCTA/endpoint 3D patch")
         h=self.stem(x)
-        if self.variant=="anza3d":
+        if self.variant.startswith("anza3d"):
             # Resampled CT patches have an isotropic physical voxel grid
             # in the candidate-local frame, not arbitrary raw CT spacing.
             basis=torch.eye(3,device=h.device,dtype=h.dtype)*self.voxel_mm
             h=self.local(h,voxel_world_basis=basis)
         else:
             h=self.local(h)
-        return self.head(h).flatten()
+        relation_logits=self.head(h).flatten()
+        if not self.structure_aware:
+            if return_structure:
+                raise ValueError("Dense structural supervision is not enabled")
+            return relation_logits
+        vessel_logits=self.vessel_head(h)
+        vessel_prob=torch.sigmoid(vessel_logits[:,0])
+        path_support=self.bridge_readout(vessel_prob,x[:,1])
+        # The positive coefficient makes more supported continuity raise the
+        # candidate score. Dense mask supervision prevents a trivial all-ones
+        # vessel field; raw classification BCE remains active.
+        strength=F.softplus(self.bridge_strength_logit)
+        relation_logits=relation_logits+strength*torch.logit(path_support)
+        if return_structure:
+            return relation_logits,vessel_logits,path_support
+        return relation_logits
 
     def parameter_count(self)->int:
         return count_trainable(self)
