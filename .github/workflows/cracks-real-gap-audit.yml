@@ -8,6 +8,7 @@ on:
       - 'scripts/download_cracks_v2_public.py'
       - 'scripts/cracks_real_oracle_gap_audit.py'
       - 'scripts/inspect_cracks_expert_masks.py'
+      - 'tests/test_cracks_real_oracle_gap_audit.py'
       - '.github/workflows/cracks-real-gap-audit.yml'
       - 'docs/research/tver2026/CRACKS_REAL_E2E_EXECUTION.md'
   workflow_dispatch:
@@ -26,6 +27,13 @@ jobs:
           python-version: '3.11'
       - name: Install image and morphology dependencies
         run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image
+      - name: Run deterministic gap extraction tests
+        run: python -m unittest -v tests.test_cracks_real_oracle_gap_audit
+      - name: Cache verified public CRACKS archives
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
       - name: Download official CRACKS v2 archives and verify published MD5
         run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_real_controlled_v1/download_receipt.json
       - name: Measure real expert mask topology
