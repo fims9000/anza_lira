@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 
@@ -38,10 +39,11 @@ def _starts(lo,hi,size,overlap):
     width=hi-lo
     if width<=0:raise ValueError('Empty bbox extent')
     if width<=size:return [lo]
-    stride=size-overlap
-    origins=list(range(lo,hi-size+1,stride))
-    if origins[-1]!=hi-size:origins.append(hi-size)
-    return sorted(set(origins))
+    # Uniformly spaced origins avoid a near-identical final tile when
+    # the source dimensions are not multiples of the target stride.
+    span=width-size
+    steps=math.ceil(span/(size-overlap))
+    return [lo+(span*i+steps//2)//steps for i in range(steps+1)]
 
 
 def _tiles(box,size,overlap):
