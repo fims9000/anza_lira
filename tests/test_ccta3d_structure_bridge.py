@@ -105,6 +105,10 @@ def test_structural_variants_have_comparable_capacity_and_are_opt_in():
     ratio=parameter_budget(pair,ref)
     assert ratio["matched_parameter_budget"],ratio
     assert pair.local.cfg.axial_preference
+    noax=Candidate3dEncoder("anza3d_noaxial_structure")
+    assert noax.structure_aware
+    assert not noax.local.cfg.axial_preference
+    assert noax.parameter_count()==pair.parameter_count()
     assert not Candidate3dEncoder("anza3d").local.cfg.axial_preference
     with pytest.raises(ValueError,match="not enabled"):
         Candidate3dEncoder("conv3d")(torch.randn(1,2,8,8,8),return_structure=True)
