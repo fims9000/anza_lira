@@ -503,3 +503,20 @@ Paired tree bootstrap vs CNN, ordinary BCE: ANZA correct-rate difference -0.139,
 
 **Conclusions:** the larger, three-seed synthetic test **falsifies any claim that ANZA currently outperforms parameter-matched CNN** on this specific same-tree branch-identity task. Ranking improves performance but benefits CNN too. Signed transport did not reverse the ordering. No model accepted a correct or false connection at 0.85, so *no repaired-vessel benefit has been demonstrated*. Frozen CT28 inference, patient split, relation HGB and thresholds were not altered by this training. These synthetic six-channel weights must not be substituted for clinically trained CT28 weights, and neither real ImageCAS validation nor held-out clinical test was accessed.
 
+
+## Completed 3D JUNCTION training on available synthetic data (2026-11-12)
+
+[GitHub Actions #43120131270](https://github.com/fims9000/anza_lira/actions/runs/43120131270) completed successfully for **both** full synthetic HU and no-HU control. It generated 12 additional reload-verified model checkpoints (9 full + 3 control), separate from 21 PAIR checkpoints. All 33 checkpoints have SHA-256 manifests in the consolidated local handoff archive.
+
+JUNCTION generator: independently generated 3-arm 3D vessel phantoms, each label verified against voxelized 26-connected ground truth. 64 train / 32 validation / 64 independent synthetic test, size 16³, 8 epochs, full CT 3 seeds (17,41,73), endpoint-only control 1 seed (17). These JUNCTION negatives can be actually disconnected: **this is a different and easier scientific question** from selecting the correct branch within one connected tree.
+
+| Synthetic JUNCTION independent test mean (full CT, 3 seeds) | CNN | ANZA | ANZA signed contrast |
+| --- | ---: | ---: | ---: |
+| AUROC | 0.901 | 0.888 | 0.904 |
+| AUPRC | 0.905 | 0.873 | 0.894 |
+| Accepted true at raw tau=.85 | 0 | 0 | 0 |
+| Accepted false at raw tau=.85 | 0 | 0 | 0 |
+| Endpoint-only AUROC (one seed) | 0.448 | 0.419 | 0.422 |
+
+The signed-contrast ANZA JUNCTION mean AUROC is slightly higher than CNN in this synthetic run, but seed SD is ~0.05; **no verified superiority** is established. All classes lack high-confidence acceptance. No genuine ImageCAS CT images were used, and six-channel synthetic checkpoints are not substitutes for the CT28 production twelve-channel models.
+
