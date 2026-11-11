@@ -145,7 +145,7 @@ def make_phantoms(n:int,seed:int,kind:str,side:int=12,*,separate_endpoints:bool=
         else:
             raise RuntimeError(
                 f"Cannot generate topologically valid {kind} y={int(positive)} "
-                f"sample after 64 attempts" if close_junction else f"sample after 32 attempts"
+                f"sample after {64 if close_junction else 32} attempts"
             )
     return patch,y,vessel_masks
 
