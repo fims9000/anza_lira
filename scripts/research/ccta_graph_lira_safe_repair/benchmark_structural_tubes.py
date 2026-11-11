@@ -233,7 +233,7 @@ def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
     return copied
 
 
-def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None,paired_validation:bool=False):
+def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str,calibration=None,paired_validation:bool=False,paired_ranking_weight:float=0.):
     train_x,train_y,train_masks=train
     valid_x,valid_y,valid_masks=valid
     train_x=model_input_from_phantom(train_x,variant)
@@ -244,7 +244,21 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
     model=Candidate3dEncoder(variant,channels=6,candidate_type=kind).to(device)
     structured=variant.endswith("_structure")
     tensors=[torch.from_numpy(train_x),torch.from_numpy(train_y),torch.from_numpy(train_masks)]
-    loader=DataLoader(TensorDataset(*tensors),batch_size=batch_size,shuffle=True,
+    if not np.isfinite(paired_ranking_weight) or paired_ranking_weight<0:
+        raise ValueError("Paired ranking weight must be nonnegative finite")
+    paired_training=paired_ranking_weight>0
+    if paired_training:
+        if (len(train_y)%2 or batch_size<2 or batch_size%2 or
+            not np.array_equal(train_y[::2],np.ones(len(train_y)//2)) or
+            not np.array_equal(train_y[1::2],np.zeros(len(train_y)//2))):
+            raise ValueError("Ranking loss requires adjacent positive-negative tree pairs")
+        # Batch BY TREE, not by shuffled individual candidates. Otherwise
+        # positive/negative from the same CT disappear from each mini-batch.
+        tensors=[x.reshape(len(train_y)//2,2,*x.shape[1:]) for x in tensors]
+        loader_batch=batch_size//2
+    else:
+        loader_batch=batch_size
+    loader=DataLoader(TensorDataset(*tensors),batch_size=loader_batch,shuffle=True,
                       generator=torch.Generator().manual_seed(seed))
     criterion=nn.BCEWithLogitsLoss()
     optimizer=torch.optim.AdamW(model.parameters(),lr=.002,weight_decay=1e-4)
@@ -252,6 +266,10 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
     for _ in range(epochs):
         model.train()
         for x,y,target in loader:
+            if paired_training:
+                x=x.reshape(-1,*x.shape[2:])
+                y=y.reshape(-1)
+                target=target.reshape(-1,*target.shape[2:])
             x=x.to(device);y=y.to(device)
             optimizer.zero_grad(set_to_none=True)
             if structured:
@@ -260,7 +278,14 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
                                                                    skeleton_iterations=2)
                       +.15*criterion(torch.logit(bridge),y))
             else:
-                loss=criterion(model(x),y)
+                logits=model(x)
+                loss=criterion(logits,y)
+            if paired_training:
+                # Same tree, identical CT and vessel GT: learn to prefer the
+                # CORRECT candidate identity over an incorrect branch.
+                # Pure ranking alone is not a calibrated acceptance decision.
+                margin=logits[::2]-logits[1::2]
+                loss=loss+paired_ranking_weight*F.softplus(.3-margin).mean()
             loss.backward()
             optimizer.step()
     model.eval()
@@ -358,6 +383,7 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
         "val_brier":float(np.mean(np.square(p-valid_y))),
         "calibration":calibration_metrics,
         "paired_validation":paired,
+        "paired_ranking_weight":float(paired_ranking_weight),
 
         "mean_bridge_positive":float(np.mean(np.asarray(bridges)[true])) if bridges else None,
         "mean_bridge_negative":float(np.mean(np.asarray(bridges)[~true])) if bridges else None,
