@@ -126,7 +126,7 @@ def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
     return True
 
 
-def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets:bool=False,endpoint_encoding:str="summed")->None:
+def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets:bool=False,endpoint_encoding:str="summed",ranking_weight:float=0.)->None:
     for patient in TRAIN+VAL:
         if _verified_cache(cache,patient,frame_mode=frame_mode,with_vessel_targets=with_vessel_targets,endpoint_encoding=endpoint_encoding):
             continue
@@ -148,7 +148,7 @@ def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size
             out=root/f"oof_{kind.lower()}_{variant}"
             if _verified_oof(out,kind,variant):
                 meta=_load_json(out/"oof_protocol.json")
-                expected={"epochs":epochs,"batch_size":batch_size,"seed":seed,"device":device}
+                expected={"epochs":epochs,"batch_size":batch_size,"seed":seed,"device":device,"ranking_weight":ranking_weight}
                 actual=meta.get("fixed_train_hyperparameters",{})
                 if meta.get("fold_count")!=folds or any(actual.get(k)!=v for k,v in expected.items()):
                     raise ValueError("Existing OOF run uses different seed, folds, device or training budget")
@@ -157,7 +157,7 @@ def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size
                 cache_dir=cache,out_dir=out,candidate_type=kind,
                 variant=variant,train_patients=TRAIN,val_patients=VAL,
                 folds=folds,epochs=epochs,batch_size=batch_size,
-                seed=seed,device=device,
+                seed=seed,device=device,ranking_weight=ranking_weight,
             )
             print(f"Patient-OOF candidate evidence: {kind}/{variant}",flush=True)
 
@@ -357,6 +357,7 @@ def main():
     parser.add_argument("--seed",type=int,default=20261102)
     parser.add_argument("--folds",type=int,default=5)
     parser.add_argument("--batch-size",type=int,default=8)
+    parser.add_argument("--ranking-weight",type=float,default=0.,help="Train-only same-scene candidate ranking ablation (0 preserves baseline)")
     args=parser.parse_args()
     if (args.frame_mode=="fixed_lps" or args.structure_models or args.separate_endpoints) and (args.cache_dir.resolve()==DEFAULT_CACHE.resolve() or args.root.resolve()==DEFAULT_STUDY.resolve()):
         raise ValueError("Fixed LPS ablation requires separate --cache-dir and --root; keep historical runs immutable")
@@ -385,7 +386,7 @@ def main():
         ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode,with_vessel_targets=args.structure_models,endpoint_encoding=encoding)
     if args.stage in ("oof","all"):
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
-                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants,endpoint_encoding=encoding)
+                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants,endpoint_encoding=encoding,ranking_weight=args.ranking_weight)
     if args.stage in ("relations","all"):
         ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants)
     pilot=None
