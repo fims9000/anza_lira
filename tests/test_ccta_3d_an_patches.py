@@ -139,7 +139,8 @@ def test_separate_tip_patches_preserve_hu_and_resolve_sub_3mm_junction_tips():
     peaks,valid=_peak_centers_from_channels(torch.from_numpy(separate[None,1:]),3)
     assert bool(valid.item())
     center=np.mean(ends,axis=0)
-    local=(ends-center)+(24-1)/2
+    sorted_ends=ends[np.lexsort((ends[:,2],ends[:,1],ends[:,0]))]
+    local=(sorted_ends-center)+(24-1)/2
     np.testing.assert_allclose(peaks[0].numpy(),np.rint(local),atol=1.)
     swapped,_=extract_candidate_patch(
         ct,affine,ends[[2,0,1]],
