@@ -21,6 +21,7 @@ class PatchConfig:
     endpoint_sigma_mm: float = 1.5
     hu_min: float = -300.0
     hu_max: float = 1200.0
+    frame_mode: str = "canonical"  # frozen historical behavior; optional fixed LPS ablation
 
     def __post_init__(self):
         if self.side < 8 or self.side > 64 or self.side % 2:
@@ -31,10 +32,17 @@ class PatchConfig:
             raise ValueError("Nonfinite patch config")
         if self.voxel_mm <= 0 or self.endpoint_sigma_mm <= 0 or self.hu_max <= self.hu_min:
             raise ValueError("Invalid patch physical scales")
+        if self.frame_mode not in {"canonical", "fixed_lps"}:
+            raise ValueError("frame_mode must be canonical or fixed_lps")
 
 
-def local_frame(endpoints_lps: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
-    """Centroid and right-handed local orthonormal basis in physical LPS mm."""
+def local_frame(endpoints_lps: np.ndarray, frame_mode: str = "canonical") -> tuple[np.ndarray,np.ndarray]:
+    """Centroid and right-handed local orthonormal basis in physical LPS mm.
+
+    fixed_lps is an experimental orientation-stable control: no canonical
+    endpoint sorting can rotate the frame under a small coordinate perturbation.
+    It does not guarantee candidate coverage or improve the neural model.
+    """
     pts=np.asarray(endpoints_lps,dtype=np.float64)
     if pts.shape not in ((2,3),(3,3)) or not np.isfinite(pts).all():
         raise ValueError("Expected finite 2- or 3-endpoint LPS coordinate array")
@@ -42,11 +50,15 @@ def local_frame(endpoints_lps: np.ndarray) -> tuple[np.ndarray,np.ndarray]:
     # invariant to candidate endpoint-ID renaming and row permutations.
     # This is critical because the original CT28 scenes use deterministic
     # endpoint positions in their ground-truth examples.
+    if frame_mode not in {"canonical", "fixed_lps"}:
+        raise ValueError("Unknown local frame mode")
     pts=pts[np.lexsort((pts[:,2],pts[:,1],pts[:,0]))]
     direction=pts[1]-pts[0]
     length=float(np.linalg.norm(direction))
     if length <= 1e-6:
         raise ValueError("Coincident first two endpoints")
+    if frame_mode == "fixed_lps":
+        return pts.mean(axis=0),np.eye(3,dtype=np.float64)
     forward=direction/length
     canonical_axes=np.eye(3)
     reference=canonical_axes[int(np.argmin(abs(canonical_axes@forward)))]
@@ -76,7 +88,7 @@ def extract_candidate_patch(
         raise ValueError("Non-homogeneous CT affine")
     if abs(np.linalg.det(voxel_to_ras[:3,:3]))<1e-8:
         raise ValueError("Singular CCTA voxel-to-RAS transform")
-    center,frame=local_frame(endpoints_lps)
+    center,frame=local_frame(endpoints_lps,config.frame_mode)
     axes=(np.arange(config.side,dtype=np.float32)-(config.side-1)/2)*config.voxel_mm
     grid=np.stack(np.meshgrid(axes,axes,axes,indexing="ij"),axis=0)
     flattened=grid.reshape(3,-1)
@@ -110,6 +122,7 @@ def extract_candidate_patch(
         raise ValueError("Nonfinite CCTA candidate patch")
     return out,{
         "candidate_degree":len(endpoints_lps),
+        "frame_mode":config.frame_mode,
         "sampling_inside_volume_fraction":float(valid.mean()),
         "patch_center_lps_mm":center.tolist(),
         "voxel_mm":config.voxel_mm,
