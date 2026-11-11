@@ -416,6 +416,47 @@ on real CT or that restoring a one-voxel line meaningfully recovers vessel
 lumen. The current mask pipeline often uses `repair_radius_mm=0`;
 separate centerline quality from volumetric lumen reconstruction.
 
+
+## Additional counterexample: matched same-tree PAIR rank, and negative ablations
+
+The new `benchmark_same_tree_identity.py` freezes two candidate labels
+per independently generated tree with **the same CT, dense vessel GT, and
+endpoint separation**. The pair class encodes synthetic "continue through
+trunk" vs "turn onto branch"; *both are within a single connected tree*.
+This is a directional stress fixture, NOT universal medical branch truth.
+The hard-negative report includes paired wins/losses, mean score margin,
+AUROC/AUPRC, shuffled-HU control, and 0.85 accepted false branches.
+
+On a preliminary tiny 16-tree training / 8-tree validation / 3-epoch /
+one-seed CPU pilot, the **full CT BCE** runs achieved:
+- CNN sep: 4/8 correct paired ranks, AUROC 0.484;
+- ANZA sep: 7/8 correct paired ranks, AUROC 0.875;
+- ANZA signed-neighbor-minus-center variant: 7/8, AUROC 0.875.
+
+Without CT, the corresponding results were CNN 6/8, ANZA 3/8,
+ANZA contrastive 3/8. The ANZA win therefore depended on 3D intensity
+structure in this small pilot, but cannot be generalized from eight trees.
+**No architecture accepted any candidate at raw tau=0.85.**
+
+An additional equally budgeted within-tree ranking loss on that pilot:
+- full CT: CNN 6/8, ANZA 7/8, contrast ANZA 7/8;
+- endpoints only: CNN 6/8, ANZA 4/8, contrast ANZA 4/8.
+Thus paired ranking improved some cases but did NOT prove ANZA-specific
+improvement or useful high-confidence accepted repairs. The signed
+transport ablation provided no demonstrated gain over original ANZA.
+
+The ranking loss is now separately opt-in in patient-grouped CT28 OOF:
+`--ranking-weight 0.5` (0 keeps historical objective). This samples
+positive/negative candidates from the **same training scene** inside
+the patient fold; no validation/test scene may enter. It retains the
+original class BCE and train-only vessel losses. Run as an **additional
+study in distinct output roots**, not as a replacement for the primary
+unchanged `--ranking-weight 0` three-seed baseline. The study driver
+refuses downstream use if persisted OOF ranking protocol differs.
+
+**No claim of clinical gain** until 17 train / 5 dev ImageCAS full masks
+are evaluated with the same true/false bridge safety criteria.
+
 ## 7. Test evidence and release criteria
 
 - The preceding structural branch passed 72 regression tests and the
