@@ -344,7 +344,7 @@ def main():
     parser.add_argument("--separate-endpoints",action="store_true",help="Lossless individually encoded PAIR/JUNCTION tips; paired symmetric CNN/ANZA")
     parser.add_argument("--include-noaxial-control",action="store_true",help="Third matched ANZA without forced axial metric")
     parser.add_argument("--patient-id",type=int,default=953)
-    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
+    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair","neural_pair_junction"),default="frozen_fusion")
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--epochs",type=int,default=8)
