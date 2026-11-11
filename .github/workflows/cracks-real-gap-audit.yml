@@ -1,0 +1,60 @@
+name: CRACKS real-data controlled gap audit
+
+on:
+  push:
+    branches:
+      - research/cracks-real-e2e-2026-11-11
+    paths:
+      - 'scripts/download_cracks_v2_public.py'
+      - 'scripts/cracks_real_oracle_gap_audit.py'
+      - '.github/workflows/cracks-real-gap-audit.yml'
+      - 'docs/research/tver2026/CRACKS_REAL_E2E_EXECUTION.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-cracks-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image and morphology dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image
+      - name: Download official CRACKS v2 archives and verify published MD5
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_real_controlled_v1/download_receipt.json
+      - name: Audit expert-line masked gaps on real F3 seismic sections
+        run: python scripts/cracks_real_oracle_gap_audit.py --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_controlled_v1/oracle_mask_audit.json
+      - name: Freeze model availability and scientific claim boundary
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          paths={
+            "frozen_anza_checkpoint":list(Path("results").rglob("checkpoint-last.pt")),
+            "historical_lira_checkpoint":list(Path("results").rglob("pair_classifier/checkpoint.pt")),
+          }
+          report={
+            "status":"MODEL_E2E_NOT_EXECUTED_WITHOUT_VERIFIED_CHECKPOINTS",
+            "frozen_checkpoints_present":{k:bool(v) for k,v in paths.items()},
+            "oracle_mask_diagnostic_is_full_e2e":False,
+            "real_CRACKS_model_accuracy_claimed":False,
+          }
+          out=Path("results/cracks_real_controlled_v1/model_e2e_status.json")
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(report,indent=2)+"\n")
+          print(report)
+          PY
+      - name: Upload receipts and real-data audit (not raw images)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-real-gap-audit
+          path: results/cracks_real_controlled_v1/*.json
+          if-no-files-found: warn
