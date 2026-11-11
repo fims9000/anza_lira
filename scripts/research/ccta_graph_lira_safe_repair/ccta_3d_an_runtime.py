@@ -55,7 +55,7 @@ class NeuralCCTA3dInference(K10Inference):
         pair_identity_source:str="frozen_fusion",
     ):
         super().__init__(models,pack_sha=pack_sha)
-        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure"}:
+        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure"}:
             raise ValueError("Unknown 3D neural encoder variant")
         if not 0<=min_inside_fraction<=1:
             raise ValueError("Invalid minimum CT patch in-volume fraction")
