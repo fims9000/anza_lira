@@ -69,3 +69,23 @@ def test_single_scalar_shortcut_orientation_frozen_using_train_only():
         assert values["orientation_frozen_from_train"] in (-1,1)
         assert 0<=values["holdout_AUROC"]<=1
         assert 0<=values["holdout_AUPRC"]<=1
+
+
+def test_rank_matched_hu_histograms_eliminate_scalar_shortcuts_without_changing_geometry():
+    from benchmark_structural_tubes import normalize_synthetic_hu_histograms
+    x,y,mask=make_phantoms(12,20261111,"JUNCTION")
+    remapped=normalize_synthetic_hu_histograms(x)
+    assert np.array_equal(remapped[:,1],x[:,1])
+    assert np.array_equal(np.sort(remapped[0,0].flatten()),
+                          np.sort(remapped[1,0].flatten()))
+    assert np.array_equal(np.sort(remapped[1,0].flatten()),
+                          np.sort(remapped[-1,0].flatten()))
+    assert np.unique(remapped[0,0]).size==remapped[0,0].size
+    assert not np.array_equal(x[:,0],remapped[:,0])
+    # Rank ordering within each patch preserves local bright-tube geometry.
+    for i in range(len(y)):
+        assert np.array_equal(np.argsort(x[i,0].ravel(),kind="stable"),
+                              np.argsort(remapped[i,0].ravel(),kind="stable"))
+    assert np.all((remapped[:,0]>=-1)&(remapped[:,0]<=1))
+    with pytest.raises(ValueError,match="candidate patch"):
+        normalize_synthetic_hu_histograms(x[:,0])
