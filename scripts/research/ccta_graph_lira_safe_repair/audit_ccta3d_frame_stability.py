@@ -35,13 +35,14 @@ def _rotation(a: np.ndarray,b: np.ndarray) -> float:
 
 def audit(*, scenes_dir:Path, output:Path, repetitions:int=15,
           seed:int=20260920, position_noise_mm:float=.8,
-          tangent_noise_deg:float=20., split:str="val")->dict:
-    if repetitions<1 or repetitions>100 or position_noise_mm<0 or tangent_noise_deg<0:
-        raise ValueError("Invalid perturbation settings")
+          tangent_noise_deg:float=20., split:str="val", side:int=24,
+          voxel_mm:float=1.0)->dict:
+    if repetitions<1 or repetitions>100 or position_noise_mm<0 or tangent_noise_deg<0 or side<8 or side%2 or voxel_mm<=0:
+        raise ValueError("Invalid perturbation or patch FOV settings")
     if split not in {"train","val"}:
         raise ValueError("Only frozen development splits permitted")
-    if output.exists():
-        raise FileExistsError("Create a fresh output file; never overwrite previous evidence")
+    if output.exists() or output.with_suffix(".csv").exists():
+        raise FileExistsError("Create fresh output files; never overwrite previous evidence")
     endpoint_file=scenes_dir/"scene_endpoints_train_val.csv"
     candidate_file=scenes_dir/"scene_candidates_train_val.csv"
     plan_file=scenes_dir/"scene_plan_train_val.csv"
@@ -74,8 +75,15 @@ def audit(*, scenes_dir:Path, output:Path, repetitions:int=15,
             if len(ids)!=(2 if row.candidate_type=="PAIR" else 3):
                 raise ValueError("Unexpected candidate degree")
             original=lookup.loc[ids,["x_lps","y_lps","z_lps"]].to_numpy(dtype=float)
-            _,base=local_frame(original,"canonical")
+            center,base=local_frame(original,"canonical")
             _,fixed=local_frame(original,"fixed_lps")
+            half_extent=(side-1)*voxel_mm/2.
+            def patch_margin(points,frame):
+                return float(half_extent-np.max(np.abs(frame.T@(points-center).T)))
+            canonical_clean_margin=patch_margin(original,base)
+            fixed_clean_margin=patch_margin(original,fixed)
+            canonical_worst_margin=canonical_clean_margin
+            fixed_worst_margin=fixed_clean_margin
             largest=0.
             flips=0
             for item in perturbed:
@@ -85,6 +93,12 @@ def audit(*, scenes_dir:Path, output:Path, repetitions:int=15,
                 if not np.array_equal(fixed,fixed_perturbed):
                     raise AssertionError("Fixed LPS orientation changed under perturbation")
                 angle=_rotation(base,rotated)
+                center_per, _ = local_frame(pts,"fixed_lps")
+                # The clean endpoints are not held fixed in these resamplings.
+                def current_margin(frame):
+                    return float(half_extent-np.max(np.abs(frame.T@(pts-center_per).T)))
+                canonical_worst_margin=min(canonical_worst_margin,current_margin(rotated))
+                fixed_worst_margin=min(fixed_worst_margin,current_margin(fixed_perturbed))
                 largest=max(largest,angle)
                 flips+=angle>60.
             rows.append({
@@ -98,6 +112,10 @@ def audit(*, scenes_dir:Path, output:Path, repetitions:int=15,
                 "canonical_any_rotation_gt_60":bool(largest>60.),
                 "canonical_any_rotation_gt_120":bool(largest>120.),
                 "fixed_lps_orientation_changed":False,
+                "canonical_clean_endpoint_outside":canonical_clean_margin<0,
+                "fixed_lps_clean_endpoint_outside":fixed_clean_margin<0,
+                "canonical_any_perturbed_endpoint_outside":canonical_worst_margin<0,
+                "fixed_lps_any_perturbed_endpoint_outside":fixed_worst_margin<0,
             })
     frame=pd.DataFrame(rows)
     groups={}
@@ -107,6 +125,10 @@ def audit(*, scenes_dir:Path, output:Path, repetitions:int=15,
             "fraction_any_rotation_gt60":float(subset.canonical_any_rotation_gt_60.mean()),
             "fraction_any_rotation_gt120":float(subset.canonical_any_rotation_gt_120.mean()),
             "mean_max_rotation_deg":float(subset.canonical_max_rotation_deg.mean()),
+            "canonical_clean_endpoint_outside_fraction":float(subset.canonical_clean_endpoint_outside.mean()),
+            "fixed_lps_clean_endpoint_outside_fraction":float(subset.fixed_lps_clean_endpoint_outside.mean()),
+            "canonical_perturbed_endpoint_outside_fraction":float(subset.canonical_any_perturbed_endpoint_outside.mean()),
+            "fixed_lps_perturbed_endpoint_outside_fraction":float(subset.fixed_lps_any_perturbed_endpoint_outside.mean()),
         }
     report={
         "status":"geometric_audit_only_no_neural_predictions",
@@ -120,6 +142,9 @@ def audit(*, scenes_dir:Path, output:Path, repetitions:int=15,
         "baseline_frame_mode":"canonical",
         "experimental_frame_mode":"fixed_lps",
         "medical_images_read":False,
+        "patch_side":side,
+        "voxel_mm":voxel_mm,
+        "fov_scope":"Endpoint coordinates only, not physical CT volume coverage",
         "held_out_test_accessed":False,
         "source_sha256":{p.name:_sha256(p) for p in (plan_file,endpoint_file,candidate_file)},
         "interpretation":"Frame rotation alone does not establish classifier sensitivity or ANZA superiority.",
@@ -137,9 +162,12 @@ def main()->None:
     p.add_argument("--split",choices=("train","val"),default="val")
     p.add_argument("--repetitions",type=int,default=15)
     p.add_argument("--seed",type=int,default=20260920)
+    p.add_argument("--side",type=int,default=24)
+    p.add_argument("--voxel-mm",type=float,default=1.0)
     args=p.parse_args()
     print(json.dumps(audit(scenes_dir=args.scenes_dir,output=args.output,
-                           split=args.split,repetitions=args.repetitions,seed=args.seed),
+                           split=args.split,repetitions=args.repetitions,seed=args.seed,
+                           side=args.side,voxel_mm=args.voxel_mm),
                      indent=2,ensure_ascii=False))
 
 
