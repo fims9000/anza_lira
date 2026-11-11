@@ -27,7 +27,7 @@ ROOT=Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0,str(ROOT))
 from models.ccta3d_candidate_encoder import Candidate3dEncoder,parameter_budget
-from models.structural_bridge3d import vessel_structure_loss
+from models.structural_bridge3d import vessel_structure_loss,VesselBridgeReadout
 
 
 def _unit(v):
@@ -186,9 +186,26 @@ def main():
     torch.set_num_threads(2)
     models=("conv3d","anza3d","conv3d_structure","anza3d_structure")
     measurements=[]
+    oracle={}
     for kind in a.kinds:
         train=make_phantoms(a.train_samples,20261111,kind)
         validation=make_phantoms(a.val_samples,20261911,kind)
+        # Upper bound: run the geometric bridge readout on EXACT VESSEL TRUTH.
+        # If even oracle vessel masks do not separate classes, no neural
+        # encoder can repair the structural geometry by learning better HU.
+        degree=2 if kind=="PAIR" else 3
+        with torch.no_grad():
+            oracle_p=VesselBridgeReadout(degree)(
+                torch.from_numpy(validation[2][:,0]),
+                torch.from_numpy(validation[0][:,1]),
+            ).numpy()
+        oracle[kind]={
+            "AUROC":float(roc_auc_score(validation[1],oracle_p)),
+            "AUPRC":float(average_precision_score(validation[1],oracle_p)),
+            "positive_mean":float(oracle_p[validation[1]==1].mean()),
+            "negative_mean":float(oracle_p[validation[1]==0].mean()),
+        }
+        print(json.dumps({"oracle":kind,**oracle[kind]}),flush=True)
         for seed in a.seeds:
             for variant in models:
                 result=fit(variant,kind,train,validation,epochs=a.epochs,
@@ -203,6 +220,7 @@ def main():
         "epochs":a.epochs,"kinds":a.kinds,"seeds":a.seeds,"models":list(models),
         "heldout_CT28_test_accessed":False,
         "measurements":measurements,
+        "oracle_geometry":oracle,
     }
     a.out.parent.mkdir(parents=True,exist_ok=True)
     a.out.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
