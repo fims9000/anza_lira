@@ -61,7 +61,7 @@ def check_val_pilot(
 
 
 def pair_experiment_paths(study:Path,variant:str)->tuple[Path,Path,Path]:
-    if variant not in {"conv3d","anza3d"}:
+    if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure"}:
         raise ValueError("Unknown neural encoder variant")
     return (
         study/f"relation_{variant}",
@@ -184,10 +184,13 @@ def summarize_matched_validation(
     seed:int=20261102,
     pair_identity_source:str="frozen_fusion",
     relation_training:str="clean",
+    structure_models:bool=False,
 )->tuple[dict,list[dict]]:
     if bootstrap<100:
         raise ValueError("At least 100 patient-resampled bootstrap draws required")
     expected_relation_protocol=_relation_protocol(relation_training)
+    cnn_name="conv3d_structure" if structure_models else "conv3d"
+    anza_name="anza3d_structure" if structure_models else "anza3d"
     freeze=verify_validation_freeze(freeze_path)
     rows=[]
     for patient in sorted(VAL_CT28_IDS):
@@ -203,7 +206,7 @@ def summarize_matched_validation(
         k10=read(baseline_metrics)
         metrics={"K10":k10}
         status="complete"
-        for variant in ("conv3d","anza3d"):
+        for variant in (cnn_name,anza_name):
             report_path=output_root/f"patient_{patient}"/variant/"result_manifest.json"
             fail_path=report_path.parent/"failure.json"
             if fail_path.exists():
@@ -242,8 +245,8 @@ def summarize_matched_validation(
                 row[model+"_cldice_delta"]=float(metric["cldice_delta"])
                 row[model+"_gt_false_bridge_pairs"]=int(metric["gt_inconsistent_new_component_pairs"])
                 row[model+"_unsupported_added_voxels"]=int(metric["reference_unsupported_added_voxels"])
-            row["ANZA_minus_CNN_cldice_delta"]=row["anza3d_cldice_delta"]-row["conv3d_cldice_delta"]
-            row["ANZA_minus_CNN_dice_delta"]=row["anza3d_dice_delta"]-row["conv3d_dice_delta"]
+            row["ANZA_minus_CNN_cldice_delta"]=row[anza_name+"_cldice_delta"]-row[cnn_name+"_cldice_delta"]
+            row["ANZA_minus_CNN_dice_delta"]=row[anza_name+"_dice_delta"]-row[cnn_name+"_dice_delta"]
         rows.append(row)
 
     complete=[row for row in rows if row["status"]=="complete"]
@@ -273,6 +276,7 @@ def summarize_matched_validation(
         ),
         "patient_count":5,
         "pair_identity_source":pair_identity_source,
+        "variant_pair":[cnn_name,anza_name],
         "relation_train_protocol":expected_relation_protocol,
         "patient_completed":len(complete),
         "patient_failed_or_missing":5-len(complete),
@@ -312,12 +316,13 @@ def write_matched(root:Path,report:dict,rows:list[dict]):
         "| Patient | Status | K10 ΔclDice | CNN ΔclDice | ANZA ΔclDice | ANZA–CNN |",
         "|---|---|---:|---:|---:|---:|",
     ]
+    cnn_name,anza_name=report.get("variant_pair",["conv3d","anza3d"])
     for row in rows:
         if row["status"]=="complete":
             def f(k): return f"{row[k]:+.5f}"
             lines.append(
                 f"| {row['patient_id']} | complete | {f('K10_cldice_delta')} | "
-                f"{f('conv3d_cldice_delta')} | {f('anza3d_cldice_delta')} | "
+                f"{f(cnn_name+'_cldice_delta')} | {f(anza_name+'_cldice_delta')} | "
                 f"{f('ANZA_minus_CNN_cldice_delta')} |"
             )
         else:
@@ -343,12 +348,14 @@ def main():
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
+    parser.add_argument("--structure-models",action="store_true")
     parser.add_argument("--bootstrap",type=int,default=10000)
     args=parser.parse_args()
     verify_validation_freeze(args.freeze)
     if args.run:
+        selected_variants=(("conv3d_structure","anza3d_structure") if args.structure_models else ("conv3d","anza3d"))
         for patient in sorted(VAL_CT28_IDS):
-            for variant in ("conv3d","anza3d"):
+            for variant in selected_variants:
                 path=args.output_root/f"patient_{patient}"/variant
                 if path.exists():
                     print(f"Preserving existing {patient}/{variant} evidence",flush=True)
@@ -373,6 +380,7 @@ def main():
         bootstrap=args.bootstrap,
         pair_identity_source=args.pair_identity_source,
         relation_training=args.relation_training,
+        structure_models=args.structure_models,
     )
     write_matched(args.output_root,report,rows)
     print(json.dumps({
