@@ -74,6 +74,53 @@ def _peak_centers_from_channels(heatmap:torch.Tensor,degree:int):
     return centers,valid
 
 
+def endpoint_tangent_alignment(
+    vessel_probability:torch.Tensor,heatmap:torch.Tensor,*,radius_voxels:float=2.4
+)->torch.Tensor:
+    """Differentiable PAIR tangent/continuation evidence, diagnostic only.
+
+    Uses local vessel covariance near each endpoint to test whether the
+    candidate chord follows the *local* vessel direction. Unlike binary
+    connectivity this can reject an incorrect turn within the SAME tree.
+    It is not a proof of anatomical correctness at a true bifurcation.
+    Input: vessel [B,D,H,W], individual tip fields [B,3,D,H,W].
+    """
+    if (vessel_probability.ndim!=4 or heatmap.ndim!=5 or
+        heatmap.shape[1]!=3 or heatmap.shape[0]!=vessel_probability.shape[0] or
+        heatmap.shape[2:]!=vessel_probability.shape[1:] or
+        not math.isfinite(radius_voxels) or radius_voxels<=0):
+        raise ValueError("Invalid 3D vessel/tip shape or covariance radius")
+    if not torch.isfinite(vessel_probability).all() or not torch.isfinite(heatmap).all():
+        raise ValueError("Nonfinite tangent evidence")
+    b,d,h,w=vessel_probability.shape
+    points,valid=_peak_centers_from_channels(heatmap,2)
+    chord=points[:,1]-points[:,0]
+    valid=valid&(torch.linalg.vector_norm(chord,dim=1)>1e-5)
+    direction=F.normalize(chord,dim=1,eps=1e-6)
+    coords=torch.stack(torch.meshgrid(
+        torch.arange(d,device=vessel_probability.device,dtype=vessel_probability.dtype),
+        torch.arange(h,device=vessel_probability.device,dtype=vessel_probability.dtype),
+        torch.arange(w,device=vessel_probability.device,dtype=vessel_probability.dtype),
+        indexing="ij",
+    ),dim=-1).reshape(1,-1,3)
+    vessel=vessel_probability.flatten(1).clamp(0,1)
+    parts=[]
+    for i in range(2):
+        diff=coords-points[:,i,None,:]
+        dist2=diff.square().sum(dim=-1)
+        weights=vessel*torch.exp(-dist2/(2*radius_voxels**2))
+        mass=weights.sum(dim=1).clamp_min(1e-8)
+        mean=torch.einsum("bn,bni->bi",weights,diff)/mass[:,None]
+        centered=diff-mean[:,None,:]
+        cov=torch.einsum("bn,bni,bnj->bij",weights,centered,centered)/mass[:,None,None]
+        trace=cov.diagonal(dim1=1,dim2=2).sum(dim=1)
+        along=torch.einsum("bi,bij,bj->b",direction,cov,direction)
+        anisotropy=(along-trace/3.)/(2*trace/3.+1e-6)
+        parts.append(anisotropy.clamp(0,1))
+    score=torch.stack(parts).mean(dim=0)
+    return torch.where(valid,score,torch.zeros_like(score))
+
+
 def _sample_paths(vessel:torch.Tensor,positions:torch.Tensor):
     if vessel.ndim!=4 or positions.ndim!=4 or positions.shape[-1]!=3:
         raise ValueError("Expected vessel B,D,H,W and path points B,P,S,3")
