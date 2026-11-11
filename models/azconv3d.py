@@ -38,6 +38,7 @@ class AZConv3dConfig:
     anisotropy: bool = True
     fuzzy: bool = True
     axial_preference: bool = False  # opt-in: penalize cross-axis transport more than along-axis
+    contrastive: bool = False  # opt-in: anisotropic neighbor-minus-center transport
 
     def __post_init__(self):
         if self.modes < 1 or self.kernel_size < 1 or self.kernel_size % 2 != 1:
@@ -198,7 +199,15 @@ class AZConv3d(nn.Module):
             )
             denominator=denominator+compatibility
             numerator=numerator+compatibility.unsqueeze(2)*neighbor_values.unsqueeze(1)
-        aggregated=(numerator/denominator.clamp_min(1e-12).unsqueeze(2)).reshape(
+        aggregated=numerator/denominator.clamp_min(1e-12).unsqueeze(2)
+        if self.cfg.contrastive:
+            # Original kernel computes a positive weighted local MEAN, which
+            # can over-smooth thin vessels. This opt-in graph-Laplacian-like
+            # term carries *signed contrast* between each center voxel and
+            # its anisotropically weighted neighborhood. On a constant
+            # volume it is exactly zero (up to roundoff).
+            aggregated=aggregated-projected[:,None]
+        aggregated=aggregated.reshape(
             b,modes*self.cfg.value_channels,d,h,w
         )
         return self.shortcut(x)+torch.sigmoid(self.residual_logit)*self.mix(aggregated)
