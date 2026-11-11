@@ -47,7 +47,7 @@ class Candidate3dEncoder(nn.Module):
         candidate_type:str="PAIR",
     ):
         super().__init__()
-        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure"}:
+        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure"}:
             raise ValueError("Unknown candidate model variant")
         if candidate_type not in {"PAIR","JUNCTION"}:
             raise ValueError("Unknown candidate relation type")
@@ -69,7 +69,7 @@ class Candidate3dEncoder(nn.Module):
                 cfg or AZConv3dConfig(
                     modes=3,value_channels=6,kernel_size=3,
                     beta=.12,max_hyperbolicity=1.,
-                    axial_preference=self.structure_aware,
+                    axial_preference=(variant=="anza3d_structure"),
                 )
             )
         else:
