@@ -47,7 +47,7 @@ def _maybe_separate(x:np.ndarray,kind:str,variant:str)->np.ndarray:
     return out
 
 
-@pytest.mark.parametrize("variant",["conv3d_structure","anza3d_structure","conv3d_sep_structure","anza3d_sep_structure"])
+@pytest.mark.parametrize("variant",["conv3d_structure","anza3d_structure","conv3d_sep_structure","anza3d_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure"])
 def test_structural_fit_requires_train_only_dense_targets_and_produces_scores(variant):
     data,labels,targets=_sample()
     data=_maybe_separate(data,"PAIR",variant)
@@ -91,7 +91,7 @@ def test_dense_mask_uses_same_physical_patch_transform_and_binary_dtype():
     assert output.sum()>0
 
 
-@pytest.mark.parametrize("variant",["conv3d_structure","anza3d_structure","conv3d_sep_structure","anza3d_sep_structure"])
+@pytest.mark.parametrize("variant",["conv3d_structure","anza3d_structure","conv3d_sep_structure","anza3d_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure"])
 @pytest.mark.parametrize("kind",["PAIR","JUNCTION"])
 def test_complete_patient_oof_structure_model_checkpoint_reload(
     tmp_path,variant,kind
