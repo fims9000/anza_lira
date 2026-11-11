@@ -20,8 +20,10 @@ endpoint Gaussian heatmap) and the SAME extra train-only 3D vessel masks.
 - BOTH structure variants produce a train-supervised dense vessel probability.
   Auxiliary loss: 0.35 * (balanced BCE + Dice + differentiable clDice).
 - BOTH produce an explicit differentiable path support score. PAIR evaluates
-  a straight and four modestly curved candidate paths; JUNCTION checks
-  three arms toward a provisional hub. Raw 26-neighbor reachability remains
+  a straight and four modestly curved candidate paths; JUNCTION evaluates
+  three arms against the SAME possible hub chosen from 27 nearby 3D locations
+  (2-voxel offsets). The old fixed centroid is a diagnostic control.
+  Raw 26-neighbor reachability remains
   a diagnostic ablation only: correct component topology does not identify
   correct branches. The link BCE receives
   0.15 weight. The classification logit contains a positive-weight continuity
@@ -45,17 +47,45 @@ endpoint Gaussian heatmap) and the SAME extra train-only 3D vessel masks.
   It contains no gold coronary candidate identities. Its randomly initialized
   predictions are NOT accuracy evidence.
 - Synthetic branch-preserving/broken tube results are in
-  `benchmark_structural_tubes.py`; this is a narrow, deliberately generated
-  development diagnostic. Results are seed-sensitive. At 8 epochs PAIR
-  `conv3d_structure` reached AUROC 1.000/0.997, and
-  `anza3d_structure` 1.000/0.979 on two seeds. Both topology variants
-  remain weak on synthetic JUNCTION. This does NOT justify promoting ANZA.
+  `benchmark_structural_tubes.py`. An important previous label defect was
+  detected: about 20% of old JUNCTION y=0 examples had 26-connected ground
+  truth. Generation now refuses contradictory examples. On the corrected
+  reference, oracle vessel maps give AUROC 1.0 for both PAIR and JUNCTION.
+  Under 12 epochs and three random seeds, matched models on the narrow
+  corrected phantom dataset gave mean PAIR AUROC CNN-Structure 1.000 vs
+  ANZA-Structure 0.999; JUNCTION CNN-Structure 0.790 vs ANZA-Structure
+  0.852. The axial-preference-off ANZA control was also about 0.852.
+  These descriptive synthetic values do NOT establish independent or medical
+  superiority, nor a specific causal benefit of the axial constraint.
+  False accepted JUNCTIONs at score threshold 0.5 remain unacceptable.
 - A separate oracle run feeds perfect vessel target masks into the structural
   readout to determine whether a geometry/readout limitation exists
-  independently of ANN optimization.
+  independently of ANN optimization. Correct JUNCTION branch identity is
+  strictly stronger than binary 3D component connectedness; do not relabel
+  all within-tree anatomical branches as correct simply because they touch.
 - On real frozen validation geometry, the peak-recovery check measures whether
   the heatmap reliably represents the intended PAIR/JUNCTION endpoints.
   No CT or held-out data is opened in this geometry audit.
+
+## Anatomical branch identity: required train-only diagnostic
+
+ImageCAS-X vessel masks encode original coronary segment labels 0..14.
+The current dense auxiliary loss binarizes this mask to lumen/background;
+therefore it cannot, alone, distinguish anatomically wrong connections
+inside the same physically connected coronary tree.
+
+Before adding any branch-ID supervision, run the **TRAIN-ONLY** audit on
+the workstation with verified original CCTA+ImageCAS-X files:
+
+    python scripts/research/ccta_graph_lira_safe_repair/audit_ct28_anatomical_segments.py \
+      --out varvara/anza_lira_local_results/ct28_train_branch_segments.json
+
+It maps CT28 PAIR/JUNCTION endpoints into the original labeled NIfTI,
+checks physical affine and patient identities, and compares branch labels
+for true/false candidates without opening validation/test. It creates a
+local immutable JSON+CSV. No anatomical segment ID is used as a model input.
+Same branch label does NOT, by itself, prove valid topology. Review the
+diagnostic before implementing any class-ID head or branch-specific gate.
 
 ## Reproducible CT28 experiment on original local ImageCAS data
 
