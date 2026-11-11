@@ -39,8 +39,9 @@ def _starts(lo,hi,size,overlap):
     width=hi-lo
     if width<=0:raise ValueError('Empty bbox extent')
     if width<=size:return [lo]
-    # Uniformly spaced origins avoid a near-identical final tile when
-    # the source dimensions are not multiples of the target stride.
+    # Distribute origins evenly to avoid a near-identical last tile when
+    # (extent - size) is not divisible by the target stride. Every adjacent
+    # interval stays <= size - overlap, hence source coverage is complete.
     span=width-size
     steps=math.ceil(span/(size-overlap))
     return [lo+(span*i+steps//2)//steps for i in range(steps+1)]
