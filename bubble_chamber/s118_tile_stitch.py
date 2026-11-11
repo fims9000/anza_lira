@@ -211,8 +211,8 @@ def stitch_tiles(tiles: list[dict], cfg: StitchConfig = StitchConfig(),
         for other in members[1:]:
             assert uf.union(members[0], other, allow_local=True) in ('joined', 'already')
     names = sorted(records)
-    # Index source curves once; large scans have thousands of fragments and
-    # should not rescan all curves for every overlapping tile pair.
+    # Full scans may have thousands of curves. Index each curve once instead
+    # of rescanning all names (and re-min/max-ing arrays) for every tile pair.
     by_tile = defaultdict(list)
     bounds = {}
     for key, record in records.items():
@@ -337,8 +337,8 @@ def stitch_tiles(tiles: list[dict], cfg: StitchConfig = StitchConfig(),
         ranking=[byport[p] for p in e['port_ids']]
         best=all(r and r[0]['candidate_id']==e['candidate_id'] for r in ranking)
         margin=min((r[0]['score']-r[1]['score'] if len(r)>1 else 1.) for r in ranking)
-        # Long gaps cannot auto-join without photo evidence. Do not do costly
-        # O(number_of_all_ports) checks for these review-only candidates.
+        # Long bridges cannot auto-join without photo evidence. Skip costly
+        # proximity and crossing checks for these review-only alternatives.
         auto_shape=(e['gap_px']<=cfg.auto_seam_gap_px and
                     e['alignment_min']>=cfg.auto_seam_alignment and
                     e['lateral_px']<=cfg.auto_seam_lateral_px and
@@ -346,8 +346,9 @@ def stitch_tiles(tiles: list[dict], cfg: StitchConfig = StitchConfig(),
         if not auto_shape and choice!='same':
             e['decision']='REVIEW_ONLY_NO_PHOTO_FOR_GAP'
             continue
-        # Rival endpoints that failed angle screening still matter. Check
-        # neighbours from a spatial index, not a scan of the full frame.
+        # Check all boundary endpoints, including alternatives which failed
+        # the gap geometry test. Spatially index them instead of O(N_ports)
+        # scanning for every proposed long gap on the entire scan.
         nearby_rival=False
         for port in e['port_ids']:
             target=port_by_id[port]
