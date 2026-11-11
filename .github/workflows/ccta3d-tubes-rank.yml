@@ -11,6 +11,10 @@ on:
       - '.github/workflows/ccta3d-tubes-rank.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ccta3d-tubes-rank-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   paired_rank_hu_benchmark:
     runs-on: ubuntu-latest
