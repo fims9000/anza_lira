@@ -36,6 +36,7 @@ jobs:
             tests/test_ccta3d_synthetic_topology.py \
             tests/test_ct28_branch_identity_audit.py \
             tests/test_ct28_close_tip_readout.py \
+            tests/test_ct28_structure_seed_summary.py \
             tests/test_ccta_3d_an_patch_cache.py \
             tests/test_ccta_3d_an_oof.py \
             tests/test_ccta_3d_an_study.py \
@@ -68,5 +69,6 @@ jobs:
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_structure_targets.py \
             scripts/research/ccta_graph_lira_safe_repair/audit_ct28_anatomical_segments.py \
             scripts/research/ccta_graph_lira_safe_repair/audit_ct28_close_tip_readout.py \
+            scripts/research/ccta_graph_lira_safe_repair/summarize_ct28_structure_seeds.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
             scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_relation_augmented.py
