@@ -89,7 +89,8 @@ class Candidate3dEncoder(nn.Module):
         if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure",
                            "anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure",
                            "conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure",
-                           "anza3d_noaxial_deepsets_sep_structure"}:
+                           "anza3d_noaxial_deepsets_sep_structure",
+                           "anza3d_contrast_sep_structure","anza3d_contrast_deepsets_sep_structure"}:
             raise ValueError("Unknown candidate model variant")
         if candidate_type not in {"PAIR","JUNCTION"}:
             raise ValueError("Unknown candidate relation type")
@@ -119,7 +120,10 @@ class Candidate3dEncoder(nn.Module):
                     modes=3,value_channels=6,kernel_size=3,
                     beta=.12,max_hyperbolicity=1.,
                     axial_preference=(variant in {"anza3d_structure","anza3d_sep_structure",
-                                                  "anza3d_deepsets_sep_structure"}),
+                                                  "anza3d_deepsets_sep_structure",
+                                                  "anza3d_contrast_sep_structure",
+                                                  "anza3d_contrast_deepsets_sep_structure"}),
+                    contrastive=("_contrast_" in variant),
                 )
             )
         else:
