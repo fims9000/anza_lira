@@ -170,6 +170,29 @@ def simple_shortcut_audit(train,valid):
     return result
 
 
+def normalize_synthetic_hu_histograms(input_patches:np.ndarray)->np.ndarray:
+    """Same exact scalar HU histogram for every candidate, no label leakage.
+
+    Per-patch rank remapping preserves spatial intensity order, while
+    completely removing class-dependent global mean, variance and other
+    1D HU histogram shortcuts. This is a *synthetic stress test only*, not
+    a proposed medical HU preprocessing or production normalization.
+    """
+    if input_patches.ndim!=5 or input_patches.shape[1]!=2:
+        raise ValueError("Expected candidate patch tensor B,2,D,H,W")
+    output=input_patches.copy()
+    n=output[0,0].size
+    # Centered in [-1,1], every patch receives identical sorted values.
+    target=np.linspace(-.99,.99,n,dtype=np.float32)
+    for i in range(len(output)):
+        flat=output[i,0].reshape(-1)
+        index=np.argsort(flat,kind="stable")
+        ranks=np.empty(n,dtype=np.int64)
+        ranks[index]=np.arange(n)
+        output[i,0]=target[ranks].reshape(output[i,0].shape)
+    return output
+
+
 def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
     """Destroy 3D spatial continuity but preserve HU histogram and heatmap."""
     if input_patches.ndim!=5 or input_patches.shape[1]!=2:
@@ -273,6 +296,7 @@ def main():
     p.add_argument("--seeds",nargs="+",type=int,default=[17,41])
     p.add_argument("--kinds",nargs="+",choices=("PAIR","JUNCTION"),default=["PAIR","JUNCTION"])
     p.add_argument("--device",default="cpu")
+    p.add_argument("--intensity-control",choices=("raw","rank"),default="raw")
     a=p.parse_args()
     if a.out.exists() or a.epochs<1 or a.train_samples<16 or a.val_samples<16:
         raise ValueError("Invalid benchmark request or existing output")
@@ -286,6 +310,9 @@ def main():
     for kind in a.kinds:
         train=make_phantoms(a.train_samples,20261111,kind)
         validation=make_phantoms(a.val_samples,20261911,kind)
+        if a.intensity_control=="rank":
+            train=(normalize_synthetic_hu_histograms(train[0]),train[1],train[2])
+            validation=(normalize_synthetic_hu_histograms(validation[0]),validation[1],validation[2])
         shortcut[kind]=simple_shortcut_audit(train,validation)
         print(json.dumps({"simple_shortcuts":kind,"features":shortcut[kind]}),flush=True)
         # Upper bound: run the geometric bridge readout on EXACT VESSEL TRUTH.
@@ -338,6 +365,7 @@ def main():
         "generated_train_seed":20261111,"generated_val_seed":20261911,
         "train_size":a.train_samples,"val_size":a.val_samples,
         "epochs":a.epochs,"kinds":a.kinds,"seeds":a.seeds,"models":list(models),
+        "synthetic_intensity_control":a.intensity_control,
         "heldout_CT28_test_accessed":False,
         "measurements":measurements,
         "oracle_geometry":oracle,
