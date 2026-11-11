@@ -70,13 +70,15 @@ def run(ct_path:Path,output_dir:Path,side:int=16,device:str="cpu"):
     dev=torch.device(device)
     torch.manual_seed(20261111)
     model_names=("conv3d","anza3d","conv3d_structure","anza3d_structure",
-                 "conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure")
+                 "conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure",
+                 "conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure")
     models={(kind,name):Candidate3dEncoder(name,candidate_type=kind).to(dev)
             for kind in endpoints for name in model_names}
     capacity={
         "historical":parameter_budget(models["PAIR","anza3d"],models["PAIR","conv3d"]),
         "structure":parameter_budget(models["PAIR","anza3d_structure"],models["PAIR","conv3d_structure"]),
         "separate_structure":parameter_budget(models["PAIR","anza3d_sep_structure"],models["PAIR","conv3d_sep_structure"]),
+        "nonlinear_separate_structure":parameter_budget(models["PAIR","anza3d_deepsets_sep_structure"],models["PAIR","conv3d_deepsets_sep_structure"]),
     }
     results=[]
     previews=[]
