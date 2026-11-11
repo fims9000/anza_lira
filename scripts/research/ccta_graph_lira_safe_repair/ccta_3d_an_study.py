@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 
 from ccta_3d_an_patch_cache import build_patient_cache, DEFAULT_CACHE
+from ccta_3d_an_patches import PatchConfig
 from ccta_3d_an_oof import build_oof, sha256
 from ccta_3d_an_relation import run_relation_training
 from ccta_3d_an_cli import run_neural
@@ -34,7 +35,7 @@ def _load_json(path:Path)->dict:
         return json.load(reader)
 
 
-def _verified_cache(cache:Path,patient:int)->bool:
+def _verified_cache(cache:Path,patient:int,frame_mode:str="canonical")->bool:
     path=cache/f"patches_{patient}.npz"
     report=cache/f"patches_{patient}.json"
     if not path.exists() and not report.exists():
@@ -45,6 +46,8 @@ def _verified_cache(cache:Path,patient:int)->bool:
     split="train" if patient in TRAIN else "val"
     if meta.get("patient_id")!=patient or meta.get("split")!=split or meta.get("cache_sha256")!=sha256(path):
         raise ValueError(f"Corrupted or patient/split-mismatched CT patch cache {patient}")
+    if meta.get("patch_protocol",{}).get("frame_mode","canonical")!=frame_mode:
+        raise ValueError(f"CT patch frame mode mismatch for patient {patient}")
     return True
 
 
@@ -112,16 +115,19 @@ def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
     return True
 
 
-def ensure_patch_cache(cache:Path)->None:
+def ensure_patch_cache(cache:Path,frame_mode:str="canonical")->None:
     for patient in TRAIN+VAL:
-        if _verified_cache(cache,patient):
+        if _verified_cache(cache,patient,frame_mode=frame_mode):
             continue
         build_patient_cache(patient=patient,output_dir=cache,
+                            config=PatchConfig(frame_mode=frame_mode),
                             include_val=patient in VAL)
         print(f"CT28 3D patches complete: {patient}",flush=True)
 
 
-def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int)->None:
+def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical")->None:
+    if not all(_verified_cache(cache,p,frame_mode=frame_mode) for p in TRAIN+VAL):
+        raise ValueError("Frozen patient patch cache incomplete for requested frame mode")
     for kind in ("PAIR","JUNCTION"):
         for variant in ("conv3d","anza3d"):
             out=root/f"oof_{kind.lower()}_{variant}"
@@ -316,6 +322,7 @@ def main():
     parser.add_argument("--stage",choices=("patches","oof","relations","pilot","volume","all"),default="all")
     parser.add_argument("--root",type=Path,default=DEFAULT_STUDY)
     parser.add_argument("--cache-dir",type=Path,default=DEFAULT_CACHE)
+    parser.add_argument("--frame-mode",choices=("canonical","fixed_lps"),default="canonical")
     parser.add_argument("--patient-id",type=int,default=953)
     parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
@@ -324,14 +331,16 @@ def main():
     parser.add_argument("--folds",type=int,default=5)
     parser.add_argument("--batch-size",type=int,default=8)
     args=parser.parse_args()
+    if args.frame_mode=="fixed_lps" and (args.cache_dir.resolve()==DEFAULT_CACHE.resolve() or args.root.resolve()==DEFAULT_STUDY.resolve()):
+        raise ValueError("Fixed LPS ablation requires separate --cache-dir and --root; keep historical runs immutable")
     if args.patient_id not in TRAIN:
         raise ValueError("Held-out or validation patient forbidden in end-to-end study")
     args.root.mkdir(parents=True,exist_ok=True)
     if args.stage in ("patches","all"):
-        ensure_patch_cache(args.cache_dir)
+        ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode)
     if args.stage in ("oof","all"):
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
-                   folds=args.folds,batch_size=args.batch_size)
+                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode)
     if args.stage in ("relations","all"):
         ensure_relations(args.root,mode=args.relation_training,device=args.device)
     pilot=None
