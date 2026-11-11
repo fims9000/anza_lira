@@ -139,6 +139,49 @@ def make_phantoms(n:int,seed:int,kind:str,side:int=12):
     return patch,y,vessel_masks
 
 
+def simple_shortcut_audit(train,valid):
+    """Train-oriented one-number prediction controls, never val-tuned signs."""
+    train_x,train_y,_=train
+    valid_x,valid_y,_=valid
+    def features(x):
+        ct=x[:,0]
+        h=x[:,1]
+        middle=ct.shape[-1]//2
+        return {
+            "hu_mean":ct.mean(axis=(1,2,3)),
+            "hu_std":ct.std(axis=(1,2,3)),
+            "hu_bright_fraction":(ct>-.35).mean(axis=(1,2,3)),
+            "hu_midplane_mean":ct[:,:,middle,:].mean(axis=(1,2)),
+            "heatmap_mean":h.mean(axis=(1,2,3)),
+            "heatmap_max":h.max(axis=(1,2,3)),
+        }
+    a,b=features(train_x),features(valid_x)
+    result={}
+    for name in sorted(a):
+        train_auc=roc_auc_score(train_y,a[name])
+        orientation=1. if train_auc>=.5 else -1.
+        hold_auc=roc_auc_score(valid_y,orientation*b[name])
+        result[name]={
+            "train_oriented_AUROC":float(max(train_auc,1.-train_auc)),
+            "holdout_AUROC":float(hold_auc),
+            "holdout_AUPRC":float(average_precision_score(valid_y,orientation*b[name])),
+            "orientation_frozen_from_train":int(orientation),
+        }
+    return result
+
+
+def permute_hu_voxels(input_patches:np.ndarray,seed:int=20261111)->np.ndarray:
+    """Destroy 3D spatial continuity but preserve HU histogram and heatmap."""
+    if input_patches.ndim!=5 or input_patches.shape[1]!=2:
+        raise ValueError("Expected B,2,D,H,W patches")
+    rng=np.random.default_rng(seed)
+    copied=input_patches.copy()
+    for row in range(len(copied)):
+        flat=copied[row,0].reshape(-1).copy()
+        copied[row,0]=rng.permutation(flat).reshape(copied[row,0].shape)
+    return copied
+
+
 def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,device:str):
     train_x,train_y,train_masks=train
     valid_x,valid_y,valid_masks=valid
@@ -179,6 +222,18 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
                 output=model(tensor)
             scores.extend(torch.sigmoid(output).cpu().tolist())
     p=np.asarray(scores)
+    # Deliberately preserve each HU histogram, randomize only its 3D location.
+    # A model still scoring highly has learned a shortcut rather than tracing
+    # anatomy; this control has the SAME frozen positive/negative labels.
+    permuted=permute_hu_voxels(valid_x,seed=20261911)
+    scrambled_scores=[]
+    with torch.no_grad():
+        for start_index in range(0,len(valid_y),batch_size):
+            batch=torch.from_numpy(
+                permuted[start_index:start_index+batch_size]
+            ).to(device)
+            scrambled_scores.extend(torch.sigmoid(model(batch)).cpu().tolist())
+    p_scrambled=np.asarray(scrambled_scores)
     predicted=p>=.5
     true=valid_y.astype(bool)
     return {
@@ -188,6 +243,8 @@ def fit(variant:str,kind:str,train,valid,*,epochs:int,batch_size:int,seed:int,de
         "n_val":len(true),
         "val_AUROC":float(roc_auc_score(true,p)),
         "val_AUPRC":float(average_precision_score(true,p)),
+        "HU_voxel_permuted_AUROC":float(roc_auc_score(true,p_scrambled)),
+        "HU_voxel_permuted_AUPRC":float(average_precision_score(true,p_scrambled)),
         "val_precision_at_05":float(np.sum(predicted&true)/max(1,np.sum(predicted))),
         "val_recall_at_05":float(np.sum(predicted&true)/max(1,np.sum(true))),
         "val_false_positive_count":int(np.sum(predicted&~true)),
@@ -215,9 +272,12 @@ def main():
     models=("conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure")
     measurements=[]
     oracle={}
+    shortcut={}
     for kind in a.kinds:
         train=make_phantoms(a.train_samples,20261111,kind)
         validation=make_phantoms(a.val_samples,20261911,kind)
+        shortcut[kind]=simple_shortcut_audit(train,validation)
+        print(json.dumps({"simple_shortcuts":kind,"features":shortcut[kind]}),flush=True)
         # Upper bound: run the geometric bridge readout on EXACT VESSEL TRUTH.
         # If even oracle vessel masks do not separate classes, no neural
         # encoder can repair the structural geometry by learning better HU.
@@ -271,6 +331,7 @@ def main():
         "heldout_CT28_test_accessed":False,
         "measurements":measurements,
         "oracle_geometry":oracle,
+        "simple_shortcuts":shortcut,
     }
     a.out.parent.mkdir(parents=True,exist_ok=True)
     a.out.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
