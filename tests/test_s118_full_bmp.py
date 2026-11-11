@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 from scripts.research.bubble_chamber.run_s118_full_bmp import run, _tiles
 
+
 def test_tile_grid_covers_last_seam_and_is_deterministic():
     tiles=_tiles([0,0,205,150],96,32)
     assert tiles==_tiles([0,0,205,150],96,32)
@@ -49,3 +50,24 @@ def test_resume_rejects_tampered_bmp_and_bad_bbox(tmp_path):
         run(bmp,output,tile_size=96,overlap=32,max_tiles=1,resume=True)
     with pytest.raises(ValueError,match='BBox exceeds'):
         run(bmp,tmp_path/'other',bbox=[0,0,100,100],tile_size=96)
+
+
+def test_operator_protected_mask_is_applied_and_frozen(tmp_path):
+    photo=np.full((96,96),190,np.uint8)
+    cv2.line(photo,(10,48),(90,48),20,2)
+    bmp=tmp_path/'scan.bmp';cv2.imwrite(str(bmp),photo)
+    forbidden=np.zeros_like(photo)
+    forbidden[43:54,47:52]=255
+    mask=tmp_path/'operator_exclusions.png';cv2.imwrite(str(mask),forbidden)
+    dest=tmp_path/'masked_run'
+    result=run(bmp,dest,tile_size=96,overlap=20,max_tiles=1,protected=mask)
+    assert result['input_bmp_SHA256_verified'] is True
+    frozen=json.loads((dest/'RUN_CONFIG.json').read_text())
+    assert len(frozen['protected_mask_sha256'])==64
+    assert not any(p.name=='operator_exclusions.png' for p in dest.rglob('*'))
+    cv2.imwrite(str(mask),np.zeros_like(photo))
+    with pytest.raises(ValueError,match='different source image'):
+        run(bmp,dest,tile_size=96,overlap=20,max_tiles=1,resume=True,protected=mask)
+    bad=tmp_path/'invalid.png';cv2.imwrite(str(bad),np.zeros((10,10),np.uint8))
+    with pytest.raises(ValueError,match='Protected mask shape'):
+        run(bmp,tmp_path/'invalid_run',tile_size=96,protected=bad)
