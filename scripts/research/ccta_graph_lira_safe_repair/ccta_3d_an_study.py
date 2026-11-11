@@ -408,7 +408,7 @@ def main():
     if args.stage in ("oof","all"):
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
                    folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants,endpoint_encoding=encoding,ranking_weight=args.ranking_weight)
-    if args.stage in ("relations","pilot","volume","all"):
+    if args.stage in ("relations","volume","all"):
         verify_upstream_ranking_protocol(args.root,variants,args.ranking_weight)
     if args.stage in ("relations","all"):
         ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants)
