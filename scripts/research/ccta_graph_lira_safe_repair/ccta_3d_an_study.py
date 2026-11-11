@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from ccta_3d_an_patch_cache import build_patient_cache, DEFAULT_CACHE
@@ -160,6 +161,24 @@ def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size
                 seed=seed,device=device,ranking_weight=ranking_weight,
             )
             print(f"Patient-OOF candidate evidence: {kind}/{variant}",flush=True)
+
+
+def verify_upstream_ranking_protocol(root:Path,variants:tuple[str,...],expected_weight:float)->None:
+    """Refuse relations/volume generated with stale candidate ranking objective."""
+    if not math.isfinite(expected_weight) or expected_weight<0:
+        raise ValueError("Invalid train-only ranking weight")
+    for variant in variants:
+        for kind in ("PAIR","JUNCTION"):
+            output=root/f"oof_{kind.lower()}_{variant}"
+            if not _verified_oof(output,kind,variant):
+                raise ValueError(f"Missing verified upstream OOF for {kind}/{variant}")
+            meta=_load_json(output/"oof_protocol.json")
+            weight=meta.get("fixed_train_hyperparameters",{}).get("ranking_weight",0.)
+            if weight!=expected_weight:
+                raise ValueError(
+                    f"OOF {kind}/{variant} ranking-weight mismatch: "
+                    f"{weight} != {expected_weight}"
+                )
 
 
 def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu",variants:tuple[str,...]=("conv3d","anza3d"))->None:
@@ -381,12 +400,16 @@ def main():
                                      else "anza3d_noaxial_structure"))
     else:
         variants=("conv3d","anza3d")
+    if not math.isfinite(args.ranking_weight) or args.ranking_weight<0:
+        raise ValueError("Ranking-weight must be a finite nonnegative number")
     args.root.mkdir(parents=True,exist_ok=True)
     if args.stage in ("patches","all"):
         ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode,with_vessel_targets=args.structure_models,endpoint_encoding=encoding)
     if args.stage in ("oof","all"):
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
                    folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants,endpoint_encoding=encoding,ranking_weight=args.ranking_weight)
+    if args.stage in ("relations","pilot","volume","all"):
+        verify_upstream_ranking_protocol(args.root,variants,args.ranking_weight)
     if args.stage in ("relations","all"):
         ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants)
     pilot=None
