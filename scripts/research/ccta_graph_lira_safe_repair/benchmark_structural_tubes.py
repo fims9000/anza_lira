@@ -79,9 +79,20 @@ def make_phantoms(n:int,seed:int,kind:str,side:int=12):
             dirs=np.stack((u,-.5*u+.866*v,-.5*u-.866*v))
             ends=np.stack([center+direction*extent for direction in dirs])
             for k,point in enumerate(ends):
-                endpoint=center if positive or k!=2 else center+2.6*w+1.3*v
+                if positive or k!=2:
+                    terminal=center
+                else:
+                    # A hard negative must genuinely fail to join the
+                    # other two arms. Previously this arm ended at
+                    # center+2.6*w+1.3*v; its thick vessel mask remained
+                    # 26-connected, so labels claimed FALSE while the
+                    # ground-truth geometry showed TRUE connectedness.
+                    # Redirect the third arm tangentially *away* from
+                    # the hub, maintaining similar line length without
+                    # creating a coincident central branch.
+                    terminal=point+w*extent
                 curve=[]
-                _add_curve(curve,(point,endpoint))
+                _add_curve(curve,(point,terminal))
                 curves.append(curve)
         vessel=np.zeros((side,side,side),dtype=np.float32)
         for curve in curves:
@@ -218,6 +229,15 @@ def main():
         connected=np.asarray(connected,dtype=bool)
         oracle[kind]["GT_component_connected_fraction_positive"]=float(connected[validation[1]==1].mean())
         oracle[kind]["GT_component_connected_fraction_negative"]=float(connected[validation[1]==0].mean())
+        # Reject a benchmark with contradictory labels instead of reporting
+        # favorable AUROC from images whose true topology disagrees with y.
+        if (oracle[kind]["GT_component_connected_fraction_positive"]!=1.0 or
+            oracle[kind]["GT_component_connected_fraction_negative"]!=0.0):
+            raise AssertionError(
+                f"Invalid {kind} benchmark: binary GT components disagree with "
+                f"labels; positive={oracle[kind]['GT_component_connected_fraction_positive']}, "
+                f"negative={oracle[kind]['GT_component_connected_fraction_negative']}"
+            )
         print(json.dumps({"oracle":kind,**oracle[kind]}),flush=True)
         for seed in a.seeds:
             for variant in models:
