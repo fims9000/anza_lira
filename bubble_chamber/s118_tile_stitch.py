@@ -211,19 +211,33 @@ def stitch_tiles(tiles: list[dict], cfg: StitchConfig = StitchConfig(),
         for other in members[1:]:
             assert uf.union(members[0], other, allow_local=True) in ('joined', 'already')
     names = sorted(records)
+    # Index source curves once; large scans have thousands of fragments and
+    # should not rescan all curves for every overlapping tile pair.
+    by_tile = defaultdict(list)
+    bounds = {}
+    for key, record in records.items():
+        by_tile[record['tile']].append(key)
+        xy = record['xy']
+        bounds[key] = (float(xy[:,0].min()), float(xy[:,1].min()),
+                       float(xy[:,0].max()), float(xy[:,1].max()))
     proposals = []
     tile_pairs = [(a,b,_rect_overlap(rectangles[a],rectangles[b]))
                   for i,a in enumerate(sorted(rectangles)) for b in sorted(rectangles)[i+1:]]
     for ta, tb, overlap in tile_pairs:
         if overlap[2] <= overlap[0] or overlap[3] <= overlap[1]:
             continue
-        a = [k for k in names if records[k]['tile'] == ta]
-        b = [k for k in names if records[k]['tile'] == tb]
+        radius = cfg.alias_radius_px
+        def overlaps(p, rect):
+            return (p[2]+radius >= rect[0] and p[0]-radius < rect[2] and
+                    p[3]+radius >= rect[1] and p[1]-radius < rect[3])
+        a = [k for k in by_tile[ta] if overlaps(bounds[k], overlap)]
+        b = [k for k in by_tile[tb] if overlaps(bounds[k], overlap)]
         for ak in a:
+            pa = bounds[ak]
             for bk in b:
-                p, q = records[ak]['xy'], records[bk]['xy']
-                if (max(p[:,0].min(),q[:,0].min())-cfg.alias_radius_px > min(p[:,0].max(),q[:,0].max()) or
-                    max(p[:,1].min(),q[:,1].min())-cfg.alias_radius_px > min(p[:,1].max(),q[:,1].max())):
+                pb = bounds[bk]
+                if (max(pa[0],pb[0])-radius > min(pa[2],pb[2]) or
+                    max(pa[1],pb[1])-radius > min(pa[3],pb[3])):
                     continue
                 metrics = _alias_metrics(records[ak], records[bk], overlap, cfg)
                 if metrics and metrics['geometry_supported']:
@@ -260,6 +274,8 @@ def stitch_tiles(tiles: list[dict], cfg: StitchConfig = StitchConfig(),
             if vec is not None and _boundary_exit(point,vec,obj['rect'],cfg.seam_band_px):
                 ports.append({'key':key,'end':end,'point':point,'vec':vec,'tile':obj['tile']})
     seams = []
+    port_by_id = {f"{p['key']}:{p['end']}":p for p in ports}
+    port_tree = cKDTree(np.array([p['point'] for p in ports])) if ports else None
     if len(ports) > 1:
         pairs = sorted(cKDTree(np.array([x['point'] for x in ports])).query_pairs(cfg.review_gap_px))
         for ai, bi in pairs:
@@ -318,35 +334,37 @@ def stitch_tiles(tiles: list[dict], cfg: StitchConfig = StitchConfig(),
         if any(p in used for p in e['port_ids']):
             if choice=='same':raise ValueError('Expert seam links reuse endpoint')
             e['decision']='REVIEW_PORT_ALREADY_USED';continue
-        if any(_segments_close(e['inferred_connector_full_xy'],other['inferred_connector_full_xy']) for other in selected):
-            if choice=='same':raise ValueError('Expert seam links geometrically cross')
-            e['decision']='REVIEW_CROSSING_SEAM';continue
         ranking=[byport[p] for p in e['port_ids']]
         best=all(r and r[0]['candidate_id']==e['candidate_id'] for r in ranking)
         margin=min((r[0]['score']-r[1]['score'] if len(r)>1 else 1.) for r in ranking)
-        # A neighbouring near-parallel line may be geometrically disqualified
-        # as a gap candidate but is still a dangerous rival identity. Check all
-        # boundary endpoints, not just already accepted-angle candidates.
-        endpoints=[next(p for p in ports if p['key']==key and
-                        f"{key}:{p['end']}"==port)
-                   for key,port in zip(e['curve_ids'],e['port_ids'])]
+        # Long gaps cannot auto-join without photo evidence. Do not do costly
+        # O(number_of_all_ports) checks for these review-only candidates.
+        auto_shape=(e['gap_px']<=cfg.auto_seam_gap_px and
+                    e['alignment_min']>=cfg.auto_seam_alignment and
+                    e['lateral_px']<=cfg.auto_seam_lateral_px and
+                    best and margin>=cfg.auto_seam_margin)
+        if not auto_shape and choice!='same':
+            e['decision']='REVIEW_ONLY_NO_PHOTO_FOR_GAP'
+            continue
+        # Rival endpoints that failed angle screening still matter. Check
+        # neighbours from a spatial index, not a scan of the full frame.
         nearby_rival=False
-        for side in (0,1):
-            target=endpoints[1-side]
-            for alternate in ports:
-                if alternate['tile']!=target['tile'] or alternate['key']==target['key']:
+        for port in e['port_ids']:
+            target=port_by_id[port]
+            for index in port_tree.query_ball_point(target['point'],r=cfg.auto_nearby_rival_px):
+                alternative=ports[index]
+                if alternative['tile']!=target['tile'] or alternative['key']==target['key']:
                     continue
-                if local_group[alternate['key']]==local_group[target['key']]:
+                if local_group[alternative['key']]==local_group[target['key']]:
                     continue
-                if float(np.linalg.norm(alternate['point']-target['point']))<cfg.auto_nearby_rival_px:
-                    nearby_rival=True;break
+                nearby_rival=True;break
             if nearby_rival:break
-        auto=(e['gap_px']<=cfg.auto_seam_gap_px and e['alignment_min']>=cfg.auto_seam_alignment and
-              e['lateral_px']<=cfg.auto_seam_lateral_px and best and
-              margin>=cfg.auto_seam_margin and not nearby_rival)
-        if not auto and choice!='same':
-            e['decision']=('REVIEW_ONLY_NEARBY_RIVAL_AT_SEAM' if nearby_rival
-                           else 'REVIEW_ONLY_NO_PHOTO_FOR_GAP');continue
+        if nearby_rival and choice!='same':
+            e['decision']='REVIEW_ONLY_NEARBY_RIVAL_AT_SEAM'
+            continue
+        if any(_segments_close(e['inferred_connector_full_xy'],other['inferred_connector_full_xy']) for other in selected):
+            if choice=='same':raise ValueError('Expert seam links geometrically cross')
+            e['decision']='REVIEW_CROSSING_SEAM';continue
         result=uf.union(a,b)
         if result=='conflicting_local_groups':
             if choice=='same':raise ValueError('Expert seam would merge incompatible local groups')
