@@ -172,6 +172,67 @@ promotion requires a separately trained relation head using correctly
 crossfitted calibrated train features, followed by full 5-patient
 mask evaluation at frozen thresholds.
 
+### Nonlinear endpoint identity: why four channels were not yet enough
+
+During the next architecture review we found a precise algebraic limitation
+in the previous shared-weight tip stem:
+
+\`\`\`text
+   sum_i Conv3d(tip_i) == Conv3d(sum_i tip_i)   (bias=False)
+\`\`\`
+
+Thus the previous separate-tip input still collapsed into the old summed
+heatmap *before* the CNN or ANZA local operator. Only the downstream
+structural bridge used the three individual tip positions. At sufficiently
+close true junction ends, losing this multiset information can weaken
+branch-identity discrimination.
+
+A new opt-in, **matched for CNN and ANZA** \`DeepSets\` stem computes
+\`mean_i GELU(Conv3d(tip_i))\` and a learnable second-moment term
+\`tanh(gain) * mean_i GELU(Conv3d(tip_i))^2\` (with a zero-padded PAIR third
+tip). These representations are permutation invariant but can distinguish
+distinct three-tip configurations with the SAME summed heatmap. The
+difference from the previous 4-channel stem is one trainable scalar
+gain per model; historical encoders remain unchanged.
+
+New paired variants:
+\`conv3d_deepsets_sep_structure\`,
+\`anza3d_deepsets_sep_structure\`, and
+\`anza3d_noaxial_deepsets_sep_structure\`.
+A metamorphic test compares two different positive three-tip distributions
+with identical summed maps: the old stem must produce equal features,
+the new stem must produce different ones, and permuting the tips must
+produce identical features. This is an **expressiveness** test, not proof
+of superior clinical or phantom accuracy. New synthetic raw/rank
+three-seed runs and public cardiac CTA numerical smoke must finish before
+scientific conclusions.
+
+To train the matched nonlinear-head variants on the authorized ImageCAS
+workstation use the same cache, seed, fold and hardware constraints:
+
+\`\`\`bash
+DEVICE=mps
+SEED=20261102
+CACHE=varvara/anza_lira_local_results/ct28_sep_fixedlps_trainmask_cache
+ROOT=varvara/anza_lira_local_results/ct28_deepsets_fixedlps_seed_\${SEED}
+
+python scripts/research/ccta_graph_lira_safe_repair/ccta_3d_an_study.py \
+  --stage all --structure-models --separate-endpoints --deepsets \
+  --include-noaxial-control --frame-mode fixed_lps \
+  --cache-dir "$CACHE" --root "$ROOT" \
+  --seed "$SEED" --device "$DEVICE" \
+  --epochs 8 --folds 5 --batch-size 2 \
+  --relation-training augmented_15 \
+  --pair-identity-source neural_pair_junction --patient-id 953
+\`\`\`
+
+For the five-volume matched primary comparison add
+\`--deepsets\` to the same \`ccta_3d_val_an_compare.py\` command.
+Use a unique \`--output-root\` and keep \`neural_pair_junction\`
+identical for both new architectures. Repeat with three predeclared
+seeds, and compare against the original nonlinear-off 4-channel
+ANZA/CNN arm *without* changing the validation source or hard gate.
+
 ## 3. Critical additional correction: learned junction identity
 
 In the original K10/15 decision path, the final PAIR candidate is chosen by
