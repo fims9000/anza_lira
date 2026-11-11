@@ -147,7 +147,7 @@ def run_relation_training(
     baseline_dir:Path=SELECTED,
     scene_dir:Path=SCENES,
 )->dict:
-    if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure"}:
+    if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
         raise ValueError("Expected ANZA or CNN learned CT evidence")
     if output_dir.exists():
         raise FileExistsError("Relation comparison output is immutable")
@@ -250,7 +250,7 @@ def run_relation_training(
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--variant",choices=("conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure"),required=True)
+    parser.add_argument("--variant",choices=("conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"),required=True)
     parser.add_argument("--pair-oof",type=Path,required=True)
     parser.add_argument("--junction-oof",type=Path,required=True)
     parser.add_argument("--baseline-dir",type=Path,default=SELECTED)
