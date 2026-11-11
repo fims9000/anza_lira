@@ -64,6 +64,9 @@ def fit_score(
     torch.backends.cudnn.deterministic=True
     torch.backends.cudnn.benchmark=False
     structure_aware=variant.endswith("_structure")
+    expected_channels=4 if "_sep_" in variant else 2
+    if train_x.ndim!=5 or train_x.shape[1]!=expected_channels or inference_x.ndim!=5 or inference_x.shape[1:]!=train_x.shape[1:]:
+        raise ValueError("OOF candidate encoder inputs do not match frozen endpoint-encoding protocol")
     if structure_aware and (train_vessel_targets is None or
                             train_vessel_targets.shape!=(len(train_y),1,*train_x.shape[2:])):
         raise ValueError("Structural 3D training requires aligned dense train-only vessel targets")
@@ -174,6 +177,10 @@ def build_oof(
     )
     if train_x.shape[1:]!=val_x.shape[1:]:
         raise ValueError("Train and validation 3D patches differ in shape")
+    expected_encoding="separate" if "_sep_" in variant else "summed"
+    if any(record["patch_protocol"].get("endpoint_encoding","summed")!=expected_encoding
+           for record in train_sources+val_sources):
+        raise ValueError("OOF model variant mismatches candidate endpoint-encoding")
     if train_sources[0]["patch_protocol"]!=val_sources[0]["patch_protocol"]:
         raise ValueError("Train and validation patch protocol differs")
     if train_sources[0]["input_control_mode"]!=val_sources[0]["input_control_mode"]:
