@@ -127,29 +127,39 @@ class FuzzyConnectedness3d(nn.Module):
 class VesselBridgeReadout(nn.Module):
     """PAIR: best of 5 straight/curved routes; JUNCTION: weakest of 3 arms."""
     def __init__(self,degree:int,steps:int=11,curvature:float=1.6,
-                 temperature:float=.1):
+                 temperature:float=.1,junction_strategy:str="centroid_star"):
         super().__init__()
         if degree not in (2,3) or steps<3 or curvature<0 or temperature<=0:
             raise ValueError("Invalid path readout configuration")
+        if junction_strategy not in {"centroid_star","fuzzy_reachability"}:
+            raise ValueError("Unknown JUNCTION structure strategy")
         self.degree=int(degree)
         self.steps=int(steps)
         self.curvature=float(curvature)
         self.temperature=float(temperature)
-        self.connectedness=FuzzyConnectedness3d(3,steps=24) if degree==3 else None
+        self.junction_strategy=junction_strategy
+        self.connectedness=(FuzzyConnectedness3d(3,steps=24)
+                            if degree==3 and junction_strategy=="fuzzy_reachability"
+                            else None)
 
     def forward(self,vessel_probability:torch.Tensor,heatmap:torch.Tensor):
         if vessel_probability.shape!=heatmap.shape or heatmap.ndim!=4:
             raise ValueError("Vesselness and endpoint masks must be B,D,H,W")
         if not torch.isfinite(vessel_probability).all() or not torch.isfinite(heatmap).all():
             raise ValueError("Nonfinite structural evidence")
-        if self.degree==3:
-            # Reachability follows the learned vessel field and makes no
-            # assumption that the branchpoint lies at the endpoint centroid.
+        if self.degree==3 and self.junction_strategy=="fuzzy_reachability":
+            # Diagnostic only: raw component connectivity is NOT correct
+            # branch identity. Oracle tests showed AUROC 0.5 for this task.
             return self.connectedness(vessel_probability,heatmap)
         peaks,valid=_peak_centers(heatmap,self.degree)
-        paths=_pair_paths(peaks,self.steps,self.curvature)
-        values=_sample_paths(vessel_probability,paths)
-        bridge=_soft_min(values,self.temperature).max(dim=1).values
+        if self.degree==3:
+            paths=_junction_paths(peaks,self.steps)
+            bottleneck=_soft_min(_sample_paths(vessel_probability,paths),self.temperature)
+            bridge=bottleneck.min(dim=1).values
+        else:
+            paths=_pair_paths(peaks,self.steps,self.curvature)
+            bottleneck=_soft_min(_sample_paths(vessel_probability,paths),self.temperature)
+            bridge=bottleneck.max(dim=1).values
         backup=vessel_probability.flatten(1).mean(dim=1)
         return torch.where(valid,bridge,backup).clamp(1e-5,1-1e-5)
 
