@@ -149,6 +149,70 @@ def _standalone_oracle(x:np.ndarray,truth:np.ndarray)->dict:
     }
 
 
+
+def independent_test_summary(measurements:list[dict])->dict:
+    """Aggregate frozen independent synthetic test across seeds, bootstrap by TREE.
+
+    Three model seeds test the same trees; treating each seed's 48 trees as
+    144 independent physical objects would seriously understate uncertainty.
+    Bootstrap resamples *tree identity*, averaging across all training seeds.
+    """
+    by_variant={}
+    for rec in measurements:
+        test=rec.get("independent_test")
+        if test is None:
+            continue
+        by_variant.setdefault(rec["variant"],[]).append(rec)
+    if not by_variant:
+        return {"status":"independent_test_not_requested"}
+    summary={"status":"synthetic_only_not_clinical",
+             "bootstrap_unit":"independent_tree_shared_across_training_seeds",
+             "models":{}, "paired_differences_vs_cnn":{}}
+    arrays={}
+    for model,rows in by_variant.items():
+        aucs=np.asarray([a["independent_test"]["AUROC"] for a in rows])
+        t=np.stack([np.asarray(a["independent_test"]["score_true"],dtype=float)
+                    for a in rows])
+        f=np.stack([np.asarray(a["independent_test"]["score_false"],dtype=float)
+                    for a in rows])
+        arrays[model]={
+            "seeds":[int(x["seed"]) for x in rows],
+            "correct":(t>f).astype(float),
+            "margin":t-f,
+        }
+        summary["models"][model]={
+            "seeds":[int(x["seed"]) for x in rows],
+            "n_test_trees":int(t.shape[1]),
+            "AUROC_mean":float(aucs.mean()),
+            "AUROC_sd_seeds":float(aucs.std(ddof=1) if len(aucs)>1 else 0.),
+            "paired_correct_mean":float((t>f).sum(axis=1).mean()),
+            "paired_correct_per_seed":[int(v) for v in (t>f).sum(axis=1)],
+            "correct_at_all_seeds":int(np.all(t>f,axis=0).sum()),
+            "mean_pair_margin":float((t-f).mean()),
+            "false_accepted_085_per_seed":[int((v>=.85).sum()) for v in f],
+            "true_accepted_085_per_seed":[int((v>=.85).sum()) for v in t],
+        }
+    base=arrays.get("conv3d_sep_structure")
+    if base:
+        rng=np.random.default_rng(20261112)
+        for name,d in arrays.items():
+            if name=="conv3d_sep_structure":
+                continue
+            if d["seeds"]!=base["seeds"] or d["correct"].shape!=base["correct"].shape:
+                raise ValueError("CNN/ANZA independent test seeds or tree counts differ")
+            improvement=(d["correct"]-base["correct"]).mean(axis=0)
+            n=len(improvement)
+            draws=rng.integers(n,size=(1500,n))
+            boot=improvement[draws].mean(axis=1)
+            summary["paired_differences_vs_cnn"][name]={
+                "delta_correct_rate":float(improvement.mean()),
+                "tree_bootstrap_95ci":[float(v) for v in np.quantile(boot,[.025,.975])],
+                "training_seed_count":len(d["seeds"]),
+                "n_independent_trees":n,
+            }
+    return summary
+
+
 def main()->None:
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out",type=Path,required=True)
@@ -247,6 +311,7 @@ def main()->None:
                              if test is not None else None),
         "oracle":_standalone_oracle(val[0],val[2]),
         "measurements":measurements,
+        "independent_test_summary":independent_test_summary(measurements),
     }
     args.out.parent.mkdir(parents=True,exist_ok=True)
     args.out.write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n")
