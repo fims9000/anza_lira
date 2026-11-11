@@ -6,6 +6,7 @@ on:
       - experiment/ccta3d-topology-anisotropy-2026-11-11
     paths:
       - 'scripts/research/ccta_graph_lira_safe_repair/benchmark_structural_tubes.py'
+      - 'scripts/research/ccta_graph_lira_safe_repair/ccta_3d_neural_calibration.py'
       - 'models/structural_bridge3d.py'
       - 'models/ccta3d_candidate_encoder.py'
       - '.github/workflows/ccta3d-tubes-rank.yml'
