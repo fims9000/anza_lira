@@ -5,17 +5,17 @@ established. Do not replace the frozen K10/15 or touch six held-out test subject
 
 ## Motivation and exact change
 
-The original \`Candidate3dEncoder\` uses one binary relation BCE per
+The original `Candidate3dEncoder` uses one binary relation BCE per
 PAIR/JUNCTION candidate. Its pooled head has no explicit dense topology target.
 The original AZConv3d metric
-\`G=exp(2h) uu^T + exp(-h)(I-uu^T)\` has unrestricted signed \`h\`:
-\`h>0\` penalizes axial transport MORE than transverse transport.
+`G=exp(2h) uu^T + exp(-h)(I-uu^T)` has unrestricted signed `h`:
+`h>0` penalizes axial transport MORE than transverse transport.
 
-The new opt-in variants \`anza3d_structure\` and \`conv3d_structure\` receive
+The new opt-in variants `anza3d_structure` and `conv3d_structure` receive
 the SAME two input channels (real normalized CCTA HU and the existing
 endpoint Gaussian heatmap) and the SAME extra train-only 3D vessel masks.
 
-- ANZA-Structure constrains \`h<0\`, making transport cheaper along the
+- ANZA-Structure constrains `h<0`, making transport cheaper along the
   learned direction than transverse to it. The original ANZA remains unchanged.
 - BOTH structure variants produce a train-supervised dense vessel probability.
   Auxiliary loss: 0.35 * (balanced BCE + Dice + differentiable clDice).
@@ -26,7 +26,7 @@ endpoint Gaussian heatmap) and the SAME extra train-only 3D vessel masks.
   score. This still does NOT guarantee branch identity or correct topology.
 - The CNN-Structure variant has exactly the same dense head, route readout,
   label access and optimizer budget. The fair comparison is
-  \`anza3d_structure\` vs \`conv3d_structure\`, not against an unaugmented CNN.
+  `anza3d_structure` vs `conv3d_structure`, not against an unaugmented CNN.
 - Dense labels are taken ONLY from 17 CT28 train subjects. Mask affines/shapes
   must match the verified original CT grid and reference SHA is recorded.
   The five development-validation and six held-out test labels NEVER enter
@@ -36,17 +36,17 @@ endpoint Gaussian heatmap) and the SAME extra train-only 3D vessel masks.
 
 - Structural physics, broken-path/three-arm behavior, gradient, sparse clDice
   and patient-OOF protection numerical tests are in
-  \`tests/test_ccta3d_structure_bridge.py\` and
-  \`tests/test_ccta3d_structure_oof.py\`.
+  `tests/test_ccta3d_structure_bridge.py` and
+  `tests/test_ccta3d_structure_oof.py`.
 - The public 3D Slicer CTA-cardio image is used strictly for real-HU/coordinate/
-  numeric forward/backward smoke: \`smoke_ccta3d_public_realct.py\`.
+  numeric forward/backward smoke: `smoke_ccta3d_public_realct.py`.
   It contains no gold coronary candidate identities. Its randomly initialized
   predictions are NOT accuracy evidence.
 - Synthetic branch-preserving/broken tube results are in
-  \`benchmark_structural_tubes.py\`; this is a narrow, deliberately generated
+  `benchmark_structural_tubes.py`; this is a narrow, deliberately generated
   development diagnostic. Results are seed-sensitive. At 8 epochs PAIR
-  \`conv3d_structure\` reached AUROC 1.000/0.997, and
-  \`anza3d_structure\` 1.000/0.979 on two seeds. Both topology variants
+  `conv3d_structure` reached AUROC 1.000/0.997, and
+  `anza3d_structure` 1.000/0.979 on two seeds. Both topology variants
   remain weak on synthetic JUNCTION. This does NOT justify promoting ANZA.
 - A separate oracle run feeds perfect vessel target masks into the structural
   readout to determine whether a geometry/readout limitation exists
@@ -81,7 +81,7 @@ dense supervision and SHA provenance agree. Example:
       --batch-size 2 --relation-training augmented_15 \
       --pair-identity-source neural_pair --patient-id 953
 
-For an MPS workstation, replace \`--device cuda\` with \`--device mps\`.
+For an MPS workstation, replace `--device cuda` with `--device mps`.
 The exact device, epochs, train/val split, focal selection and thresholds
 must match between ANZA-Structure and CNN-Structure.
 
@@ -96,7 +96,7 @@ development freeze and NEW output root):
       --device cuda --relation-training augmented_15 \
       --pair-identity-source neural_pair
 
-Do not silently switch to \`frozen_fusion\` for primary evaluation: its PAIR
+Do not silently switch to `frozen_fusion` for primary evaluation: its PAIR
 identity comes from old geometry+CT and does not demonstrate the new encoder.
 
 **Acceptance, NOT predetermined:** before opening held-out, freeze a topology
