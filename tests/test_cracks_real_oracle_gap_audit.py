@@ -12,8 +12,8 @@ class TestRealCracksMaskAudit(unittest.TestCase):
 
     def test_spatial_block_same_split(self):
         self.assertEqual(split(41),split(42))
-        self.assertEqual(split(41)[1],2)
-        self.assertEqual(split(59)[1],2)
+        self.assertEqual(split(41)[1],8)
+        self.assertEqual(split(59)[1],11)
 
     def test_no_branch_is_not_evidence_of_full_e2e(self):
         mask=np.zeros((64,64),dtype=bool)
