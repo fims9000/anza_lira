@@ -122,11 +122,12 @@ def test_unobserved_s109_endpoint_cannot_auto_link():
 
 
 def test_multiscale_tangent_vetoes_junction_switch_without_deleting_source():
-    # The nearest 18 px follows B, but source A turned sharply within 70 px.
-    a = {'candidate_id': 'a', 'observed_pixel_path_xy': (
+    # The last 18 px is straight and aligns perfectly to B, yet A changes
+    # from vertical to horizontal within 70 px: a source-line junction risk.
+    a={'candidate_id':'a','observed_pixel_path_xy':(
         [[80,y] for y in range(20,91)] + [[x,90] for x in range(81,106)])}
-    b = line('b',125,210,y=90)
-    out = result([a,b],20)
+    b=line('b',125,210,y=90)
+    out=result([a,b],20)
     assert out['report']['accepted_provisional_links']==0
     assert out['report']['output_group_count']==2
     assert any(e['decision']=='REVIEW_ONLY_MULTISCALE_DIRECTION_CHANGE' for e in out['links'])
