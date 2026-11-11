@@ -339,3 +339,71 @@ def test_truncated_endpoint_heatmap_conservatively_abstains_from_3d_repair(monke
     assert not outcome.accepted
     assert outcome.proposed_relation=="NONE"
     assert outcome.selected_relation=="NONE"
+
+
+class TwoJunctionNeural(torch.nn.Module):
+    def forward(self,x):
+        if len(x)!=2:
+            raise AssertionError("The branch-identity test requires two JUNCTION candidates")
+        return torch.tensor([-6.,6.],device=x.device)
+
+
+class RelationJunction:
+    classes_=np.array([0,1,2,3])
+    def predict_proba(self,values):
+        return np.tile([.01,.01,.97,.01],(len(values),1))
+
+
+def test_opt_in_neural_junction_identity_changes_actual_chosen_branch(monkeypatch):
+    from ccta_3d_endpoints import Candidate,Scene
+
+    def stub_features(row,lookup,ct,inverse,arm_names):
+        return {
+            "scene_id":row.scene_id,
+            "candidate_id":row.candidate_id,
+            "candidate_type":row.candidate_type,
+            "pair_g0":2.0,"pair_ct0":200.,
+            "junction_span_mm":3.,"junction_ct0":220.,
+        }
+
+    monkeypatch.setattr(graph,"perturbed_candidate_features",stub_features)
+    eps,base_scene=setup()
+    initial=base_scene.candidates[1]
+    other=Candidate(
+        "JUNCTION:E0000+E0002+E0004","JUNCTION",("E0000","E0002","E0004")
+    )
+    scene=Scene(base_scene.scene_id,base_scene.endpoint_ids,(
+        base_scene.candidates[0],initial,other,
+    ))
+    ct=np.full((32,32,32),200.,dtype=np.float32)
+    def build(mode):
+        pack=models()
+        pack["relation_heads"]["ct_conditioned"]=RelationJunction()
+        pack["relation_heads"]["geometry_only"]=RelationJunction()
+        return NeuralCCTA3dInference(
+            pack,pair_encoder=FixedNeural(),junction_encoder=TwoJunctionNeural(),
+            patch_config=PatchConfig(side=8),
+            variant="anza3d",pair_identity_source=mode,
+        )
+    original=build("neural_pair")
+    new=build("neural_pair_junction")
+    _,ends,cands=original._frames(scene,eps)
+    base_scores,base_decisions=original._score(scene,ends,cands,ct,np.eye(4))
+    scores,decisions=new._score(scene,ends,cands,ct,np.eye(4))
+    assert base_decisions["ct_conditioned"]["junction_candidate_id"]==initial.candidate_id
+    assert decisions["ct_conditioned"]["junction_candidate_id"]==other.candidate_id
+    assert decisions["geometry_only"]["junction_candidate_id"]==initial.candidate_id
+    assert np.array_equal(base_scores["geometry_score"],scores["geometry_score"])
+    assert not np.array_equal(
+        base_scores.loc[base_scores.candidate_type.eq("JUNCTION"),"geometry_plus_ct_score"],
+        scores.loc[scores.candidate_type.eq("JUNCTION"),"geometry_plus_ct_score"]
+    )
+    result=new.predict(scene,eps,ct,np.eye(4))
+    assert result.accepted
+    assert result.junction_candidate_id==other.candidate_id
+    assert len(result.decision_keys_under_perturbation)==15
+    # Utility must now use the SAME learned JUNCTION identity used to select
+    # the candidate; original K10/15 utility remains untouched by default.
+    assert result.identity_log_utility==pytest.approx(
+        float(np.log(torch.sigmoid(torch.tensor(6.)).item())),abs=1e-5
+    )
