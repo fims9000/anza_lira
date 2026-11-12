@@ -19,3 +19,8 @@ Scientific scope: **synthetic matched-geometry counterfactuals only**. Designed 
 ## Leakage and publication boundaries
 - Expert annotation determines source and true target **only in case construction and metric evaluation**; choices depend on visible endpoint/tangent and raw seismic pixel gradients. True endpoint is of course one provided candidate; the hidden connected path and correct-index label never enter policy scoring.
 - All selected sections originate from one F3 volume and many examples share sections. Do not use V22 to claim external-domain generalization or control of natural false-bridge rate.
+
+## Pre-outcome amendment: machine-precision-stable V21 provenance check
+
+First V22 workflow [43298452669](https://github.com/fims9000/anza_lira/actions/runs/43298452669) **stopped before the V22 experiment**, because V21 raw CSV was reproduced with different floating-point last bits. An independent row-by-row comparison of 92 source rows found **zero change in any selected candidate, target/decoy label, scene ID, threshold or reported metric**, and maximum numerical feature difference **1.1102230246251565e-16**. V19 input raw SHA was unchanged. The strict original V21 byte SHA is retained as the source identity, and V22 now additionally accepts a **canonical semantic SHA256** after rounding feature floats to 10 decimal places (not scene IDs, labels, decisions, endpoints). Both old and rerun V21 files produce exactly `ac4b588f865a9422c8c6d304f6bb49c770b24cfa52b3ca0aab6067f24204d309` by the pinned canonicalization. Any semantic difference still causes STOP. This amendment was made **before any V22 real test outcomes existed**; no learning, selection, offsets or test rules were changed.
+
