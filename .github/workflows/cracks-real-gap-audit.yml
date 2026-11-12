@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   real-cracks-data:
@@ -77,3 +78,28 @@ jobs:
             results/cracks_real_controlled_v1/*.json
             results/cracks_real_controlled_v1/*.csv
           if-no-files-found: warn
+      - name: Publish genuine CRACKS V17 evidence to research PR
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > /tmp/cracks_v17_result.md
+          import json, os
+          from pathlib import Path
+          r=json.loads(Path('results/cracks_real_controlled_v1/neighbor_v17.json').read_text())
+          print('### V17: genuine CRACKS adjacent-section audit (executed)')
+          print('Run: https://github.com/fims9000/anza_lira/actions/runs/'+os.getenv('GITHUB_RUN_ID',''))
+          print('Commit: '+os.getenv('GITHUB_SHA',''))
+          print()
+          print('Uses real consecutive F3 seismic images, oracle-selected masked expert line, known visible endpoints and five fixed candidate curves. NOT ANZA/LIRA E2E; no valid false-bridge negatives; no cross-volume generalization.')
+          print('Expert sections:',r['N_expert_sections'],'gaps:',r['N_gaps'])
+          print('Near/far seismic image correlation:',round(r['alignment']['mean_near_corr'],4),'/',round(r['alignment']['mean_far_corr'],4))
+          print('| Split | Method | N | Mean distance (px) | Precision <=2 px | Oracle-best candidate rate |')
+          print('|---|---|---:|---:|---:|---:|')
+          for split,part in r['by_split'].items():
+              for name,m in part['methods'].items():
+                  print('|',split,'|',name,'|',part['N'],'|',round(m['mean_distance'],4),'|',round(m['mean_precision_tol2'],4),'|',round(m['oracle_best_choice_rate'],4),'|')
+          print('Exploratory: spatial blocks reused after initial pilot. Per-case CSV in workflow artifact; SHA256 '+r['cases_csv_sha256'])
+          PY
+          gh issue comment 25 --repo fims9000/anza_lira --body-file /tmp/cracks_v17_result.md
