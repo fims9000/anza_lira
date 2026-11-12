@@ -103,3 +103,10 @@ jobs:
           print('Exploratory: spatial blocks reused after initial pilot. Per-case CSV in workflow artifact; SHA256 '+r['cases_csv_sha256'])
           PY
           gh issue comment 25 --repo fims9000/anza_lira --body-file /tmp/cracks_v17_result.md
+      - name: Report V17 workflow failure with source run identifier
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 25 --repo fims9000/anza_lira --body "CRACKS V17 research CI failed before a validated real-data conclusion: https://github.com/fims9000/anza_lira/actions/runs/${GITHUB_RUN_ID}. Commit ${GITHUB_SHA}. No model accuracy claim is authorized."
