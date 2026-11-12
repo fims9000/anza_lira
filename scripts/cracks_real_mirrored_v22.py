@@ -23,9 +23,42 @@ from scripts.cracks_real_matched_nolink_v21 import source_gap,unit
 
 V21_SOURCE_SHA256="c30b1279e8e114d8c11c656f7f20ebfeacc237ca163a304f19b41a9389b7d237"
 V19_SOURCE_SHA256="c9a0b0a31f93c9731c57dca6536af87227bc22fc96c0192afd80c0c576198482"
+V21_SEMANTIC_SHA256="ac4b588f865a9422c8c6d304f6bb49c770b24cfa52b3ca0aab6067f24204d309"
 METHODS=("geometry_tie","central","adjacent","central_adjacent","far","source_similarity")
 RNG_SEED=20261112
 N_BOOT=10000
+
+def canonical_v21_digest(path:Path):
+    """Full case evidence, with only feature floats rounded to 1e-10.
+
+    Labels, case IDs, choices and endpoints are included in this hash, never
+    dropped. This removes observed ~1e-16 BLAS/SIMD roundoff across CI runs.
+    """
+    parsed_fields={"candidate_features_json","source_endpoint",
+                   "positive_true_endpoint","candidate_0","candidate_1"}
+    def normalize(obj):
+        if isinstance(obj,dict):
+            return {k:normalize(v) for k,v in sorted(obj.items())}
+        if isinstance(obj,list):
+            return [normalize(v) for v in obj]
+        if isinstance(obj,float):
+            return round(obj,10)
+        return obj
+    rows=[]
+    with path.open(newline="",encoding="utf8") as f:
+        for row in csv.DictReader(f):
+            obj={}
+            for k,v in row.items():
+                if k in parsed_fields:
+                    obj[k]=normalize(json.loads(v))
+                elif k.endswith("_best_cost") or k.startswith("matched_"):
+                    obj[k]=round(float(v),10)
+                else:
+                    obj[k]=v
+            rows.append(obj)
+    payload=json.dumps(rows,sort_keys=True,ensure_ascii=True,
+                       separators=(",",":")).encode()
+    return hashlib.sha256(payload).hexdigest()
 
 def reflect_about_axis(point:np.ndarray,axis_origin:np.ndarray,tangent:np.ndarray):
     """Isometric reflection about the line through origin in tangent direction."""
@@ -93,9 +126,10 @@ def group_ci(rows:list[dict],name:str,contrast:str|None=None):
 def evaluate(images:Path,annotations:Path,v19:Path,v21:Path,
              out:Path,cases:Path):
     h21=hashlib.sha256(v21.read_bytes()).hexdigest()
+    h21semantic=canonical_v21_digest(v21)
     h19=hashlib.sha256(v19.read_bytes()).hexdigest()
-    if h21!=V21_SOURCE_SHA256:
-        raise RuntimeError("STOP: pinned V21 case CSV SHA256 changed: "+h21)
+    if h21semantic!=V21_SEMANTIC_SHA256:
+        raise RuntimeError("STOP: pinned V21 semantic case SHA256 mismatch: "+h21semantic)
     if h19!=V19_SOURCE_SHA256:
         raise RuntimeError("STOP: pinned V19 case CSV SHA256 changed: "+h19)
     with v19.open(newline="",encoding="utf8") as f:
@@ -199,7 +233,9 @@ def evaluate(images:Path,annotations:Path,v19:Path,v21:Path,
     summary={
         "protocol":"CRACKS_V22_REAL_F3_EXACT_GEOMETRIC_MIRROR_TEST",
         "status":"EXECUTED_EXPLORATORY" if rows else "NO_ELIGIBLE_CASES",
-        "pinned_V19_sha256":h19,"pinned_V21_sha256":h21,
+        "pinned_V19_sha256":h19,"V21_reproduced_raw_sha256":h21,
+        "pinned_V21_semantic_sha256":h21semantic,
+        "V21_original_raw_sha256":V21_SOURCE_SHA256,
         "counts":dict(counters),
         "N_cases":len(rows),
         "N_sections":len({r["section"] for r in rows}),
