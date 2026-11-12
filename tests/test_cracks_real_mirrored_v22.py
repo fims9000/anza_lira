@@ -6,7 +6,7 @@ import numpy as np
 
 from scripts.cracks_real_mirrored_v22 import (
     reflect_about_axis, reflect_vector, tied_geometry,
-    image_scores, choose, group_ci, evaluate,
+    image_scores, choose, group_ci, evaluate, canonical_v21_digest,
 )
 
 class RealMirroredV22Tests(unittest.TestCase):
@@ -52,6 +52,26 @@ class RealMirroredV22Tests(unittest.TestCase):
         r=group_ci(rows,"central","far")
         self.assertAlmostEqual(r["delta"],1/3)
         self.assertEqual(r["N_sections"],2)
+
+    def test_numeric_semantic_digest_preserves_labels_and_ignores_last_bits(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            def mkfile(name,cosine,label):
+                p=root/name
+                p.write_text(
+                    "kind,section,correct_index,matched_cos_difference,"
+                    "candidate_features_json,source_endpoint\n"
+                    "positive,7,"+str(label)+","+str(cosine)+","
+                    "\"[{\"\"length\"\":37.0,\"\"heading\"\":0.95577900872195}],"
+                    "\"[20.0,10.0]\"\n",
+                    encoding="utf8"
+                )
+                return p
+            a=mkfile("a.csv",0.01578371406153478,1)
+            b=mkfile("b.csv",0.01578371406153467,1)
+            c=mkfile("c.csv",0.01578371406153467,0)
+            self.assertEqual(canonical_v21_digest(a),canonical_v21_digest(b))
+            self.assertNotEqual(canonical_v21_digest(a),canonical_v21_digest(c))
 
     def test_refuse_unpinned_sources(self):
         with tempfile.TemporaryDirectory() as d:
