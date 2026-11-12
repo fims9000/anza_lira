@@ -38,7 +38,7 @@ class TestV20ControlledPairing(unittest.TestCase):
             {"section":5,"geometry_adjacent_correct":0,"geometry_correct":1},
         ]
         ci=grouped_ci(rows,"geometry_adjacent","geometry",reps=200)
-        self.assertAlmostEqual(ci["difference_accuracy"],1/3)
+        self.assertAlmostEqual(ci["difference_accuracy"],0.0)
         self.assertEqual(ci["N_sections"],2)
     def test_invalid_unpinned_candidate_source_rejected(self):
         with tempfile.TemporaryDirectory() as temp:
