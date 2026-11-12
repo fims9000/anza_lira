@@ -8,6 +8,9 @@ on:
       - 'scripts/download_cracks_v2_public.py'
       - 'scripts/cracks_real_oracle_gap_audit.py'
       - 'scripts/cracks_real_neighbor_path_v17.py'
+      - 'scripts/cracks_real_long_gap_v18.py'
+      - 'tests/test_cracks_real_long_gap_v18.py'
+      - 'docs/research/tver2026/V18_REAL_CURVED_GAPS_FROZEN_PROTOCOL_20261112.md'
       - 'tests/test_cracks_real_neighbor_v17.py'
       - 'scripts/inspect_cracks_expert_masks.py'
       - 'tests/test_cracks_real_oracle_gap_audit.py'
@@ -34,6 +37,8 @@ jobs:
         run: python -m unittest -v tests.test_cracks_real_oracle_gap_audit
       - name: Test real-neighbor scorer on synthetic archives
         run: python -m unittest -v tests.test_cracks_real_neighbor_v17
+      - name: Test pre-registered V18 long-gap scorer
+        run: python -m unittest -v tests.test_cracks_real_long_gap_v18
       - name: Cache verified public CRACKS archives
         uses: actions/cache@v4
         with:
@@ -47,6 +52,8 @@ jobs:
         run: python scripts/cracks_real_oracle_gap_audit.py --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_controlled_v1/oracle_mask_audit.json
       - name: Compare genuine adjacent-section gradients with central and shuffled controls (V17)
         run: python -m scripts.cracks_real_neighbor_path_v17 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_controlled_v1/neighbor_v17.json --cases results/cracks_real_controlled_v1/neighbor_v17_cases.csv
+      - name: V18 longer real expert-line gaps with straight/Hermite and genuine-neighbor controls
+        run: python -m scripts.cracks_real_long_gap_v18 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_controlled_v1/longgap_v18.json --cases results/cracks_real_controlled_v1/longgap_v18_cases.csv
       - name: Freeze model availability and scientific claim boundary
         if: always()
         shell: bash
