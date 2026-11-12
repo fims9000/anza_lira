@@ -75,13 +75,8 @@ def extract_cases(sid:int,label:np.ndarray):
             if data is None:
                 continue
             straight,curves,hidden,span,ends=data
-            # Ensure no other unrelated line is inside a small gap neighborhood.
-            close=np.zeros(clean.shape,bool)
-            close[hidden[:,0],hidden[:,1]]=True
-            pad=ndi.binary_dilation(close,iterations=4)
-            if np.any((clean & pad) & ~ndi.binary_dilation(
-                    np.asarray([False],dtype=bool).reshape((1,1)), iterations=0)) if False else False:
-                pass
+            # The line was selected solely by observed length and a fixed mid-gap.
+            # Expert pixels in the gap are retained only for post-selection scoring.
             yield trace_id,gap,straight,curves,hidden,span,ends
 
 def clustered_interval(rows:list[dict],method_a:str,method_b:str,reps=10000):
