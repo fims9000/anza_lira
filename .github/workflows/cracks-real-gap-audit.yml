@@ -1,0 +1,118 @@
+name: CRACKS real-data controlled gap audit
+
+on:
+  push:
+    branches:
+      - research/cracks-real-e2e-2026-11-11
+    paths:
+      - 'scripts/download_cracks_v2_public.py'
+      - 'scripts/cracks_real_oracle_gap_audit.py'
+      - 'scripts/cracks_real_neighbor_path_v17.py'
+      - 'scripts/cracks_real_long_gap_v18.py'
+      - 'scripts/cracks_real_competitor_audit_v19.py'
+      - 'scripts/cracks_real_pair_selection_v20.py'
+      - 'scripts/cracks_real_matched_nolink_v21.py'
+      - 'scripts/cracks_real_mirrored_v22.py'
+      - 'scripts/cracks_real_v22_qualitative_figure.py'
+      - 'tests/test_cracks_real_mirrored_v22.py'
+      - 'docs/research/tver2026/V22_MIRRORED_EQUAL_GEOMETRY_FROZEN_PROTOCOL_20261112.md'
+      - 'tests/test_cracks_real_matched_nolink_v21.py'
+      - 'docs/research/tver2026/V21_GEOMETRY_MATCHED_NOLINK_FROZEN_PROTOCOL_20261112.md'
+      - 'tests/test_cracks_real_pair_selection_v20.py'
+      - 'docs/research/tver2026/V20_REAL_COMPETING_ENDPOINTS_FROZEN_PROTOCOL_20261112.md'
+      - 'tests/test_cracks_real_competitor_v19.py'
+      - 'docs/research/tver2026/V19_REAL_COMPETING_ANNOTATED_PATHS_PROTOCOL_20261112.md'
+      - 'tests/test_cracks_real_long_gap_v18.py'
+      - 'docs/research/tver2026/V18_REAL_CURVED_GAPS_FROZEN_PROTOCOL_20261112.md'
+      - 'tests/test_cracks_real_neighbor_v17.py'
+      - 'scripts/inspect_cracks_expert_masks.py'
+      - 'tests/test_cracks_real_oracle_gap_audit.py'
+      - '.github/workflows/cracks-real-gap-audit.yml'
+      - 'docs/research/tver2026/CRACKS_REAL_E2E_EXECUTION.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-cracks-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install image and morphology dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image matplotlib
+      - name: Run deterministic gap extraction tests
+        run: python -m unittest -v tests.test_cracks_real_oracle_gap_audit
+      - name: Test real-neighbor scorer on synthetic archives
+        run: python -m unittest -v tests.test_cracks_real_neighbor_v17
+      - name: Test pre-registered V18 long-gap scorer
+        run: python -m unittest -v tests.test_cracks_real_long_gap_v18
+      - name: Test V19 competing-annotation path topology contract
+        run: python -m unittest -v tests.test_cracks_real_competitor_v19
+      - name: Test V20 frozen annotation-pair scorer and V19 hash guard
+        run: python -m unittest -v tests.test_cracks_real_pair_selection_v20
+      - name: Test V21 matched geometry, null construction and even CAL isolation
+        run: python -m unittest -v tests.test_cracks_real_matched_nolink_v21
+      - name: Test V22 exact mirrored-geometry tie and image controls
+        run: python -m unittest -v tests.test_cracks_real_mirrored_v22
+      - name: Cache verified public CRACKS archives
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Download official CRACKS v2 archives and verify published MD5
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_real_controlled_v1/download_receipt.json
+      - name: Measure real expert mask topology
+        run: python scripts/inspect_cracks_expert_masks.py
+      - name: Audit expert-line masked gaps on real F3 seismic sections
+        run: python scripts/cracks_real_oracle_gap_audit.py --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_controlled_v1/oracle_mask_audit.json
+      - name: Compare genuine adjacent-section gradients with central and shuffled controls (V17)
+        run: python -m scripts.cracks_real_neighbor_path_v17 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_controlled_v1/neighbor_v17.json --cases results/cracks_real_controlled_v1/neighbor_v17_cases.csv
+      - name: V18 longer real expert-line gaps with straight/Hermite and genuine-neighbor controls
+        run: python -m scripts.cracks_real_long_gap_v18 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_controlled_v1/longgap_v18.json --cases results/cracks_real_controlled_v1/longgap_v18_cases.csv
+      - name: V19 expert-annotation competing path availability audit
+        run: python -m scripts.cracks_real_competitor_audit_v19 --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_controlled_v1/competitor_v19.json --cases results/cracks_real_controlled_v1/competitor_v19_cases.csv
+      - name: V20 controlled true-versus-decoy endpoint choice on real CRACKS backgrounds
+        run: python -m scripts.cracks_real_pair_selection_v20 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --v19-cases results/cracks_real_controlled_v1/competitor_v19_cases.csv --out results/cracks_real_controlled_v1/pairing_v20.json --cases results/cracks_real_controlled_v1/pairing_v20_cases.csv
+      - name: V21 real F3 geometry-matched decoys and NO_LINK risks
+        run: python -m scripts.cracks_real_matched_nolink_v21 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --v19-cases results/cracks_real_controlled_v1/competitor_v19_cases.csv --out results/cracks_real_controlled_v1/geommatch_v21.json --cases results/cracks_real_controlled_v1/geommatch_v21_cases.csv
+      - name: V22 genuine F3 seismic test with exactly tied geometric endpoints
+        run: python -m scripts.cracks_real_mirrored_v22 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --v19-cases results/cracks_real_controlled_v1/competitor_v19_cases.csv --v21-cases results/cracks_real_controlled_v1/geommatch_v21_cases.csv --out results/cracks_real_controlled_v1/mirror_v22.json --cases results/cracks_real_controlled_v1/mirror_v22_cases.csv
+      - name: Render 400 DPI honest real-seismic success and error panels
+        run: python -m scripts.cracks_real_v22_qualitative_figure --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --v19-cases results/cracks_real_controlled_v1/competitor_v19_cases.csv --v21-cases results/cracks_real_controlled_v1/geommatch_v21_cases.csv --v22-cases results/cracks_real_controlled_v1/mirror_v22_cases.csv --out results/cracks_real_controlled_v1/v22_real_seismic_cases.jpg --report results/cracks_real_controlled_v1/v22_visual_manifest.json
+      - name: Freeze model availability and scientific claim boundary
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          paths={
+            "frozen_anza_checkpoint":list(Path("results").rglob("checkpoint-last.pt")),
+            "historical_lira_checkpoint":list(Path("results").rglob("pair_classifier/checkpoint.pt")),
+          }
+          report={
+            "status":"MODEL_E2E_NOT_EXECUTED_WITHOUT_VERIFIED_CHECKPOINTS",
+            "frozen_checkpoints_present":{k:bool(v) for k,v in paths.items()},
+            "oracle_mask_diagnostic_is_full_e2e":False,
+            "real_CRACKS_model_accuracy_claimed":False,
+          }
+          out=Path("results/cracks_real_controlled_v1/model_e2e_status.json")
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(json.dumps(report,indent=2)+"\n")
+          print(report)
+          PY
+      - name: Upload receipts and real-data audit (not raw images)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-real-gap-audit
+          path: |
+            results/cracks_real_controlled_v1/*.json
+            results/cracks_real_controlled_v1/*.csv
+            results/cracks_real_controlled_v1/*.jpg
+          if-no-files-found: warn
