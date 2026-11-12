@@ -1,3 +1,5 @@
+import csv
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -58,14 +60,20 @@ class RealMirroredV22Tests(unittest.TestCase):
             root=Path(d)
             def mkfile(name,cosine,label):
                 p=root/name
-                p.write_text(
-                    "kind,section,correct_index,matched_cos_difference,"
-                    "candidate_features_json,source_endpoint\n"
-                    "positive,7,"+str(label)+","+str(cosine)+","
-                    "\"[{\"\"length\"\":37.0,\"\"heading\"\":0.95577900872195}],"
-                    "\"[20.0,10.0]\"\n",
-                    encoding="utf8"
-                )
+                with p.open("w",encoding="utf8",newline="") as handle:
+                    writer=csv.DictWriter(handle,fieldnames=[
+                        "kind","section","correct_index",
+                        "matched_cos_difference","candidate_features_json",
+                        "source_endpoint"])
+                    writer.writeheader()
+                    writer.writerow({
+                        "kind":"positive","section":"7",
+                        "correct_index":str(label),
+                        "matched_cos_difference":str(cosine),
+                        "candidate_features_json":json.dumps([{
+                            "length":37.0,"heading":0.95577900872195}]),
+                        "source_endpoint":json.dumps([20.0,10.0])
+                    })
                 return p
             a=mkfile("a.csv",0.01578371406153478,1)
             b=mkfile("b.csv",0.01578371406153467,1)
