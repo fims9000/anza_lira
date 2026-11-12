@@ -27,7 +27,7 @@ V19_CSV_SHA256="c9a0b0a31f93c9731c57dca6536af87227bc22fc96c0192afd80c0c576198482
 GAPS=(36,48,24)
 SHIFTS=(0,-6,6,-12,12)
 MIN_VISIBLE=15
-MAX_LOG_RATIO=math.log(1.15)
+MAX_LOG_RATIO=max(abs(math.log(.85)), abs(math.log(1.15)))
 MAX_COS_DELTA=.06
 MAX_TAN_DELTA=.10
 MIN_DECOY_SEP=5.
@@ -75,7 +75,8 @@ def rank_decoys(other,e0,t0,real,tr):
         logratio=abs(math.log(d_fake/d_true))
         dc=abs(cos_heading(t0,target-e0)-c_true)
         dk=abs(abs(cos_heading(t0,td))-k_true)
-        if logratio>MAX_LOG_RATIO or dc>MAX_COS_DELTA or dk>MAX_TAN_DELTA:
+        if (d_fake/d_true<.85 or d_fake/d_true>1.15 or
+                dc>MAX_COS_DELTA or dk>MAX_TAN_DELTA):
             continue
         loss=logratio/MAX_LOG_RATIO+dc/MAX_COS_DELTA+dk/MAX_TAN_DELTA
         matched.append((loss,j,target,td,{
