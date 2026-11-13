@@ -163,13 +163,18 @@ def _train(zi,za,images,ann,*,out):
     return model,best['threshold'],train_report
 
 
-def _nearby_label_component(labels,point,radius=2):
-    h,w=labels.shape;y,x=point
-    ys=range(max(0,y-radius),min(h,y+radius+1))
-    xs=range(max(0,x-radius),min(w,x+radius+1))
-    candidates=[(mathdist((y,x),(yy,xx)),int(labels[yy,xx]))
-        for yy in ys for xx in xs if labels[yy,xx]!=0]
-    return min(candidates)[1] if candidates else 0
+def _nearby_label_components(labels,point,radius=2):
+    """All nonzero predicted components within tolerance of a gold anchor.
+
+    A nearest-only ID changes when extra predicted pixels are added, making
+    connectivity falsely *decrease* under an actual superset of predicted mask.
+    Component-set intersection is stable under addition and merging.
+    """
+    h,w=labels.shape
+    y,x=point
+    cropped=labels[max(0,y-radius):min(h,y+radius+1),
+                   max(0,x-radius):min(w,x+radius+1)]
+    return set(map(int,np.unique(cropped))) - {0}
 
 
 def mathdist(a,b):return float(np.linalg.norm(np.asarray(a,float)-np.asarray(b,float)))
@@ -193,11 +198,11 @@ def topology_measure(mask,expert):
         # Gold defines *evaluation endpoints* only, not inference candidates.
         a=tuple(tr.points[max(5,n//5)]);b=tuple(tr.points[min(n-6,4*n//5)])
         tot+=1
-        ca=_nearby_label_component(components,a)
-        cb=_nearby_label_component(components,b)
+        ca=_nearby_label_components(components,a)
+        cb=_nearby_label_components(components,b)
         if ca and cb:
             observed+=1
-            connected+=int(ca==cb)
+            connected+=int(bool(ca & cb))
     return {'eligible_paths':tot,'both_gold_anchors_detected':observed,
             'connected_gold_anchor_pairs':connected}
 
