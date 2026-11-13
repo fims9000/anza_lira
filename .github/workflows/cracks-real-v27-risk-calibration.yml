@@ -1,0 +1,46 @@
+name: CRACKS V27 crowd-CAL link risk gate
+
+on:
+  push:
+    branches: [research/cracks-autonomous-e2e-20261113]
+    paths:
+      - 'scripts/cracks_real_risk_calibrated_v27.py'
+      - 'tests/test_cracks_real_risk_calibrated_v27.py'
+      - '.github/workflows/cracks-real-v27-risk-calibration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-cracks-v27:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install stable scientific CPU dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib
+      - name: Verify risk calibration and unmodified mask subsets
+        run: python -m unittest -v tests.test_cracks_real_risk_calibrated_v27 tests.test_cracks_real_region_v25
+      - name: Cache official CRACKS v2
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Download authentic public CRACKS masks and images
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_real_v27/data_receipt.json
+      - name: Train only on other crowd sections, calibrate linking on crowd, then evaluate expert
+        run: python -m scripts.cracks_real_risk_calibrated_v27 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_v27 --max-expert 40
+      - name: Preserve results and class-conditional denominators
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-v27-crowd-risk-gated-linker
+          path: |
+            results/cracks_real_v27/*.json
+            results/cracks_real_v27/*.csv
+            results/cracks_real_v27/*.joblib
+          if-no-files-found: warn
