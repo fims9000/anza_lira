@@ -6,7 +6,7 @@ from scripts.cracks_real_auto_core_v23 import (
     accept_edges, run_pipeline, trace_path
 )
 from scripts.cracks_real_auto_run_v23 import (
-    consensus_training_mask, evaluate_mask,topology_measure,BLUE,ORANGE,zip_index
+    consensus_training_mask, evaluate_mask,topology_measure,candidate_reachability,BLUE,ORANGE,zip_index
 )
 
 
@@ -76,12 +76,27 @@ class AutonomousV23Tests(unittest.TestCase):
         predicted[36,25:112]=True
         before=topology_measure(predicted,gold)
         self.assertGreater(before['connected_gold_anchor_pairs'],0)
-        # Adding a disconnected closer pixel cannot invalidate an existing link.
+        # Add disconnected pixels closer to the first evaluation-only anchor.
+        # Nearest-component scoring would wrongly declare a lost connection.
         grown=predicted.copy()
         grown[39,41]=True
         after=topology_measure(grown,gold)
         self.assertGreaterEqual(after['connected_gold_anchor_pairs'],
                                 before['connected_gold_anchor_pairs'])
+
+    def test_candidate_reachability_without_using_gold_for_inference(self):
+        prob=np.zeros((100,150),np.float32)
+        prob[48,15:53]=.96
+        prob[48,64:126]=.95
+        result=run_pipeline(prob,threshold=.7,strategy='context')
+        # Expert mask only provided after image-only candidate graph exists.
+        expert=np.zeros((100,150,3),np.uint8)
+        expert[:]=ORANGE
+        expert[48,15:126]=BLUE
+        check=candidate_reachability(result,expert)
+        self.assertEqual(check['eligible_expert_paths'],1)
+        self.assertGreater(check['direct_candidate_could_connect'],0)
+        self.assertGreater(check['unconnected_but_both_visible'],0)
 
     def test_candidate_proposal_is_symmetric_and_finite(self):
         prob=np.zeros((80,120),np.float32)
