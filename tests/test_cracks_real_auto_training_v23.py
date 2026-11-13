@@ -6,9 +6,19 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
-from scripts.cracks_real_auto_run_v23 import zip_index,_train,BLUE,ORANGE
+from scripts.cracks_real_auto_run_v23 import zip_index,_train,BLUE,ORANGE,evaluate_mask
 
 class RealAutoTrainingTests(unittest.TestCase):
+    def test_expert_single_class_no_fabricated_negative(self):
+        im=np.zeros((48,88,3),dtype=np.uint8)
+        im[:]=[255,255,255]
+        im[24,12:75]=BLUE
+        predicted=np.zeros((48,88),dtype=bool)
+        result=evaluate_mask(predicted,im)
+        self.assertEqual(result['N_explicit_orange'],0)
+        self.assertGreater(result['N_expert_blue'],0)
+        self.assertEqual(result['explicit_orange_false_pixels'],0)
+
     def test_train_crowd_calibration_without_expert(self):
         with tempfile.TemporaryDirectory() as name:
             root=Path(name)
