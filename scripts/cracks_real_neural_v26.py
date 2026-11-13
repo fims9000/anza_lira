@@ -89,7 +89,10 @@ def sample_batch(records,rng,batch=BATCH,patch=PATCH):
     known=np.zeros_like(xs)
     for j in range(batch):
         rec=records[int(rng.integers(len(records)))]
-        selection=rec['pos_idx'] if int(rng.integers(2))==0 else rec['neg_idx']
+        # Explicitly alternate classes across four patches so no training
+        # batch can contain only BLUE or only ORANGE; both models get
+        # exactly the same deterministic patch sequence and budgets.
+        selection=rec['pos_idx'] if j%2==0 else rec['neg_idx']
         if not len(selection):
             selection=rec['pos_idx'] if len(rec['pos_idx']) else rec['neg_idx']
         center=selection[int(rng.integers(len(selection)))]
