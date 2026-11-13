@@ -1,0 +1,46 @@
+name: CRACKS autonomous E2E baseline (crowd-only training)
+
+on:
+  push:
+    branches: [research/cracks-autonomous-e2e-20261113]
+    paths:
+      - 'scripts/cracks_autonomous_e2e_v1.py'
+      - 'tests/test_cracks_autonomous_e2e_v1.py'
+      - '.github/workflows/cracks-autonomous-e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-cracks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU learning and image processing
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn
+      - name: Verify autonomous code using synthetic masks
+        run: python -m unittest -v tests.test_cracks_autonomous_e2e_v1
+      - name: Cache verified official CRACKS archives
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Download official CRACKS and verify published MD5
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_auto_e2e_v1/download_receipt.json
+      - name: Learn only on nonexpert sections 25+ slices beyond every expert section
+        run: python -m scripts.cracks_autonomous_e2e_v1 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_auto_e2e_v1 --max-test 40
+      - name: Publish metrics and figure artifact (no raw CRACKS archives)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-autonomous-e2e-v1
+          path: |
+            results/cracks_auto_e2e_v1/*.json
+            results/cracks_auto_e2e_v1/*.csv
+            results/cracks_auto_e2e_v1/section_*.png
+          if-no-files-found: warn
