@@ -1,0 +1,75 @@
+name: CRACKS V26 actual AZConv vs equal-budget standard CNN
+
+on:
+  push:
+    branches:
+      - research/cracks-autonomous-e2e-20261113
+    paths:
+      - 'scripts/cracks_real_neural_v26.py'
+      - 'tests/test_cracks_real_neural_v26.py'
+      - '.github/workflows/cracks-real-neural-v26.yml'
+      - 'docs/research/tver2026/V26_ACTUAL_AZCONV_VS_CONV_PREOUTCOME_PROTOCOL_20261113.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  crowd-training-real-cracks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install core scientific dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib
+      - name: Install CPU PyTorch for original repository AZConv2d
+        run: python -m pip install --disable-pip-version-check torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Scientific unit tests of real learned AZConv vs conv
+        run: python -m unittest -v tests.test_cracks_real_neural_v26 tests.test_cracks_real_region_v25
+      - name: Cache official CRACKS v2 public archives
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Authenticate official CRACKS v2 MD5 receipts
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_real_neural_v26/data_receipt.json
+      - name: Train equal-budget matched original AZConv2d/Conv2d and evaluate image-only E2E
+        run: python -m scripts.cracks_real_neural_v26 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_neural_v26 --max-expert 40
+      - name: Preserve scientific claim boundary on every run
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("results/cracks_real_neural_v26")
+          p.mkdir(parents=True,exist_ok=True)
+          statement={
+            "actual_repository_AZConv2d_retrained":True,
+            "historical_ANZA_checkpoint_verified":False,
+            "historical_trained_LIRA_checkpoint_verified":False,
+            "crowd_only_training_and_calibration":True,
+            "same_previously_opened_40_F3_expert_slices":True,
+            "geological_fault_instance_link_labels":False,
+            "external_untouched_survey":False,
+            "model_superiority_claim_authorized":False,
+          }
+          (p/"claim_boundary.json").write_text(json.dumps(statement,indent=2)+"\n")
+          print(statement)
+          PY
+      - name: Upload checkpoints, cases, calibration and overlays
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-real-v26-actual-azconv-exploratory
+          path: |
+            results/cracks_real_neural_v26/*.json
+            results/cracks_real_neural_v26/*.csv
+            results/cracks_real_neural_v26/*.joblib
+            results/cracks_real_neural_v26/*.pt
+            results/cracks_real_neural_v26/*.npz
+            results/cracks_real_neural_v26/*.png
+          if-no-files-found: warn
+          retention-days: 90
