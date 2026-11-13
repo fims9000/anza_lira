@@ -1,0 +1,69 @@
+name: CRACKS V25 exploratory predicted-component graph reconstruction
+
+on:
+  push:
+    branches:
+      - research/cracks-autonomous-e2e-20261113
+    paths:
+      - 'scripts/cracks_real_region_v25.py'
+      - 'scripts/cracks_real_region_run_v25.py'
+      - 'tests/test_cracks_real_region_v25.py'
+      - '.github/workflows/cracks-real-region-v25.yml'
+      - 'docs/research/tver2026/V25_COMPONENT_FIRST_CANDIDATE_PROTOCOL_20261113.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-cracks-v25:
+    runs-on: ubuntu-latest
+    timeout-minutes: 48
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib
+      - name: Test image-derived PCA components, paths and crowd-only training
+        run: python -m unittest -v tests.test_cracks_real_region_v25 tests.test_cracks_real_candidate_v24 tests.test_cracks_real_auto_v23 tests.test_cracks_real_auto_training_v23
+      - name: Cache officially authenticated CRACKS archives
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Verify published CRACKS v2 download MD5
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_real_region_v25/official_data_receipt.json
+      - name: Quantify V25 real F3 image-only regional and hybrid completion
+        run: python -m scripts.cracks_real_region_run_v25 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_region_v25 --max-expert 40
+      - name: Declare posthoc limitations of single-volume experiment
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("results/cracks_real_region_v25")
+          p.mkdir(parents=True,exist_ok=True)
+          summary={"cohort":"same previously inspected 40 F3 expert sections",
+             "posthoc_exploratory":True,
+             "training_uses_expert_labels":False,
+             "oracle_candidate_or_endpoint_input":False,
+             "independent_physical_fault_instance_labels":False,
+             "original_pretrained_ANZA_LIRA_checkpoint":False,
+             "independent_external_survey":False}
+          (p/"scientific_status.json").write_text(json.dumps(summary,indent=2)+"\n")
+          PY
+      - name: Upload case-level evidence and real-image overlays
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-real-v25-region-exploratory
+          path: |
+            results/cracks_real_region_v25/*.json
+            results/cracks_real_region_v25/*.csv
+            results/cracks_real_region_v25/*.joblib
+            results/cracks_real_region_v25/*.npz
+            results/cracks_real_region_v25/*.png
+          if-no-files-found: warn
+          retention-days: 90
