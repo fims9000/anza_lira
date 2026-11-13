@@ -1,0 +1,68 @@
+name: CRACKS V24 exploratory autonomous candidate reachability
+
+on:
+  push:
+    branches:
+      - research/cracks-autonomous-e2e-20261113
+    paths:
+      - 'scripts/cracks_real_candidate_v24.py'
+      - 'scripts/cracks_real_candidate_run_v24.py'
+      - 'tests/test_cracks_real_candidate_v24.py'
+      - '.github/workflows/cracks-real-candidate-v24.yml'
+      - 'docs/research/tver2026/V24_CANDIDATE_RECALL_REPAIR_PROTOCOL_20261113.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-cracks-v24:
+    runs-on: ubuntu-latest
+    timeout-minutes: 48
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Scientific dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib
+      - name: Run 14 unit and synthetic image-fixture tests
+        run: python -m unittest -v tests.test_cracks_real_candidate_v24 tests.test_cracks_real_auto_v23 tests.test_cracks_real_auto_training_v23
+      - name: Cache verified official CRACKS v2 data
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Download and authenticate official CRACKS v2 archives
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_real_candidate_v24/official_data_receipt.json
+      - name: Evaluate V24 methods using image-only ports and expert-held-out scores
+        run: python -m scripts.cracks_real_candidate_run_v24 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_candidate_v24 --max-expert 40
+      - name: Record honest non-geological claim boundary
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("results/cracks_real_candidate_v24")
+          root.mkdir(parents=True,exist_ok=True)
+          summary={"status":"POST_V23_EXPLORATORY",
+                   "no_oracle_candidate_inference":True,
+                   "natural_geological_instance_identity_verified":False,
+                   "original_ANZA_and_LIRA_networks_verified":False,
+                   "second_independent_seismic_volume":False,
+                   "article_claims_auto_promoted":False}
+          (root/"claim_boundary.json").write_text(json.dumps(summary,indent=2)+"\n")
+          PY
+      - name: Preserve per-section evidence, trained crowd-only front-end and overlays
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-real-v24-candidate-exploratory
+          path: |
+            results/cracks_real_candidate_v24/*.json
+            results/cracks_real_candidate_v24/*.csv
+            results/cracks_real_candidate_v24/*.joblib
+            results/cracks_real_candidate_v24/*.npz
+            results/cracks_real_candidate_v24/*.png
+          if-no-files-found: warn
+          retention-days: 90
