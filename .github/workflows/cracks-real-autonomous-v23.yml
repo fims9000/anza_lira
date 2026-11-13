@@ -1,0 +1,72 @@
+name: CRACKS V23 autonomous image-to-link E2E exploratory
+
+on:
+  push:
+    branches:
+      - research/cracks-autonomous-e2e-20261113
+    paths:
+      - 'scripts/cracks_real_auto_core_v23.py'
+      - 'scripts/cracks_real_auto_run_v23.py'
+      - 'tests/test_cracks_real_auto_v23.py'
+      - 'tests/test_cracks_real_auto_training_v23.py'
+      - '.github/workflows/cracks-real-autonomous-v23.yml'
+      - 'docs/research/tver2026/V23_AUTONOMOUS_CRACKS_E2E_PROTOCOL_20261113.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-cracks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 48
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib
+      - name: Unit and crowd-only training tests
+        run: python -m unittest -v tests.test_cracks_real_auto_v23 tests.test_cracks_real_auto_training_v23
+      - name: Cache verified official CRACKS archives
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Download/verify both official CRACKS v2 archives
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_real_autonomous_v23/official_data_receipt.json
+      - name: Fit independent crowd model; run predicted-endpoint real-image E2E
+        run: python -m scripts.cracks_real_auto_run_v23 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_real_autonomous_v23 --max-expert 40
+      - name: Summarize evidence and explicitly reject full legacy model claim
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("results/cracks_real_autonomous_v23")
+          p.mkdir(parents=True,exist_ok=True)
+          ready=(p/"report.json").exists()
+          payload={"experiment":"CRACKS_AUTONOMOUS_V23","real_run_complete":ready,
+                   "legacy_ANZA_checkpoint_verified":False,
+                   "legacy_LIRA_checkpoint_verified":False,
+                   "natural_geological_link_labels_verified":False,
+                   "independent_external_volume":False,
+                   "may_claim_legacy_e2e_superiority":False}
+          (p/"claim_boundary.json").write_text(json.dumps(payload,indent=2)+"\n")
+          print(payload)
+          PY
+      - name: Upload full case-level and model provenance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-autonomous-v23-real-exploratory
+          path: |
+            results/cracks_real_autonomous_v23/*.json
+            results/cracks_real_autonomous_v23/*.csv
+            results/cracks_real_autonomous_v23/*.png
+            results/cracks_real_autonomous_v23/*.npz
+            results/cracks_real_autonomous_v23/*.joblib
+          if-no-files-found: warn
+          retention-days: 90
