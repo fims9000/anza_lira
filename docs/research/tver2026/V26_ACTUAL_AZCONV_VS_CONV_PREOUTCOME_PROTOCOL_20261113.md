@@ -20,3 +20,6 @@ Replacing the first standard convolution in an otherwise identical small CNN det
 
 ## Stop rule
 The original scientific claim (superior genuine ANZA–LIRA recovering natural physical fault links) remains **not validated** unless: independent external survey with physical LINK/REJECT/AMBIGUOUS object identities; verified model checkpoints and original operator matches (or new fully retrained and honestly named system); untouched validation split; demonstrated positive statistical improvement under controlled false-link risk.
+
+## Pre-result implementation amendment
+First V26 CI run 43385882088 **stopped before completing either model**: randomly drawn 4-patch minibatches sometimes contained only BLUE or only ORANGE, making the frozen two-class balanced loss undefined. Before any V26 real-expert metrics existed, minibatch construction was corrected to alternate positive and negative centered patches (2 of each per batch), using the same seeded sequence for Conv and AZConv. 180 updates, models, labels, masks, crowd splits and CAL rule are unchanged. No expert metrics were consulted for the change. If training remains impossible, report failed rather than weaken the provenance gate.
