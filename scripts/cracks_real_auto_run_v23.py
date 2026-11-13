@@ -207,6 +207,64 @@ def topology_measure(mask,expert):
             'connected_gold_anchor_pairs':connected}
 
 
+
+def candidate_reachability(raw_result, expert_rgb):
+    """Evaluation-only candidate bottleneck against annotated blue traces.
+
+    Oracle endpoints are NEVER passed into candidate generation or scoring.
+    We only ask whether an image-derived candidate *could* join predicted
+    components near both held-out expert evaluation anchors. Two-component
+    direct reachability is a loose upper bound, NOT geological link truth.
+    """
+    gold=np.all(np.asarray(expert_rgb)==BLUE,axis=2)
+    original=np.asarray(raw_result['raw_mask'],dtype=bool)
+    components,n=ndi.label(original,structure=np.ones((3,3),dtype=np.uint8))
+    ports=raw_result['ports']
+    raw_edges=raw_result['candidates']
+    direct=set()
+    parent={}
+    def root(x):
+        parent.setdefault(x,x)
+        while parent[x]!=x:
+            parent[x]=parent[parent[x]]
+            x=parent[x]
+        return x
+    def union(a,b):
+        ra,rb=root(a),root(b)
+        if ra!=rb:parent[rb]=ra
+    for i,j,_,_ in raw_edges:
+        a=int(components[ports[i].point]);b=int(components[ports[j].point])
+        if a==0 or b==0 or a==b:continue
+        direct.add((min(a,b),max(a,b)))
+        union(a,b)
+    eligible=both=already=missing=direct_possible=any_chain_possible=0
+    for tr in expert_paths(gold):
+        size=len(tr.points)
+        if size<36:continue
+        eligible+=1
+        p0=tuple(tr.points[max(5,size//5)])
+        p1=tuple(tr.points[min(size-6,4*size//5)])
+        ida=_nearby_label_components(components,p0)
+        idb=_nearby_label_components(components,p1)
+        if not ida or not idb:continue
+        both+=1
+        if ida&idb:
+            already+=1
+            continue
+        missing+=1
+        if any((min(a,b),max(a,b)) in direct for a in ida for b in idb):
+            direct_possible+=1
+        if any(root(a)==root(b) for a in ida for b in idb):
+            any_chain_possible+=1
+    return {'eligible_expert_paths':eligible,
+        'both_anchors_visible':both,
+        'already_connected':already,
+        'unconnected_but_both_visible':missing,
+        'direct_candidate_could_connect':direct_possible,
+        'candidate_chain_could_connect':any_chain_possible,
+        'candidate_count':len(raw_edges),
+        'port_count':len(ports)}
+
 def evaluate_mask(pred_mask,expert_rgb):
     blue=np.all(expert_rgb==BLUE,axis=2)
     orange=np.all(expert_rgb==ORANGE,axis=2)
@@ -283,12 +341,14 @@ def run(images_path:Path,annotations_path:Path,out:Path,*,max_expert=40):
             row={'section':sid,'split':'all_exploratory_expert',
                  'num_predicted_ports':len(results['raw']['ports']),
                  'num_generated_candidates':len(results['raw']['candidates'])}
+            candidate_audit=candidate_reachability(results['raw'],gold)
+            for key,value in candidate_audit.items():row['candidate_audit_'+key]=value
             for name in POLICIES:
                 res=results[name]
                 visible=res['raw_mask'] if name=='raw' else res['completed_mask']
                 m=evaluate_mask(visible,gold)
-                row[name+'_accepted_links']=len(res['selected'])
-                row[name+'_no_link_ports']=res['none_count']
+                row[name+'_accepted_links']=0 if name=='raw' else len(res['selected'])
+                row[name+'_no_link_ports']=len(res['ports']) if name=='raw' else res['none_count']
                 for k,v in m.items():row[name+'_'+k]=v
             rows.append(row)
             if idx<4:
@@ -344,6 +404,12 @@ def run(images_path:Path,annotations_path:Path,out:Path,*,max_expert=40):
       'not_original_ANZA_checkpoint':True,
       'not_independent_geological_instance_link_truth':True,
       'one_F3_volume_and_all_experts_previously_explored':True,
+      'candidate_bottleneck':{key:sum(r['candidate_audit_'+key] for r in rows)
+               for key in ('eligible_expert_paths','both_anchors_visible',
+                           'already_connected','unconnected_but_both_visible',
+                           'direct_candidate_could_connect','candidate_chain_could_connect',
+                           'candidate_count','port_count')},
+      'candidate_bottleneck_is_evaluation_only':True,
       'methods':aggregate,
       'context_vs_raw_cluster_bootstrap':_bootstrap(rows,'context','raw'),
       'context_vs_nearest_cluster_bootstrap':_bootstrap(rows,'context','nearest'),
