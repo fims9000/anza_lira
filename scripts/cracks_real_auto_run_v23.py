@@ -205,8 +205,8 @@ def topology_measure(mask,expert):
 def evaluate_mask(pred_mask,expert_rgb):
     blue=np.all(expert_rgb==BLUE,axis=2)
     orange=np.all(expert_rgb==ORANGE,axis=2)
-    if not blue.any() or not orange.any():
-        raise ValueError('Missing explicit BLUE or ORANGE labels')
+    # Some expert masks contain only one explicitly labeled class. Preserve
+    # observed class denominators without inventing absent class labels.
     matched=ndi.binary_dilation(pred_mask,iterations=2)
     tp=int(np.sum(matched & blue))
     false=int(np.sum(pred_mask & orange))
@@ -310,9 +310,11 @@ def run(images_path:Path,annotations_path:Path,out:Path,*,max_expert=40):
         paths=sum(r[name+'_eligible_paths'] for r in rows)
         both=sum(r[name+'_both_gold_anchors_detected'] for r in rows)
         connected=sum(r[name+'_connected_gold_anchor_pairs'] for r in rows)
-        aggregate[name]={'recall_blue_tol2':tp/max(npos,1),
-           'false_pixel_fraction_orange':fp/max(nneg,1),
+        aggregate[name]={'recall_blue_tol2':tp/npos if npos else None,
+           'false_pixel_fraction_orange':fp/nneg if nneg else None,
            'N_expert_blue':npos,'N_explicit_orange':nneg,
+           'N_sections_with_blue':sum(r[name+'_N_expert_blue']>0 for r in rows),
+           'N_sections_with_explicit_orange':sum(r[name+'_N_explicit_orange']>0 for r in rows),
            'eligible_annotated_paths':paths,'both_anchors_present':both,
            'connected_annotated_pairs':connected,
            'connected_fraction_all_paths':connected/max(paths,1),
@@ -329,6 +331,7 @@ def run(images_path:Path,annotations_path:Path,out:Path,*,max_expert=40):
       'evaluation_sections':[r['section'] for r in rows],
       'evaluation_sees_truth_only_after_inference':True,
       'expert_masks_used_for_training_or_calibration':False,
+      'missing_class_denominators_are_not_fabricated':True,
       'predicted_endpoints_and_candidates':True,
       'links_and_paths_generated_without_gt':True,
       'has_explicit_NO_LINK':True,
