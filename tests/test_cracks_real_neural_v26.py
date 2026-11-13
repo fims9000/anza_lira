@@ -38,6 +38,8 @@ class V26ActualAZConvTests(unittest.TestCase):
         b=sample_batch([rec],np.random.default_rng(991))
         self.assertTrue(all(torch.equal(x,y) for x,y in zip(a,b)))
         self.assertEqual(a[0].shape,(BATCH,1,PATCH,PATCH))
+        self.assertGreater(int((a[2]*(a[1]>.5)).sum()),0)
+        self.assertGreater(int((a[2]*(a[1]<=.5)).sum()),0)
     def test_cal_and_train_ids_disjoint(self):
         self.assertFalse(set(TRAIN_IDS)&set(CAL_IDS))
         self.assertGreater(min(TRAIN_IDS),max(CAL_IDS))
