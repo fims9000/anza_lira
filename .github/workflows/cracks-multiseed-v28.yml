@@ -1,0 +1,51 @@
+name: CRACKS V28 matched three-seed AZConv vs CNN
+
+on:
+  push:
+    branches:
+      - research/cracks-v28-multiseed-20261113
+    paths:
+      - 'scripts/cracks_multiseed_v28.py'
+      - 'tests/test_cracks_multiseed_v28.py'
+      - '.github/workflows/cracks-multiseed-v28.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repeated-neural-real-cracks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numerical and machine learning dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib
+      - name: Install PyTorch CPU (original AZConv2d)
+        run: python -m pip install --disable-pip-version-check torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Run frozen V28 contract and existing V26 regression tests
+        run: python -m unittest -v tests.test_cracks_multiseed_v28 tests.test_cracks_real_neural_v26
+      - name: Cache official CRACKS source archives
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Download and verify official CRACKS source checksums
+        run: python scripts/download_cracks_v2_public.py --output data/cracks/raw --receipt results/cracks_multiseed_v28/download_receipt.json
+      - name: Train and evaluate six neural models with fixed budget and independent seeds
+        run: python -m scripts.cracks_multiseed_v28 --images data/cracks/raw/images.zip --annotations "data/cracks/raw/Fault segmentations.zip" --out results/cracks_multiseed_v28
+      - name: Preserve multi-seed evidence, failure logs and figures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cracks-multiseed-v28-evidence
+          path: |
+            results/cracks_multiseed_v28/*.json
+            results/cracks_multiseed_v28/*.csv
+            results/cracks_multiseed_v28/*.png
+            results/cracks_multiseed_v28/*.pt
+          if-no-files-found: warn
+          retention-days: 90
