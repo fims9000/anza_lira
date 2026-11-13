@@ -17,9 +17,11 @@ from scripts.cracks_real_auto_core_v23 import (
 def component_extremity_ports(probability,mask,*,min_pixels=12,min_aspect=2.5):
     labels,num=ndi.label(mask,structure=np.ones((3,3),np.uint8))
     ports=[]
-    for component in range(1,num+1):
-        pixels=np.argwhere(labels==component)
+    for component,box in enumerate(ndi.find_objects(labels),start=1):
+        if box is None:continue
+        pixels=np.argwhere(labels[box]==component)
         if len(pixels)<min_pixels:continue
+        pixels=pixels+np.array([box[0].start,box[1].start])
         center=pixels.mean(axis=0)
         centered=pixels.astype(float)-center
         gram=centered.T@centered/max(len(pixels)-1,1)
