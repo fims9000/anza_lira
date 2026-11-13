@@ -6,7 +6,7 @@ from scripts.cracks_real_auto_core_v23 import (
     accept_edges, run_pipeline, trace_path
 )
 from scripts.cracks_real_auto_run_v23 import (
-    consensus_training_mask, evaluate_mask,BLUE,ORANGE,zip_index
+    consensus_training_mask, evaluate_mask,topology_measure,BLUE,ORANGE,zip_index
 )
 
 
@@ -68,6 +68,20 @@ class AutonomousV23Tests(unittest.TestCase):
         truth[52,31:55]=BLUE
         self.assertTrue(np.array_equal(before,
                           run_pipeline(prob,threshold=.65,strategy='nearest')['completed_mask']))
+
+    def test_connectivity_metric_monotone_under_added_prediction(self):
+        gold=np.zeros((80,130),dtype=bool)
+        gold[38,25:112]=True
+        predicted=np.zeros_like(gold)
+        predicted[36,25:112]=True
+        before=topology_measure(predicted,gold)
+        self.assertGreater(before['connected_gold_anchor_pairs'],0)
+        # Adding a disconnected closer pixel cannot invalidate an existing link.
+        grown=predicted.copy()
+        grown[39,41]=True
+        after=topology_measure(grown,gold)
+        self.assertGreaterEqual(after['connected_gold_anchor_pairs'],
+                                before['connected_gold_anchor_pairs'])
 
     def test_candidate_proposal_is_symmetric_and_finite(self):
         prob=np.zeros((80,120),np.float32)
