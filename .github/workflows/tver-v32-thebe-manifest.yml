@@ -1,0 +1,59 @@
+name: Tver V32 Thebe independent real field official Dataverse metadata-only audit
+
+on:
+  push:
+    branches:
+      - research/tver-v32-thebe-external-field-manifest-20261114
+    paths:
+      - 'scripts/tver_v32_thebe_external_manifest.py'
+      - 'tests/test_tver_v32_thebe_external_manifest.py'
+      - '.github/workflows/tver-v32-thebe-manifest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  thebe_external_field_source_audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run source inventory contract tests
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m compileall -q scripts/tver_v32_thebe_external_manifest.py
+          python -m pytest -q tests/test_tver_v32_thebe_external_manifest.py
+      - name: Query OFFICIAL Harvard Dataverse Thebe external real field file metadata
+        run: |
+          python -m scripts.tver_v32_thebe_external_manifest \
+            --out results/tver_v32/thebe_public_metadata_inventory.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('results/tver_v32/thebe_public_metadata_inventory.json')
+          x=json.loads(p.read_text())
+          assert x['status'] in (
+            'V32_THEBE_EXTERNAL_FIELD_DATAVERSE_METADATA_ONLY_COMPLETE',
+            'V32_STOP_OFFICIAL_THEBE_SOURCE_METADATA_UNAVAILABLE')
+          assert x['archive_bytes_downloaded']==0
+          assert not x['heldout_test_outcomes_touched']
+          PY
+      - name: Preserve exact SHA for source receipt
+        if: always()
+        run: |
+          mkdir -p results/tver_v32
+          git rev-parse HEAD > results/tver_v32/COMMIT_SHA.txt
+      - name: Archive official external Thebe metadata only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v32-thebe-independent-seismic-field-source-manifest-NO-DATA
+          path: |
+            results/tver_v32/thebe_public_metadata_inventory.json
+            results/tver_v32/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
