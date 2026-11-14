@@ -320,7 +320,7 @@ def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out):
         key:value for key,value in path_evidence.items() if key not in ("case_rows","predeclared_threshold_sweep")}
     (out/"V47_PATH_RESULT.json").write_text(
         json.dumps({key:value for key,value in path_evidence.items() if key!="case_rows"},
-                   indent=2)+"\\n",encoding="utf8")
+                   indent=2)+"\n",encoding="utf8")
     with (out/"V47_PATH_CASE_ROWS.csv").open("w",newline="",encoding="utf8") as f:
         writer=csv.DictWriter(f,fieldnames=list(path_evidence["case_rows"][0]))
         writer.writeheader();writer.writerows(path_evidence["case_rows"])
