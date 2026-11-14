@@ -470,7 +470,7 @@ def _metrics(scenes,method,head,cal):
     return result,report
 
 
-def execute(images,annotations,trained_root,out):
+def execute(images,annotations,trained_root,out,*,split_mapping=None):
     torch.set_num_threads(2)
     torch.use_deterministic_algorithms(True)
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
@@ -481,7 +481,8 @@ def execute(images,annotations,trained_root,out):
     with zipfile.ZipFile(images) as zi,zipfile.ZipFile(annotations) as za:
         im_paths=sections(zi);experts=sections(za,expert=True)
         ids=sorted(set(im_paths)&set(experts))
-        mapping=split_map(ids)
+        mapping=split_map(ids) if split_mapping is None else dict(split_mapping)
+        if set(mapping).difference(ids):raise RuntimeError('External cohort contains unknown expert IDs')
         ids_train=[sid for sid in ids if mapping[sid]=="TRAIN"]
         ids_cal=[sid for sid in ids if mapping[sid]=="CAL"]
         ids_test=[sid for sid in ids if mapping[sid]=="TEST"]
@@ -581,6 +582,7 @@ def execute(images,annotations,trained_root,out):
                 case_file.read_bytes()).hexdigest(),
             "models":results,
             "historical_pretrained_weights_recovered":False,
+            "V27_blue_eligible_source_selection_after_V26_source_audit":bool(split_mapping is not None),
             "no_claim_ANZA_SOTA":True,
             "synthetic_candidate_absent_NO_LINK_is_not_geological_truth":True,
         }
