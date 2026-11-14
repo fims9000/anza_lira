@@ -95,3 +95,17 @@ def test_paired_ranking_complementarity_and_reproducible_section_bootstrap():
     altered=[r for r in altered if not (r["model"]=="p0_seed11" and r["world"]=="LINK" and r["artificial_gap_id"]=="thebe:60:0")]
     with pytest.raises(ValueError,match="identical gaps"):
         paired_ranking_audit(altered,bootstrap_replicates=200)
+
+def test_posthoc_descriptive_gate_never_replaces_confidence_gate():
+    report,rows=frozen_sample()
+    # Six wrong source sections in each synthetic class are empirically 10%,
+    # but cannot satisfy the 95% exact source-level upper bound.
+    point=report["RELATION_CAL_frozen_policies"]["geometry"]["scan_by_threshold"]["0.5"]
+    point["wrong_accepted_LINK_source_sections"]=6
+    point["accepted_candidate_absent_NOLINK_source_sections"]=6
+    point["wrong_link_CP_upper_95"]=upper_cp(6,60)
+    point["nolink_CP_upper_95"]=upper_cp(6,60)
+    z=audit(report,rows)["method_results"]["geometry"]
+    assert z["posthoc_best_correct_with_both_empirical_section_error_rates_at_most_10pct"]==20
+    assert z["posthoc_best_correct_with_zero_observed_wrong_sections"]==0
+    assert z["best_correct_gaps_nominal_gate"]==0
