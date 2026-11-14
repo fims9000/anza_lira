@@ -117,7 +117,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tver-v35-real-Thebe-AZConv-CNN-determinism-raw-tensor-SHA
+          name: tver-v36-cross-independent-runner-Thebe-tensor-audit
           path: |
             results/tver_v36/out/COMMIT_SHA.txt
             results/tver_v36/out/v35_thebe_real_training_determinism.json
