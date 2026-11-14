@@ -18,6 +18,7 @@ def fixture():
             tag=f"{section}:{k}"
             scenes.append({
                 "kind":"LINK","section":section,"id":tag,
+                "has_true_proposal":True,
                 "proposals":[{"source":(48.,30.),"target":(48.,60.),"y":1}],
             })
             rows.extend([
@@ -36,7 +37,8 @@ def test_only_locked_holdout_and_no_claim_of_10pct_risk_certification(monkeypatc
     s,r=fixture()
     z=never_tuned_heldout_metrics(s,None,None,Gate(),r)
     assert z["frozen_heldout_source_section_ids"]==list(range(30,40))
-    assert z["heldout_true_candidate_available"]==20 if "heldout_true_candidate_available" in z else z["heldout_rank_top1_correct"]==20
+    assert z["heldout_true_candidate_available"]==20
+    assert z["heldout_rank_top1_correct"]==20
     assert z["heldout_straight_path_success"]==20
     assert z["heldout_maximin_path_success"]==20
     assert len(z["predeclared_11_threshold_results_NO_SELECTION"])==len(CAL_THRESHOLDS)
