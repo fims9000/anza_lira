@@ -1,0 +1,103 @@
+name: Tver V24 hard matched-marginal cross-slice NO_LINK
+on:
+  push:
+    branches:
+      - research/tver-v24-switching-negative-2026-11-14
+    paths:
+      - 'scripts/tver_v24_switched_neighbor_synthetic.py'
+      - 'tests/test_tver_v24_switched_neighbor_synthetic.py'
+      - 'scripts/verify_tver_v24_case_evidence.py'
+      - 'scripts/tver_v24_qualitative_figure.py'
+      - 'docs/research/tver2026/V24_SWITCHED_NEIGHBOR_HARD_NOLINK_FROZEN_PROTOCOL_20261114.md'
+      - '.github/workflows/tver-v24-switched-neighbor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONHASHSEED: '0'
+
+jobs:
+  single-slice-marginally-matched-hard-negative:
+    runs-on: ubuntu-latest
+    timeout-minutes: 44
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install frozen scientific CPU runtime
+        run: python -m pip install --disable-pip-version-check numpy scipy scikit-learn pytest matplotlib
+      - name: Verify exact matched-marginal negative and 2D indistinguishability
+        run: |
+          python -m compileall -q scripts/tver_v24_switched_neighbor_synthetic.py
+          python -m pytest -q tests/test_tver_v23_counterfactual_25d.py tests/test_tver_v24_switched_neighbor_synthetic.py
+      - name: Fit only original V23 TRAIN and CAL, lock all policy risks BEFORE V24 TEST
+        run: |
+          python -m scripts.tver_v24_switched_neighbor_synthetic \
+            --out results/tver_v24_hard_nolink
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('results/tver_v24_hard_nolink')
+          a=(root/'v24_before_test_freeze.json').read_bytes()
+          r=json.loads((root/'v24_results.json').read_text())
+          assert r['status']=='EXECUTED_NEW_SYNTHETIC_HARD_NEGATIVE'
+          assert r['V24_TEST_opened_only_after_CAL_freeze']
+          assert r['NO_LINK_each_neighbor_exact_positive_world_match']
+          assert r['N_base_groups']==160
+          assert r['N_worlds']==480
+          assert hashlib.sha256(a).hexdigest()==r['V24_CAL_lock_SHA256']
+          for m in r['method_results'].values():
+              assert m['positive']==320 and m['NOLINK']==160
+          assert r['historical_anza_lira_checkpoint_not_loaded']
+          PY
+      - name: Independently audit all 480 matched-marginal source worlds and selective risk
+        run: |
+          python scripts/verify_tver_v24_case_evidence.py             --dir results/tver_v24_hard_nolink
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('results/tver_v24_hard_nolink/verify_v24_independent.json')
+          r=json.loads(p.read_text())
+          assert r['status']=='V24_INDEPENDENT_MATCHED_MARGINAL_CASE_AUDIT_PASS'
+          assert r['n_independent_synthetic_base_groups']==160
+          assert r['protocol_strict_hard_NO_LINK_criteria_recomputed']
+          assert r['160_base_group_bootstrap_recomputed']
+          PY
+      - name: Render exact synthetic three-world mechanism and true false-link failure panels
+        run: |
+          python -m scripts.tver_v24_qualitative_figure             --cases results/tver_v24_hard_nolink/v24_hard_negative_case_scores.csv             --out results/tver_v24_hard_nolink/figures
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('results/tver_v24_hard_nolink/figures')
+          assert (p/'V24_three_worlds.png').exists()
+          r=json.loads((p/'V24_figure_receipt.json').read_text())
+          assert r['status']=='REAL_REGISTERED_SYNTHETIC_ERROR_PLOTTED'
+          assert (p/'V24_failure_case.png').exists()
+          PY
+      - name: Freeze method revision
+        if: always()
+        run: |
+          mkdir -p results/tver_v24_hard_nolink
+          git rev-parse HEAD > results/tver_v24_hard_nolink/COMMIT_SHA.txt
+      - name: Publish full synthetic case decisions and frozen calibration only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v24-switched-neighbor-hard-negative-results
+          path: |
+            results/tver_v24_hard_nolink/v24_before_test_freeze.json
+            results/tver_v24_hard_nolink/v24_results.json
+            results/tver_v24_hard_nolink/v24_hard_negative_case_scores.csv
+            results/tver_v24_hard_nolink/verify_v24_independent.json
+            results/tver_v24_hard_nolink/figures/*.png
+            results/tver_v24_hard_nolink/figures/*.json
+            results/tver_v24_hard_nolink/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
