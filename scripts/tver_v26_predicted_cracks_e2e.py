@@ -399,11 +399,51 @@ def _simple_straight(a,b,n=40):
     return tuple(tuple(map(int,x)) for x in line)
 
 
-def _path_success(scene,pair):
-    """Path readout only after selected prediction, hidden truth for metric."""
+def _predicted_maximin_path(scene,pair):
+    """Actual repository widest/max-bottleneck route on observed evidence.
+
+    The original ANZA probability inside the deliberately erased rectangle
+    is forbidden. Corridor evidence is computed ONLY from post-intervention
+    model prediction plus the observed seismic gradient.
+    """
+    from path_completion.widest_path import widest_path
+    from models.azconv_affinity import LOCAL8_OFFSETS
     a=tuple(np.rint(pair["source"]).astype(int))
     b=tuple(np.rint(pair["target"]).astype(int))
-    path=_simple_straight(a,b)
+    gray=np.asarray(scene["gray"],np.float64)
+    p=np.asarray(scene["visible_prob"],np.float64)
+    image=ndi.gaussian_filter(gray,1.)
+    g=np.abs(ndi.sobel(image,axis=1))
+    g=np.clip(g/max(float(np.quantile(g,.95)),1e-6),0,1)
+    yy,xx=np.mgrid[:ROI,:ROI].astype(np.float64)
+    a0=np.asarray(a,float);b0=np.asarray(b,float)
+    direction=b0-a0
+    denominator=max(float(np.dot(direction,direction)),1e-8)
+    t=np.clip(((yy-a0[0])*direction[0]+
+               (xx-a0[1])*direction[1])/denominator,0,1)
+    dist=np.sqrt((yy-a0[0]-t*direction[0])**2+
+                 (xx-a0[1]-t*direction[1])**2)
+    corridor=(dist<=9.)
+    evidence=np.clip(.08+.52*g+.40*p,.015,.995)
+    evidence[~corridor]=0.
+    edges=np.zeros((len(LOCAL8_OFFSETS),ROI,ROI),np.float32)
+    for j,(dx,dy) in enumerate(LOCAL8_OFFSETS):
+        yy0,yy1=max(0,-dy),min(ROI,ROI-dy)
+        xx0,xx1=max(0,-dx),min(ROI,ROI-dx)
+        edges[j,yy0:yy1,xx0:xx1]=np.minimum(
+            evidence[yy0:yy1,xx0:xx1],
+            evidence[yy0+dy:yy1+dy,xx0+dx:xx1+dx])
+    _,route=widest_path(edges,a,b)
+    return route
+
+
+def _path_success(scene,pair,*,method="straight"):
+    """Path readout after decision; expert truth only for metric."""
+    a=tuple(np.rint(pair["source"]).astype(int))
+    b=tuple(np.rint(pair["target"]).astype(int))
+    if method=="straight":path=_simple_straight(a,b)
+    elif method=="maximin":path=_predicted_maximin_path(scene,pair)
+    else:raise ValueError("Unknown predeclared route method")
     oy,ox=scene["origin"]
     y0,y1,x0,x1=scene["rectangle"]
     gt=np.asarray(scene["hidden_centerline"],int)
@@ -432,9 +472,11 @@ def _metrics(scenes,method,head,cal):
         pred=_case_prediction(
             scene,method,head,thresholds["accept_threshold"])
         path_ok=False
+        maximin_ok=False
         if pred["accepted"] and pred["correct"]:
-            path_ok=_path_success(
-                scene,scene["proposals"][pred["proposal_index"]])
+            winning=scene["proposals"][pred["proposal_index"]]
+            path_ok=_path_success(scene,winning,method="straight")
+            maximin_ok=_path_success(scene,winning,method="maximin")
         row={
             "case_id":scene["id"],"section":scene["section"],
             "kind":scene["kind"],"status":scene["status"],
@@ -444,6 +486,7 @@ def _metrics(scenes,method,head,cal):
             "has_correct_candidate":scene["has_true_proposal"],
             "accepted":pred["accepted"],"correct":pred["correct"],
             "path_tol2_success":path_ok,
+            "maximin_path_tol2_success":maximin_ok,
             "lira_or_geometry_score":pred["score"],
             "n_predictions_leaking_expert_endpoints":0}
         report.append(row)
@@ -460,10 +503,13 @@ def _metrics(scenes,method,head,cal):
         "n_wrong_accepted":sum(r["accepted"] and not r["correct"] for r in pos),
         "n_false_accepted_synthetic_NO_LINK":sum(r["accepted"] for r in neg),
         "n_correctly_completed_straight_path":sum(r["path_tol2_success"] for r in pos),
+        "n_correctly_completed_maximin_path":sum(r["maximin_path_tol2_success"] for r in pos),
         "n_real_TEST_source_sections":len({r["section"] for r in pos}),
         "end_to_end_true_path_fraction":float(
-            sum(r["path_tol2_success"] for r in pos)/len(pos))
+            sum(r["maximin_path_tol2_success"] for r in pos)/len(pos))
             if pos else None,
+        "straight_path_is_baseline_not_primary":True,
+        "maximin_path_is_repository_widest_path":True,
         "not_historical_model":True,"oracle_endpoints_used_as_scoring_input":False,
         "intervention_location_is_expert_selected":True,
     }
