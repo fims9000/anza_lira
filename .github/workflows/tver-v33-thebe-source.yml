@@ -1,0 +1,188 @@
+name: Tver V33 Thebe external expert TRAIN/VALID streaming source preflight; test unopened
+
+on:
+  push:
+    branches:
+      - research/tver-v33-thebe-expert-real-cal-20261114
+    paths:
+      - 'scripts/tver_v33_thebe_memmap.py'
+      - 'tests/test_tver_v33_thebe_memmap.py'
+      - 'scripts/tver_v33_thebe_train_segmenters.py'
+      - 'tests/test_tver_v33_thebe_train_segmenters.py'
+      - 'scripts/tver_v33_thebe_relation_cal.py'
+      - 'tests/test_tver_v33_thebe_relation_cal.py'
+      - '.github/workflows/tver-v33-thebe-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+
+jobs:
+  prepare_real_float32_memmaps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install source-only dependencies
+        run: |
+          python -m pip install --disable-pip-version-check numpy pytest
+          python -m compileall -q scripts/tver_v33_thebe_memmap.py
+          python -m pytest -q tests/test_tver_v33_thebe_memmap.py
+      - name: Install actual AZConv and SBPP V3-B / PyTorch CPU dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check scipy pillow scikit-image scikit-learn joblib matplotlib
+      - name: Test real Thebe ANZA/U-Net parity and predicted-SBPP topology before heavy data
+        run: |
+          python -m compileall -q scripts/tver_v33_thebe_train_segmenters.py
+          python -m pytest -q tests/test_tver_v33_thebe_train_segmenters.py tests/test_tver_v33_thebe_relation_cal.py tests/test_tver_v26_predicted_pipeline.py tests/test_tver_v28_topology_calibration.py
+      - name: Recover original source Thebe 2.15GB checked chunks
+        uses: actions/cache@v4
+        with:
+          path: data/thebe_v32_raw
+          key: thebe-v32-seistrain1-534e78ab34bb0ece32ca0a9b69ee99cd-seisval1-518d2979a1f90d535ebc2a44f615970f
+      - name: Restore original verified tiny masks and source metadata
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43600860512
+          name: tver-v32-thebe-independent-seismic-field-source-manifest-NO-DATA
+          github-token: ${{ github.token }}
+          path: data/thebe_v32_manifest
+      - name: Restore missing original real seismic chunks by official Dataverse streaming if cache absent
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.tver_v32_thebe_seismic_headers import fetch_streaming_checked
+          manifest=json.loads(Path('data/thebe_v32_manifest/thebe_public_metadata_inventory.json').read_text())
+          assert manifest['status']=='V32_THEBE_EXTERNAL_FIELD_DATAVERSE_METADATA_ONLY_COMPLETE'
+          files={r['name']:r for r in manifest['files']}
+          root=Path('data/thebe_v32_raw')
+          root.mkdir(parents=True,exist_ok=True)
+          for name in ('seistrain1.npz','seisval1.npz'):
+              p=root/name
+              status=fetch_streaming_checked(files[name],p)
+              print(name,status,p.stat().st_size,flush=True)
+          PY
+      - name: Verify exact original official train/val source files and copy masks only
+        run: |
+          mkdir -p data/thebe_v32_raw
+          cp data/thebe_v32_manifest/label_headers/faulttrain1.npz data/thebe_v32_raw/
+          cp data/thebe_v32_manifest/label_headers/faultval1.npz data/thebe_v32_raw/
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          base=Path('data/thebe_v32_raw')
+          expected={
+            'seistrain1.npz':'534e78ab34bb0ece32ca0a9b69ee99cd',
+            'seisval1.npz':'518d2979a1f90d535ebc2a44f615970f',
+            'faulttrain1.npz':'0b393c61283986c82c804172147dcde9',
+            'faultval1.npz':'22059e5e5155bff0f3e39e142d47c032',
+          }
+          for name,digest in expected.items():
+              p=base/name
+              assert p.is_file(), f'STOP cache/source missing {name}'
+              h=hashlib.md5()
+              with p.open('rb') as stream:
+                  for chunk in iter(lambda:stream.read(4*1024*1024),b''):
+                      h.update(chunk)
+              assert h.hexdigest()==digest, f'STOP official source MD5 {name}'
+          PY
+      - name: Convert large Float64 volumes to streamwise Float32 mmap, bool expert labels to bool mmap
+        run: |
+          python -m scripts.tver_v33_thebe_memmap \
+            --source-dir data/thebe_v32_raw \
+            --out-dir results/tver_v33/local_memmaps
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('results/tver_v33/local_memmaps/v33_memmap_source_receipt.json')
+          j=json.loads(p.read_text())
+          assert j['status']=='V33_EXACT_TRAIN_VAL_MEMMAP_READY_TEST_UNOPENED'
+          assert j['no_TEST_access']
+          assert all(v['mmap_can_reopen'] for v in j['arrays'].values())
+          assert len(j['arrays'])==4
+          PY
+      - name: Fit new genuine AZConv-v1 and equal-budget U-Net on real Thebe TRAIN and calibrate SBPP topology without REL-CAL or TEST
+        run: |
+          python -m scripts.tver_v33_thebe_train_segmenters \
+            --mmap-root results/tver_v33/local_memmaps \
+            --out-dir results/tver_v33/seg_topology
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          base=Path('results/tver_v33/seg_topology')
+          r=json.loads((base/'v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json').read_text())
+          assert r['status'] in ('V33_THEBE_REAL_SEGMENTERS_AND_TOPOLOGY_TRAIN_CAL_COMPLETE','V33_STOP_THEBE_NEW_FRONTEND_PREDICTED_SBPP_INSUFFICIENT')
+          assert r['heldout_THEBE_TEST7_NOT_OPENED']
+          assert r['REL_CAL_section_indices_locked_unopened']==list(range(40,100))
+          assert r['SEG_CAL_section_indices']==list(range(30))
+          for name,x in r['frontends'].items():
+              path=base/x['checkpoint']
+              assert hashlib.sha256(path.read_bytes()).hexdigest()==x['SHA256']
+              assert x['train_steps']==600
+          PY
+      - name: Fit true five-convolution P0 and matched logistics on real Thebe predicted TRAIN pairs, section-risk CAL val40-99 only
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          root=Path('results/tver_v33/seg_topology')
+          frozen=json.loads((root/'v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json').read_text())
+          if frozen['status']!='V33_THEBE_REAL_SEGMENTERS_AND_TOPOLOGY_TRAIN_CAL_COMPLETE':
+              print('V33 scientific STOP frontend failed TRAIN/SEG-CAL predicted candidates; REL-CAL not opened')
+          else:
+              cmd=['python','-m','scripts.tver_v33_thebe_relation_cal',
+                   '--mmap-root','results/tver_v33/local_memmaps',
+                   '--frontends-dir',str(root),
+                   '--out-dir','results/tver_v33/relation_CAL']
+              subprocess.run(cmd,check=True)
+              rel=json.loads(Path('results/tver_v33/relation_CAL/v33_THEBE_ALL_RELATION_CAL_frozen.json').read_text())
+              assert rel['status'] in (
+                 'V33_THEBE_RELATION_FIT_AND_SECTION_RISK_CAL_COMPLETE_TEST_UNOPENED',
+                 'V33_STOP_THEBE_PREDICTED_PAIR_OR_SECTION_CAL_INSUFFICIENT')
+              assert rel['global_admission']['external_TEST7_not_opened']
+          PY
+      - name: Persist compact provenance only
+        if: always()
+        run: |
+          mkdir -p results/tver_v33/out
+          git rev-parse HEAD > results/tver_v33/out/COMMIT_SHA.txt
+          if test -f results/tver_v33/local_memmaps/v33_memmap_source_receipt.json; then
+            cp results/tver_v33/local_memmaps/v33_memmap_source_receipt.json results/tver_v33/out/
+          fi
+          if test -f results/tver_v33/seg_topology/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json; then
+            cp results/tver_v33/seg_topology/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json results/tver_v33/out/
+            cp results/tver_v33/seg_topology/*_new_thebe_checkpoint.pt results/tver_v33/out/
+          fi
+          if test -f results/tver_v33/relation_CAL/v33_THEBE_ALL_RELATION_CAL_frozen.json; then
+            cp results/tver_v33/relation_CAL/v33_THEBE_ALL_RELATION_CAL_frozen.json results/tver_v33/out/
+            cp results/tver_v33/relation_CAL/*_thebe_REL_CAL_case_rows.csv results/tver_v33/out/
+            cp results/tver_v33/relation_CAL/new_thebe_P0/*.pt results/tver_v33/out/
+          
+          
+          fi
+      - name: Upload source receipt, never full compressed/seismic/label arrays
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v33-Thebe-real-expert-TRAIN-VALID-memmap-source-verified-TEST-unopened
+          path: |
+            results/tver_v33/out/v33_memmap_source_receipt.json
+            results/tver_v33/out/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json
+            results/tver_v33/out/*_new_thebe_checkpoint.pt
+            results/tver_v33/out/v33_THEBE_ALL_RELATION_CAL_frozen.json
+            results/tver_v33/out/*_thebe_REL_CAL_case_rows.csv
+            results/tver_v33/out/*_new_p0_seed*.pt
+            results/tver_v33/out/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
