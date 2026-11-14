@@ -351,6 +351,12 @@ def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out):
     summary=evaluate(rows,expected_candidate_available=75)
     path_evidence=audited_path_readout(
         augmented_cal,rank_scaler,ranker,gate,rows,summary,path_net)
+    if (path_evidence["correct_top1_predicted_pairs"]!=45
+        or path_evidence["successful_straight_path_given_top1_correct"]!=2
+        or path_evidence["successful_maximin_path_given_top1_correct"]!=0
+        or path_evidence["successful_boundary_straight_given_top1_correct"]!=3
+        or path_evidence["successful_boundary_hermite_given_top1_correct"]!=3):
+        raise RuntimeError("Original V47/V49 decoded paths drifted; cannot compare V50")
     score_before=summary["oof_scene_gate"]["rank_top1_correct_before_acceptance"]
     report={
         "status":"V46_REAL_THEBE_DENSE_RECOVERY_OOF_GATE_INTEGRATED_POSTHOC_TEST7_UNOPENED",
@@ -373,6 +379,10 @@ def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out):
         "actual_full_path_reconstruction_evaluated":False,
         "summary":summary,
     }
+    report["status"]="V50_TRAIN_CONDITIONED_REAL_THEBE_CASCADE_POSTHOC_TEST7_UNOPENED"
+    report["actual_full_path_reconstruction_evaluated"]=True
+    report["source_TRAIN1_conditioned_path_and_original_unchanged_risk_gate"]=True
+    report["predeclared_fixed_path_network_not_CAL_selected"]=True
     report["full_controlled_gap_path_readout_V50"]={
         key:value for key,value in path_evidence.items() if key not in ("case_rows","predeclared_threshold_sweep")}
     (out/"V50_PATH_RESULT.json").write_text(
