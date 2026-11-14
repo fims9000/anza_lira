@@ -75,3 +75,14 @@ def test_true_candidate_only_from_inference_and_expert_posthoc_scoring(monkeypat
     assert receipt["n_false_pairs"]==0
     assert seen and seen[0][0]==.65
     assert seen[0][1]<.8  # intervention affects predicted mask
+
+def test_Thebe_expert_readonly_mmap_skeletonization(tmp_path):
+    path=tmp_path/"section_bool.npy"
+    arr=np.zeros((255,701),dtype=bool)
+    arr[100,100:280]=True
+    np.save(path,arr)
+    source=np.load(path,mmap_mode="r")
+    assert not source.flags.writeable
+    gaps=_gaps(source,"REAL_READ_ONLY")
+    assert len(gaps)>=1
+    assert not source.flags.writeable
