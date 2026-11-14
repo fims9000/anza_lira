@@ -1,0 +1,16 @@
+# V48: first protocol-locked within-field holdout on Thebe VAL1 source sections 30..39
+
+**Predeclared 14 Nov 2026 BEFORE any inference on VAL1 sections 30..39 in this workflow.** The verified V33 protocol reports SEG-CAL as VAL1 `0..29` and V34 RELATION-CAL as VAL1 `40..99`; the entire V38–V47 lineage uses `40..99` for relation CAL. By these tracked protocols, indices **30..39 were excluded from training, topology SEG-CAL and relation-CAL evaluation**. We have NOT independently proven that no other analysis ever touched them. Treat as a within-field held-out 10-section subset, not an independent geological field.
+
+## Locked method, no post-test tuning
+- Exactly the V47 code and source configuration as committed before V48; the frozen V33 ANZA checkpoint and original .65 SBPP, V43 dense-mask q=.70 fallback, V40 pairwise-difference ranker trained on augmented TRAIN1 (100 sections), V45 5-fold source-OOF 13-feature scene gate trained on augmented TRAIN1. Same 48 candidate cap, 8px pair identity tolerance and original V26 straight/maximin path readout with precision/recall>=.8 on expert-erased 12-point artificial hidden gap.
+- Fit models **only on TRAIN1** as before. To verify no program drift, re-evaluate original REL-CAL `40..99` and require frozen source receipt original candidate count 65, q70 candidate count 75 and original V45 read-only artefact status; then only ONCE run `_candidate_scenes` on official real VAL1 expert masks and observed seismic channels for section IDs `30..39`. Do not tune any parameter or threshold using these held-out labels.
+- Evaluate both synthetic LINK/NO_LINK worlds (20+20 controlled gaps, two per section expected), candidate availability, correct top1, raw OOF-trained gate probabilities, each of 11 previously fixed acceptance thresholds, wrong-LINK/accepted-NOLINK errors by actual held-out source section, straight and original maximin path success on top1 correct and accepted paths.
+- The scene contains expert-defined gap rectangle for intervention, never hidden expert endpoints to ranker/gate/path. Expert centerline can only enter the post-path metric. Do not open official external TEST7.
+- Report **all** results, positive or negative. Do not select the best threshold and promote it as deployable or use holdout outcomes to refit q70/model/gate. Any exploratory best-of-grid number must be explicitly labeled descriptive posthoc.
+
+## Inferential limits
+The holdout has **only 10 source sections** (20 LINK plus20 synthetic NO_LINK gaps). Even zero observed errors has one-sided 95% exact upper risk bound `1−0.05^(1/10)≈25.9%` for ONE fixed error type and threshold, so it CANNOT certify ≤10% false-link risk. This is also the SAME Thebe geological field with possibly correlated sections, not a new independent volume. It tests generalization of controlled candidate/ranking/path metrics to source sections outside both original SEG-CAL and relation CAL, but not natural fault-instance identities nor autonomous end-to-end field topology.
+
+## Scientific stopping rule
+Once outcomes are observed, this within-field mini-holdout must never be reused for model/threshold selection. A publication superiority claim still requires different independently labeled geological volumes and natural fault-object identities; keep results transparent and interpret them narrowly.
