@@ -1,0 +1,94 @@
+name: Tver V25 equally trained hard-negative HGB and image CNN
+on:
+  push:
+    branches:
+      - research/tver-v25-equal-hard-training-2026-11-14
+    paths:
+      - 'scripts/tver_v24_switched_neighbor_synthetic.py'
+      - 'scripts/tver_v25_cnn.py'
+      - 'scripts/tver_v25_equal_hard_training.py'
+      - 'scripts/verify_tver_v25_case_evidence.py'
+      - 'tests/test_tver_v25_equal_hard_training.py'
+      - 'docs/research/tver2026/V25_EQUAL_HARD_NEGATIVE_TRAINING_FROZEN_PROTOCOL_20261114.md'
+      - '.github/workflows/tver-v25-equal-hard-training.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  CUBLAS_WORKSPACE_CONFIG: ':4096:8'
+
+jobs:
+  train_hard_negative_models_and_score_untouched_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 58
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU PyTorch and fixed baseline scientific stack
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy scikit-learn pytest
+      - name: Run source/target identifiability and no-label leakage contracts
+        run: |
+          python -m compileall -q scripts/tver_v25_cnn.py scripts/tver_v25_equal_hard_training.py
+          python -m pytest -q tests/test_tver_v23_counterfactual_25d.py tests/test_tver_v24_switched_neighbor_synthetic.py tests/test_tver_v25_equal_hard_training.py
+      - name: Fit equally informed hard-negative HGB and 2.5D CNN then lock CAL
+        run: |
+          python -m scripts.tver_v25_equal_hard_training \
+            --out results/tver_v25_equal_hard
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          root=Path('results/tver_v25_equal_hard')
+          x=json.loads((root/'v25_results.json').read_text())
+          f=(root/'v25_train_cal_frozen.json').read_bytes()
+          assert x['status']=='EXECUTED_V25_EQUAL_HARD_NEGATIVE_TRAIN'
+          assert x['train_CAL_sha256']==hashlib.sha256(f).hexdigest()
+          assert x['TEST_generated_after_CNN_HGB_and_CAL_lock']
+          assert x['n_independent_test_base_groups']==160
+          assert x['n_counterfactual_test_worlds']==480
+          assert len(x['method_results'])==8
+          for m in x['method_results'].values():
+              assert m['positive']==320 and m['NOLINK']==160
+          assert x['actual_historical_ANZA_LIRA_not_loaded']
+          assert x['published_3D_seismic_CNNs_not_run']
+          PY
+      - name: Independently recompute all 480 frozen TEST decisions and group bootstrap
+        run: |
+          python scripts/verify_tver_v25_case_evidence.py             --dir results/tver_v25_equal_hard
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('results/tver_v25_equal_hard/verify_v25_independent.json').read_text())
+          assert r['status']=='V25_INDEPENDENT_EQUAL_TRAINED_CNN_HGB_CASE_AUDIT_PASS'
+          assert r['test_cases_verified']==480
+          assert r['independent_160_base_groups_verified']
+          assert r['two_2p5d_CNNs_both_trained_on_same_600_hard_worlds']
+          PY
+      - name: Preserve exactly evaluated source revision
+        if: always()
+        run: |
+          mkdir -p results/tver_v25_equal_hard
+          git rev-parse HEAD > results/tver_v25_equal_hard/COMMIT_SHA.txt
+      - name: Publish hard-negative synthetic scores and genuinely trained task CNNs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v25-fair-hard-negative-trained-hgb-cnn
+          path: |
+            results/tver_v25_equal_hard/v25_train_cal_frozen.json
+            results/tver_v25_equal_hard/v25_results.json
+            results/tver_v25_equal_hard/v25_case_scores.csv
+            results/tver_v25_equal_hard/verify_v25_independent.json
+            results/tver_v25_equal_hard/models/*.pt
+            results/tver_v25_equal_hard/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
