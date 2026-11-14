@@ -318,7 +318,7 @@ def choose_cal_reject_gates(examples,predictions):
         scores=[float(edge["score"]) for s in cal_cases
                 for edge in predictions[(*_case_key(s),method)]["selected"]]
         # Frozen grid is quantiles of CAL method scores plus "accept no links".
-        grid=sorted(set([float("-inf"),float("inf")] +
+        grid=sorted(set([-1.e6,1.e6] +
                         ([float(z) for z in np.quantile(
                             scores,QUANTILES)] if scores else [])))
         choices=[]
