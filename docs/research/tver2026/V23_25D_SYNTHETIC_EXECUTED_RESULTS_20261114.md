@@ -20,7 +20,7 @@ The first CI stopped before generating any V23 benchmark outcome because the pro
 |---|---:|---:|---:|---:|---:|---:|
 | Geometry only | 0 | 0 | 0 | 0 | 0 | 33.33% |
 | Central straight image gradient | 0 | 0 | 16 | 16 | 16 | 33.33% |
-| Adjacent straight-path intensity | 0 | 0 | 72 | 74 | 50 | 37.92% |
+| Adjacent straight-path intensity, numerical CAL instability | 0 | 0 | **23–72** | **29–74** | **15–50** | **35.00–37.92%** |
 | Distant-section sham | 16 | 16 | 10 | 10 | 10 | 33.33% |
 | Source-conditioned 2.5D continuity **prototype** | **320** | **0** | **312** | **0** | **0** | **98.33%** |
 | Learned 2D HGB | 0 | 0 | 0 | 0 | 0 | 33.33% |
@@ -45,3 +45,12 @@ Both IID (320/320 true links, 0/160 false) and OOD (312/320 true links, 0/160 fa
 Use V23 to state a *principle*: a source-conditioned, abstaining 2.5D path-verification module can overcome deliberately constructed 2D projection ambiguity while controlling false-accept decisions on selected held-out synthetic deformation regimes. Pair it with V22 (actual F3 image gradients: 38/40 vs synthetic geometric tie 17/40) only as separate evidence that observed seismic pixels contain conditional path information. Do not join V23+V22 numbers into a fabricated real ANZA-LIRA score. V16's older two-lobed OOD risk failure must still be mentioned: V23 is a different model, scene generator and task, not a corrected V16 pretrained model.
 
 **Next necessary and not yet completed:** a pre-registered independent *second* synthetic 3D renderer, materially harder matched-marginal NO_LINKs, hallucinated/absent-slice controls, a 2.5D CNN or graph-network baseline trained on the identical labeled worlds, and real predicted ANZA ports after retrieving/retraining missing original checkpoint. Only after that can a stronger model-level comparative claim be considered.
+
+
+## Posthoc cross-run numerical sensitivity disclosure (14 November)
+
+Two independent successful GitHub Actions executions ([run 43591812160](https://github.com/fims9000/anza_lira/actions/runs/43591812160) and independently audited [run 43591977935](https://github.com/fims9000/anza_lira/actions/runs/43591977935)) used the **same disjoint group seeds and source code relevant to method/scoring**. Both have identical 960 case \`split/base/family/label\` values, exactly identical decisions from the new continuity matcher (0/960 drift) and matched-information learned 2.5D HGB (0/960 drift). Their max absolute model score differences are ≤4.44×10⁻¹⁶. Their central images have the same **within-run** bitwise triple identity, but per-image byte SHA hashes *between* runners are not bitwise equal; do not falsely claim cross-machine bitwise rendering reproducibility.
+
+A hidden numerical fragility appears in the intentionally simple *adjacent straight-path* CAL selector: nearly tied margin quantiles at machine precision caused the frozen CAL margin threshold to differ between runs (0.00049099626468 vs 0.08229677237237), even though each individual score differs by ≤5.55×10⁻¹⁷. This altered **129/960** naive-adjacent decisions. In OOD, the unstable baseline varies from 72/320 true links with 50/160 false acceptances and 74/320 wrong branches to 23/320 true links with 15/160 false acceptances and 29/320 wrong branches. Neither interpretation satisfies the risk gate. The scientifically relevant continuity-vs-equally-informed HGB comparison and its +5.00pp group-bootstrap CI remained **unchanged** in both runs. This sensitivity was discovered **after V23 TEST was opened** and is reported as posthoc audit, not an outcome-based threshold repair. Future V24 should use canonical quantization of *CAL decision margin ranking*, fixed before its new TEST.
+
+**Do not use the unstable neighboring-gradient row as a reproducible single-number baseline in the manuscript.** List its range or explicitly state calibration sensitivity. Publication-safe distinction remains: standalone NEW 2.5D link verifier vs same-observation HGB on constructed synthetic truth, **not** historical complete ANZA–LIRA versus published fault segmentation networks.
