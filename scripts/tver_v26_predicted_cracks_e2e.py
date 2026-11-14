@@ -290,6 +290,7 @@ def _case_worlds(image,gap,model,receipt):
             "true_ends":gap["true_ends"],
             "hidden_centerline":gap["hidden_centerline"],
             "gray":gray,
+            "original_rgb":raw,
             "visible_prob":candidate_mask,
         })
     return worlds

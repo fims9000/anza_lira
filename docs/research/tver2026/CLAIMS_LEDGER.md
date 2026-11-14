@@ -35,3 +35,22 @@ Future Q1 2.5-D and calibrated LINK/REJECT/REVIEW are **prospective**, not measu
 ## Editorial checks
 
 Confirm all authors, organizations and contribution statements; authorization for specific state-assignment acknowledgment; peer-reviewed prior publication overlap; equation editability; DOI and URL correctness; journal licensing and expert conclusion. Do not insert results from the Varvara medical or bubble-chamber branches.
+
+
+## Additional REAL-PIXEL but artificial-gap E2E evidence, V27–V30 (14 November 2026)
+
+These numbers are **not** historical P0 replay and not a replacement for the 2026-10-29 synthetic/historical claims above. Original ANZA/P0 model checkpoint bytes are not in Git. Real CRACKS F3 image intensity and the original repository AZConv/SBPP P0 code were used with *new* weights, *expert-selected artificial 12-point gap rectangles*, and candidate-absent fake NO_LINK controls, with source labels available in only 12 of 40 original expert sections. Label-eligible split: TRAIN 10,13,17,22,24,35,41; CAL 43,67; BUFFER 106; TEST 108/124. TEST has been repeatedly inspected, from V27 onward; all V28 and V30 iterations are **posthoc**, not confirmatory.
+
+| Evidence family | Verified stage counts | Allowed statement | Forbidden inference |
+|---|---|---|---|
+| V27 real AZConv ANZA at pixel-F1 CAL threshold .60 | 0/2 SBPP source ports, 0/2 true candidates, 0 trained positive pairs, 0/2 accepted paths | Newly trained ANZA predicted a dense segmentation unsuitable for the SBPP extractor at this threshold | The historical ANZA segmentation was inferior or a native LIRA was trained in V27 |
+| V27 real U-Net at pixel-F1 CAL .50 | 2/2 source ports, 1/2 true candidate, 0/2 accepted paths | More useful predicted candidate source, but CAL 12-feature logistic refused all | Any model has recovered real natural fault-instance gaps |
+| V28 changed only segmentation probability threshold to ANZA .90 / U-Net .60; weights identical SHA as V27 | Both 2/2 true SBPP predicted candidates; both actual 12-feature logistic pair heads TRAIN fitted; 0/2 accepted paths | Topology-aware CAL thresholding can make correct source/candidate available in both controlled F3 TEST scenes | Model architecture was changed or a new independent TEST has confirmed superiority |
+| V30 newly trained original 5-conv P0 **architecture** on true predicted SBPP inputs and real observed RGB, not old weights | ANZA P0 seed11/23 ungated top1 1/2 each; U-Net P0 0/2 each. Same-positive-budget matched logistic top1 2/2 for both; all ten method×frontend CAL refusals, 0/2 accepted/recovered | Native contextual P0 architecture is now actually exercised with 4 checkpoint-hashed new CNNs, but on 2 already seen scenes it does NOT beat 12-feature logistic | The original historical contextual LIRA weights have been recovered; CAL full refusal is a meaningful geological low-false-link guarantee; a large modern CNN is globally inferior |
+
+Audit sources:
+- [V27 CI 43596275581](https://github.com/fims9000/anza_lira/actions/runs/43596275581) and [V27 detailed report](./V27_REAL_PREDICTED_E2E_EXECUTED_NEGATIVE_RESULTS_20261114.md)
+- [V28 CI 43596665171](https://github.com/fims9000/anza_lira/actions/runs/43596665171) and [V27–V28 independent review](./V27_V28_REAL_CRACKS_PREDICTED_E2E_COMPARATIVE_AUDIT_20261114.md)
+- [V30 CI 43598608411](https://github.com/fims9000/anza_lira/actions/runs/43598608411) and [V30 40-case independent model-state audit](./V30_REAL_F3_PREDICTED_P0_EXECUTED_NEGATIVE_RESULTS_20261114.md). V30 native original P0 two seeds per frontend, strict CAL-only risk gate, all decisions refused.
+
+**Editorial consequence:** If a Tver revision includes these new results, it must present V27–V30 as a separate exploratory real-image case study with only two source-section TEST scenes, clearly mark all 0/2 complete recovery and avoid mixing with historical synthetic 2611/2688 or 0.9923 AUROC. No SOTA or statistical architecture superiority has been established.
