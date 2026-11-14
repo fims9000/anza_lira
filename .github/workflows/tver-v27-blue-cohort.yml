@@ -1,0 +1,61 @@
+name: Tver V27 real CRACKS expert BLUE source availability audit
+on:
+  push:
+    branches: [research/tver-v27-eligible-blue-e2e-20261114]
+    paths:
+      - scripts/tver_v27_blue_cohort.py
+      - .github/workflows/tver-v27-blue-cohort.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+jobs:
+  audit_blue_cases_before_models:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline image skeleton dependencies
+        run: python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image
+      - uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Check official image and annotation MD5 against published Zenodo
+        run: |
+          python scripts/download_cracks_v2_public.py --output data/cracks/raw \
+            --receipt results/tver_v27/download_receipt.json
+      - name: Audit truly confident BLUE paths and automatic fixed section groups
+        run: |
+          python -m scripts.tver_v27_blue_cohort \
+            --images data/cracks/raw/images.zip \
+            --annotations "data/cracks/raw/Fault segmentations.zip" \
+            --out results/tver_v27/blue_available_source_split.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('results/tver_v27/blue_available_source_split.json').read_text())
+          print('SOURCE_STATUS',r['status'])
+          assert r['status'] in {
+              'V27_FROZEN_BLUE_AVAILABILITY_SOURCE_SPLIT',
+              'STOP_INSUFFICIENT_BLUE_SECTIONS_FOR_TRAIN_CAL_SPATIAL_TEST',
+              'STOP_INSUFFICIENT_SPATIAL_BUFFER'}
+          PY
+      - name: Capture exact code revision
+        if: always()
+        run: |
+          mkdir -p results/tver_v27
+          git rev-parse HEAD > results/tver_v27/COMMIT_SHA.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tver-v27-original-blue-fault-availability-source-audit
+          path: |
+            results/tver_v27/*.json
+            results/tver_v27/COMMIT_SHA.txt
+          retention-days: 90
