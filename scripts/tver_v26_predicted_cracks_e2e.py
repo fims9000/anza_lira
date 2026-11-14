@@ -483,9 +483,9 @@ def execute(images,annotations,trained_root,out,*,split_mapping=None):
         ids=sorted(set(im_paths)&set(experts))
         mapping=split_map(ids) if split_mapping is None else dict(split_mapping)
         if set(mapping).difference(ids):raise RuntimeError('External cohort contains unknown expert IDs')
-        ids_train=[sid for sid in ids if mapping[sid]=="TRAIN"]
-        ids_cal=[sid for sid in ids if mapping[sid]=="CAL"]
-        ids_test=[sid for sid in ids if mapping[sid]=="TEST"]
+        ids_train=[sid for sid in ids if mapping.get(sid)=="TRAIN"]
+        ids_cal=[sid for sid in ids if mapping.get(sid)=="CAL"]
+        ids_test=[sid for sid in ids if mapping.get(sid)=="TEST"]
         # All *both* frontend candidate models trained and CAL decisions
         # frozen before even decoding TEST image or mask.
         for name in ("unet","anza_v1"):
