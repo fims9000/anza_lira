@@ -156,7 +156,9 @@ def cp_upper(count,n,alpha):
     return float(1. if count==n else beta.ppf(1-alpha,count+1,n-count))
 
 
-def evaluate(rows):
+def evaluate(rows,*,expected_candidate_available=65):
+    if not isinstance(expected_candidate_available,int) or not 0<=expected_candidate_available<=120:
+        raise ValueError('Expected candidate count must be between 0 and 120')
     summary={}
     alpha=(1-CONFIDENCE)/(len(CAL_THRESHOLDS)*2)
     for name in METHODS:
@@ -165,8 +167,8 @@ def evaluate(rows):
         negative=[r for r in data if r["world"]=="NO_LINK"]
         if len(positive)!=120 or len(negative)!=120 or len({r["section"] for r in positive})!=60:
             raise RuntimeError("Original 60 sections, 120+120 scenes not reproduced")
-        if sum(r["true_candidate_available"] for r in positive)!=65:
-            raise RuntimeError("Original 65/120 predicted candidate availability changed")
+        if sum(r["true_candidate_available"] for r in positive)!=expected_candidate_available:
+            raise RuntimeError("Original predicted candidate availability changed, expected "+str(expected_candidate_available))
         scores=[r["accept_score"] for r in data if r["accept_score"] is not None]
         if any(not math.isfinite(s) or s<0 or s>1 for s in scores):
             raise ValueError("Bad gate score range")
