@@ -189,20 +189,21 @@ def fit_one(model_name,seed,training,cal_samples,mean,std,out):
         "CAL_uses_pseudo_negative_white_unlabeled":True}
 
 
-def execute(images,annotations,out):
+def execute(images,annotations,out,*,split_mapping=None):
     torch.set_num_threads(2)
     torch.use_deterministic_algorithms(True)
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(images) as zi,zipfile.ZipFile(annotations) as za:
         im=sections(zi);ex=sections(za,expert=True)
         ids=sorted(set(im)&set(ex))
-        mapping=split_map(ids)
+        mapping=split_map(ids) if split_mapping is None else dict(split_mapping)
+        if set(mapping).difference(ids):raise RuntimeError('External cohort contains unknown expert IDs')
         # Do not open TEST expert mask or image before TRAIN and CAL fit.
         train={sid:_read(zi,za,im,ex,sid)
                for sid in ids if mapping[sid]=="TRAIN"}
         cal={sid:_read(zi,za,im,ex,sid)
              for sid in ids if mapping[sid]=="CAL"}
-    if len(train)<8 or len(cal)<2:
+    if len(train)<(8 if split_mapping is None else 5) or len(cal)<2:
         raise RuntimeError("STOP insufficient real spatial train/CAL experts")
     allpix=np.concatenate([x["image"].reshape(-1,3)
                            for x in train.values()],axis=0)
@@ -213,6 +214,7 @@ def execute(images,annotations,out):
     cal_patches,_=_samples(cal,count=48,seed=20262678,pos_fraction=.5)
     receipt={
         "status":"V26_NEW_SEGMENTERS_TRAINED_ON_REAL_CRACKS",
+        "V27_source_eligible_BLUE_cohort":bool(split_mapping is not None),
         "seismic_source":"official_Zenodo_CRACKS_v2",
         "TRAIN_section_ids":sorted(train),
         "CAL_section_ids":sorted(cal),
