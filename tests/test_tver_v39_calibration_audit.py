@@ -2,7 +2,7 @@
 import copy
 import math
 import pytest
-from scripts.tver_v39_calibration_audit import upper_cp, audit, METHODS, MODEL_SHA
+from scripts.tver_v39_calibration_audit import upper_cp, audit, paired_ranking_audit, METHODS, MODEL_SHA
 
 def frozen_sample():
     scans={}
@@ -33,7 +33,7 @@ def frozen_sample():
             for gap in range(2):
                 for world in ("LINK","NO_LINK"):
                     i=(section-40)*2+gap
-                    rows.append({"model":method,"section":str(section),"world":world,
+                    rows.append({"model":method,"section":str(section),"artificial_gap_id":f"thebe:{section}:{gap}","world":world,
                                  "calibration_accept_threshold":"1.01","accepted_ANY":"False",
                                  "at_least_one_true_candidate":str(world=="LINK" and i<65),
                                  "top1_correct_BEFORE_risk_gate":str(world=="LINK" and i<36)})
@@ -72,3 +72,26 @@ def test_cp_receipt_corruption_detected():
     report["RELATION_CAL_frozen_policies"]["geometry"]["scan_by_threshold"]["0.1"]["wrong_link_CP_upper_95"]+=.1
     with pytest.raises(ValueError,match="CP receipt mismatch"):
         audit(report,rows)
+
+def test_paired_ranking_complementarity_and_reproducible_section_bootstrap():
+    _,rows=frozen_sample()
+    result=paired_ranking_audit(rows,bootstrap_replicates=500)
+    x=result["comparisons"]["matched_logistic_vs_p0_seed11"]
+    assert x["both_correct"]==36
+    assert x["only_matched_logistic_correct"]==0
+    assert x["only_comparator_correct"]==0
+    altered=copy.deepcopy(rows)
+    # Two P0-only positive cases that matched logistic misses.
+    changed=0
+    for row in altered:
+        if row["model"]=="p0_seed11" and row["world"]=="LINK" and row["section"]=="60" and changed<2:
+            row["top1_correct_BEFORE_risk_gate"]="True"
+            changed+=1
+    actual=paired_ranking_audit(altered,bootstrap_replicates=500)
+    y=actual["comparisons"]["matched_logistic_vs_p0_seed11"]
+    assert y["only_comparator_correct"]==2
+    assert y["oracle_union_top1_upper_bound_not_deployable"]==38
+    assert paired_ranking_audit(altered,bootstrap_replicates=500)==actual
+    altered.pop()
+    with pytest.raises(ValueError,match="identical gaps"):
+        paired_ranking_audit(altered,bootstrap_replicates=200)
