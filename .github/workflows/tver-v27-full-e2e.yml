@@ -1,0 +1,87 @@
+name: Tver V27 new real CRACKS image ANZA to predicted SBPP to newly fitted LIRA
+on:
+  push:
+    branches: [research/tver-v27-eligible-blue-e2e-20261114]
+    paths:
+      - scripts/tver_v27_full_real_e2e.py
+      - scripts/tver_v27_blue_cohort.py
+      - scripts/tver_v26_predicted_cracks_e2e.py
+      - scripts/tver_v26_train_real_segmenters.py
+      - tests/test_tver_v26_predicted_pipeline.py
+      - .github/workflows/tver-v27-full-e2e.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+jobs:
+  complete_new_model_real_e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 58
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install original repo ANZA and predicted SBPP dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib pytest
+      - name: Test no expert GT input at SBPP/LIRA feature boundary and valid refusal
+        run: |
+          python -m compileall -q scripts/tver_v27_full_real_e2e.py scripts/tver_v26_predicted_cracks_e2e.py
+          python -m pytest -q tests/test_tver_v26_predicted_pipeline.py
+      - uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Download and authenticate official original CRACKS image and expert ZIP
+        run: |
+          python scripts/download_cracks_v2_public.py --output data/cracks/raw \
+            --receipt results/tver_v27/full_source_MD5.json
+      - name: Execute all newly trained genuine AZConv and U-Net, actual SBPP, new LIRA, frozen CAL and real F3 TEST
+        run: |
+          python -m scripts.tver_v27_full_real_e2e \
+            --images data/cracks/raw/images.zip \
+            --annotations "data/cracks/raw/Fault segmentations.zip" \
+            --out results/tver_v27/real_e2e
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          root=Path('results/tver_v27/real_e2e')
+          p=root/'v27_summary.json'
+          if not p.exists():
+              raise AssertionError('V27 did not complete real E2E, check STOP source receipt')
+          x=json.loads(p.read_text())
+          assert x['status']=='V27_BLUE_ELIGIBLE_REAL_CRACKS_COMPLETE_EXPLORATORY'
+          assert len(x['test_section_ids'])==2
+          assert not x['old_original_checkpoint_not_recovered'] is False
+          assert all('methods' in v for v in x['e2e_results'].values())
+          for name in ('unet','anza_v1'):
+              assert x['e2e_results'][name]['predicted_source_port_and_candidate_only']
+              assert x['e2e_results'][name]['n_REAL_TEST_intervention_gaps']>0
+          PY
+      - name: Store exact tested commit SHA
+        if: always()
+        run: |
+          mkdir -p results/tver_v27/real_e2e
+          git rev-parse HEAD > results/tver_v27/real_e2e/COMMIT_SHA.txt
+      - name: Upload only learned models, frozen CAL, decisions and aggregate real results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v27-real-trained-AZConv-SBPP-LIRA-pilot
+          path: |
+            results/tver_v27/full_source_MD5.json
+            results/tver_v27/real_e2e/v27_eligibility_frozen.json
+            results/tver_v27/real_e2e/v27_summary.json
+            results/tver_v27/real_e2e/trained_AZConv_UNet/*
+            results/tver_v27/real_e2e/predicted_e2e/*.json
+            results/tver_v27/real_e2e/predicted_e2e/*.csv
+            results/tver_v27/real_e2e/predicted_e2e/*.joblib
+            results/tver_v27/real_e2e/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
