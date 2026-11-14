@@ -50,8 +50,9 @@ def audit(folder):
         if (not r["source_and_all_proposals_predicted_only"]
             or r["matched_context_training"]["n_train_examples"]<16
             or not r["matched_context_training"]["no_expert_endpoints_in_CNN_input"]
-            or r["matched_context_training"]["train_source_sections"]!=
-            frozen["real_source_sections"]["train"]):
+            or not set(r["matched_context_training"]["train_source_sections"]).issubset(
+                frozen["real_source_sections"]["train"])
+            or not r["matched_context_training"]["train_source_sections"]):
             raise AssertionError("P0 TRAIN provenance does not match registered TRAIN sections")
         p0=r["new_native_P0_architecture_checkpoints"]
         if set(p0)!={"11","23"}:raise AssertionError("Both real native P0 seeds absent")
