@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/tver_v23_25d_counterfactual_synthetic.py'
       - 'tests/test_tver_v23_counterfactual_25d.py'
+      - 'scripts/verify_tver_v23_case_evidence.py'
       - 'docs/research/tver2026/V23_25D_COUNTERFACTUAL_SYNTHETIC_FROZEN_PROTOCOL_20261114.md'
       - '.github/workflows/tver-v23-counterfactual-synthetic.yml'
   workflow_dispatch:
@@ -60,6 +61,17 @@ jobs:
                   assert p['positive']==320 and p['NOLINK']==160
                   assert p['correct_accepted']+p['wrong_branch_accepted']<=320
           PY
+      - name: Recompute all 960 outcomes and group bootstrap in an independent auditor
+        run: |
+          python scripts/verify_tver_v23_case_evidence.py             --dir results/tver_v23_25d
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('results/tver_v23_25d/verify_v23_independent.json').read_text())
+          assert j['status']=='V23_INDEPENDENT_CASEWISE_SYNTHETIC_AUDIT_PASS'
+          assert j['strict_OOD_pass_recomputed']
+          assert all(x['paired_CI_recomputed'] for x in j['results'].values())
+          PY
       - name: Preserve exact experiment code SHA
         if: always()
         run: |
@@ -74,6 +86,7 @@ jobs:
             results/tver_v23_25d/v23_train_cal_frozen.json
             results/tver_v23_25d/v23_results.json
             results/tver_v23_25d/v23_test_case_scores.csv
+            results/tver_v23_25d/verify_v23_independent.json
             results/tver_v23_25d/COMMIT_SHA.txt
           if-no-files-found: warn
           retention-days: 90
