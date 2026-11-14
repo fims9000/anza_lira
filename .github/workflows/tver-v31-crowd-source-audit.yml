@@ -1,0 +1,83 @@
+name: Tver V31 new F3 crowd peer-supported source audit (TRAIN CAL only; TEST unopened)
+
+on:
+  push:
+    branches:
+      - research/tver-v31-crowd-sections-new-heldout-20261114
+    paths:
+      - 'scripts/tver_v31_crowd_cohort.py'
+      - 'tests/test_tver_v31_crowd_cohort.py'
+      - 'docs/research/tver2026/V31_CROWD_AGREEMENT_NEW_ID_HELDOUT_FROZEN_PROTOCOL_20261114.md'
+      - '.github/workflows/tver-v31-crowd-source-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+
+jobs:
+  source_cohort_train_cal_only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install only crowd source audit and test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image pytest
+      - name: Test exact practitioner path/peer admission and corrupt TEST guard
+        run: |
+          python -m compileall -q scripts/tver_v31_crowd_cohort.py
+          python -m pytest -q tests/test_tver_v31_crowd_cohort.py
+      - uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Verify official real F3 source archives without TEST decode
+        run: |
+          python scripts/download_cracks_v2_public.py \
+            --output data/cracks/raw \
+            --receipt results/tver_v31/download_MD5.json
+      - name: Audit only new TRAIN 140-239 and CAL 260-319 practitioner line sources
+        run: |
+          python -m scripts.tver_v31_crowd_cohort \
+            --images data/cracks/raw/images.zip \
+            --annotations "data/cracks/raw/Fault segmentations.zip" \
+            --out results/tver_v31/v31_TRAIN_CAL_crowd_source_preflight.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('results/tver_v31/v31_TRAIN_CAL_crowd_source_preflight.json')
+          j=json.loads(p.read_text())
+          assert j['status'] in (
+            'V31_NEW_CROWD_TRAIN_CAL_SOURCE_FEASIBLE_TEST_UNOPENED',
+            'V31_STOP_INSUFFICIENT_CROWD_AGREEMENT_TRAIN_OR_CAL')
+          assert j['no_TEST_or_BUFFER_decoding']
+          assert j['real_expert_annotations_not_decoded']
+          assert j['filename_inventory']['test_image_pixels_and_mask_pixels_not_decoded']
+          assert j['filename_inventory']['expert_contents_forbidden']
+          assert j['required_min_eligible_sections']=={'TRAIN':15,'CAL':29}
+          PY
+      - name: Persist SHA and audit source outcome (STOP is an allowed scientific result)
+        if: always()
+        run: |
+          mkdir -p results/tver_v31
+          git rev-parse HEAD > results/tver_v31/COMMIT_SHA.txt
+      - name: Preserve original data hashes and TRAIN CAL peer-positive source audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v31-NEW-F3-practitioner-crowd-source-TRAIN-CAL-ONLY
+          path: |
+            results/tver_v31/download_MD5.json
+            results/tver_v31/v31_TRAIN_CAL_crowd_source_preflight.json
+            results/tver_v31/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
