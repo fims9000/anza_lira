@@ -6,6 +6,7 @@ on:
       - scripts/tver_v27_full_real_e2e.py
       - scripts/tver_v27_blue_cohort.py
       - scripts/tver_v26_predicted_cracks_e2e.py
+      - scripts/verify_tver_v27_real_e2e.py
       - scripts/tver_v26_train_real_segmenters.py
       - tests/test_tver_v26_predicted_pipeline.py
       - .github/workflows/tver-v27-full-e2e.yml
@@ -64,6 +65,19 @@ jobs:
               assert x['e2e_results'][name]['predicted_source_port_and_candidate_only']
               assert x['e2e_results'][name]['n_REAL_TEST_intervention_gaps']>0
           PY
+      - name: Independently verify frozen real section-level ANZA SBPP LIRA evidence and paths
+        run: |
+          python scripts/verify_tver_v27_real_e2e.py             --root results/tver_v27/real_e2e
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path(
+            'results/tver_v27/real_e2e/verify_v27_independent.json').read_text())
+          assert x['status']=='V27_INDEPENDENT_REAL_PREDICTED_E2E_COUNT_AUDIT_PASS'
+          assert x['oracle_endpoints_not_used_to_select_ports_or_pairs']
+          assert x['all_method_denominators_and_accepted_paths_recounted']
+          assert x['test_selection_was_conditional_on_BLUE_ground_truth_availability']
+          PY
       - name: Store exact tested commit SHA
         if: always()
         run: |
@@ -78,6 +92,7 @@ jobs:
             results/tver_v27/full_source_MD5.json
             results/tver_v27/real_e2e/v27_eligibility_frozen.json
             results/tver_v27/real_e2e/v27_summary.json
+            results/tver_v27/real_e2e/verify_v27_independent.json
             results/tver_v27/real_e2e/trained_AZConv_UNet/*
             results/tver_v27/real_e2e/predicted_e2e/*.json
             results/tver_v27/real_e2e/predicted_e2e/*.csv
