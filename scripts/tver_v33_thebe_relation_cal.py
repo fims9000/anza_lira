@@ -246,9 +246,17 @@ def execute(memmap_root,frontend_dir,out):
                 "correct_candidate_train_cases":train_pos,
                 "no_oracle_positive_candidate_injected":True}
             continue
-        images,labels,features,passport=paired_training_examples(train,th)
-        full,full_receipt=_full_train_logistic(train)
-        matched=fit_matched_logistic(features,labels)
+        try:
+            images,labels,features,passport=paired_training_examples(train,th)
+            full,full_receipt=_full_train_logistic(train)
+            matched=fit_matched_logistic(features,labels)
+        except (RuntimeError,ValueError) as error:
+            report["frontends"][frontend]={
+                "status":"STOP_PREDICTED_TRAIN_PAIR_MATCHING_OR_RELATION_DATA",
+                "true_predicted_train_cases":train_pos,
+                "reason":str(error),
+                "no_oracle_pairs_injected":True}
+            continue
         models={
             "geometry":None,"full_train_logistic":full,
             "matched_logistic":matched}
@@ -271,10 +279,11 @@ def execute(memmap_root,frontend_dir,out):
             policies[method]=admission
             case_rows.extend(_save_cal_cases(
                 out,frontend,method,cal,scores,admission["accept_threshold"]))
-        with (out/(frontend+"_thebe_REL_CAL_case_rows.csv")).open(
-            "w",encoding="utf8",newline="") as f:
-            wr=csv.DictWriter(f,fieldnames=list(case_rows[0]))
-            wr.writeheader();wr.writerows(case_rows)
+        if case_rows:
+            with (out/(frontend+"_thebe_REL_CAL_case_rows.csv")).open(
+                "w",encoding="utf8",newline="") as f:
+                wr=csv.DictWriter(f,fieldnames=list(case_rows[0]))
+                wr.writeheader();wr.writerows(case_rows)
         report["frontends"][frontend]={
             "status":"TRAINED_TRUE_PREDICTED_ONLY_NEW_LIRA_P0_AND_LOGISTICS",
             "frozen_segmentation_threshold":th,
