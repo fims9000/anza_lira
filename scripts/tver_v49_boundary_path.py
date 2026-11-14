@@ -76,9 +76,15 @@ def boundary_anchors(prob,rect,start,end):
     if p.shape!=(96,96) or not np.isfinite(p).all() or np.any((p<0)|(p>1)):
         raise ValueError("Invalid observed segmentation")
     cross=expected_rectangle_crossings(start,end,rect)
-    if cross is None:
-        return None
     y0,y1,x0,x1=rect
+    if cross is None:
+        # The predicted near-correct endpoints can miss the annotation box
+        # by several pixels. Bound projection uses ONLY the intervention
+        # rectangle and predicted endpoint, not hidden path/true endpoints.
+        lo=np.asarray([y0-3,x0-3],float)
+        hi=np.asarray([y1+2,x1+2],float)
+        cross=(np.clip(np.asarray(start,float),lo,hi),
+               np.clip(np.asarray(end,float),lo,hi))
     inside=np.zeros_like(p,dtype=bool)
     inside[y0:y1,x0:x1]=True
     ring=ndi.binary_dilation(inside,iterations=3)&~inside
