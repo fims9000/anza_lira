@@ -37,5 +37,6 @@ jobs:
         with:
           name: tver-v50-conditioned-path-one-renderer-synthetic-sanity-not-geology
           path: .tver_v50_sanity
-          if-no-files-found: warn
+          if-no-files-found: error
+          include-hidden-files: true
           retention-days: 90
