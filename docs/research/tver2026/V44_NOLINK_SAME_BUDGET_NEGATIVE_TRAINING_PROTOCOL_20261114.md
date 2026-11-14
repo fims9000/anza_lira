@@ -1,0 +1,15 @@
+# V44 Thebe: train-time missing-candidate negatives, equal budget (posthoc)
+
+**Frozen before new V44 real training, 14 Nov 2026.** This is a deliberately scoped **synthetic NO_LINK negative-training** study on already used Thebe REL_CAL (VAL1 sections 40..99). It cannot prove natural geological fault linking safety.
+
+The original repo `paired_training_examples` explicitly ignores `scene.kind != LINK`. The V34 matched Logistic (36/120 top1 before refusal) and native P0 (13/17) therefore learn hard non-true pairs **only when a true target remains**, but V34 risk calibration additionally includes synthetically candidate-absent `NO_LINK` worlds. Full-budget Logistic sees NO_LINK but uses a different negative ratio, so its poorer top1 24/120 cannot isolate this factor.
+
+## Controlled alternatives
+- Exact original frozen V33 Thebe ANZA checksum `ba0c3b8060fd0e3cb1c15f6c1598b94a977677c2b075663b5414207df382c25e`, threshold .65, TRAIN1 100 source sections, VAL1 REL_CAL 40..99, original 200/120 positive gap interventions.
+- Reuse identical `paired_training_examples(train,.65)`: baseline **every** real predicted positive pair plus one hard negative (same original 12 features); exact original `fit_matched_logistic` C=.3, StandardScaler.
+- New `mixed_half`: replace the negative training row for alternating positives by **one highest-baseline-score genuine prediction-derived candidate from the paired synthetic NO_LINK world of the exact same TRAIN source gap**, if any. `mixed_all` replaces all negatives when same-gap NO_LINK candidates exist. Otherwise retain original matched hard negative; record actual replacements. Positive rows and total 1:1 per-pair label budget never change; no extra negatives. The first baseline, trained only on TRAIN, is used to identify hard TRAIN NO_LINK examples; added compute budget is disclosed.
+- Fit the two new models with **exact same Logistic hyperparameters and feature columns** as the matched baseline. No P0 or frontend training.
+- Verify original 116/200 correct candidate TRAIN and 65/120 true available REL_CAL; baseline matched Logistic must reproduce 36/120 top1. Evaluate all original REL_CAL LINK + synthetic NO_LINK worlds. Report LINK top1, overlap with original matched baseline, high-confident false NO_LINK, and both best zero-error and descriptive <=10% section-error threshold recoveries on **ALL unique actual scores** (posthoc exploratory only). No threshold is promoted to real deployment or independent safety evidence.
+- No real Thebe TEST7 image/score/label access. Original 5 method V34 evidence and V38 failure must remain unchanged.
+
+**Success criterion:** only a possible diagnostic gain is new nonzero top1/empirical risk-coverage at the unchanged label budget. It must be independently evaluated on a genuinely different geological field with instance-level annotations before any publishable superiority claim.
