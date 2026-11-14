@@ -1,4 +1,4 @@
-name: Tver V42Bb bounded real Thebe LINK-only fixed-48 source port ablation
+name: Tver V42b bounded real Thebe LINK-only fixed-48 source port ablation
 on:
   push:
     branches:
@@ -8,7 +8,7 @@ on:
       - 'scripts/tver_v42b_link_only_ports.py'
       - 'tests/test_tver_v42b_link_only_ports.py'
       - '.github/workflows/tver-v42b-thebe-link-only.yml'
-      - 'docs/research/tver2026/V42BB_PORT_BUDGET_BOUNDED_COMPUTE_PROTOCOL_20261114.md'
+      - 'docs/research/tver2026/V42B_PORT_BUDGET_BOUNDED_COMPUTE_PROTOCOL_20261114.md'
   workflow_dispatch:
 permissions:
   contents: read
@@ -90,7 +90,7 @@ jobs:
             --out-dir .tver_v42b/input_memmap
       - name: Compare 4 source-port allocations for 120 LINK cases only, no TRAIN/NO_LINK
         run: |
-          python -m scripts.tver_v42bb_link_only_ports \
+          python -m scripts.tver_v42b_link_only_ports \
             --mmap-root .tver_v42b/input_memmap \
             --frontends-dir data/tver_v33_verified_frontends \
             --out-dir .tver_v42b/result
