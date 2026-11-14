@@ -76,3 +76,16 @@ def test_no_fake_coverage_if_scores_do_not_separate_and_input_mismatch():
     assert out["oof_scene_gate"]["best_correct_with_conditional_simultaneous_CP_gate"]==0
     with pytest.raises(RuntimeError,match="Original"):
         evaluate(sample_rows(perfect=True)[:-1])
+
+
+def test_integrated_q70_has_75_candidates_and_old_65_rule_must_fail():
+    rows=sample_rows(perfect=True)
+    for r in rows:
+        if r["world"]=="LINK" and 65<=int(r["gap_id"].split(":")[0])*2+int(r["gap_id"].split(":")[1])<75:
+            r["true_candidate_available"]=1
+    with pytest.raises(RuntimeError,match="Original predicted"):
+        evaluate(rows)
+    z=evaluate(rows,expected_candidate_available=75)
+    assert z["oof_scene_gate"]["rank_top1_correct_before_acceptance"]==41
+    with pytest.raises(ValueError,match="Expected candidate"):
+        evaluate(rows,expected_candidate_available=121)
