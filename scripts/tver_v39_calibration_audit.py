@@ -221,6 +221,73 @@ def paired_ranking_audit(case_rows, seed=20261114, bootstrap_replicates=10000):
             "seed":seed,"comparisons":out}
 
 
+def exact_score_threshold_diagnostic(case_rows):
+    """Posthoc complete observed-score threshold sweep, not admissible tuning.
+
+    Unlike V34's 0.05 grid, every unique observed top1 score is examined.
+    This diagnoses whether the COARSE GRID alone caused the refusal. All
+    values remain CAL-exploratory and cannot be promoted to TEST thresholds.
+    """
+    result={}
+    for method in METHODS:
+        rows=[r for r in case_rows if r["model"]==method]
+        available=[]
+        for row in rows:
+            raw=row["top1_score"]
+            if raw in ("",None):
+                continue
+            score=float(raw)
+            if not math.isfinite(score) or not 0<=score<=1:
+                raise ValueError("Malformed V34 top1 confidence")
+            available.append((score,row["world"],int(row["section"]),
+                              parse_bool(row["top1_correct_BEFORE_risk_gate"])))
+        scores=sorted({v[0] for v in available},reverse=True)
+        if not scores:
+            raise ValueError("No V34 candidate scores to audit")
+        max_correct=max((v[0] for v in available if v[1]=="LINK" and v[3]),default=None)
+        max_wrong=max((v[0] for v in available if v[1]=="NO_LINK" or
+                       (v[1]=="LINK" and not v[3])),default=None)
+        evaluated=[]
+        for t in scores:
+            accepted=[v for v in available if v[0]>=t]
+            correct=sum(w=="LINK" and truth for _,w,_,truth in accepted)
+            bad_link={sid for _,w,sid,truth in accepted if w=="LINK" and not truth}
+            bad_no={sid for _,w,sid,truth in accepted if w=="NO_LINK"}
+            evaluated.append({
+                "threshold":t,"correctly_accepted_link_gap_cases":correct,
+                "wrong_LINK_source_sections":len(bad_link),
+                "false_synthetic_NOLINK_source_sections":len(bad_no),
+                "accepted_count":len(accepted),
+            })
+        # Each point is chosen only for posthoc DIAGNOSIS. All 60 source
+        # sections share one geological volume, no independent risk control.
+        zero=[r for r in evaluated if r["wrong_LINK_source_sections"]==0 and
+                                    r["false_synthetic_NOLINK_source_sections"]==0]
+        empirical=[r for r in evaluated if r["wrong_LINK_source_sections"]<=6 and
+                                         r["false_synthetic_NOLINK_source_sections"]<=6]
+        result[method]={
+            "unique_score_thresholds_evaluated":len(scores),
+            "highest_scored_correct_LINK":max_correct,
+            "highest_scored_wrong_LINK_or_synthetic_NOLINK":max_wrong,
+            "best_correct_at_zero_observed_source_errors":max(
+                [r["correctly_accepted_link_gap_cases"] for r in zero],default=0),
+            "best_correct_at_both_empirical_section_error_rates_le_10pct":max(
+                [r["correctly_accepted_link_gap_cases"] for r in empirical],default=0),
+            "best_empirical_10pct_thresholds_NOT_FOR_DEPLOYMENT":[
+                r["threshold"] for r in empirical if r["correctly_accepted_link_gap_cases"]==
+                max([x["correctly_accepted_link_gap_cases"] for x in empirical],default=0)
+            ][:5],
+            "no_independent_threshold_selection":True,
+            "same_field_section_independence_unverified":True,
+        }
+    return {
+        "status":"V39_ALL_OBSERVED_CAL_SCORES_POSTHOC_THRESHOLD_DIAGNOSTIC",
+        "original_V34_grid_step":.05,
+        "not_a_frozen_deployment_policy":True,
+        "methods":result,
+    }
+
+
 def run(input_dir: Path, output_dir: Path):
     paths = {}
     for name, leaf in [("receipt", "v34_THEBE_P0_ANZA_source_CAL_frozen.json"),
@@ -237,6 +304,7 @@ def run(input_dir: Path, output_dir: Path):
         cases = list(csv.DictReader(f))
     evidence = audit(source, cases)
     evidence["paired_top1_ranking"] = paired_ranking_audit(cases)
+    evidence["all_unique_score_diagnostic"] = exact_score_threshold_diagnostic(cases)
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "V39_V34_RISK_AUDIT.json").write_text(
         json.dumps(evidence, ensure_ascii=False, indent=2)+"\n", encoding="utf8")
