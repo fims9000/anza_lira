@@ -1,0 +1,122 @@
+name: Tver V38 posthoc real Thebe frozen ANZA multithreshold SBPP candidate audit
+on:
+  push:
+    branches:
+      - research/tver-v38-multithreshold-candidate-audit-20261114
+    paths:
+      - scripts/tver_v38_multithreshold_proposals.py
+      - tests/test_tver_v38_multithreshold_proposals.py
+      - .github/workflows/tver-v38-thebe-multithreshold-candidates.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  independent_real_source_candidate_audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 58
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install same frozen source dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib matplotlib pytest
+      - name: Fail closed on candidate leaks and test fixed comparison
+        run: |
+          python -m compileall -q scripts/tver_v38_multithreshold_proposals.py
+          python -m pytest -q tests/test_tver_v38_multithreshold_proposals.py tests/test_tver_v34_anza_p0_relation_cal.py
+      - name: Restore exact original frozen V33 ANZA from old verified run
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43601925275
+          name: tver-v33-Thebe-real-expert-TRAIN-VALID-memmap-source-verified-TEST-unopened
+          github-token: ${{ github.token }}
+          path: data/tver_v33_verified_frontends
+      - name: Restore original checked TRAIN and VAL provider manifest, not TEST
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43600860512
+          name: tver-v32-thebe-independent-seismic-field-source-manifest-NO-DATA
+          github-token: ${{ github.token }}
+          path: data/thebe_v32_manifest
+      - uses: actions/cache@v4
+        with:
+          path: data/thebe_v32_raw
+          key: thebe-v34-seistrain1-534e78ab34bb0ece32ca0a9b69ee99cd-seisval1-518d2979a1f90d535ebc2a44f615970f
+      - name: Validate source receipt and original ANZA checkpoint SHA
+        run: |
+          python - <<'PY'
+          from scripts.tver_v34_anza_p0_relation_cal import _state_report
+          from pathlib import Path
+          import hashlib
+          root=Path('data/tver_v33_verified_frontends')
+          r=_state_report(root)
+          a=r['frontends']['anza_v1']
+          assert hashlib.sha256((root/a['checkpoint']).read_bytes()).hexdigest()==a['SHA256']
+          assert r['heldout_THEBE_TEST7_NOT_OPENED']
+          print('FROZEN V33 SHA PASS',flush=True)
+          PY
+      - name: Fetch only original official Thebe TRAIN and VAL seismic, provider MD5
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,shutil
+          from scripts.tver_v32_thebe_seismic_headers import fetch_streaming_checked
+          m=json.loads(Path('data/thebe_v32_manifest/thebe_public_metadata_inventory.json').read_text())
+          assert m['status']=='V32_THEBE_EXTERNAL_FIELD_DATAVERSE_METADATA_ONLY_COMPLETE'
+          b={x['name']:x for x in m['files']}
+          root=Path('data/thebe_v32_raw')
+          root.mkdir(parents=True,exist_ok=True)
+          for n in ('seistrain1.npz','seisval1.npz'):
+              print(n,fetch_streaming_checked(b[n],root/n),flush=True)
+          for n in ('faulttrain1.npz','faultval1.npz'):
+              shutil.copyfile(Path('data/thebe_v32_manifest/label_headers')/n,root/n)
+          PY
+      - name: Bounded source-to-memmap conversion (no TEST archive)
+        run: |
+          python -m scripts.tver_v33_thebe_memmap \
+            --source-dir data/thebe_v32_raw \
+            --out-dir results/tver_v38/input_memmap
+      - name: Execute four fixed 48-pair candidates baselines on real TRAIN and already viewed REL-CAL
+        run: |
+          python -m scripts.tver_v38_multithreshold_proposals \
+            --mmap-root results/tver_v38/input_memmap \
+            --frontends-dir data/tver_v33_verified_frontends \
+            --out-dir results/tver_v38/output
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('results/tver_v38/output/V38_RESULT.json').read_text())
+          assert r['status']=='V38_REAL_THEBE_FIXED_48_CANDIDATE_AUDIT_COMPLETE_TEST7_UNOPENED'
+          assert r['original_Thebe_TEST7_NEVER_OPENED']
+          assert r['existing_V34_CAL_already_viewed_posthoc']
+          v=r['summary']['REL_CAL_ALREADY_VIEWED/original_065']
+          # Any changed baseline is a fatal incompatibility, never reported as improvement.
+          assert v['n_link_gaps']==120
+          assert v['correct_candidate_available']==65, v
+          print('V38 original 65/120 baseline replication PASS',flush=True)
+          PY
+      - name: Retain source SHA and complete compact candidate-only metric records
+        if: always()
+        run: |
+          mkdir -p results/tver_v38/output
+          git rev-parse HEAD > results/tver_v38/output/COMMIT_SHA.txt
+      - name: Upload only aggregate and per-case candidate counts, not geological arrays
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v38-Thebe-frozen-ANZA-multithreshold-candidate-audit-TEST-unopened
+          path: |
+            results/tver_v38/output/V38_RESULT.json
+            results/tver_v38/output/V38_CASE_ROWS.csv
+            results/tver_v38/output/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
