@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   PYTHONHASHSEED: '0'
@@ -50,12 +51,40 @@ jobs:
           python scripts/download_cracks_v2_public.py \
             --output data/cracks/raw \
             --receipt results/tver_v30/download_MD5.json
+      - name: Restore exact SHA-frozen original V28 real-trained AZConv/U-Net and topology artifacts
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43596665171
+          name: tver-v28-posthoc-topology-predicted-sbpp
+          github-token: ${{ github.token }}
+          path: data/tver_v28_frozen_reference
+      - name: Verify restored immutable original V28 checkpoint SHA256
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          root=Path('data/tver_v28_frozen_reference/real')
+          receipt=json.loads((root/'new_train_model/v26_segmenter_frozen.json').read_text())
+          top=json.loads((root/'v28_topology_TRAIN_CAL_frozen.json').read_text())
+          expected={
+            'unet':'908861df22265db189b4d18f53ca587634673b3c39a96c3f3752458e8516dc4b',
+            'anza_v1':'14ecda83fbf327085390f1cc5665d30730e250fc4b2192f68ac1d25fa751e300',
+          }
+          for name,digest in expected.items():
+              item=receipt['frontends'][name]
+              blob=(root/'new_train_model'/item['checkpoint']).read_bytes()
+              assert hashlib.sha256(blob).hexdigest()==digest
+              assert item['checkpoint_SHA256']==digest
+              assert top['frontends'][name]['unchanged_actual_model_SHA256']==digest
+          assert {k:v['selected_threshold'] for k,v in top['frontends'].items()}=={'unet':.6,'anza_v1':.9}
+          PY
       - name: Fit actual P0 two-seed context selectors on real predicted SBPP pairs
         run: |
           python -m scripts.tver_v30_real_p0_e2e \
             --images data/cracks/raw/images.zip \
             --annotations "data/cracks/raw/Fault segmentations.zip" \
-            --out results/tver_v30/predicted_p0
+            --out results/tver_v30/predicted_p0 \
+            --v28-reference data/tver_v28_frozen_reference/real
           python - <<'PY'
           import json,hashlib
           from pathlib import Path
@@ -66,6 +95,7 @@ jobs:
           assert report['status']=='V30_POSTHOC_REAL_CRACKS_PREDICTED_P0_E2E_EXECUTED'
           assert hashlib.sha256(frozen_path.read_bytes()).hexdigest()==report['all_model_frozen_SHA256']
           assert lock['V30_IS_POSTHOC_after_V27_V28_TEST_inspection']
+          assert lock['never_retrained_or_rethresholded_original_V28_frontends']
           assert lock['registered_V28_segmentation_thresholds']=={'unet':.6,'anza_v1':.9}
           assert report['real_TEST_sections']==[108,124]
           for frontend in ('unet','anza_v1'):
