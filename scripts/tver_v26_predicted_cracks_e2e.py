@@ -175,12 +175,16 @@ def _features(source,cand,prob,gray):
     ],np.float64)
 
 
-def sbpp_proposals(visible_prob,gray,rect,hard_threshold):
-    """Actual repository SBPP V3-B hard+soft clustering and proposals.
+def sbpp_proposals(visible_prob,gray,rect,hard_threshold,*,max_sources=MAX_SOURCES,per_source_k=K):
+    """Original SBPP V3-B with optional equal-budget source-port allocation.
 
-    Inputs have only model probability, original image ROI and
-    INTERVENTION RECTANGLE. No source or destination oracle coordinates.
+    Defaults exactly preserve historical 4x12 behavior. Every configuration
+    has <=48 total raw pairs. No oracle endpoints or labels enter proposals.
     """
+    if (not isinstance(max_sources,int) or not isinstance(per_source_k,int)
+        or max_sources<1 or per_source_k<1
+        or max_sources*per_source_k>48):
+        raise ValueError("Invalid source-port/candidate allocation: budget must not exceed 48")
     prob=np.asarray(visible_prob,np.float32)
     if (prob.shape!=(ROI,ROI) or gray.shape!=(ROI,ROI)
         or not np.isfinite(prob).all()
@@ -210,7 +214,7 @@ def sbpp_proposals(visible_prob,gray,rect,hard_threshold):
         selected.append((distance,-float(port.confidence),port))
     selected.sort(key=lambda row:(row[0],row[1],row[2].branch_id))
     unique={};candidates=[]
-    for _,_,port in selected[:MAX_SOURCES]:
+    for _,_,port in selected[:max_sources]:
         sources=tuple(
             extract_soft_branches(
                 prob,gray,mask,port,tau_s=ratio*hard_threshold)
@@ -226,7 +230,7 @@ def sbpp_proposals(visible_prob,gray,rect,hard_threshold):
                     hysteresis_rule=branch.hysteresis_rule))
         soft=sorted(soft,key=lambda b:(-b.length,-b.mean_probability))[:MAX_SOFT]
         clusters=cluster_branches(hard,tuple(soft))
-        proposed=propose_cluster_candidates(port,clusters)[:K]
+        proposed=propose_cluster_candidates(port,clusters)[:per_source_k]
         for item in proposed:
             key=tuple(np.rint([*port.point_yx,*item.landing_point_yx]).astype(int))
             if key in unique:continue
@@ -240,7 +244,8 @@ def sbpp_proposals(visible_prob,gray,rect,hard_threshold):
     candidates=sorted(
         candidates,key=lambda row:(-row["geometry"],row["source"],row["target"]))
     return {"status":"OK" if candidates else "NO_SOURCES_OR_CANDIDATES",
-            "source_count":min(MAX_SOURCES,len(selected)),
+            "source_count":min(max_sources,len(selected)),
+            "n_eligible_source_ports_before_cap":len(selected),
             "hard_branches":len(hard),
             "proposals":candidates[:48],
             "n_proposals_before_cap":len(candidates)}
