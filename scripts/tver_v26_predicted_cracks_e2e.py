@@ -572,7 +572,7 @@ def execute(images,annotations,trained_root,out,*,split_mapping=None):
             "status":"V26_NEW_REAL_MODEL_AND_LIRA_FROZEN_BEFORE_TEST",
             "protocol":"TV_V26_PREDICTED_CRACKS_REAL_IMAGE_CONTROLLED_GAPS",
             "real_TR_sections":ids_train,"real_CAL_sections":ids_cal,
-            "buffer_sections":[s for s in ids if mapping[s]=="BUFFER"],
+            "buffer_sections":[s for s in ids if mapping.get(s)=="BUFFER"],
             "reserved_unseen_TEST_sections":ids_test,
             "no_TEST_image_mask_decoded_for_supervised_learning":True,
             "frontends":frozen,
