@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/tver_v24_switched_neighbor_synthetic.py'
       - 'tests/test_tver_v24_switched_neighbor_synthetic.py'
+      - 'scripts/verify_tver_v24_case_evidence.py'
       - 'docs/research/tver2026/V24_SWITCHED_NEIGHBOR_HARD_NOLINK_FROZEN_PROTOCOL_20261114.md'
       - '.github/workflows/tver-v24-switched-neighbor.yml'
   workflow_dispatch:
@@ -54,6 +55,19 @@ jobs:
               assert m['positive']==320 and m['NOLINK']==160
           assert r['historical_anza_lira_checkpoint_not_loaded']
           PY
+      - name: Independently audit all 480 matched-marginal source worlds and selective risk
+        run: |
+          python scripts/verify_tver_v24_case_evidence.py             --dir results/tver_v24_hard_nolink
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('results/tver_v24_hard_nolink/verify_v24_independent.json')
+          r=json.loads(p.read_text())
+          assert r['status']=='V24_INDEPENDENT_MATCHED_MARGINAL_CASE_AUDIT_PASS'
+          assert r['n_independent_synthetic_base_groups']==160
+          assert r['protocol_strict_hard_NO_LINK_criteria_recomputed']
+          assert r['160_base_group_bootstrap_recomputed']
+          PY
       - name: Freeze method revision
         if: always()
         run: |
@@ -68,6 +82,7 @@ jobs:
             results/tver_v24_hard_nolink/v24_before_test_freeze.json
             results/tver_v24_hard_nolink/v24_results.json
             results/tver_v24_hard_nolink/v24_hard_negative_case_scores.csv
+            results/tver_v24_hard_nolink/verify_v24_independent.json
             results/tver_v24_hard_nolink/COMMIT_SHA.txt
           if-no-files-found: warn
           retention-days: 90
