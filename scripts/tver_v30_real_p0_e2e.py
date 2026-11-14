@@ -11,6 +11,7 @@ import csv
 import hashlib
 import json
 import zipfile
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -18,10 +19,7 @@ import torch
 
 from scripts.tver_v27_blue_cohort import (
     blue_available_sections,frozen_positive_split)
-from scripts.tver_v26_train_real_segmenters import (
-    execute as train_segmentation,restore_model)
-from scripts.tver_v28_topology_calibration import (
-    execute as select_topology)
+from scripts.tver_v26_train_real_segmenters import restore_model
 from scripts.tver_v26_predicted_cracks_e2e import (
     _dataset,_train_relation,_rank,_path_success)
 from scripts.cracks_real_oracle_gap_audit import sections
@@ -31,6 +29,10 @@ from scripts.tver_v30_p0_context import (
 
 FRONTENDS=("unet","anza_v1")
 REGISTERED_SEG_THRESHOLD={"unet":.60,"anza_v1":.90}
+REGISTERED_WEIGHT_SHA256={
+    "unet":"908861df22265db189b4d18f53ca587634673b3c39a96c3f3752458e8516dc4b",
+    "anza_v1":"14ecda83fbf327085390f1cc5665d30730e250fc4b2192f68ac1d25fa751e300",
+}
 CAL_THRESHOLDS=tuple(round(float(x),2) for x in
                      np.linspace(0.,1.,21))+(1.01,)
 MODEL_NAMES=("geometry","full_train_logistic","matched_logistic",
@@ -159,7 +161,7 @@ def _method_metrics(scenes,scored,threshold):
     },records
 
 
-def execute(images,annotations,out):
+def execute(images,annotations,out,*,v28_reference):
     out=Path(out);out.mkdir(parents=True,exist_ok=True)
     torch.set_num_threads(1)
     torch.use_deterministic_algorithms(True)
@@ -171,17 +173,47 @@ def execute(images,annotations,out):
         raise RuntimeError("STOP V30 cohort differs from already inspected V27")
     (out/"v30_source_cohort.json").write_text(
         json.dumps(cohort,indent=2)+"\n")
-    trained=out/"newly_fitted_AZConv_UNet"
-    fitted=train_segmentation(
-        images,annotations,trained,split_mapping=mapping)
-    topo=select_topology(
-        images,annotations,trained,mapping,
-        out/"v30_original_V28_topology_CAL.json")
+    # **Original V28 model weights**, not an approximation from re-training.
+    # An otherwise identical re-training using PyTorch CPU single-thread
+    # produces different segmentation weights and would require a NEW CAL
+    # topology threshold, violating the V30 controlled P0-only protocol.
+    reference=Path(v28_reference)
+    original_model_root=reference/"new_train_model"
+    original_receipt=original_model_root/"v26_segmenter_frozen.json"
+    original_topology=reference/"v28_topology_TRAIN_CAL_frozen.json"
+    if not original_receipt.is_file() or not original_topology.is_file():
+        raise RuntimeError("STOP original successful V28 model artifacts unavailable")
+    fitted=json.loads(original_receipt.read_text())
+    topo=json.loads(original_topology.read_text())
+    if (fitted["status"]!="V26_NEW_SEGMENTERS_TRAINED_ON_REAL_CRACKS"
+        or topo["status"]!="V28_POSTHOC_TRAIN_CAL_ONLY_TOPOLOGY_SELECTION"
+        or fitted["TRAIN_section_ids"]!=[10,13,17,22,24,35,41]
+        or fitted["CAL_section_ids"]!=[43,67]
+        or fitted["reserved_TEST_source_sections"]!=[108,124]
+        or topo["reserved_TEST_section_ids"]!=[108,124]):
+        raise RuntimeError("STOP V28 source/weights/cohort receipt mismatch")
     thresholds={n:topo["frontends"][n]["selected_threshold"]
                 for n in FRONTENDS}
     if thresholds!=REGISTERED_SEG_THRESHOLD:
         raise RuntimeError(
             f"STOP registered V28 threshold drift: {thresholds!r}")
+    trained=out/"newly_fitted_AZConv_UNet"
+    trained.mkdir(parents=True,exist_ok=True)
+    shutil.copyfile(original_receipt,trained/"v26_segmenter_frozen.json")
+    shutil.copyfile(original_topology,out/"v30_original_V28_topology_CAL.json")
+    for name in FRONTENDS:
+        item=fitted["frontends"][name]
+        checkpoint=original_model_root/item["checkpoint"]
+        if (not checkpoint.is_file()
+            or hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+               !=item["checkpoint_SHA256"]
+            or item["checkpoint_SHA256"]!=REGISTERED_WEIGHT_SHA256[name]
+            or topo["frontends"][name]["unchanged_actual_model_SHA256"]
+               !=REGISTERED_WEIGHT_SHA256[name]):
+            raise RuntimeError("STOP original V28 trained weights SHA256 drift")
+        shutil.copyfile(checkpoint,trained/item["checkpoint"])
+    # No V30 retraining of segmentation or re-selection of topology.
+    # V30 changes only newly fitted pair scoring; never claims a fresh TEST.
     test_ids=[s for s in mapping if mapping[s]=="TEST"]
     train_ids=[s for s in mapping if mapping[s]=="TRAIN"]
     cal_ids=[s for s in mapping if mapping[s]=="CAL"]
@@ -247,6 +279,8 @@ def execute(images,annotations,out):
                 "buffer":cohort["BUFFER_sections"],
                 "test_already_inspected_prior":sorted(test_ids)},
             "registered_V28_segmentation_thresholds":thresholds,
+            "exact_persisted_V28_segmentation_weight_SHA256":REGISTERED_WEIGHT_SHA256,
+            "never_retrained_or_rethresholded_original_V28_frontends":True,
             "frontends":trained_receipts,
             "calibration_only_acceptance_gates":cal_receipts,
             "no_expert_source_or_target_endpoint_as_any_inference_feature":True,
@@ -308,5 +342,6 @@ if __name__=="__main__":
     p.add_argument("--images",required=True,type=Path)
     p.add_argument("--annotations",required=True,type=Path)
     p.add_argument("--out",required=True,type=Path)
+    p.add_argument("--v28-reference",required=True,type=Path)
     a=p.parse_args()
-    execute(a.images,a.annotations,a.out)
+    execute(a.images,a.annotations,a.out,v28_reference=a.v28_reference)
