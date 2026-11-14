@@ -6,7 +6,7 @@ on:
     paths:
       - 'scripts/tver_v43_dense_mask_fallback.py'
       - 'tests/test_tver_v43_dense_mask_fallback.py'
-      - '.github/workflows/tver-v42-thebe-port-budget.yml'
+      - '.github/workflows/tver-v43-thebe-dense-mask.yml'
       - 'docs/research/tver2026/V43_DENSE_MASK_FAILCLOSED_POSTHOC_PROTOCOL_20261114.md'
   workflow_dispatch:
 permissions:
@@ -89,7 +89,7 @@ jobs:
             --out-dir .tver_v43/input_memmap
       - name: Compare original .65 versus density-gated q.70/.80/.90 fixed-48 candidates on original cases
         run: |
-          python -m scripts.tver_v43_port_budget \
+          python -m scripts.tver_v43_dense_mask_fallback \
             --mmap-root .tver_v43/input_memmap \
             --frontends-dir data/tver_v33_verified_frontends \
             --out-dir .tver_v43/result
