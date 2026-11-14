@@ -1,0 +1,70 @@
+name: Tver V26 real CRACKS source and ANZA-v1 CPU preflight
+on:
+  push:
+    branches: [research/tver-v26-predicted-cracks-e2e-20261114]
+    paths:
+      - scripts/tver_v26_cracks_inventory.py
+      - docs/research/tver2026/V26_PREDICTED_CRACKS_ANZA_SBPP_LIRA_FROZEN_PROTOCOL_20261114.md
+      - .github/workflows/tver-v26-cracks-preflight.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+jobs:
+  authentic-cracks-expert-denominators-and-AZConv-backward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install real scientific tools and CPU PyTorch
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image
+      - name: Cache unmodified official CRACKS v2 archive
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Verify published CRACKS Zenodo source MD5 before any use
+        run: |
+          python scripts/download_cracks_v2_public.py \
+            --output data/cracks/raw \
+            --receipt results/tver_v26/preflight_download_receipt.json
+      - name: Inspect all original expert colors and CPU genuine ANZA forward-backward trainability
+        run: |
+          python -m scripts.tver_v26_cracks_inventory \
+            --images data/cracks/raw/images.zip \
+            --annotations "data/cracks/raw/Fault segmentations.zip" \
+            --out results/tver_v26/preflight_inventory.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          x=json.loads(Path('results/tver_v26/preflight_inventory.json').read_text())
+          assert x['status']=='V26_OFFICIAL_EXPERT_INVENTORY'
+          assert x['n_expert_sections']==40
+          assert all(x['sections_by_split'][k] for k in ('TRAIN','CAL','TEST'))
+          assert all(v['can_backpropagate_all_parameters']
+                     for v in x['CPU_64px_model_trainability_smoke'].values())
+          PY
+      - name: Preserve source SHA
+        if: always()
+        run: |
+          mkdir -p results/tver_v26
+          git rev-parse HEAD > results/tver_v26/COMMIT_SHA.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tver-v26-authentic-cracks-source-preflight
+          path: |
+            results/tver_v26/preflight_inventory.json
+            results/tver_v26/preflight_download_receipt.json
+            results/tver_v26/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
