@@ -7,6 +7,8 @@ on:
     paths:
       - 'scripts/tver_v33_thebe_memmap.py'
       - 'tests/test_tver_v33_thebe_memmap.py'
+      - 'scripts/tver_v33_thebe_train_segmenters.py'
+      - 'tests/test_tver_v33_thebe_train_segmenters.py'
       - '.github/workflows/tver-v33-thebe-source.yml'
   workflow_dispatch:
 
@@ -33,6 +35,14 @@ jobs:
           python -m pip install --disable-pip-version-check numpy pytest
           python -m compileall -q scripts/tver_v33_thebe_memmap.py
           python -m pytest -q tests/test_tver_v33_thebe_memmap.py
+      - name: Install actual AZConv and SBPP V3-B / PyTorch CPU dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check scipy pillow scikit-image scikit-learn joblib matplotlib
+      - name: Test real Thebe ANZA/U-Net parity and predicted-SBPP topology before heavy data
+        run: |
+          python -m compileall -q scripts/tver_v33_thebe_train_segmenters.py
+          python -m pytest -q tests/test_tver_v33_thebe_train_segmenters.py tests/test_tver_v26_predicted_pipeline.py tests/test_tver_v28_topology_calibration.py
       - name: Recover original source Thebe 2.15GB checked chunks
         uses: actions/cache@v4
         with:
@@ -100,6 +110,25 @@ jobs:
           assert all(v['mmap_can_reopen'] for v in j['arrays'].values())
           assert len(j['arrays'])==4
           PY
+      - name: Fit new genuine AZConv-v1 and equal-budget U-Net on real Thebe TRAIN and calibrate SBPP topology without REL-CAL or TEST
+        run: |
+          python -m scripts.tver_v33_thebe_train_segmenters \
+            --mmap-root results/tver_v33/local_memmaps \
+            --out-dir results/tver_v33/seg_topology
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          base=Path('results/tver_v33/seg_topology')
+          r=json.loads((base/'v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json').read_text())
+          assert r['status'] in ('V33_THEBE_REAL_SEGMENTERS_AND_TOPOLOGY_TRAIN_CAL_COMPLETE','V33_STOP_THEBE_NEW_FRONTEND_PREDICTED_SBPP_INSUFFICIENT')
+          assert r['heldout_THEBE_TEST7_NOT_OPENED']
+          assert r['REL_CAL_section_indices_locked_unopened']==list(range(40,100))
+          assert r['SEG_CAL_section_indices']==list(range(30))
+          for name,x in r['frontends'].items():
+              path=base/x['checkpoint']
+              assert hashlib.sha256(path.read_bytes()).hexdigest()==x['SHA256']
+              assert x['train_steps']==600
+          PY
       - name: Persist compact provenance only
         if: always()
         run: |
@@ -108,6 +137,11 @@ jobs:
           if test -f results/tver_v33/local_memmaps/v33_memmap_source_receipt.json; then
             cp results/tver_v33/local_memmaps/v33_memmap_source_receipt.json results/tver_v33/out/
           fi
+          if test -f results/tver_v33/seg_topology/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json; then
+            cp results/tver_v33/seg_topology/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json results/tver_v33/out/
+            cp results/tver_v33/seg_topology/*_new_thebe_checkpoint.pt results/tver_v33/out/
+          
+          fi
       - name: Upload source receipt, never full compressed/seismic/label arrays
         if: always()
         uses: actions/upload-artifact@v4
@@ -115,6 +149,8 @@ jobs:
           name: tver-v33-Thebe-real-expert-TRAIN-VALID-memmap-source-verified-TEST-unopened
           path: |
             results/tver_v33/out/v33_memmap_source_receipt.json
+            results/tver_v33/out/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json
+            results/tver_v33/out/*_new_thebe_checkpoint.pt
             results/tver_v33/out/COMMIT_SHA.txt
           if-no-files-found: warn
           retention-days: 90
