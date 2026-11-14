@@ -1,0 +1,73 @@
+name: V29 new synthetic close-rival selective LIRA risk stress test
+
+on:
+  push:
+    branches:
+      - research/tver-v29-frozen-synthetic-link-risk-20261114
+    paths:
+      - 'scripts/tver_synthetic_risk_v29.py'
+      - 'tests/test_tver_synthetic_risk_v29.py'
+      - 'docs/research/tver2026/V29_FROZEN_SYNTHETIC_NEAR_RIVAL_SELECTIVE_LINKS_20261114.md'
+      - '.github/workflows/tver-v29-synthetic-risk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '1'
+  PYTHONHASHSEED: '0'
+
+jobs:
+  test-fixed-LIRA-links-on-new-synthetic-scenes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only geometric scientific test requirements
+        run: |
+          python -m pip install --disable-pip-version-check numpy scipy scikit-image pillow
+      - name: Check generator identical-observation counterfactual and actual V23/V25 core
+        run: |
+          python -m compileall -q scripts/tver_synthetic_risk_v29.py tests/test_tver_synthetic_risk_v29.py
+          python -m unittest -v tests.test_tver_synthetic_risk_v29 tests.test_cracks_real_region_v25
+      - name: Open genuinely new heldout V29 synthetic stream AFTER freezing CAL-only gates
+        run: |
+          set -o pipefail
+          python -m scripts.tver_synthetic_risk_v29 \
+            --out-dir results/tver_synthetic_risk_v29 | tee v29_scientific_log.jsonl
+          python - <<'PY'
+          import json,csv
+          p='results/tver_synthetic_risk_v29/STATUS.json'
+          r=json.load(open(p))
+          assert r['status']=='V29_NEW_SYNTHETIC_PROBABILITY_POLICY_STRESS_TEST_EXECUTED'
+          assert r['CAL_group_count']==75
+          assert r['TEST_group_count']==150
+          assert r['n_observationally_identical_counterfactual_TEST_pairs']==150
+          assert r['CAL_risk_gate_negative_type']=='distinct_negative ONLY'
+          assert r['test_opened_only_after_CAL_thresholds_frozen']
+          assert r['source_is_PROCEDURAL_PROBABILITY_not_learned_detection']
+          assert r['not_original_pretrained_ANZA_or_original_trained_LIRA']
+          assert r['historical_main_Tver_V28_results_unchanged']
+          assert not r['risk_control_guaranteed_outside_CAL']
+          with open('results/tver_synthetic_risk_v29/PER_SCENE.csv') as f:
+            rows=list(csv.DictReader(f))
+          assert len(rows)==9000,(len(rows))
+          assert len(r['all_synthetic_metrics'])==80
+          PY
+          git rev-parse HEAD > results/tver_synthetic_risk_v29/SOURCE_COMMIT_SHA.txt
+      - name: Preserve complete positive and negative synthetic evidence without claiming physical ANZA superiority
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v29-synthetic-risk-near-rival-procedural-probability
+          path: |
+            results/tver_synthetic_risk_v29/
+            v29_scientific_log.jsonl
+          if-no-files-found: warn
+          retention-days: 90
