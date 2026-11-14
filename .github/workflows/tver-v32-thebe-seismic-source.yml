@@ -1,0 +1,83 @@
+name: Tver V32 Thebe expert TRAIN and VALID seismic source headers only (test unopened)
+
+on:
+  push:
+    branches:
+      - research/tver-v32-thebe-external-field-manifest-20261114
+    paths:
+      - 'scripts/tver_v32_thebe_seismic_headers.py'
+      - '.github/workflows/tver-v32-thebe-seismic-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+
+jobs:
+  original_thebe_real_seismic_train_val_source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install source array header parser only
+        run: |
+          python -m pip install --disable-pip-version-check numpy pytest
+          python -m compileall -q scripts/tver_v32_thebe_seismic_headers.py
+          python -m pytest -q tests/test_tver_v32_thebe_external_manifest.py tests/test_tver_v32_thebe_label_headers.py
+      - name: Restore official Thebe source manifest and two verified expert NPZ labels
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43600860512
+          name: tver-v32-thebe-independent-seismic-field-source-manifest-NO-DATA
+          github-token: ${{ github.token }}
+          path: data/thebe_v32_metadata
+      - uses: actions/cache@v4
+        with:
+          path: data/thebe_v32_raw
+          key: thebe-v32-seistrain1-534e78ab34bb0ece32ca0a9b69ee99cd-seisval1-518d2979a1f90d535ebc2a44f615970f
+      - name: Stream ONLY official independent-field TRAIN/VAL seismic NPZ data with full MD5
+        run: |
+          python -m scripts.tver_v32_thebe_seismic_headers \
+            --manifest data/thebe_v32_metadata/thebe_public_metadata_inventory.json \
+            --label-receipt data/thebe_v32_metadata/label_headers/v32_train_val_label_headers.json \
+            --out-dir data/thebe_v32_raw
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('data/thebe_v32_raw/v32_real_thebe_train_val_seismic_head_receipt.json')
+          x=json.loads(p.read_text())
+          assert x['status'] in (
+             'V32_THEBE_TRAIN_VAL_REAL_SEISMIC_AND_EXPERT_MASK_HEADERS_MATCH_TEST_UNOPENED',
+             'V32_STOP_THEBE_SEISMIC_SOURCE')
+          assert x['downloaded_or_decoded_TEST'] is False
+          assert x['seismic_pixels_decoded'] is False
+          assert x['expert_label_pixels_decoded'] is False
+          if x['status'].startswith('V32_THEBE_TRAIN_VAL_'):
+              assert sorted(x['matched_pair_headers'])==['faulttrain1.npz','faultval1.npz']
+          PY
+      - name: Preserve source audit SHA, NEVER artifact full 2GB seismic arrays
+        if: always()
+        run: |
+          mkdir -p results/tver_v32
+          git rev-parse HEAD > results/tver_v32/COMMIT_SHA.txt
+          if test -f data/thebe_v32_raw/v32_real_thebe_train_val_seismic_head_receipt.json; then
+            cp data/thebe_v32_raw/v32_real_thebe_train_val_seismic_head_receipt.json results/tver_v32/
+          fi
+      - name: Upload ONLY compact verified source receipts, not amplitude arrays
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v32-thebe-TRAIN-VALID-real-amplitude-source-HEADERS-ONLY
+          path: |
+            results/tver_v32/v32_real_thebe_train_val_seismic_head_receipt.json
+            results/tver_v32/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
