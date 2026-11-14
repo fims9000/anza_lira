@@ -92,6 +92,6 @@ def test_paired_ranking_complementarity_and_reproducible_section_bootstrap():
     assert y["only_comparator_correct"]==2
     assert y["oracle_union_top1_upper_bound_not_deployable"]==38
     assert paired_ranking_audit(altered,bootstrap_replicates=500)==actual
-    altered.pop()
+    altered=[r for r in altered if not (r["model"]=="p0_seed11" and r["world"]=="LINK" and r["artificial_gap_id"]=="thebe:60:0")]
     with pytest.raises(ValueError,match="identical gaps"):
         paired_ranking_audit(altered,bootstrap_replicates=200)
