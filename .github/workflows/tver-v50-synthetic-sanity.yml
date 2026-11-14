@@ -1,0 +1,41 @@
+name: Tver V50 observed-image conditioned curved path synthetic sanity (not geology)
+on:
+  push:
+    branches:
+      - research/tver-v50-conditioned-path-network-20261114
+    paths:
+      - 'scripts/tver_v50_synthetic_sanity.py'
+      - '.github/workflows/tver-v50-synthetic-sanity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  one_renderer_not_geological:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: CPU torch and tiny model scientific dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pytest
+      - name: Compare learned and geometry-only ribbon on new renderer seeds
+        run: |
+          python -m scripts.tver_v50_synthetic_sanity --out-dir .tver_v50_sanity
+          git rev-parse HEAD > .tver_v50_sanity/V50_SYNTHETIC_CODE_SHA.txt
+      - name: Preserve model and case-independent narrow sanity receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v50-conditioned-path-one-renderer-synthetic-sanity-not-geology
+          path: .tver_v50_sanity
+          if-no-files-found: warn
+          retention-days: 90
