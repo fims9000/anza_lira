@@ -20,19 +20,18 @@ from PIL import Image
 from scripts.cracks_real_oracle_gap_audit import sections,COLORS,paths_from_mask
 
 
-TRAIN={0,1,2,3,4}
-CAL={5}
-BUFFER={6}
-TEST={7}
+def split_map(expert_ids):
+    """Contiguous F3 expert-section source-ID groups, defined before labels.
 
-
-def _split(sid):
-    block=int(sid)//50
-    if block in TRAIN:return "TRAIN"
-    if block in CAL:return "CAL"
-    if block in BUFFER:return "BUFFER"
-    if block in TEST:return "TEST"
-    return "UNREGISTERED"
+    First 25 TRAIN, next 5 CAL, next 5 SPATIAL BUFFER, last 5 TEST.
+    This corrects empty section_id//50 group 7 discovered in source preflight
+    before any V26 model outcome was generated; never split using labels.
+    """
+    ids=sorted(set(map(int,expert_ids)))
+    if len(ids)!=40:
+        raise ValueError("Expected exactly 40 official expert section filenames")
+    groups=("TRAIN",)*25+("CAL",)*5+("BUFFER",)*5+("TEST",)*5
+    return dict(zip(ids,groups))
 
 
 def inventory(images,annotations):
@@ -42,8 +41,13 @@ def inventory(images,annotations):
         ids=sorted(set(ims)&set(ann))
         if len(ids)!=40:
             raise ValueError("STOP: expected exact 40 official expert F3 sections")
+        mapping=split_map(ids)
         result={"status":"V26_OFFICIAL_EXPERT_INVENTORY",
                 "n_expert_sections":len(ids),
+                "actual_expert_section_ids":ids,
+                "split_defined_only_by_sorted_official_filenames":True,
+                "buffer_distance_sections":min(sid for sid in ids if mapping[sid]=="TEST")-
+                    max(sid for sid in ids if mapping[sid]=="CAL"),
                 "sections_by_split":defaultdict(list),
                 "color_pixels_by_split":defaultdict(Counter),
                 "long_blue_paths_by_split":Counter(),
@@ -51,7 +55,7 @@ def inventory(images,annotations):
                 "train_patch_background_unknown":True,
                 "test_labels_not_used_for_model_selection":True}
         for sid in ids:
-            split=_split(sid)
+            split=mapping[sid]
             with Image.open(io.BytesIO(zi.read(ims[sid]))) as im:
                 picture=np.asarray(im.convert("RGB"))
             with Image.open(io.BytesIO(za.read(ann[sid]))) as am:
