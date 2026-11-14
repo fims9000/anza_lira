@@ -1,0 +1,45 @@
+name: Tver V39 independent posthoc audit of V34 real Thebe CAL risk and abstention
+on:
+  push:
+    branches:
+      - research/tver-v39-v34-calibration-multiplicity-audit-20261114
+    paths:
+      - 'scripts/tver_v39_calibration_audit.py'
+      - 'tests/test_tver_v39_calibration_audit.py'
+      - '.github/workflows/tver-v39-v34-risk-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  existing_v34_aggregate_audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Pure mathematical and split-contract tests, without Thebe
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pytest -q tests/test_tver_v39_calibration_audit.py
+      - name: Restore immutable V34 real Thebe aggregate receipts only, never raw images or TEST7
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43602709444
+          name: tver-v34-thebe-real-ANZA-SBPP-native-P0-RELATION-CAL-NO-TEST
+          github-token: ${{ github.token }}
+          path: .tver_v39/input
+      - name: Recompute observed ranking vs gate and joint threshold-risk limits
+        run: |
+          python -m scripts.tver_v39_calibration_audit --artifact-dir .tver_v39/input --out-dir .tver_v39/results
+          git rev-parse HEAD > .tver_v39/results/V39_CODE_SHA.txt
+      - name: Upload audit-only metrics and frozen source/commit receipt, no original data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v39-original-V34-risk-coverage-audit
+          path: .tver_v39/results
+          retention-days: 90
+          if-no-files-found: warn
