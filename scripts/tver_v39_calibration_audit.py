@@ -126,6 +126,14 @@ def audit(receipt, case_rows):
             "accepted_at_frozen_threshold": accepted,
             "best_correct_gaps_nominal_gate": max((r["correctly_accepted_positive_gaps"] for r in curve if r["original_nominal_gate"]), default=0),
             "best_correct_gaps_simultaneous_gate": max((r["correctly_accepted_positive_gaps"] for r in curve if r["simultaneous_joint_gate"]), default=0),
+            "posthoc_best_correct_with_zero_observed_wrong_sections": max(
+                (r["correctly_accepted_positive_gaps"] for r in curve
+                 if r["wrong_accepted_LINK_sections"]==0 and
+                    r["false_accepted_synthetic_NOLINK_sections"]==0), default=0),
+            "posthoc_best_correct_with_both_empirical_section_error_rates_at_most_10pct": max(
+                (r["correctly_accepted_positive_gaps"] for r in curve
+                 if r["wrong_accepted_LINK_sections"]/n<=RISK_TARGET and
+                    r["false_accepted_synthetic_NOLINK_sections"]/n<=RISK_TARGET), default=0),
             "full_22_threshold_curve": curve,
         }
     min_n = math.ceil(math.log(ALPHA / (22 * 2)) / math.log(1 - RISK_TARGET))
