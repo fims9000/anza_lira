@@ -187,7 +187,7 @@ def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out):
         raise RuntimeError("Original V43 q.70 VAL CAL candidate audit not reproduced")
 
     rows=score_scene_methods(augmented_cal,rank_scaler,ranker,gate)
-    summary=evaluate(rows)
+    summary=evaluate(rows,expected_candidate_available=75)
     score_before=summary["oof_scene_gate"]["rank_top1_correct_before_acceptance"]
     report={
         "status":"V46_REAL_THEBE_DENSE_RECOVERY_OOF_GATE_INTEGRATED_POSTHOC_TEST7_UNOPENED",
