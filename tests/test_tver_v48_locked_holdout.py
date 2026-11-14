@@ -21,6 +21,11 @@ def fixture():
                 "has_true_proposal":True,
                 "proposals":[{"source":(48.,30.),"target":(48.,60.),"y":1}],
             })
+            scenes.append({
+                "kind":"NO_LINK","section":section,"id":tag,
+                "has_true_proposal":False,
+                "proposals":[{"source":(48.,30.),"target":(48.,60.),"y":0}],
+            })
             rows.extend([
                 {"method":"oof_scene_gate","section":section,"gap_id":tag,
                  "world":"LINK","top1_correct":1,"accept_score":.9},
