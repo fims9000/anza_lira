@@ -374,7 +374,7 @@ def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out):
         raise RuntimeError("Original V43 q.70 VAL CAL candidate audit not reproduced")
 
     rows=score_scene_methods(augmented_cal,rank_scaler,ranker,gate)
-    summary=evaluate(rows)
+    summary=evaluate(rows,expected_candidate_available=75)
     path_evidence=audited_path_readout(augmented_cal,rank_scaler,ranker,gate,rows,summary)
 
     # Single protocol-locked within-field holdout: VAL1 30..39 was excluded
