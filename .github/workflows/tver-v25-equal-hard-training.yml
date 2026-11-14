@@ -61,6 +61,18 @@ jobs:
           assert x['actual_historical_ANZA_LIRA_not_loaded']
           assert x['published_3D_seismic_CNNs_not_run']
           PY
+      - name: Independently recompute all 480 frozen TEST decisions and group bootstrap
+        run: |
+          python scripts/verify_tver_v25_case_evidence.py             --dir results/tver_v25_equal_hard
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('results/tver_v25_equal_hard/verify_v25_independent.json').read_text())
+          assert r['status']=='V25_INDEPENDENT_EQUAL_TRAINED_CNN_HGB_CASE_AUDIT_PASS'
+          assert r['test_cases_verified']==480
+          assert r['independent_160_base_groups_verified']
+          assert r['two_2p5d_CNNs_both_trained_on_same_600_hard_worlds']
+          PY
       - name: Preserve exactly evaluated source revision
         if: always()
         run: |
