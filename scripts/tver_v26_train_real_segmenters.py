@@ -200,9 +200,9 @@ def execute(images,annotations,out,*,split_mapping=None):
         if set(mapping).difference(ids):raise RuntimeError('External cohort contains unknown expert IDs')
         # Do not open TEST expert mask or image before TRAIN and CAL fit.
         train={sid:_read(zi,za,im,ex,sid)
-               for sid in ids if mapping[sid]=="TRAIN"}
+               for sid in ids if mapping.get(sid)=="TRAIN"}
         cal={sid:_read(zi,za,im,ex,sid)
-             for sid in ids if mapping[sid]=="CAL"}
+             for sid in ids if mapping.get(sid)=="CAL"}
     if len(train)<(8 if split_mapping is None else 5) or len(cal)<2:
         raise RuntimeError("STOP insufficient real spatial train/CAL experts")
     allpix=np.concatenate([x["image"].reshape(-1,3)
@@ -219,8 +219,8 @@ def execute(images,annotations,out,*,split_mapping=None):
         "TRAIN_section_ids":sorted(train),
         "CAL_section_ids":sorted(cal),
         "TEST_pixel_arrays_or_labels_loaded_before_freeze":False,
-        "reserved_TEST_source_sections":[sid for sid in ids if mapping[sid]=="TEST"],
-        "buffer_source_sections":[sid for sid in ids if mapping[sid]=="BUFFER"],
+        "reserved_TEST_source_sections":[sid for sid in ids if mapping.get(sid)=="TEST"],
+        "buffer_source_sections":[sid for sid in ids if mapping.get(sid)=="BUFFER"],
         "split_only_source_filenames_before_labels":True,
         "synthetic_continuity_model_pretraining":False,
         "historical_ANZA_checkpoint_recovered":False,
