@@ -214,6 +214,10 @@ def _fit_model(name,seed,patches,calpatches,scale,out):
 
 def _gaps(mask,section_id):
     """From expert label only choose synthetic intervention and true scoring."""
+    # NumPy readonly mmap views cannot be passed directly to skimage's
+    # Cython skeletonizer, which requires a writable C-contiguous buffer.
+    # Copy only ONE 2D bool frame, never the whole 3.9GB seismic volume.
+    mask=np.array(mask,dtype=np.bool_,order="C",copy=True)
     paths=sorted(
         (np.asarray(p,dtype=np.int32) for p in paths_from_mask(mask)
          if len(p)>=MIN_SOURCE_LENGTH),
