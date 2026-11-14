@@ -26,8 +26,8 @@ from scipy import ndimage as ndi
 from sklearn.ensemble import HistGradientBoostingClassifier
 
 H=W=64
-SEED_BASE={"train":202623010,"cal":202623110,
-           "test":202623210,"ood":202623310}
+SEED_BASE={"train":202623010,"cal":202633010,
+           "test":202643010,"ood":202653010}
 N_BASE={"train":200,"cal":100,"test":160,"ood":160}
 WORLDS=(0,1,2)
 POLICIES=("geometry","central","adjacent_straight",
