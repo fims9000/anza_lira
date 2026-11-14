@@ -9,6 +9,8 @@ on:
       - 'tests/test_tver_v33_thebe_memmap.py'
       - 'scripts/tver_v33_thebe_train_segmenters.py'
       - 'tests/test_tver_v33_thebe_train_segmenters.py'
+      - 'scripts/tver_v33_thebe_relation_cal.py'
+      - 'tests/test_tver_v33_thebe_relation_cal.py'
       - '.github/workflows/tver-v33-thebe-source.yml'
   workflow_dispatch:
 
@@ -42,7 +44,7 @@ jobs:
       - name: Test real Thebe ANZA/U-Net parity and predicted-SBPP topology before heavy data
         run: |
           python -m compileall -q scripts/tver_v33_thebe_train_segmenters.py
-          python -m pytest -q tests/test_tver_v33_thebe_train_segmenters.py tests/test_tver_v26_predicted_pipeline.py tests/test_tver_v28_topology_calibration.py
+          python -m pytest -q tests/test_tver_v33_thebe_train_segmenters.py tests/test_tver_v33_thebe_relation_cal.py tests/test_tver_v26_predicted_pipeline.py tests/test_tver_v28_topology_calibration.py
       - name: Recover original source Thebe 2.15GB checked chunks
         uses: actions/cache@v4
         with:
@@ -129,6 +131,27 @@ jobs:
               assert hashlib.sha256(path.read_bytes()).hexdigest()==x['SHA256']
               assert x['train_steps']==600
           PY
+      - name: Fit true five-convolution P0 and matched logistics on real Thebe predicted TRAIN pairs, section-risk CAL val40-99 only
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          root=Path('results/tver_v33/seg_topology')
+          frozen=json.loads((root/'v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json').read_text())
+          if frozen['status']!='V33_THEBE_REAL_SEGMENTERS_AND_TOPOLOGY_TRAIN_CAL_COMPLETE':
+              print('V33 scientific STOP frontend failed TRAIN/SEG-CAL predicted candidates; REL-CAL not opened')
+          else:
+              cmd=['python','-m','scripts.tver_v33_thebe_relation_cal',
+                   '--mmap-root','results/tver_v33/local_memmaps',
+                   '--frontends-dir',str(root),
+                   '--out-dir','results/tver_v33/relation_CAL']
+              subprocess.run(cmd,check=True)
+              rel=json.loads(Path('results/tver_v33/relation_CAL/v33_THEBE_ALL_RELATION_CAL_frozen.json').read_text())
+              assert rel['status'] in (
+                 'V33_THEBE_RELATION_FIT_AND_SECTION_RISK_CAL_COMPLETE_TEST_UNOPENED',
+                 'V33_STOP_THEBE_PREDICTED_PAIR_OR_SECTION_CAL_INSUFFICIENT')
+              assert rel['global_admission']['external_TEST7_not_opened']
+          PY
       - name: Persist compact provenance only
         if: always()
         run: |
@@ -140,6 +163,12 @@ jobs:
           if test -f results/tver_v33/seg_topology/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json; then
             cp results/tver_v33/seg_topology/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json results/tver_v33/out/
             cp results/tver_v33/seg_topology/*_new_thebe_checkpoint.pt results/tver_v33/out/
+          fi
+          if test -f results/tver_v33/relation_CAL/v33_THEBE_ALL_RELATION_CAL_frozen.json; then
+            cp results/tver_v33/relation_CAL/v33_THEBE_ALL_RELATION_CAL_frozen.json results/tver_v33/out/
+            cp results/tver_v33/relation_CAL/*_thebe_REL_CAL_case_rows.csv results/tver_v33/out/
+            cp results/tver_v33/relation_CAL/new_thebe_P0/*.pt results/tver_v33/out/
+          
           
           fi
       - name: Upload source receipt, never full compressed/seismic/label arrays
@@ -151,6 +180,9 @@ jobs:
             results/tver_v33/out/v33_memmap_source_receipt.json
             results/tver_v33/out/v33_THEBE_frontends_topology_TRAIN_CAL_frozen.json
             results/tver_v33/out/*_new_thebe_checkpoint.pt
+            results/tver_v33/out/v33_THEBE_ALL_RELATION_CAL_frozen.json
+            results/tver_v33/out/*_thebe_REL_CAL_case_rows.csv
+            results/tver_v33/out/*_new_p0_seed*.pt
             results/tver_v33/out/COMMIT_SHA.txt
           if-no-files-found: warn
           retention-days: 90
