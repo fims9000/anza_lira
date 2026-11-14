@@ -28,3 +28,7 @@ Under identical central 2D pixels, identical supplied source/candidate endpoints
 
 ## Limits and reproducibility
 This models **oracle source/endpoint proposals**, artificial line ridges and made-up z-shift kinematics, *not* trained segmentation, candidate detection, true seismic wave physics, or real geological fault identity. V23 correct links cannot be called ANZA-LIRA full-pipeline success. We must report that 2.5D models have more information than 2D models and attribute any gain to **new evidence**, not necessarily a new architecture. No explicit 2.5D gain over equally informed HGB means no model superiority claim. Independent geological-domain evaluation still requires original ANZA/SBPP/LIRA checkpoints and instance-identity ground truth, neither currently present in PR #25.
+
+## Pre-outcome split-seed implementation correction
+
+Initial CI 43591735620 **stopped at unit tests before any V23 TRAIN, CAL, IID or OOD benchmark was executed or any result observed**. It exposed that seed starts spaced by 100 overlap the 200-group TRAIN and 160-group TEST spans. This would invalidate group independence. The fixed per-split base seeds are now **TRAIN 202623010, CAL 202633010, IID TEST 202643010, OOD TEST 202653010**, each separated by 10,000; case sizes, nuisance generator, model family, CAL risks and OOD criteria remain unchanged. A unit test checks disjointness exhaustively. A second test failure compared 0.6666666666666669 to exactly 2/3; changed only to 1e−12 tolerance. This amendment precedes the first experiment outcome, not a data-driven retune.
