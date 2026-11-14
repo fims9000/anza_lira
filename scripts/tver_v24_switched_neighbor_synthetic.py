@@ -36,9 +36,9 @@ METHODS=("continuity_25d","learned_25d","consensus_v24",
          "central","learned_2d")
 
 
-def render_hard_v24(index):
-    if not 0<=index<N:raise ValueError("Unknown untouched V24 base")
-    base=BASE+index
+def render_hard_v24(index, *, base_seed=BASE, total_groups=N):
+    if not 0<=index<total_groups:raise ValueError("Unknown independent hard-negative base")
+    base=base_seed+index
     rng=_rng(base)
     A=float(rng.uniform(8.5,12.))
     d=float(rng.uniform(2.8,4.8))
