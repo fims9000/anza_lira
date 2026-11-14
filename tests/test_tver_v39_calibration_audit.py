@@ -2,7 +2,7 @@
 import copy
 import math
 import pytest
-from scripts.tver_v39_calibration_audit import upper_cp, audit, paired_ranking_audit, METHODS, MODEL_SHA
+from scripts.tver_v39_calibration_audit import upper_cp, audit, paired_ranking_audit, exact_score_threshold_diagnostic, METHODS, MODEL_SHA
 
 def frozen_sample():
     scans={}
@@ -109,3 +109,24 @@ def test_posthoc_descriptive_gate_never_replaces_confidence_gate():
     assert z["posthoc_best_correct_with_both_empirical_section_error_rates_at_most_10pct"]==20
     assert z["posthoc_best_correct_with_zero_observed_wrong_sections"]==0
     assert z["best_correct_gaps_nominal_gate"]==0
+
+def test_complete_observed_score_sweep_and_ties():
+    cases=[]
+    for name in METHODS:
+        cases.extend([
+            {"model":name,"world":"LINK","section":"40",
+             "top1_score":"0.91","top1_correct_BEFORE_risk_gate":"True"},
+            {"model":name,"world":"LINK","section":"40",
+             "top1_score":"0.81","top1_correct_BEFORE_risk_gate":"False"},
+            {"model":name,"world":"NO_LINK","section":"40",
+             "top1_score":"0.81","top1_correct_BEFORE_risk_gate":"False"},
+        ])
+    r=exact_score_threshold_diagnostic(cases)
+    for method in METHODS:
+        x=r["methods"][method]
+        assert x["unique_score_thresholds_evaluated"]==2
+        assert x["best_correct_at_zero_observed_source_errors"]==1
+        assert x["highest_scored_correct_LINK"]==.91
+    cases[0]["top1_score"]="nan"
+    with pytest.raises(ValueError,match="Malformed"):
+        exact_score_threshold_diagnostic(cases)
