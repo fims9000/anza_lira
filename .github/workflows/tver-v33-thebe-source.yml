@@ -45,6 +45,22 @@ jobs:
           name: tver-v32-thebe-independent-seismic-field-source-manifest-NO-DATA
           github-token: ${{ github.token }}
           path: data/thebe_v32_manifest
+      - name: Restore missing original real seismic chunks by official Dataverse streaming if cache absent
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.tver_v32_thebe_seismic_headers import fetch_streaming_checked
+          manifest=json.loads(Path('data/thebe_v32_manifest/thebe_public_metadata_inventory.json').read_text())
+          assert manifest['status']=='V32_THEBE_EXTERNAL_FIELD_DATAVERSE_METADATA_ONLY_COMPLETE'
+          files={r['name']:r for r in manifest['files']}
+          root=Path('data/thebe_v32_raw')
+          root.mkdir(parents=True,exist_ok=True)
+          for name in ('seistrain1.npz','seisval1.npz'):
+              p=root/name
+              status=fetch_streaming_checked(files[name],p)
+              print(name,status,p.stat().st_size,flush=True)
+          PY
       - name: Verify exact original official train/val source files and copy masks only
         run: |
           mkdir -p data/thebe_v32_raw
