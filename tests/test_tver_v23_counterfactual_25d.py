@@ -91,7 +91,7 @@ def test_per_base_group_bootstrap_not_world_or_pixel_pseudoreplication():
     summary=_paired_base_bootstrap(rows,good,bad)
     assert summary["N_independent_base_groups"]==6
     assert summary["bootstrap_reps"]==3000
-    assert summary["delta_3way_accuracy"]==2/3
+    assert np.isclose(summary["delta_3way_accuracy"],2/3,atol=1e-12)
 
 
 def test_calibration_uses_only_calibration_scores_and_respects_risk_budget():
