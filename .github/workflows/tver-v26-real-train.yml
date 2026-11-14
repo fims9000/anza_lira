@@ -1,0 +1,72 @@
+name: Tver V26 real CRACKS freshly trained AZConv and same-budget U-Net
+on:
+  push:
+    branches: [research/tver-v26-predicted-cracks-e2e-20261114]
+    paths:
+      - scripts/tver_v26_train_real_segmenters.py
+      - .github/workflows/tver-v26-real-train.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+jobs:
+  new_real_cracks_anza_unet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 58
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install genuine actual AZConv dependencies on CPU
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image
+      - name: Restore official source cache, no private weights
+        uses: actions/cache@v4
+        with:
+          path: data/cracks/raw
+          key: cracks-v2-6557236191763af7bd8298ecb136d41e-01e1697e886da2079ff3c1967334a7ca
+      - name: Verify official MD5
+        run: |
+          python scripts/download_cracks_v2_public.py --output data/cracks/raw \
+            --receipt results/tver_v26/train_download_receipt.json
+      - name: Train actual new AZConv and matched U-Net real seismic segmentation
+        run: |
+          python -m scripts.tver_v26_train_real_segmenters \
+            --images data/cracks/raw/images.zip \
+            --annotations "data/cracks/raw/Fault segmentations.zip" \
+            --out results/tver_v26/real_models
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          root=Path('results/tver_v26/real_models')
+          x=json.loads((root/'v26_segmenter_frozen.json').read_text())
+          assert x['status']=='V26_NEW_SEGMENTERS_TRAINED_ON_REAL_CRACKS'
+          assert not x['TEST_pixel_arrays_or_labels_loaded_before_freeze']
+          assert set(x['frontends'])=={'anza_v1','unet'}
+          for m in x['frontends'].values():
+              path=root/m['checkpoint']
+              assert path.is_file()
+              assert hashlib.sha256(path.read_bytes()).hexdigest()==m['checkpoint_SHA256']
+          PY
+      - name: Preserve exact code SHA
+        if: always()
+        run: |
+          mkdir -p results/tver_v26
+          git rev-parse HEAD > results/tver_v26/COMMIT_SHA.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tver-v26-real-trained-AZConv-unet-checkpoints
+          path: |
+            results/tver_v26/real_models/v26_segmenter_frozen.json
+            results/tver_v26/real_models/*.pt
+            results/tver_v26/train_download_receipt.json
+            results/tver_v26/COMMIT_SHA.txt
+          if-no-files-found: warn
+          retention-days: 90
