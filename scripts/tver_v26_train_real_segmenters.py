@@ -24,7 +24,7 @@ import torch
 import torch.nn.functional as F
 
 from scripts.cracks_real_oracle_gap_audit import sections,COLORS
-from scripts.tver_v26_cracks_inventory import _split
+from scripts.tver_v26_cracks_inventory import split_map
 from models.segmentation_v2 import build_comparable_model
 
 S=64
@@ -196,10 +196,12 @@ def execute(images,annotations,out):
     with zipfile.ZipFile(images) as zi,zipfile.ZipFile(annotations) as za:
         im=sections(zi);ex=sections(za,expert=True)
         ids=sorted(set(im)&set(ex))
+        mapping=split_map(ids)
+        # Do not open TEST expert mask or image before TRAIN and CAL fit.
         train={sid:_read(zi,za,im,ex,sid)
-               for sid in ids if _split(sid)=="TRAIN"}
+               for sid in ids if mapping[sid]=="TRAIN"}
         cal={sid:_read(zi,za,im,ex,sid)
-             for sid in ids if _split(sid)=="CAL"}
+             for sid in ids if mapping[sid]=="CAL"}
     if len(train)<8 or len(cal)<2:
         raise RuntimeError("STOP insufficient real spatial train/CAL experts")
     allpix=np.concatenate([x["image"].reshape(-1,3)
@@ -215,8 +217,9 @@ def execute(images,annotations,out):
         "TRAIN_section_ids":sorted(train),
         "CAL_section_ids":sorted(cal),
         "TEST_pixel_arrays_or_labels_loaded_before_freeze":False,
-        "reserved_TEST_spatial_block":7,
-        "buffer_block":6,
+        "reserved_TEST_source_sections":[sid for sid in ids if mapping[sid]=="TEST"],
+        "buffer_source_sections":[sid for sid in ids if mapping[sid]=="BUFFER"],
+        "split_only_source_filenames_before_labels":True,
         "synthetic_continuity_model_pretraining":False,
         "historical_ANZA_checkpoint_recovered":False,
         "partial_BLUE_ORANGE_labels_and_mined_unknown_white":True,
