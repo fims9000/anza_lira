@@ -1,0 +1,108 @@
+name: Tver V37 independent CPU fingerprint of first ANZA vs U-Net forward backward and optimizer step NO THEBE TEST
+
+on:
+  push:
+    branches:
+      - research/tver-v37-cpu-kernel-fingerprint-probe-20261114
+    paths:
+      - 'scripts/tver_v37_cpu_kernel_probe.py'
+      - 'docs/research/tver2026/V37_CPU_PROBE_PREDECLARED_PROTOCOL_20261114.md'
+      - '.github/workflows/tver-v37-cpu-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+
+jobs:
+  independent_probes:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner_tag: [a, b]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install original model runtime and fixed CPU libraries
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib
+      - name: Run a strictly fixed synthetic model data fixture, NEVER official Thebe bytes
+        run: |
+          python -m compileall -q scripts/tver_v37_cpu_kernel_probe.py
+          python -m scripts.tver_v37_cpu_kernel_probe --out results/v37/fingerprint.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('results/v37/fingerprint.json').read_text())
+          assert j['status']=='V37_FIXED_SYNTHETIC_CPU_FINGERPRINT_COMPLETE'
+          assert j['no_TEST7_read'] and j['no_external_seismic_data_downloaded']
+          assert not j['mkldnn'] and j['deterministic_algorithms']
+          assert set(j['models'])=={'unet','anza_v1'}
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: thebe-v37-cpu-raw-tensor-${{ matrix.runner_tag }}
+          path: results/v37/fingerprint.json
+          if-no-files-found: error
+          retention-days: 90
+  compare_two_runners:
+    needs: independent_probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: thebe-v37-cpu-raw-tensor-a
+          path: results/v37/a
+      - uses: actions/download-artifact@v4
+        with:
+          name: thebe-v37-cpu-raw-tensor-b
+          path: results/v37/b
+      - name: Compare two independently launched original model instances
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path('results/v37')
+          a=json.loads((root/'a/fingerprint.json').read_text())
+          b=json.loads((root/'b/fingerprint.json').read_text())
+          keys=['input_sha256','mask_sha256','torch','numpy','threads','interop','mkldnn','deterministic_algorithms']
+          environment={k:a[k]==b[k] for k in keys}
+          states={}
+          for name in ('unet','anza_v1'):
+              states[name]={k:a['models'][name][k]==b['models'][name][k]
+                            for k in ('seed','initial_parameter_tensor_SHA256',
+                                      'first_forward_SHA256','first_gradient_SHA256',
+                                      'after_one_AdamW_step_SHA256','first_loss')}
+          mismatch=[k for k,v in environment.items() if not v]
+          mismatch += [name+'/'+k for name,fields in states.items()
+                       for k,v in fields.items() if not v]
+          status=('V37_CPU_PROBE_BITWISE_CROSS_RUN_PASS' if not mismatch
+                  else 'V37_CPU_PROBE_CROSS_RUN_DISAGREEMENT')
+          report={'status':status,'source_comparisons':environment,
+                  'model_comparisons':states,'mismatches':mismatch,
+                  'runner_CPU_A':a.get('cpu'),'runner_CPU_B':b.get('cpu'),
+                  'external_TEST7_never_opened':True,
+                  'scope':'synthetic first-step CPU arithmetic, not historical ANZA-LIRA, geology or model-quality comparison'}
+          out=root/'v37_cross_runner_diagnostic.json'
+          out.write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: thebe-v37-independent-CPU-fingerprint-comparison
+          path: results/v37/v37_cross_runner_diagnostic.json
+          if-no-files-found: error
+          retention-days: 90
