@@ -7,6 +7,7 @@ on:
       - 'scripts/tver_v28_topology_calibration.py'
       - 'scripts/tver_v28_posthoc_real_e2e.py'
       - 'tests/test_tver_v28_topology_calibration.py'
+      - 'scripts/verify_tver_v28_case_evidence.py'
       - 'docs/research/tver2026/V28_POSTHOC_TOPOLOGY_THRESHOLD_FROZEN_PROTOCOL_20261114.md'
       - '.github/workflows/tver-v28-real-topology.yml'
   workflow_dispatch:
@@ -66,6 +67,18 @@ jobs:
             assert b['model_weight_SHA256_same_as_V27']
             assert b['historical_weights_UNAVAILABLE']
           PY
+      - name: Independently verify threshold choice and all actual real F3 predicted-port link decisions
+        run: |
+          python scripts/verify_tver_v28_case_evidence.py             --root results/tver_v28/real
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('results/tver_v28/real/v28_independent_audit.json').read_text())
+          assert r['status']=='V28_INDEPENDENT_POSTHOC_TOPOLOGY_REAL_E2E_CASE_AUDIT_PASS'
+          assert r['both_new_LIRA_heads_trained_from_predicted_ports']
+          assert r['both_frontends_source_and_correct_candidates_available_on_TEST']
+          assert r['V28_topology_selected_only_from_TRAIN_CAL_rows']
+          PY
       - name: Preserve code/source hash
         if: always()
         run: |
@@ -81,6 +94,7 @@ jobs:
             results/tver_v28/real/v28_source_cohort.json
             results/tver_v28/real/v28_topology_TRAIN_CAL_frozen.json
             results/tver_v28/real/v28_summary.json
+            results/tver_v28/real/v28_independent_audit.json
             results/tver_v28/real/new_train_model/*.pt
             results/tver_v28/real/new_train_model/v26_segmenter_frozen.json
             results/tver_v28/real/predicted_e2e/*.json
