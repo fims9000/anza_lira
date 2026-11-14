@@ -1,0 +1,45 @@
+name: Tver V40 independent all-score posthoc risk gate autopsy from frozen evidence
+on:
+  push:
+    branches:
+      - research/tver-v40-matched-pair-ranking-real-thebe-20261114
+    paths:
+      - 'scripts/tver_v40_posthoc_gate_audit.py'
+      - 'tests/test_tver_v40_posthoc_gate_audit.py'
+      - '.github/workflows/tver-v40-posthoc-gate-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  frozen_v40_scored_cases_only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Pure score-coverage, wrong-threshold and source contract tests
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pytest -q tests/test_tver_v40_posthoc_gate_audit.py
+      - name: Restore immutable V40 real Thebe case rows and receipt, no raw source
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43618175913
+          name: tver-v40-real-Thebe-paired-ranking-same-label-budget-noTEST
+          github-token: ${{ github.token }}
+          path: .tver_v40_gate/input
+      - name: Evaluate every stored score without choosing a deployable threshold
+        run: |
+          python -m scripts.tver_v40_posthoc_gate_audit --source .tver_v40_gate/input --out .tver_v40_gate/output
+          git rev-parse HEAD > .tver_v40_gate/output/AUDIT_SHA.txt
+      - name: Upload tiny immutable aggregate-only evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v40-original-real-cases-posthoc-score-gate-audit
+          path: .tver_v40_gate/output
+          if-no-files-found: warn
+          retention-days: 90
