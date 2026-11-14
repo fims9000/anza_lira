@@ -1,0 +1,38 @@
+name: Tver V33 Thebe five-convolution P0 + exact section-level risk unit tests (no TEST)
+
+on:
+  push:
+    branches:
+      - research/tver-v33-thebe-expert-real-cal-20261114
+    paths:
+      - 'scripts/tver_v33_thebe_relation_cal.py'
+      - 'tests/test_tver_v33_thebe_relation_cal.py'
+      - '.github/workflows/tver-v33-relation-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+
+jobs:
+  pair_relations_and_CP_risk_contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install real five-layer P0 network and exact CP statistics test deps
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib matplotlib pytest
+      - name: Verify source-section risk CP gates and real predictor evidence contract
+        run: |
+          python -m compileall -q scripts/tver_v33_thebe_relation_cal.py
+          python -m pytest -q tests/test_tver_v33_thebe_relation_cal.py tests/test_tver_v30_real_p0_context.py
