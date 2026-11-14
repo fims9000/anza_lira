@@ -94,14 +94,20 @@ def crowd_practitioner_gaps(za,sid,index):
     greens={name:np.all(rgb==COLORS["green"],axis=-1)
             for name,rgb in masks.items()}
     raw_candidates=[]
+    raw_unbranched_long_paths=0
+    any_original_BLUE_pixels=sum(int(b.sum()) for b in blues.values())
+    max_peer_supported_fraction_across_raw_paths=0.
     for name in sorted(blues):
         clean=blues[name]&~ndi.binary_dilation(greens[name],iterations=3)
         for trace_idx,original_path in enumerate(paths_from_mask(clean)):
             if len(original_path)<MIN_PATH_LENGTH:continue
+            raw_unbranched_long_paths+=1
             trace=np.asarray(original_path,dtype=np.int32)
             peers=sum(close_blue[other][trace[:,0],trace[:,1]].astype(np.uint8)
                       for other in blues if other!=name)
             supported_fraction=float(np.mean(peers>=MIN_BLUE_PEERS))
+            max_peer_supported_fraction_across_raw_paths=max(
+                max_peer_supported_fraction_across_raw_paths,supported_fraction)
             if supported_fraction<MIN_PATH_SUPPORTED_FRACTION:continue
             raw_candidates.append({
                 "annotator":name,"path_index":trace_idx,
@@ -139,10 +145,16 @@ def crowd_practitioner_gaps(za,sid,index):
         "section":int(sid),"practitioners":len(paths),
         "raw_traces_meeting_fixed_peer_rule":len(raw_candidates),
         "accepted_paths":len(gaps),
+        "raw_unbranched_long_blue_paths":raw_unbranched_long_paths,
+        "total_certain_BLUE_practitioner_pixels":any_original_BLUE_pixels,
+        "max_peer_fraction_pre_admission":round(max_peer_supported_fraction_across_raw_paths,5),
         "accepted_lengths":[len(item["path"]) for item in chosen],
         "peer_support_fractions":[
             round(item["supported_fraction"],5) for item in chosen],
-        "reason":"OK" if gaps else "NO_UNBRANCHED_PEER_SUPPORTED_LONG_BLUE_PATH",
+        "reason":("OK" if gaps else
+                  "NO_INDIVIDUAL_UNBRANCHED_BLUE_PATH_LENGTH_GE80"
+                  if not raw_unbranched_long_paths else
+                  "NO_LONG_PATH_WITH_TWO_PEER_SUPPORT_OVER_60PCT"),
     }
 
 
