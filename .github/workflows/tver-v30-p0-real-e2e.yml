@@ -9,6 +9,7 @@ on:
       - 'scripts/tver_v30_p0_context.py'
       - 'scripts/tver_v30_real_p0_e2e.py'
       - 'tests/test_tver_v30_real_p0_context.py'
+      - 'scripts/verify_tver_v30_real_p0.py'
       - 'docs/research/tver2026/V30_REAL_PREDICTED_P0_CONTEXT_FROZEN_POSTHOC_PROTOCOL_20261114.md'
       - '.github/workflows/tver-v30-p0-real-e2e.yml'
   workflow_dispatch:
@@ -77,6 +78,19 @@ jobs:
             assert len(report['methods'][frontend])==5
             assert all(v['positive_gap_count']==2 for v in report['methods'][frontend].values())
           PY
+      - name: Independently verify all five real P0-context baselines and 40 heldout case decisions
+        run: |
+          python scripts/verify_tver_v30_real_p0.py             --dir results/tver_v30/predicted_p0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('results/tver_v30/predicted_p0/verify_v30_independent.json')
+          x=json.loads(p.read_text())
+          assert x['status']=='V30_INDEPENDENT_NATIVE_P0_REAL_PREDICTED_CASE_AUDIT_PASS'
+          assert x['all_four_new_genuine_P0_state_dict_SHA256_verified']
+          assert x['all_ten_method_frontend_cases_verified']
+          assert x['posthoc_108_124_previously_seen_during_V27_V28']
+          PY
       - name: Persist immutable SHA, original frozen CAL, and actual new weights
         if: always()
         run: |
@@ -93,6 +107,7 @@ jobs:
             results/tver_v30/predicted_p0/v30_original_V28_topology_CAL.json
             results/tver_v30/predicted_p0/v30_ALL_train_cal_frozen.json
             results/tver_v30/predicted_p0/v30_results.json
+            results/tver_v30/predicted_p0/verify_v30_independent.json
             results/tver_v30/predicted_p0/v30_test_case_decisions.csv
             results/tver_v30/predicted_p0/new_LIRA_P0_checkpoints/*.pt
             results/tver_v30/predicted_p0/newly_fitted_AZConv_UNet/*.pt
