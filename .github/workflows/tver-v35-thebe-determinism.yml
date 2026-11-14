@@ -1,0 +1,105 @@
+name: Tver V35 real Thebe original AZConv and U-Net deterministic same-seed two-repeat bitwise audit, TEST7 unopened
+
+on:
+  push:
+    branches:
+      - research/tver-v35-real-thebe-determinism-audit-20261114
+    paths:
+      - 'scripts/tver_v35_thebe_determinism.py'
+      - 'tests/test_tver_v35_thebe_determinism.py'
+      - '.github/workflows/tver-v35-thebe-determinism.yml'
+      - 'docs/research/tver2026/V35_THEBE_REAL_SEGMENTATION_DETERMINISM_FROZEN_PROTOCOL_20261114.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+
+jobs:
+  actual_Thebe_real_600_step_model_retrain_determinism:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install exact CPU PyTorch and only real source processing dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib matplotlib pytest
+      - name: Test model tensor and training patch SHA sensitivity and source preprocessing
+        run: |
+          python -m compileall -q scripts/tver_v35_thebe_determinism.py
+          python -m pytest -q tests/test_tver_v35_thebe_determinism.py tests/test_tver_v33_thebe_memmap.py
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 43600860512
+          name: tver-v32-thebe-independent-seismic-field-source-manifest-NO-DATA
+          github-token: ${{ github.token }}
+          path: data/thebe_v32_manifest
+      - uses: actions/cache@v4
+        with:
+          path: data/thebe_v32_raw
+          key: thebe-v35-seistrain1-534e78ab34bb0ece32ca0a9b69ee99cd-seisval1-518d2979a1f90d535ebc2a44f615970f
+      - name: Prepare exactly original verified TRAIN/VAL data, no external TEST
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.tver_v32_thebe_seismic_headers import fetch_streaming_checked
+          import shutil,json
+          base=Path('data/thebe_v32_raw')
+          base.mkdir(parents=True,exist_ok=True)
+          mf=json.loads(Path('data/thebe_v32_manifest/thebe_public_metadata_inventory.json').read_text())
+          files={x['name']:x for x in mf['files']}
+          assert mf['status']=='V32_THEBE_EXTERNAL_FIELD_DATAVERSE_METADATA_ONLY_COMPLETE'
+          for name in ('seistrain1.npz','seisval1.npz'):
+              print(name,fetch_streaming_checked(files[name],base/name),flush=True)
+          for name in ('faulttrain1.npz','faultval1.npz'):
+              shutil.copyfile(Path('data/thebe_v32_manifest/label_headers')/name,base/name)
+          PY
+          python -m scripts.tver_v33_thebe_memmap \
+            --source-dir data/thebe_v32_raw \
+            --out-dir results/tver_v35/input_memmap
+      - name: Twice train both original same-budget models with single CPU thread and MKLDNN off; compare exact tensor states
+        run: |
+          python -m scripts.tver_v35_thebe_determinism \
+            --mmap-root results/tver_v35/input_memmap \
+            --out-dir results/tver_v35/audit
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path('results/tver_v35/audit/v35_thebe_real_training_determinism.json')
+          x=json.loads(p.read_text())
+          assert x['status'] in (
+              'V35_THEBE_DETERMINISTIC_WITHIN_ONE_RUN_TEST7_UNOPENED',
+              'V35_STOP_REAL_THEBE_BITWISE_TRAINING_NONDETERMINISM')
+          assert x['external_TEST7_bytes_masks_scores_NEVER_OPENED']
+          assert x['num_CPU_threads']==1
+          assert x['MKLDNN_disabled']
+          assert x['torch_deterministic_algorithms_enabled']
+          PY
+      - name: Preserve ONLY compact hashes and real training reproducibility receipts
+        if: always()
+        run: |
+          mkdir -p results/tver_v35/out
+          git rev-parse HEAD > results/tver_v35/out/COMMIT_SHA.txt
+          if test -f results/tver_v35/audit/v35_thebe_real_training_determinism.json; then
+            cp results/tver_v35/audit/v35_thebe_real_training_determinism.json results/tver_v35/out/
+          fi
+      - name: Upload compact bitwise training control, never original 2GB source or real test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v35-real-Thebe-AZConv-CNN-determinism-raw-tensor-SHA
+          path: |
+            results/tver_v35/out/COMMIT_SHA.txt
+            results/tver_v35/out/v35_thebe_real_training_determinism.json
+          if-no-files-found: warn
+          retention-days: 90
