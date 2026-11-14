@@ -1,0 +1,15 @@
+# V38: fixed-budget multithreshold SBPP candidate feasibility on real Thebe
+
+**Design status: exploratory posthoc**, drafted 14 November 2026 AFTER observing V34 REL-CAL. It is neither independent confirmation nor a test of natural geological fault identity. We preserve the entire V34 Thebe TRAIN1/VAL1 split, original frozen V33 ANZA checkpoint SHA256 `ba0c3b8060fd0e3cb1c15f6c1598b94a977677c2b075663b5414207df382c25e`, `0.65` baseline threshold, exact source normalizer and source MD5. The first positive baseline on 60 REL-CAL source sections must still equal **65/120** after candidate extraction. No external TEST7 data may be fetched, read, scored or used for development.
+
+## Fixed methods and acceptance criteria
+
+- Original single-threshold SBPP `0.65` returns its exact original 48 candidate slots; do not deduplicate or reorder baseline pairs.
+- Proposed source-only candidate unions use thresholds `(0.65,0.55)`, `(0.65,0.55,0.75)`, `(0.65,0.55,0.75,0.45)`; **all capped at 48 total candidate relations**, deterministic source-bank round-robin and 4-pixel pairwise duplicate suppression. No expert endpoints or original intact segmentation probability within the erased intervention rectangle enter candidate generation.
+- Compare same frozen observed seismic images, same model weights, source sections and controlled expert-selected gap interventions. Ground-truth endpoint matching (8px) happens **after** all proposals. Report positive correct-candidate availability /120, geometric top-1 correctness /120, rescued and lost positive cases vs the exact baseline, mean proposal count, and raw candidate counts for synthetic candidate-absent NO_LINK. Source section is the repeated-observation unit (two artificially erased gaps/section); never pretend the 120 gaps are independent geological source volumes.
+- A method is **useful for candidate discovery** only if it gains correct candidate cases at a fixed 48-candidate cap with transparent extra distractor burden. It is not yet a deployable linker; any positive gain must be carried to a new TRAIN-fitted relationship head and selective-risk calibration without test inspection. Do not relax the V34 10% one-sided conditional-CP false-acceptance policy to force accepted links.
+- Existing Thebe REL-CAL was already inspected. All V38 scores on that subset are posthoc diagnostic even if the code/protocol was committed before this new run; do not call this an untouched test. Official external TEST7 must remain unopened until the full end-to-end architecture and baseline comparison are frozen with nonzero calibration coverage.
+
+## Stop conditions
+
+Reject an experiment if candidate baseline fails to reproduce 65/120, any input checksum differs, proposed total budget exceeds 48, sample overlap changes, source-selected truth appears in the network or candidate function, or there is any TEST7 access. Keep negative outcomes, including no rescue or worse top-1, in all reports. GitHub Actions artifact must include script commit SHA and compact summaries, no source arrays or trained weights.
