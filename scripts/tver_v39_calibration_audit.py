@@ -149,6 +149,70 @@ def audit(receipt, case_rows):
     }
 
 
+def paired_ranking_audit(case_rows, seed=20261114, bootstrap_replicates=10000):
+    """Posthoc paired ranking differences, resampling whole source sections.
+
+    These are descriptive same-field intervals, NOT independent geological
+    population confidence guarantees or new held-out validation.
+    """
+    import random
+    positive={}
+    for method in METHODS:
+        positive[method]={}
+        for row in case_rows:
+            if row["model"] != method or row["world"] != "LINK":
+                continue
+            key=(int(row["section"]),row["artificial_gap_id"])
+            if key in positive[method]:
+                raise ValueError("duplicate paired source/gap")
+            positive[method][key]=int(parse_bool(row["top1_correct_BEFORE_risk_gate"]))
+    common=set(positive["matched_logistic"])
+    if not common or len(common)!=120 or len({s for s,_ in common})!=60:
+        raise ValueError("original paired source/gap cohort changed")
+    if any(set(values)!=common for values in positive.values()):
+        raise ValueError("ranking models are not evaluated on identical gaps")
+    sections=sorted({s for s,_ in common})
+    rng=random.Random(seed)
+    out={}
+    for comparator in METHODS:
+        if comparator=="matched_logistic":
+            continue
+        a=positive["matched_logistic"]
+        b=positive[comparator]
+        both=sum(a[k] and b[k] for k in common)
+        only_a=sum(a[k] and not b[k] for k in common)
+        only_b=sum(b[k] and not a[k] for k in common)
+        neither=len(common)-both-only_a-only_b
+        section_differences={
+            s:sum(a[k]-b[k] for k in common if k[0]==s)
+            for s in sections}
+        # Every source section contributes two artificial gaps.
+        draws=[]
+        for _ in range(bootstrap_replicates):
+            gap_difference=sum(section_differences[sections[rng.randrange(len(sections))]]
+                               for __ in sections)
+            draws.append(gap_difference/len(common))
+        draws.sort()
+        lower=draws[int(.025*bootstrap_replicates)]
+        upper=draws[min(bootstrap_replicates-1,int(.975*bootstrap_replicates))]
+        out["matched_logistic_vs_"+comparator]={
+            "both_correct":both,
+            "only_matched_logistic_correct":only_a,
+            "only_comparator_correct":only_b,
+            "neither_correct":neither,
+            "oracle_union_top1_upper_bound_not_deployable":both+only_a+only_b,
+            "matched_minus_comparator_top1_fraction":(only_a-only_b)/120,
+            "whole_section_bootstrap_95_descriptive_interval":[lower,upper],
+            "source_sections_where_matched_better":sum(x>0 for x in section_differences.values()),
+            "source_sections_where_comparator_better":sum(x<0 for x in section_differences.values()),
+        }
+    return {"status":"V39_POSTHOC_PAIRED_RANKING_AUDIT",
+            "independent_field_replication":False,
+            "bootstrap_unit":"source section, 2 artificially hidden gaps each",
+            "bootstrap_replicates":bootstrap_replicates,
+            "seed":seed,"comparisons":out}
+
+
 def run(input_dir: Path, output_dir: Path):
     paths = {}
     for name, leaf in [("receipt", "v34_THEBE_P0_ANZA_source_CAL_frozen.json"),
@@ -164,6 +228,7 @@ def run(input_dir: Path, output_dir: Path):
     with paths["cases"].open(encoding="utf8", newline="") as f:
         cases = list(csv.DictReader(f))
     evidence = audit(source, cases)
+    evidence["paired_top1_ranking"] = paired_ranking_audit(cases)
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "V39_V34_RISK_AUDIT.json").write_text(
         json.dumps(evidence, ensure_ascii=False, indent=2)+"\n", encoding="utf8")
