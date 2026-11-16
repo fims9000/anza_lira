@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/tver_v52_joint_path.py'
       - 'scripts/tver_v52_synthetic_comparison.py'
+      - 'scripts/tver_v50_synthetic_sanity.py'
       - 'tests/test_tver_v52_joint_path.py'
       - '.github/workflows/tver-v52-joint-path.yml'
   workflow_dispatch:
