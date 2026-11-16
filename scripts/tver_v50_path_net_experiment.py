@@ -288,7 +288,7 @@ def audited_path_readout(augmented_cal,rank_scaler,ranker,gate,score_rows,risk_s
         "case_rows":result,
     }
 
-def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out):
+def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out,*,comparison_hook=None):
     import torch
     from scripts.tver_v34_anza_p0_relation_cal import _state_report
     from scripts.tver_v33_thebe_train_segmenters import read_memmap
@@ -357,6 +357,9 @@ def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out):
         or path_evidence["successful_boundary_straight_given_top1_correct"]!=3
         or path_evidence["successful_boundary_hermite_given_top1_correct"]!=3):
         raise RuntimeError("Original V47/V49 decoded paths drifted; cannot compare V50")
+    if comparison_hook is not None:
+        # V52 opt-in diagnostic: preserve every historical V50 model, scene and receipt.
+        comparison_hook(augmented_cal,rank_scaler,ranker,path_net,path_evidence,out)
     score_before=summary["oof_scene_gate"]["rank_top1_correct_before_acceptance"]
     report={
         "status":"V46_REAL_THEBE_DENSE_RECOVERY_OOF_GATE_INTEGRATED_POSTHOC_TEST7_UNOPENED",
