@@ -28,7 +28,7 @@ jobs:
       - name: Install CPU model and minimal test dependencies
         run: |
           python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install --disable-pip-version-check numpy scipy scikit-learn pytest
+          python -m pip install --disable-pip-version-check numpy scipy scikit-learn pillow scikit-image matplotlib joblib pytest
       - name: Check label blind contracts and original decoder regressions
         run: |
           python -m compileall -q scripts/tver_v52_joint_path.py scripts/tver_v52_synthetic_comparison.py
