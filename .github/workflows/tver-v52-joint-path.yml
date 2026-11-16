@@ -1,0 +1,48 @@
+name: Tver V52 fixed path geometry and paired synthetic sanity
+on:
+  push:
+    branches:
+      - research/tver-v52-tangent-curvature-gap-20261116
+    paths:
+      - 'scripts/tver_v52_joint_path.py'
+      - 'scripts/tver_v52_synthetic_comparison.py'
+      - 'tests/test_tver_v52_joint_path.py'
+      - '.github/workflows/tver-v52-joint-path.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  geometric_contract_and_synthetic_sanity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU model and minimal test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy scikit-learn pytest
+      - name: Check label blind contracts and original decoder regressions
+        run: |
+          python -m compileall -q scripts/tver_v52_joint_path.py scripts/tver_v52_synthetic_comparison.py
+          python -m pytest -q tests/test_tver_v52_joint_path.py tests/test_tver_v50_conditional_path.py tests/test_tver_v49_boundary_path.py
+      - name: Train unchanged V50 synthetic CNN and compare paths on unused same-generator seeds
+        run: |
+          python -m scripts.tver_v52_synthetic_comparison --out-dir .tver_v52/result
+          git rev-parse HEAD > .tver_v52/result/V52_CODE_SHA.txt
+      - name: Upload narrow synthetic receipts; no geological claim
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v52-single-renderer-paired-V50-control
+          path: .tver_v52/result
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 90
