@@ -173,7 +173,7 @@ def main():
     parser.add_argument("--v45-receipt-dir", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
     args = parser.parse_args()
-    def run_comparison(scenes, scaler, ranker, pathnet, v50_evidence, out):
+    def run_comparison(scenes, scaler, ranker, pathnet, v50_evidence, out, **unused):
         return evaluate_paired_cal(scenes, scaler, ranker, pathnet, v50_evidence, out)
     v50_execute(args.mmap_root, args.frontends_dir,
                 args.v43_receipt_dir, args.v45_receipt_dir, args.out_dir,

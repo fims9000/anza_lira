@@ -359,7 +359,8 @@ def execute(memmap_root,frontends_dir,v43_receipt,v45_receipt,out,*,comparison_h
         raise RuntimeError("Original V47/V49 decoded paths drifted; cannot compare V50")
     if comparison_hook is not None:
         # V52 opt-in diagnostic: preserve every historical V50 model, scene and receipt.
-        comparison_hook(augmented_cal,rank_scaler,ranker,path_net,path_evidence,out)
+        comparison_hook(augmented_cal,rank_scaler,ranker,path_net,path_evidence,out,
+                        augmented_train=augmented_train)
     score_before=summary["oof_scene_gate"]["rank_top1_correct_before_acceptance"]
     report={
         "status":"V46_REAL_THEBE_DENSE_RECOVERY_OOF_GATE_INTEGRATED_POSTHOC_TEST7_UNOPENED",
