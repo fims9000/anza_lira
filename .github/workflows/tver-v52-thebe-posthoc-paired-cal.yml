@@ -16,7 +16,7 @@ on:
       - 'tests/test_tver_v50_conditional_path.py'
       - 'tests/test_tver_v50_path_experiment.py'
       - 'docs/research/tver2026/V50_CONDITIONED_PATH_NETWORK_PREDECLARED_20261114.md'
-      - '.github/workflows/tver-v50-thebe-conditioned-path.yml'
+      - '.github/workflows/tver-v52-thebe-posthoc-paired-cal.yml'
   workflow_dispatch:
 permissions:
   contents: read
