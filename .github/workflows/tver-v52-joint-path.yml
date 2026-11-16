@@ -7,6 +7,9 @@ on:
       - 'scripts/tver_v52_joint_path.py'
       - 'scripts/tver_v52_synthetic_comparison.py'
       - 'scripts/tver_v50_synthetic_sanity.py'
+      - 'scripts/tver_v52_thebe_comparison.py'
+      - 'tests/test_tver_v52_thebe_comparison.py'
+      - 'scripts/tver_v50_path_net_experiment.py'
       - 'tests/test_tver_v52_joint_path.py'
       - '.github/workflows/tver-v52-joint-path.yml'
   workflow_dispatch:
@@ -44,6 +47,107 @@ jobs:
         with:
           name: tver-v52-single-renderer-paired-V50-control
           path: .tver_v52/result
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 90
+  fixed_original_anza_same_pair_budget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install original CPU model and paired rank baseline dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib matplotlib pytest
+      - name: Test label budget, pair ordering and section-cluster provenance
+        run: |
+          python -m compileall -q scripts/tver_v52_thebe_comparison.py
+          python -m pytest -q tests/test_tver_v52_thebe_comparison.py tests/test_tver_v52_joint_path.py tests/test_tver_v50_conditional_path.py tests/test_tver_v50_path_experiment.py tests/test_tver_v49_boundary_path.py tests/test_tver_v46_integrated.py tests/test_tver_v45_oof_scene_gate.py tests/test_tver_v34_anza_p0_relation_cal.py
+      - name: Restore immutable V33 original real Thebe ANZA and topology
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43601925275
+          name: tver-v33-Thebe-real-expert-TRAIN-VALID-memmap-source-verified-TEST-unopened
+          github-token: ${{ github.token }}
+          path: data/tver_v33_verified_frontends
+      - name: Restore original checked V32 TRAIN/VAL labels manifest, no TEST
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43600860512
+          name: tver-v32-thebe-independent-seismic-field-source-manifest-NO-DATA
+          github-token: ${{ github.token }}
+          path: data/thebe_v32_manifest
+      - uses: actions/cache@v4
+        with:
+          path: data/thebe_v32_raw
+          key: thebe-v34-seistrain1-534e78ab34bb0ece32ca0a9b69ee99cd-seisval1-518d2979a1f90d535ebc2a44f615970f
+      - name: Verify original frozen ANZA checkpoint and no TEST7 access
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.tver_v34_anza_p0_relation_cal import _state_report
+          import hashlib
+          base=Path('data/tver_v33_verified_frontends')
+          receipt=_state_report(base)
+          a=receipt['frontends']['anza_v1']
+          assert hashlib.sha256((base/a['checkpoint']).read_bytes()).hexdigest()==a['SHA256']
+          assert a['topology_threshold_frozen']==.65
+          assert receipt['heldout_THEBE_TEST7_NOT_OPENED']
+          print('V46 frozen ANZA and topology provenance PASS')
+          PY
+      - name: Fetch only official Thebe TRAIN and VAL seismic chunks with provider MD5
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,shutil
+          from scripts.tver_v32_thebe_seismic_headers import fetch_streaming_checked
+          m=json.loads(Path('data/thebe_v32_manifest/thebe_public_metadata_inventory.json').read_text())
+          assert m['status']=='V32_THEBE_EXTERNAL_FIELD_DATAVERSE_METADATA_ONLY_COMPLETE'
+          source={x['name']:x for x in m['files']}
+          root=Path('data/thebe_v32_raw')
+          root.mkdir(parents=True,exist_ok=True)
+          for n in ('seistrain1.npz','seisval1.npz'):
+              print(n,fetch_streaming_checked(source[n],root/n),flush=True)
+          for n in ('faulttrain1.npz','faultval1.npz'):
+              shutil.copyfile(Path('data/thebe_v32_manifest/label_headers')/n,root/n)
+          PY
+      - name: Convert original seismic/train-expert masks to bounded-RAM arrays
+        run: |
+          python -m scripts.tver_v33_thebe_memmap \
+            --source-dir data/thebe_v32_raw \
+            --out-dir .tver_v52_real/input_memmap
+      - name: Restore immutable V43 real dense-only candidate audit, no seismic data
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43619666821
+          name: tver-v43-real-Thebe-dense-mask-quantile-failclosed-noTEST
+          github-token: ${{ github.token }}
+          path: .tver_v52_real/immutable_v43
+      - name: Restore immutable V45 original two-stage risk gate, no seismic data
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43621737162
+          name: tver-v45-real-Thebe-OOF-two-stage-scene-gate-noTEST
+          github-token: ${{ github.token }}
+          path: .tver_v52_real/immutable_v45
+      - name: Fit frozen V50 on TRAIN1 and compare V52 paths on identical Thebe CAL source worlds
+        run: |
+          python -m scripts.tver_v52_thebe_comparison \
+            --mmap-root .tver_v52_real/input_memmap \
+            --frontends-dir data/tver_v33_verified_frontends \
+            --v43-receipt-dir .tver_v52_real/immutable_v43 \
+            --v45-receipt-dir .tver_v52_real/immutable_v45 \
+            --out-dir .tver_v52_real/result
+          git rev-parse HEAD > .tver_v52_real/result/V52_THEBE_CODE_SHA.txt
+      - name: Upload paired Thebe CAL receipts only; never original arrays or TEST
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tver-v52-real-Thebe-posthoc-paired-v50-v52-noTEST
+          path: .tver_v52_real/result
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 90
