@@ -1,0 +1,98 @@
+name: Tver source-verified real seismic/annotation illustration (VAL1, no TEST)
+on:
+  push:
+    branches:
+      - research/tver-public-figure-20261117
+    paths:
+      - 'scripts/tver_public_thebe_figure.py'
+      - '.github/workflows/tver-public-thebe-figure.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  PYTHONHASHSEED: '0'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  fixed_original_anza_same_pair_budget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install original CPU model and paired rank baseline dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy pillow scikit-image scikit-learn joblib matplotlib pytest
+      - name: Compile figure script and install drawing dependencies
+        run: python -m compileall -q scripts/tver_public_thebe_figure.py
+      - name: Restore immutable V33 original real Thebe ANZA and topology
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43601925275
+          name: tver-v33-Thebe-real-expert-TRAIN-VALID-memmap-source-verified-TEST-unopened
+          github-token: ${{ github.token }}
+          path: data/tver_v33_verified_frontends
+      - name: Restore original checked V32 TRAIN/VAL labels manifest, no TEST
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 43600860512
+          name: tver-v32-thebe-independent-seismic-field-source-manifest-NO-DATA
+          github-token: ${{ github.token }}
+          path: data/thebe_v32_manifest
+      - uses: actions/cache@v4
+        with:
+          path: data/thebe_v32_raw
+          key: thebe-v34-seistrain1-534e78ab34bb0ece32ca0a9b69ee99cd-seisval1-518d2979a1f90d535ebc2a44f615970f
+      - name: Verify original frozen ANZA checkpoint and no TEST7 access
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from scripts.tver_v34_anza_p0_relation_cal import _state_report
+          import hashlib
+          base=Path('data/tver_v33_verified_frontends')
+          receipt=_state_report(base)
+          a=receipt['frontends']['anza_v1']
+          assert hashlib.sha256((base/a['checkpoint']).read_bytes()).hexdigest()==a['SHA256']
+          assert a['topology_threshold_frozen']==.65
+          assert receipt['heldout_THEBE_TEST7_NOT_OPENED']
+          print('V46 frozen ANZA and topology provenance PASS')
+          PY
+      - name: Fetch only official Thebe TRAIN and VAL seismic chunks with provider MD5
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,shutil
+          from scripts.tver_v32_thebe_seismic_headers import fetch_streaming_checked
+          m=json.loads(Path('data/thebe_v32_manifest/thebe_public_metadata_inventory.json').read_text())
+          assert m['status']=='V32_THEBE_EXTERNAL_FIELD_DATAVERSE_METADATA_ONLY_COMPLETE'
+          source={x['name']:x for x in m['files']}
+          root=Path('data/thebe_v32_raw')
+          root.mkdir(parents=True,exist_ok=True)
+          for n in ('seistrain1.npz','seisval1.npz'):
+              print(n,fetch_streaming_checked(source[n],root/n),flush=True)
+          for n in ('faulttrain1.npz','faultval1.npz'):
+              shutil.copyfile(Path('data/thebe_v32_manifest/label_headers')/n,root/n)
+          PY
+      - name: Convert original seismic/train-expert masks to bounded-RAM arrays
+        run: |
+          python -m scripts.tver_v33_thebe_memmap \
+            --source-dir data/thebe_v32_raw \
+            --out-dir .tver_figure/input_memmap
+      - name: Render genuine Thebe seismic, expert label, masked-gap example
+        run: |
+          python -m scripts.tver_public_thebe_figure \
+            --mmap-root .tver_figure/input_memmap \
+            --out-dir .tver_figure/figure
+      - name: Upload illustrated real-source evidence only, no original arrays
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: thebe-real-amplitude-expert-fault-controlled-gap-figure
+          path: .tver_figure/figure
+          if-no-files-found: warn
+          retention-days: 90
