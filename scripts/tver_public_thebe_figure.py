@@ -55,7 +55,7 @@ def main(root, out):
     axes[1].set_title('б) Экспертная разметка',fontweight='normal')
     axes[2].set_title('в) Заданный разрыв',fontweight='normal')
     fig.subplots_adjust(left=.01,right=.99,top=.91,bottom=.02,wspace=.04)
-    fig.savefig(out/'thebe_real_gap_example.jpg',dpi=600,format='jpeg',quality=93,facecolor='white')
+    fig.savefig(out/'thebe_real_gap_example.jpg',dpi=600,format='jpeg',pil_kwargs={'quality':93},facecolor='white')
     plt.close(fig)
     rec={'source':'An et al. 2021 Thebe field real seismic plus expert interpreted mask',
          'license':'CC BY 4.0', 'dataset_doi':'10.7910/DVN/YBYGBK',
