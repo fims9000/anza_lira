@@ -1,0 +1,31 @@
+name: V54 trace-coverage and tiled-inference unit tests
+on:
+  push:
+    branches:
+      - research/tver-v54-trace-candidate-recall-20261122
+    paths:
+      - trace_extraction/coverage.py
+      - tests/test_trace_coverage.py
+      - scripts/tver_v54_full_section_infer.py
+      - tests/test_tver_v54_full_section_infer.py
+      - .github/workflows/tver-v54-coverage-tests.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  coverage_unit_tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check 'torch==2.5.1+cpu' --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --disable-pip-version-check numpy scipy scikit-image pytest
+      - name: Run coverage / full-section tiling tests without Thebe labels
+        run: |
+          python -m compileall -q trace_extraction/coverage.py scripts/tver_v54_full_section_infer.py
+          python -m pytest -q tests/test_trace_coverage.py tests/test_tver_v54_full_section_infer.py
