@@ -31,6 +31,8 @@ def _fake_policy_scene(scene, name, policy):
         "n_candidates": 48 if name == "V53_frozen_4x12" else 80,
         "n_proposals_before_cap": 48 if name == "V53_frozen_4x12" else 120,
         "candidate_available": available, "geometric_top1_correct": available,
+        "any_directional_source_within_8px_of_true_end": available,
+        "used_source_within_8px_of_true_end": available,
         "ports_total": 10, "ports_after_radius_filter": 8,
         "ports_after_direction_filter": 8, "ports_used": 4,
         "proposals_before_per_source_k": 120,
