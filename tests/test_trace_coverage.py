@@ -59,3 +59,19 @@ def test_invalid_probability_fails_closed(bad):
     p[0,0]=bad
     with pytest.raises(ValueError,match="probability"):
         mode_layers(p)
+
+
+def test_fragment_level_recall_reports_separate_evidence_not_fault_identity():
+    p=np.zeros((64,128),np.float32)
+    p[20,10:85]=.9
+    p[20,41:61]=.30
+    p[44,10:95]=.9
+    ref=np.zeros_like(p,bool)
+    ref[20,10:85]=True
+    ref[44,10:95]=True
+    high,low=annotated_trace_coverage(p,ref,thresholds=(.8,.25))
+    assert high["reference_trace_fragment_count"]>=2
+    assert high["annotated_fragment_recall_95pct"]<1.
+    assert low["annotated_fragment_recall_95pct"]==1.
+    assert high["annotated_centerline_coverage"]<1.
+    assert low["annotated_centerline_coverage"]==1.
