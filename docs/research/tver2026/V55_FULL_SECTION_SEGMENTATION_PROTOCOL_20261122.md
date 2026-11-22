@@ -20,7 +20,7 @@ This study replaces neither the original V33 checkpoint nor any V53/V54 saved re
 
 ## Evaluation and stop rules
 
-The primary diagnostic is **annotated centerline and graph-fragment coverage at equal predicted foreground area budgets** of 1%, 2%, 5% and 10% per section. Also report:
+The primary diagnostic is **annotated centerline and graph-fragment coverage at equal predicted foreground area budgets** of 1%, 2%, 5% and 10% per section. The pixel budgets use an exact deterministic top-score selection with row-major tie resolution, because the original V33 full-slice scores contain large tied plateaus that otherwise turn a nominal 1-2% quantile cutoff into several times the intended foreground area. Also report:
 - complete descriptive coverage–foreground curves,
 - annotation-adjacent predicted pixel fraction (NOT population precision; unmarked faults may be real),
 - number of predicted and reference fragments, and whether predicted segmentation is degenerate,
