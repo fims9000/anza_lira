@@ -5,6 +5,7 @@ on:
       - research/tver-v54-trace-candidate-recall-20261122
     paths:
       - scripts/tver_v54_full_section_infer.py
+      - scripts/tver_v54_neighbor_experiment.py
       - .github/workflows/tver-v54-full-section.yml
   workflow_dispatch:
 permissions:
@@ -94,6 +95,12 @@ jobs:
             --tile-size 96 --stride 64 --batch-size 8 \
             --out-dir .tver_v54/full_output
           git rev-parse HEAD > .tver_v54/full_output/V54_CODE_SHA.txt
+      - name: Compare center-only and neighboring-section support at fixed pixel budgets
+        run: |
+          python -m scripts.tver_v54_neighbor_experiment \
+            --mmap-root .tver_v54/full_memmap \
+            --frontends-dir data/tver_v33_verified_frontends \
+            --out-dir .tver_v54/full_output/context
       - name: Upload coverage receipts, predictions and honest weak-line previews
         if: always()
         uses: actions/upload-artifact@v4
