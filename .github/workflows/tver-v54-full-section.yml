@@ -5,9 +5,6 @@ on:
       - research/tver-v54-trace-candidate-recall-20261122
     paths:
       - scripts/tver_v54_full_section_infer.py
-      - trace_extraction/coverage.py
-      - tests/test_trace_coverage.py
-      - tests/test_tver_v54_full_section_infer.py
       - .github/workflows/tver-v54-full-section.yml
   workflow_dispatch:
 permissions:
