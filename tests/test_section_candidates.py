@@ -36,11 +36,12 @@ def test_full_section_finds_gap_without_expert_rectangle():
 def test_multi_threshold_keeps_faint_lines_as_separate_layers():
     p = _two_fragments()
     p[75, 20:51] = .42
+    before = p.copy()
     runs = multi_threshold_section_candidates(p)
     assert [r.threshold for r in runs] == [.65, .50, .35]
     assert len(runs[0].ports) == len(runs[1].ports)
     assert len(runs[2].ports) > len(runs[1].ports)
-    assert np.array_equal(p, _two_fragments() + (p - _two_fragments()))
+    assert np.array_equal(p, before)
 
 
 def test_perpendicular_nearby_track_not_forced_into_wrong_pair():
