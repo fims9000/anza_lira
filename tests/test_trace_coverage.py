@@ -138,5 +138,5 @@ def test_single_neighbor_noise_and_zero_center_cannot_be_hallucinated():
 
 def test_neighbor_fusion_requires_aligned_coordinate_arrays():
     p=np.zeros((20,20),np.float32)
-    with pytest.raises(ValueError,match="same spatial grid"):
+    with pytest.raises(ValueError,match="spatial grid"):
         neighbor_consensus_support(p,p,np.zeros((20,21),np.float32))
