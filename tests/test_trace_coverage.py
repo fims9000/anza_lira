@@ -88,3 +88,18 @@ def test_supported_weak_never_consumes_whole_noisy_component():
                           result.high_confidence |
                           result.supported_weak |
                           result.review_weak)
+
+
+def test_read_only_mapped_reference_skeletonization(tmp_path):
+    label=np.zeros((64,100),np.bool_)
+    label[25,5:80]=True
+    ref=tmp_path/"reference.npy"
+    np.save(ref,label)
+    observed=np.load(ref,mmap_mode="r")
+    assert not observed.flags.writeable
+    probability=np.zeros_like(label,np.float32)
+    probability[25,5:80]=.9
+    rows=annotated_trace_coverage(
+        probability,observed,thresholds=(.8,))
+    assert rows[0]["annotated_centerline_coverage"]==1.
+    assert rows[0]["annotated_fragment_recall_80pct"]==1.
