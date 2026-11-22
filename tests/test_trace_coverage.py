@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 from trace_extraction.coverage import (
-    annotated_trace_coverage, classify_trace_evidence, mode_layers,
+    annotated_trace_coverage, classify_trace_evidence, mode_layers, neighbor_consensus_support,
 )
 
 
@@ -103,3 +103,40 @@ def test_read_only_mapped_reference_skeletonization(tmp_path):
         probability,observed,thresholds=(.8,))
     assert rows[0]["annotated_centerline_coverage"]==1.
     assert rows[0]["annotated_fragment_recall_80pct"]==1.
+
+
+def test_neighbor_consensus_recovers_weak_center_without_oracle_ends():
+    center=np.zeros((48,80),np.float32)
+    prev=np.zeros_like(center)
+    foll=np.zeros_like(center)
+    center[22,10:60]=.34
+    prev[21,10:60]=.92
+    foll[23,10:60]=.90
+    before=center.copy()
+    improved,meta=neighbor_consensus_support(
+        center,prev,foll,spatial_radius=2,max_boost=.35)
+    assert np.all(improved[22,10:60]>.65)
+    assert (center[22,10:60]>=.65).sum()==0
+    assert np.array_equal(center,before)
+    assert meta["no_ground_truth_or_auto_linking"] is True
+
+
+def test_single_neighbor_noise_and_zero_center_cannot_be_hallucinated():
+    center=np.zeros((48,80),np.float32)
+    prev=np.zeros_like(center)
+    foll=np.zeros_like(center)
+    center[22,10:60]=.4
+    prev[22,10:60]=.95
+    boosted,_=neighbor_consensus_support(center,prev,foll)
+    assert np.array_equal(boosted,center)
+    foll[22,10:60]=.95
+    center[22,20:40]=0.
+    boosted,_=neighbor_consensus_support(center,prev,foll)
+    assert np.all(boosted[22,20:40]==0.)
+    assert np.all(boosted>=center)
+
+
+def test_neighbor_fusion_requires_aligned_coordinate_arrays():
+    p=np.zeros((20,20),np.float32)
+    with pytest.raises(ValueError,match="same spatial grid"):
+        neighbor_consensus_support(p,p,np.zeros((20,21),np.float32))
