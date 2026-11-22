@@ -10,6 +10,8 @@ import numpy as np
 from scipy import ndimage as ndi
 from skimage.morphology import skeletonize
 
+from .graph import extract_trace_graph
+
 
 @dataclass(frozen=True)
 class CoverageLayers:
@@ -75,9 +77,19 @@ def annotated_trace_coverage(probability, expert_mask, thresholds=(.85,.65,.45,.
     if not gt_count:
         return [{"threshold":float(t),"reference_centerline_pixels":0,
                  "annotated_centerline_coverage":None,
+                 "reference_trace_fragment_count":0,
+                 "annotated_fragment_recall_80pct":None,
+                 "annotated_fragment_recall_95pct":None,
                  "foreground_fraction":float((p>=t).mean()),
                  "predicted_pixels_near_annotation_fraction":None}
                 for t in thresholds]
+    # Graph segments are annotated trace *fragments*, not physical fault IDs.
+    # Do not merge disconnected components and call them geological truth.
+    gt_graph=extract_trace_graph(centerline,border_margin=0)
+    gt_fragments=[
+        np.asarray(segment.pixels,dtype=np.int32)
+        for segment in gt_graph.segments if segment.pixel_length>=8.
+    ]
     dist_from_gt=ndi.distance_transform_edt(~centerline)
     results=[]
     for threshold in thresholds:
@@ -91,10 +103,26 @@ def annotated_trace_coverage(probability, expert_mask, thresholds=(.85,.65,.45,.
         else:
             recovery=0.
             proximity=None
+            dist=None
+        # A gap-free mask is not the same as high fragment/track recall.
+        def fragment_recall(min_coverage):
+            if not gt_fragments:
+                return None
+            if dist is None:
+                return 0.
+            passed=0
+            for points in gt_fragments:
+                ratio=float(np.mean(
+                    dist[points[:,0],points[:,1]]<=tolerance_px))
+                passed+=ratio>=min_coverage
+            return passed/len(gt_fragments)
         results.append({
             "threshold":float(threshold),
             "reference_centerline_pixels":gt_count,
             "annotated_centerline_coverage":recovery,
+            "reference_trace_fragment_count":len(gt_fragments),
+            "annotated_fragment_recall_80pct":fragment_recall(.80),
+            "annotated_fragment_recall_95pct":fragment_recall(.95),
             "foreground_fraction":frac,
             "predicted_pixels_near_annotation_fraction":proximity,
         })
