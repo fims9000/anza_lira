@@ -77,3 +77,20 @@ python -m scripts.tver_v54_section_graph --probability prediction.npy --out-dir 
 Optional `--expert-mask expert.npy` reports fraction of annotated reference centerline within 2px of each *predicted* skeleton, using the label strictly after proposals exist. This is **annotated-line coverage** rather than geological track-instance recall, and the reference's unlabeled regions are not declared true background.
 
 Multiple thresholds are **retained in separate layers** rather than taking their union and manufacturing bridges. No path decoder, learned pair ranker, or risk gate is automatically attached to whole-section candidates. Those stages require a new separate pair-identity protocol and safe acceptance study; the historical V53 gate cannot be transferred to this candidate distribution uncalibrated.
+
+
+## Methodological interpretation and task-dependent outputs (22 November)
+
+V54 separates three distinct scientific estimands, rather than advertising one universal success percentage:
+
+1. **Trace evidence retrieval:** annotated centerline and fragment coverage on *whole* real seismic sections, with false-positive burden approximated by predicted foreground density and the fraction of predicted pixels near *partially annotated* references. That proximity indicator is not strict precision because not all genuine faults are labeled. The model has no oracle gap rectangle or known endpoints here.
+2. **Continuation identity:** whether the source and target represent the same geological fault. The controlled V53 artificial-gap relation can use oracle truth for scoring only. Its high-recall candidate set does not establish natural connected geological instance identities.
+3. **Conditional path reconstruction:** when the correct endpoints are supplied, a geometry algorithm is judged on the reconstructed centerline; those oracle-endpoint results are not full pipeline recall. When endpoints are *not* supplied, both candidate discovery and pair ranking errors enter the denominator.
+
+The operational design is a **set-valued uncertainty output**: confident observed traces, weak supported evidence, isolated weak REVIEW evidence, and candidate links. No proposed connection becomes a physical link merely because its geometric score is low or its segmentation confidence crosses a threshold.
+
+**Threshold selection is a task policy, not research novelty.** Coverage-oriented exploration, balanced mapping, and conservative automatic linking may require different points on a measured risk–coverage curve; they must keep their same model and not retune with independent test labels. Formal false-link bounds require actual negative geological identity annotation. The current V53 synthetic NO_LINK cases do not provide that. Report method performance curves, annotation/uncertainty limitations, and a small predeclared set of operating points. Avoid framing the most flattering threshold as a universally optimal method.
+
+Beyond threshold sweeps, V54 includes **bounded two-sided neighboring-section support**: weak center-section evidence can be boosted only if spatially nearby signals appear on *both* adjacent sections and the center retains nonzero evidence. The output stays an uncertain trace proposal. Compare center-only and contextual support at equal predicted foreground pixel budgets, as well as at common frozen thresholds. This guards against the trivial strategy of marking everything as fault.
+
+The paper should communicate the method by the sequence: **observe all plausible traces → represent alternative links → reason about identity → reconstruct plausible paths → accept/review according to task risk**. Put detailed counts, thresholds, and ablations in the experiment tables, not in the abstracts or methodological thesis.
