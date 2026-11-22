@@ -62,3 +62,18 @@ If V54 improves the available-pair denominator, next investigate held-out rankin
 3. V53 receipt counts are reproduced exactly on the identical scenes.
 4. Five policy comparisons and stage-level case receipts are persisted.
 5. Independent TEST7 is not accessed; no whole-image or geological-instance success claim is made.
+
+
+## Whole-section prototype (distinct capability, not a V53 accuracy replacement)
+
+The `trace_extraction.section_candidates` module accepts a full 2-D **predicted probability** field without an expert-selected erased rectangle. It reuses the existing binary skeleton graph, extracts endpoints of non-border trace segments, and proposes local geometrically compatible pairs. No 4-source global bottleneck is imposed; candidates are bounded per port instead. It never accepts a pair as a true physical continuation automatically.
+
+`scripts/tver_v54_section_graph.py` exports each threshold layer's skeleton, ports, candidate links, and a summary, using for example:
+
+```bash
+python -m scripts.tver_v54_section_graph --probability prediction.npy --out-dir section_v54
+```
+
+Optional `--expert-mask expert.npy` reports fraction of annotated reference centerline within 2px of each *predicted* skeleton, using the label strictly after proposals exist. This is **annotated-line coverage** rather than geological track-instance recall, and the reference's unlabeled regions are not declared true background.
+
+Multiple thresholds are **retained in separate layers** rather than taking their union and manufacturing bridges. No path decoder, learned pair ranker, or risk gate is automatically attached to whole-section candidates. Those stages require a new separate pair-identity protocol and safe acceptance study; the historical V53 gate cannot be transferred to this candidate distribution uncalibrated.
