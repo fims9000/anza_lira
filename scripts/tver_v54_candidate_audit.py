@@ -61,6 +61,20 @@ def _policy_scene(scene, name, policy):
         if scene["kind"] == "LINK" else []
     )
     diag = prediction.get("diagnostics", {})
+    # The diagnostic matcher is downstream of generator inference. Neither
+    # expert anchors nor labels are passed back into source selection.
+    def near_either_true_end(points):
+        if scene["kind"] != "LINK":
+            return 0
+        origin = np.asarray(scene["origin"], float)
+        ends = np.asarray(scene["true_ends"], float)
+        return int(any(np.min(np.linalg.norm(
+            ends - (np.asarray(point, float) + origin), axis=1)) <= 8.
+            for point in points))
+    all_source_ports_near_truth = near_either_true_end(
+        diag.get("all_directional_source_points", []))
+    used_source_ports_near_truth = near_either_true_end(
+        diag.get("active_source_points", []))
     return {
         "section": int(scene["section"]), "gap_id": scene["id"],
         "world": scene["kind"], "policy": name, "status": prediction["status"],
@@ -69,6 +83,8 @@ def _policy_scene(scene, name, policy):
         "n_proposals_before_cap": int(prediction.get("n_proposals_before_cap", 0)),
         "candidate_available": int(any(hits)),
         "geometric_top1_correct": int(bool(hits) and bool(hits[0])),
+        "any_directional_source_within_8px_of_true_end": all_source_ports_near_truth,
+        "used_source_within_8px_of_true_end": used_source_ports_near_truth,
         "ports_total": int(diag.get("ports_total", 0)),
         "ports_after_radius_filter": int(diag.get("ports_after_radius_filter", 0)),
         "ports_after_direction_filter": int(diag.get("ports_after_direction_filter", 0)),
@@ -132,6 +148,19 @@ def evaluate_scenes(scenes, cohort, frozen_rows=None):
             "lost_legacy_hits": len(lost),
             "rescued_ids": [r["gap_id"] for r in rescue],
             "lost_ids": [r["gap_id"] for r in lost],
+            "misses_without_any_directional_source_near_true_end": sum(
+                not r["candidate_available"] and
+                not r["any_directional_source_within_8px_of_true_end"]
+                for r in link),
+            "misses_with_source_filtered_by_budget": sum(
+                not r["candidate_available"] and
+                r["any_directional_source_within_8px_of_true_end"] and
+                not r["used_source_within_8px_of_true_end"]
+                for r in link),
+            "misses_despite_selected_source_near_true_end": sum(
+                not r["candidate_available"] and
+                r["used_source_within_8px_of_true_end"]
+                for r in link),
             "geometric_top1_correct": sum(r["geometric_top1_correct"] for r in link),
             "median_candidates": float(np.median([r["n_candidates"] for r in link])),
             "p95_candidates": float(np.percentile([r["n_candidates"] for r in link], 95)),
