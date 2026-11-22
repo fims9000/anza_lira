@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
   actions: read
+concurrency:
+  group: tver-v54-full-section-${{ github.ref }}
+  cancel-in-progress: true
 env:
   PYTHONHASHSEED: '0'
   OPENBLAS_NUM_THREADS: '1'
