@@ -30,7 +30,8 @@ def _probability(probability):
 
 
 def classify_trace_evidence(probability, *, low=.35, high=.75,
-                            min_seed_pixels=2, connectivity=8):
+                            min_seed_pixels=2, connectivity=8,
+                            max_support_distance_px=24.):
     """Keep weak evidence distinct, whether or not it touches a strong seed.
 
     Weak evidence attached to a high-confidence component is 'supported';
@@ -40,7 +41,9 @@ def classify_trace_evidence(probability, *, low=.35, high=.75,
     """
     p=_probability(probability)
     if (not 0 < low < high < 1 or not isinstance(min_seed_pixels,int)
-            or min_seed_pixels<1 or connectivity not in (4,8)):
+            or min_seed_pixels<1 or connectivity not in (4,8)
+            or not np.isfinite(max_support_distance_px)
+            or max_support_distance_px<=0):
         raise ValueError("Invalid coverage thresholds or component policy")
     possible=p>=low
     high_mask=p>=high
@@ -51,8 +54,16 @@ def classify_trace_evidence(probability, *, low=.35, high=.75,
     counts=np.bincount(comp[high_mask],minlength=n+1)
     trusted=(counts>=min_seed_pixels)
     trusted[0]=False
-    supported=possible & trusted[comp] & ~high_mask
-    review=possible & ~trusted[comp] & ~high_mask
+    # Component membership alone can span a large noisy connected background.
+    # Bound weak support by distance to high-confidence evidence; preserve
+    # more distant candidate pixels in REVIEW instead of deleting them.
+    if high_mask.any():
+        distance=ndi.distance_transform_edt(~high_mask)
+        near_high=distance<=max_support_distance_px
+    else:
+        near_high=np.zeros_like(high_mask,bool)
+    supported=possible & trusted[comp] & near_high & ~high_mask
+    review=possible & ~supported & ~high_mask
     return CoverageLayers(high_mask, supported,review,possible,(low,high))
 
 
