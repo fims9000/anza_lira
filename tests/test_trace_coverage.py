@@ -75,3 +75,16 @@ def test_fragment_level_recall_reports_separate_evidence_not_fault_identity():
     assert low["annotated_fragment_recall_95pct"]==1.
     assert high["annotated_centerline_coverage"]<1.
     assert low["annotated_centerline_coverage"]==1.
+
+def test_supported_weak_never_consumes_whole_noisy_component():
+    p=np.zeros((32,110),np.float32)
+    p[16,5:12]=.95
+    p[16,12:100]=.45
+    result=classify_trace_evidence(
+        p,low=.3,high=.8,max_support_distance_px=20)
+    assert result.supported_weak[16,20]
+    assert result.review_weak[16,85]
+    assert np.array_equal(result.possible_trace,
+                          result.high_confidence |
+                          result.supported_weak |
+                          result.review_weak)
