@@ -1,0 +1,25 @@
+name: Tver V54 whole-section trace proposal unit tests
+on:
+  push:
+    branches:
+      - research/tver-v54-trace-candidate-recall-20261122
+    paths:
+      - trace_extraction/section_candidates.py
+      - tests/test_section_candidates.py
+      - .github/workflows/tver-v54-section-smoke.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  section_candidates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy scipy scikit-image pytest
+      - run: |
+          python -m compileall -q trace_extraction/section_candidates.py
+          python -m pytest -q tests/test_section_candidates.py tests/test_trace_graph.py
