@@ -56,3 +56,31 @@ def test_section_export_does_not_require_reference_and_rejects_wrong_shape(tmp_p
     with pytest.raises(ValueError, match="shape differs"):
         export_section_graph(p, tmp_path / "out2",
                              expert_mask_path=wrong, thresholds=(.65,))
+
+
+def test_operator_modes_preserve_weak_evidence_when_graph_is_unsafe(tmp_path):
+    p=np.ones((48,80),np.float32)*.80
+    source=tmp_path/"dense.npy"
+    np.save(source,p)
+    report=export_section_graph(
+        source,tmp_path/"out",mode="coverage",thresholds=(.65,.85))
+    assert report["mode"]=="coverage"
+    assert report["skipped_dense_graph_layers"]
+    assert any(row["threshold"]==.65
+               for row in report["skipped_dense_graph_layers"])
+    assert np.load(tmp_path/"out"/"V54_all_possible_trace.npy").all()
+    assert report["mode_trace_counts"]["all_possible_trace_pixels"]==p.size
+
+
+def test_strict_mode_changes_action_policy_not_input_data(tmp_path):
+    p=np.zeros((96,128),np.float32)
+    p[48,12:44]=.95
+    p[48,53:88]=.95
+    source=tmp_path/"prob.npy"
+    np.save(source,p)
+    before=p.copy()
+    r=export_section_graph(source,tmp_path/"strict",mode="strict",thresholds=(.85,))
+    assert r["mode"]=="strict"
+    assert r["policy"]["min_alignment"]==.6
+    assert np.array_equal(np.load(source),before)
+    assert r["mode_trace_counts"]["review_weak_pixels"]==0
