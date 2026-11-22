@@ -153,3 +153,44 @@ def mode_layers(probability, mode="coverage"):
         raise ValueError("Unknown operating mode")
     low,high=config[mode]
     return classify_trace_evidence(probability,low=low,high=high)
+
+
+def neighbor_consensus_support(center, previous, following, *,
+                               spatial_radius=2, neighbor_threshold=.70,
+                               center_floor=.12, max_boost=.35):
+    """Label-free 2.5-D proposal support, not an accepted fault connection.
+
+    A weak center response may be raised only when both adjacent sections
+    show spatially nearby evidence. The original center response is never
+    lowered. The bounded boost and minimum center evidence avoid blindly
+    copying neighboring fault masks into the target section.
+    """
+    p=_probability(center)
+    left=_probability(previous)
+    right=_probability(following)
+    if left.shape!=p.shape or right.shape!=p.shape:
+        raise ValueError("Neighbor sections must share one spatial grid")
+    if (not isinstance(spatial_radius,int) or not 0<=spatial_radius<=10
+            or not 0<neighbor_threshold<1
+            or not 0<=center_floor<neighbor_threshold
+            or not 0<max_boost<=1):
+        raise ValueError("Invalid predeclared neighbor-fusion policy")
+    window=2*spatial_radius+1
+    near_left=ndi.maximum_filter(left,size=window,mode="nearest")
+    near_right=ndi.maximum_filter(right,size=window,mode="nearest")
+    joint=np.minimum(near_left,near_right)
+    eligible=(p>=center_floor)&(joint>=neighbor_threshold)
+    out=np.where(eligible,np.maximum(p,np.minimum(joint,p+max_boost)),p)
+    out=np.clip(out,0,1).astype(np.float32)
+    delta=out-p
+    return out,{
+        "model":"bounded_three_section_consensus",
+        "neighbor_threshold":neighbor_threshold,
+        "max_spatial_offset_px":spatial_radius,
+        "center_floor":center_floor,
+        "max_boost":max_boost,
+        "fraction_pixels_boosted":float((delta>1e-6).mean()),
+        "mean_boost_on_modified_pixels":float(delta[delta>1e-6].mean())
+            if np.any(delta>1e-6) else 0.,
+        "no_ground_truth_or_auto_linking":True,
+    }
