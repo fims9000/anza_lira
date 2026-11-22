@@ -7,6 +7,7 @@ on:
       - scripts/tver_v54_candidate_audit.py
       - scripts/tver_v26_predicted_cracks_e2e.py
       - tests/test_tver_v54_candidate_policy.py
+      - tests/test_tver_v54_candidate_audit.py
       - .github/workflows/tver-v54-candidate-audit.yml
   workflow_dispatch:
 permissions:
@@ -33,7 +34,7 @@ jobs:
       - name: Verify legacy compatibility and new generator policy tests
         run: |
           python -m compileall -q scripts/tver_v26_predicted_cracks_e2e.py scripts/tver_v54_candidate_audit.py
-          python -m pytest -q tests/test_tver_v26_predicted_pipeline.py tests/test_tver_v54_candidate_policy.py tests/test_tracegraph_sbpp_v3_b_soft.py
+          python -m pytest -q tests/test_tver_v26_predicted_pipeline.py tests/test_tver_v54_candidate_policy.py tests/test_tver_v54_candidate_audit.py tests/test_tracegraph_sbpp_v3_b_soft.py
       - name: Restore frozen V33 original real Thebe ANZA
         uses: actions/download-artifact@v4
         with:
