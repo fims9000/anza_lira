@@ -76,7 +76,9 @@ def annotated_trace_coverage(probability, expert_mask, thresholds=(.85,.65,.45,.
     because unannotated genuine faults may exist.
     """
     p=_probability(probability)
-    reference=np.asarray(expert_mask,dtype=bool)
+    # skimage's Cython skeletonizer needs a writable contiguous buffer;
+    # Thebe expert reference comes from read-only .npy memmap.
+    reference=np.array(expert_mask,dtype=bool,order="C",copy=True)
     if reference.shape!=p.shape:
         raise ValueError("Reference shape mismatch")
     if (not thresholds or len(set(thresholds))!=len(thresholds)
