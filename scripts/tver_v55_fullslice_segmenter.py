@@ -194,13 +194,41 @@ def _visual_preview(prob,path):
     return int(factor)
 
 
+def exact_top_fraction_mask(probability,fraction):
+    """Deterministic exact-pixel budget, even for tied/quantized model scores."""
+    p=np.asarray(probability,np.float32)
+    if (p.ndim!=2 or not np.isfinite(p).all()
+            or not 0<fraction<=1):
+        raise ValueError("Invalid exact positive area budget")
+    count=max(1,int(round(p.size*fraction)))
+    flat=p.ravel()
+    cutoff=float(np.partition(flat,flat.size-count)[flat.size-count])
+    chosen=(flat>cutoff)
+    needed=count-int(chosen.sum())
+    if needed:
+        ties=np.flatnonzero(flat==cutoff)
+        if len(ties)<needed:
+            raise RuntimeError("Unstable exact-area ranking")
+        chosen[ties[:needed]]=True
+    result=chosen.reshape(p.shape)
+    if int(result.sum())!=count:
+        raise RuntimeError("Exact-area candidate budget not met")
+    return result,cutoff
+
+
 def _profile(prob,truth):
     output=[]
     for budget in PIXEL_BUDGETS:
-        tau=float(np.quantile(prob,1.-budget))
-        tau=float(np.clip(tau,1e-7,1-1e-7))
-        row=annotated_trace_coverage(prob,truth,(tau,))[0]
-        output.append({"target_foreground_budget":budget,**row})
+        mask,cutoff=exact_top_fraction_mask(prob,budget)
+        row=annotated_trace_coverage(mask.astype(np.float32),truth,(0.5,))[0]
+        row.pop("threshold",None)
+        output.append({
+            "target_foreground_budget":budget,
+            "actual_foreground_budget":float(mask.mean()),
+            "model_score_cutoff":cutoff,
+            "tie_handling":"row_major_deterministic_exact_area",
+            **row,
+        })
     return output
 
 
