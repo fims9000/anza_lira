@@ -5,6 +5,7 @@ import torch
 
 from scripts.tver_v55_fullslice_segmenter import (
     _patch, _draw_batch, _profile, predict_complete,train_model,
+    exact_top_fraction_mask,
 )
 
 SCALE={
@@ -69,3 +70,16 @@ def test_cannot_train_or_infer_using_invalid_context():
     net=torch.nn.Conv2d(3,1,1)
     with pytest.raises(ValueError,match="three aligned"):
         predict_complete(x,net,SCALE,"2d",tile=32,stride=16)
+
+
+def test_tied_probability_plateau_still_obeys_exact_pixel_budget():
+    p=np.full((40,50),.6734,np.float32)
+    p[:5,:]=.8
+    chosen,cutoff=exact_top_fraction_mask(p,.02)
+    assert int(chosen.sum())==40
+    assert chosen[:1,:40].all()
+    assert not chosen[1:].any()
+    assert cutoff==float(np.float32(.8))
+    assert np.array_equal(chosen,exact_top_fraction_mask(p,.02)[0])
+    with pytest.raises(ValueError,match="exact positive"):
+        exact_top_fraction_mask(p,1.2)
