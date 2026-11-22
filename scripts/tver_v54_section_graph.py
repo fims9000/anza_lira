@@ -14,23 +14,54 @@ from pathlib import Path
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 
-from trace_extraction.section_candidates import multi_threshold_section_candidates
+from trace_extraction.section_candidates import full_section_candidate_graph
 from trace_extraction.skeleton import skeletonize_mask
+from trace_extraction.coverage import mode_layers
 
 
 def export_section_graph(
     probability_path, output_dir, *,
     expert_mask_path=None, thresholds=(.65, .50, .35),
-    max_gap_px=40., min_alignment=.2, max_neighbors_per_port=16,
+    max_gap_px=None, min_alignment=None, max_neighbors_per_port=None,
+    mode="coverage",
 ):
     pred = np.load(probability_path, allow_pickle=False, mmap_mode="r")
     if pred.ndim != 2:
         raise ValueError("Expected an entire 2-D probability section")
-    layers = multi_threshold_section_candidates(
-        pred, tuple(map(float, thresholds)),
-        max_gap_px=max_gap_px, min_alignment=min_alignment,
-        max_neighbors_per_port=max_neighbors_per_port,
-    )
+    presets={
+        "coverage": dict(max_gap_px=60.,min_alignment=-.1,max_neighbors_per_port=32),
+        "balanced": dict(max_gap_px=40.,min_alignment=.2,max_neighbors_per_port=16),
+        "strict": dict(max_gap_px=25.,min_alignment=.6,max_neighbors_per_port=8),
+    }
+    if mode not in presets:
+        raise ValueError("Unknown requested output mode")
+    policy=presets[mode].copy()
+    if max_gap_px is not None: policy["max_gap_px"]=max_gap_px
+    if min_alignment is not None: policy["min_alignment"]=min_alignment
+    if max_neighbors_per_port is not None:
+        policy["max_neighbors_per_port"]=max_neighbors_per_port
+    evidence=mode_layers(pred,mode=mode)
+    # Save all weak evidence even if a dense mask is unsuitable for a graph.
+    output = Path(output_dir)
+    output.mkdir(parents=True, exist_ok=True)
+    np.save(output/"V54_high_confidence.npy",evidence.high_confidence)
+    np.save(output/"V54_supported_weak.npy",evidence.supported_weak)
+    np.save(output/"V54_review_weak.npy",evidence.review_weak)
+    np.save(output/"V54_all_possible_trace.npy",evidence.possible_trace)
+    layers=[]
+    skipped=[]
+    for threshold in thresholds:
+        try:
+            layers.append(full_section_candidate_graph(
+                pred,threshold=float(threshold),**policy))
+        except ValueError as exc:
+            if "Dense segmentation" not in str(exc):
+                raise
+            skipped.append({
+                "threshold":float(threshold),
+                "reason":"GRAPH_SKIPPED_DENSE_BUT_ALL_TRACE_EVIDENCE_SAVED",
+                "foreground_fraction":float(np.mean(pred>=float(threshold))),
+            })
     # Correctness reference is loaded only after every inference layer exists.
     expert = None
     if expert_mask_path is not None:
@@ -38,8 +69,6 @@ def export_section_graph(
         if label.shape != pred.shape:
             raise ValueError("Expert reference shape differs from prediction")
         expert = skeletonize_mask(np.asarray(label, bool))
-    output = Path(output_dir)
-    output.mkdir(parents=True, exist_ok=True)
     reports = []
     for layer in layers:
         token = str(layer.threshold).replace(".", "p")
@@ -85,6 +114,15 @@ def export_section_graph(
         "separate_threshold_graphs_not_merged": True,
         "outputs_are_unaccepted_candidate_links": True,
         "no_real_fault_instance_identity_ground_truth_claimed": True,
+        "mode":mode,
+        "policy":policy,
+        "mode_trace_counts":{
+            "high_confidence_pixels":int(evidence.high_confidence.sum()),
+            "supported_weak_pixels":int(evidence.supported_weak.sum()),
+            "review_weak_pixels":int(evidence.review_weak.sum()),
+            "all_possible_trace_pixels":int(evidence.possible_trace.sum()),
+        },
+        "skipped_dense_graph_layers":skipped,
         "layers": reports,
     }
     (output / "V54_SECTION_TRACE_REPORT.json").write_text(
@@ -99,6 +137,7 @@ def main():
     parser.add_argument("--probability", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--expert-mask", type=Path)
+    parser.add_argument("--mode",choices=("coverage","balanced","strict"),default="coverage")
     parser.add_argument("--thresholds", type=float, nargs="+", default=[.65, .5, .35])
     parser.add_argument("--max-gap-px", type=float, default=40.)
     args = parser.parse_args()
@@ -106,6 +145,7 @@ def main():
         args.probability, args.out_dir,
         expert_mask_path=args.expert_mask,
         thresholds=args.thresholds, max_gap_px=args.max_gap_px,
+        mode=args.mode,
     )
     print(json.dumps(result, indent=2, ensure_ascii=False))
 
