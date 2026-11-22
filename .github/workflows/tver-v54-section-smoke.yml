@@ -6,6 +6,8 @@ on:
     paths:
       - trace_extraction/section_candidates.py
       - tests/test_section_candidates.py
+      - scripts/tver_v54_section_graph.py
+      - tests/test_tver_v54_section_graph.py
       - .github/workflows/tver-v54-section-smoke.yml
   workflow_dispatch:
 permissions:
@@ -21,5 +23,5 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install --disable-pip-version-check numpy scipy scikit-image pytest
       - run: |
-          python -m compileall -q trace_extraction/section_candidates.py
-          python -m pytest -q tests/test_section_candidates.py tests/test_trace_graph.py
+          python -m compileall -q trace_extraction/section_candidates.py scripts/tver_v54_section_graph.py
+          python -m pytest -q tests/test_section_candidates.py tests/test_tver_v54_section_graph.py tests/test_trace_graph.py
