@@ -175,12 +175,19 @@ def _features(source,cand,prob,gray):
     ],np.float64)
 
 
-def sbpp_proposals(visible_prob,gray,rect,hard_threshold):
+def sbpp_proposals(visible_prob,gray,rect,hard_threshold,*,
+                   max_sources=MAX_SOURCES,per_source_k=K,max_pairs=48,
+                   max_source_radius=29.,min_alignment=.10,
+                   diagnostics=False):
     """Actual repository SBPP V3-B hard+soft clustering and proposals.
 
     Inputs have only model probability, original image ROI and
     INTERVENTION RECTANGLE. No source or destination oracle coordinates.
     """
+    if (not all(isinstance(k,int) and 1<=k<=512 for k in (max_sources,per_source_k,max_pairs))
+        or not 3.<=float(max_source_radius)<=68.
+        or not -1.<=float(min_alignment)<=1.):
+        raise ValueError("Invalid explicit SBPP candidate-search budget")
     prob=np.asarray(visible_prob,np.float32)
     if (prob.shape!=(ROI,ROI) or gray.shape!=(ROI,ROI)
         or not np.isfinite(prob).all()
@@ -201,16 +208,20 @@ def sbpp_proposals(visible_prob,gray,rect,hard_threshold):
     ports=source_ports(hard,prob)
     center=_center(rect)
     selected=[]
+    n_ports_within_radius=0
     for port in ports:
         point=np.asarray(port.point_yx,float)
         distance=float(np.linalg.norm(point-center))
-        if not 3.<=distance<=29.:continue
+        if not 3.<=distance<=max_source_radius:continue
+        n_ports_within_radius+=1
         toward=(center-point)/max(distance,1e-8)
-        if np.dot(toward,np.asarray(port.tangent_yx,float))<.10:continue
+        if np.dot(toward,np.asarray(port.tangent_yx,float))<min_alignment:continue
         selected.append((distance,-float(port.confidence),port))
     selected.sort(key=lambda row:(row[0],row[1],row[2].branch_id))
     unique={};candidates=[]
-    for _,_,port in selected[:MAX_SOURCES]:
+    n_candidates_before_per_source_k=0
+    n_candidates_after_per_source_k=0
+    for _,_,port in selected[:max_sources]:
         sources=tuple(
             extract_soft_branches(
                 prob,gray,mask,port,tau_s=ratio*hard_threshold)
@@ -226,7 +237,10 @@ def sbpp_proposals(visible_prob,gray,rect,hard_threshold):
                     hysteresis_rule=branch.hysteresis_rule))
         soft=sorted(soft,key=lambda b:(-b.length,-b.mean_probability))[:MAX_SOFT]
         clusters=cluster_branches(hard,tuple(soft))
-        proposed=propose_cluster_candidates(port,clusters)[:K]
+        all_proposed=propose_cluster_candidates(port,clusters)
+        n_candidates_before_per_source_k+=len(all_proposed)
+        proposed=all_proposed[:per_source_k]
+        n_candidates_after_per_source_k+=len(proposed)
         for item in proposed:
             key=tuple(np.rint([*port.point_yx,*item.landing_point_yx]).astype(int))
             if key in unique:continue
@@ -239,11 +253,27 @@ def sbpp_proposals(visible_prob,gray,rect,hard_threshold):
             })
     candidates=sorted(
         candidates,key=lambda row:(-row["geometry"],row["source"],row["target"]))
-    return {"status":"OK" if candidates else "NO_SOURCES_OR_CANDIDATES",
-            "source_count":min(MAX_SOURCES,len(selected)),
+    result={"status":"OK" if candidates else "NO_SOURCES_OR_CANDIDATES",
+            "source_count":min(max_sources,len(selected)),
             "hard_branches":len(hard),
-            "proposals":candidates[:48],
+            "proposals":candidates[:max_pairs],
             "n_proposals_before_cap":len(candidates)}
+    if diagnostics:
+        result["diagnostics"]={
+            "ports_total":len(ports),
+            "ports_after_radius_filter":n_ports_within_radius,
+            "ports_after_direction_filter":len(selected),
+            "ports_used":min(max_sources,len(selected)),
+            "proposals_before_per_source_k":n_candidates_before_per_source_k,
+            "proposals_after_per_source_k":n_candidates_after_per_source_k,
+            "unique_proposals_before_final_cap":len(candidates),
+            "final_cap":max_pairs,
+            "active_source_points":[list(map(float,row[2].point_yx))
+                                     for row in selected[:max_sources]],
+            "all_directional_source_points":[list(map(float,row[2].point_yx))
+                                              for row in selected],
+        }
+    return result
 
 
 def is_true_relation(proposal,ends,origin,tol=8.):
