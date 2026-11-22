@@ -11,16 +11,14 @@ def _cases(cohort):
     for s in range(sections):
         for g in range(2):
             for world in ("LINK", "NO_LINK"):
-                examples.append({"section": s, "id": f"fake:{s}:{g}", "kind": world})
+                examples.append({"section": s, "id": f"fake:{cohort}:{s}:{g}", "kind": world})
     return examples
 
 
 def _fake_policy_scene(scene, name, policy):
     count = (int(scene["section"]) * 2 +
              int(str(scene["id"]).rsplit(":", 1)[1]))
-    baseline_n = 125 if count < 200 else 75
-    if count >= 200:
-        baseline_n = 75
+    baseline_n = 125 if ":TRAIN:" in scene["id"] else 75
     if name == "V53_frozen_4x12":
         available = int(count < baseline_n)
     else:
