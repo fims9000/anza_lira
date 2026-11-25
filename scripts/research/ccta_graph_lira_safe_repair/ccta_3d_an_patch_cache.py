@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 
 from ccta_3d_an_patches import PatchConfig,extract_candidate_patch
+from ccta_3d_structure_targets import sample_vessel_reference,load_aligned_train_reference
 from extract_ct28_scene_candidate_features import EXPECTED_PATIENT_IDS
 import extract_ct28_scene_candidate_features as features
 import run_ct28_graph_lira as graph
@@ -29,6 +30,7 @@ import run_ct28_graph_lira as graph
 ROOT=Path(__file__).resolve().parents[3]
 SCENES=ROOT/"artifacts/varvara/ct28_graph_lira"
 DEFAULT_CACHE=ROOT/"varvara/anza_lira_local_results/ccta_3d_an_patches"
+SEGMENTATIONS=ROOT/"varvara/anza_lira_local_data/Varvara_CT28_junction_source_pack/segmentations"
 
 
 def digest(path:Path)->str:
@@ -57,6 +59,8 @@ def build_patient_cache(
     config:PatchConfig=PatchConfig(),
     include_val:bool=False,
     load_volume=None,
+    with_vessel_targets:bool=False,
+    segmentation_dir:Path=SEGMENTATIONS,
 )->dict:
     train=EXPECTED_PATIENT_IDS["train"]
     val=EXPECTED_PATIENT_IDS["val"]
@@ -92,6 +96,14 @@ def build_patient_cache(
         if load_volume is not None else
         load_verified_training_or_validation_ct(patient,archive)
     )
+    vessel_source=None
+    vessel_sha=None
+    if with_vessel_targets:
+        vessel_source,vessel_sha=load_aligned_train_reference(
+            patient,ct.shape,affine,segmentation_dir,
+            EXPECTED_PATIENT_IDS["train"],
+        )
+    vessel_targets=[]
     patches=[]
     labels=[]
     kinds=[]
@@ -110,6 +122,10 @@ def build_patient_cache(
         ])
         patch,detail=extract_candidate_patch(ct,affine,positions,config)
         patches.append(patch.astype(np.float16))
+        if with_vessel_targets:
+            vessel_targets.append(sample_vessel_reference(
+                vessel_source,affine,positions,config,
+            ))
         labels.append(int(row.y))
         kinds.append(str(row.candidate_type))
         scene_keys.append(str(row.scene_id))
@@ -125,6 +141,8 @@ def build_patient_cache(
         scene_id=np.asarray(scene_keys,dtype="<U160"),
         candidate_id=np.asarray(candidate_keys,dtype="<U160"),
         inside_fraction=np.asarray(inside_fracs,dtype=np.float32),
+        **({"vessel_targets":np.stack(vessel_targets).astype(np.uint8)}
+           if with_vessel_targets else {}),
     )
     report={
         "phase":"supervised_candidate_patch_cache_train_or_val",
@@ -145,6 +163,9 @@ def build_patient_cache(
         "ct_source":"verified local ImageCAS archive" if load_volume is None else "injected synthetic test volume",
         "held_out_test_accessed":False,
         "model_input_contains_ground_truth":False,
+        "train_only_dense_supervision":bool(with_vessel_targets),
+        "reference_segmentation_sha256":vessel_sha,
+        "supervised_mask_is_separate_from_two_channel_network_input":True,
         "notes":"Candidate y saved separately as training target; not embedded into CT/heatmap patch",
     }
     receipt.write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
@@ -161,15 +182,21 @@ def main():
     parser.add_argument("--patch-side",type=int,default=24)
     parser.add_argument("--voxel-mm",type=float,default=1.0)
     parser.add_argument("--frame-mode",choices=("canonical","fixed_lps"),default="canonical")
+    parser.add_argument("--endpoint-encoding",choices=("summed","separate"),default="summed")
+    parser.add_argument("--with-vessel-targets",action="store_true")
+    parser.add_argument("--segmentation-dir",type=Path,default=SEGMENTATIONS)
     args=parser.parse_args()
     if len(args.patients)!=len(set(args.patients)):
         raise ValueError("Duplicate requested patient")
-    config=PatchConfig(side=args.patch_side,voxel_mm=args.voxel_mm,frame_mode=args.frame_mode)
+    config=PatchConfig(side=args.patch_side,voxel_mm=args.voxel_mm,frame_mode=args.frame_mode,
+                       endpoint_encoding=args.endpoint_encoding)
     for patient in args.patients:
         result=build_patient_cache(
             patient=patient,scenes_dir=args.scene_dir,archive=args.archive_dir,
             output_dir=args.out_dir,config=config,
             include_val=args.include_validation,
+            with_vessel_targets=args.with_vessel_targets,
+            segmentation_dir=args.segmentation_dir,
         )
         print(json.dumps({
             key:result[key] for key in (

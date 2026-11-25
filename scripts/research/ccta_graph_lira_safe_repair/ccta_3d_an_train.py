@@ -85,6 +85,7 @@ def load_type(
             "patient_id":patient,"cache_sha256":digest(path),
             "patch_protocol":receipt["patch_protocol"],
             "input_control_mode":receipt.get("input_control_mode","full_ct"),
+            "train_only_dense_supervision":bool(receipt.get("train_only_dense_supervision",False)),
             "endpoint_outside_patch_count":receipt.get("endpoint_outside_patch_count"),
             "minimum_endpoint_patch_margin_mm":receipt.get("minimum_endpoint_patch_margin_mm"),
         })
@@ -95,6 +96,41 @@ def load_type(
     if len({r["input_control_mode"] for r in receipts})!=1:
         raise ValueError("Cannot mix real-CCTA and negative-control patients")
     return np.concatenate(arrays),np.concatenate(labels),examples,receipts
+
+
+def load_train_type_with_vessel_targets(
+    directory:Path,patients:list[int],*,candidate_type:str
+)->tuple[np.ndarray,np.ndarray,np.ndarray,list[dict],list[dict]]:
+    """Load supervised vessel targets strictly for train patients only.
+
+    The tensor x remains exactly the original two-channel CCTA/endpoint patch.
+    Ground-truth vessel targets live in a separate NPZ array, not in the model
+    input or any validation prediction path.
+    """
+    if not set(patients)<=EXPECTED_PATIENT_IDS["train"]:
+        raise ValueError("Dense vessel supervision may only use CT28 train patients")
+    x,y,examples,receipts=load_type(
+        directory,patients,split="train",candidate_type=candidate_type
+    )
+    dense=[]
+    for patient in patients:
+        receipt=json.loads((directory/f"patches_{patient}.json").read_text())
+        if receipt.get("train_only_dense_supervision") is not True:
+            raise ValueError("Missing train-only dense vessel supervision in cache")
+        with np.load(directory/f"patches_{patient}.npz",allow_pickle=False) as data:
+            if "vessel_targets" not in data:
+                raise ValueError("Missing vessel_targets NPZ array")
+            selected=data["candidate_type"]==candidate_type
+            target=data["vessel_targets"][selected]
+            if target.ndim!=4 or target.shape[1:]!=x.shape[2:]:
+                raise ValueError("Vessel target shape mismatches CT candidate patches")
+            if not set(np.unique(target))<= {0,1}:
+                raise ValueError("Vessel target must be binary")
+            dense.append(target.astype(np.float32)[:,None])
+    targets=np.concatenate(dense,axis=0)
+    if targets.shape[0]!=len(x):
+        raise ValueError("Vessel targets are not aligned with candidate order")
+    return x,y,targets,examples,receipts
 
 
 def classify_metrics(truth:np.ndarray,confidence:np.ndarray)->dict:

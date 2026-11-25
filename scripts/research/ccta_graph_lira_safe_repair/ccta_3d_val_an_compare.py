@@ -61,7 +61,7 @@ def check_val_pilot(
 
 
 def pair_experiment_paths(study:Path,variant:str)->tuple[Path,Path,Path]:
-    if variant not in {"conv3d","anza3d"}:
+    if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
         raise ValueError("Unknown neural encoder variant")
     return (
         study/f"relation_{variant}",
@@ -184,10 +184,32 @@ def summarize_matched_validation(
     seed:int=20261102,
     pair_identity_source:str="frozen_fusion",
     relation_training:str="clean",
+    structure_models:bool=False,
+    separate_endpoints:bool=False,
+    noaxial_control:bool=False,
+    deepsets:bool=False,
 )->tuple[dict,list[dict]]:
     if bootstrap<100:
         raise ValueError("At least 100 patient-resampled bootstrap draws required")
     expected_relation_protocol=_relation_protocol(relation_training)
+    if (separate_endpoints or noaxial_control or deepsets) and not structure_models:
+        raise ValueError("Separate-tip, DeepSets and no-axial comparison require structure models")
+    if deepsets and not separate_endpoints:
+        raise ValueError("DeepSets comparison requires separate endpoint channels")
+    if not structure_models:
+        cnn_name,anza_name="conv3d","anza3d"
+    elif deepsets:
+        cnn_name="conv3d_deepsets_sep_structure"
+        anza_name=("anza3d_noaxial_deepsets_sep_structure" if noaxial_control
+                   else "anza3d_deepsets_sep_structure")
+    elif separate_endpoints:
+        cnn_name="conv3d_sep_structure"
+        anza_name=("anza3d_noaxial_sep_structure" if noaxial_control
+                   else "anza3d_sep_structure")
+    else:
+        cnn_name="conv3d_structure"
+        anza_name=("anza3d_noaxial_structure" if noaxial_control
+                   else "anza3d_structure")
     freeze=verify_validation_freeze(freeze_path)
     rows=[]
     for patient in sorted(VAL_CT28_IDS):
@@ -203,7 +225,7 @@ def summarize_matched_validation(
         k10=read(baseline_metrics)
         metrics={"K10":k10}
         status="complete"
-        for variant in ("conv3d","anza3d"):
+        for variant in (cnn_name,anza_name):
             report_path=output_root/f"patient_{patient}"/variant/"result_manifest.json"
             fail_path=report_path.parent/"failure.json"
             if fail_path.exists():
@@ -242,8 +264,8 @@ def summarize_matched_validation(
                 row[model+"_cldice_delta"]=float(metric["cldice_delta"])
                 row[model+"_gt_false_bridge_pairs"]=int(metric["gt_inconsistent_new_component_pairs"])
                 row[model+"_unsupported_added_voxels"]=int(metric["reference_unsupported_added_voxels"])
-            row["ANZA_minus_CNN_cldice_delta"]=row["anza3d_cldice_delta"]-row["conv3d_cldice_delta"]
-            row["ANZA_minus_CNN_dice_delta"]=row["anza3d_dice_delta"]-row["conv3d_dice_delta"]
+            row["ANZA_minus_CNN_cldice_delta"]=row[anza_name+"_cldice_delta"]-row[cnn_name+"_cldice_delta"]
+            row["ANZA_minus_CNN_dice_delta"]=row[anza_name+"_dice_delta"]-row[cnn_name+"_dice_delta"]
         rows.append(row)
 
     complete=[row for row in rows if row["status"]=="complete"]
@@ -273,6 +295,10 @@ def summarize_matched_validation(
         ),
         "patient_count":5,
         "pair_identity_source":pair_identity_source,
+        "variant_pair":[cnn_name,anza_name],
+        "tip_encoding":"separate" if separate_endpoints else "summed",
+        "noaxial_control":bool(noaxial_control),
+        "deepsets_tip_encoder":bool(deepsets),
         "relation_train_protocol":expected_relation_protocol,
         "patient_completed":len(complete),
         "patient_failed_or_missing":5-len(complete),
@@ -312,12 +338,13 @@ def write_matched(root:Path,report:dict,rows:list[dict]):
         "| Patient | Status | K10 ΔclDice | CNN ΔclDice | ANZA ΔclDice | ANZA–CNN |",
         "|---|---|---:|---:|---:|---:|",
     ]
+    cnn_name,anza_name=report.get("variant_pair",["conv3d","anza3d"])
     for row in rows:
         if row["status"]=="complete":
             def f(k): return f"{row[k]:+.5f}"
             lines.append(
                 f"| {row['patient_id']} | complete | {f('K10_cldice_delta')} | "
-                f"{f('conv3d_cldice_delta')} | {f('anza3d_cldice_delta')} | "
+                f"{f(cnn_name+'_cldice_delta')} | {f(anza_name+'_cldice_delta')} | "
                 f"{f('ANZA_minus_CNN_cldice_delta')} |"
             )
         else:
@@ -341,14 +368,36 @@ def main():
     parser.add_argument("--output-root",type=Path,default=DEFAULT_COMPARE)
     parser.add_argument("--run",action="store_true")
     parser.add_argument("--device",default="cpu")
-    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair"),default="frozen_fusion")
+    parser.add_argument("--pair-identity-source",choices=("frozen_fusion","neural_pair","neural_pair_junction"),default="frozen_fusion")
     parser.add_argument("--relation-training",choices=("clean","augmented_15"),default="clean")
+    parser.add_argument("--structure-models",action="store_true")
+    parser.add_argument("--separate-endpoints",action="store_true")
+    parser.add_argument("--deepsets",action="store_true",help="Nonlinear symmetric tip multiset encoder; requires separate tips")
+    parser.add_argument("--noaxial-control",action="store_true",help="Compare matched CNN with ANZA having free, not forced-axial, metric")
     parser.add_argument("--bootstrap",type=int,default=10000)
     args=parser.parse_args()
     verify_validation_freeze(args.freeze)
+    if (args.separate_endpoints or args.noaxial_control or args.deepsets) and not args.structure_models:
+        raise ValueError("Separate-tip, DeepSets and no-axial comparison require --structure-models")
+    if args.deepsets and not args.separate_endpoints:
+        raise ValueError("DeepSets comparison requires --separate-endpoints")
+    if not args.structure_models:
+        selected_variants=("conv3d","anza3d")
+    elif args.deepsets:
+        selected_variants=("conv3d_deepsets_sep_structure",
+                           "anza3d_noaxial_deepsets_sep_structure" if args.noaxial_control
+                           else "anza3d_deepsets_sep_structure")
+    elif args.separate_endpoints:
+        selected_variants=("conv3d_sep_structure",
+                           "anza3d_noaxial_sep_structure" if args.noaxial_control
+                           else "anza3d_sep_structure")
+    else:
+        selected_variants=("conv3d_structure",
+                           "anza3d_noaxial_structure" if args.noaxial_control
+                           else "anza3d_structure")
     if args.run:
         for patient in sorted(VAL_CT28_IDS):
-            for variant in ("conv3d","anza3d"):
+            for variant in selected_variants:
                 path=args.output_root/f"patient_{patient}"/variant
                 if path.exists():
                     print(f"Preserving existing {patient}/{variant} evidence",flush=True)
@@ -373,6 +422,10 @@ def main():
         bootstrap=args.bootstrap,
         pair_identity_source=args.pair_identity_source,
         relation_training=args.relation_training,
+        structure_models=args.structure_models,
+        separate_endpoints=args.separate_endpoints,
+        noaxial_control=args.noaxial_control,
+        deepsets=args.deepsets,
     )
     write_matched(args.output_root,report,rows)
     print(json.dumps({

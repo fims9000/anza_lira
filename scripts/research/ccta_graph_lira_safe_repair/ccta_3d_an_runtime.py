@@ -55,13 +55,24 @@ class NeuralCCTA3dInference(K10Inference):
         pair_identity_source:str="frozen_fusion",
     ):
         super().__init__(models,pack_sha=pack_sha)
-        if variant not in {"anza3d","conv3d"}:
+        if variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
             raise ValueError("Unknown 3D neural encoder variant")
         if not 0<=min_inside_fraction<=1:
             raise ValueError("Invalid minimum CT patch in-volume fraction")
-        if pair_identity_source not in {"frozen_fusion","neural_pair"}:
-            raise ValueError("PAIR identity source must be frozen_fusion or neural_pair")
+        if pair_identity_source not in {"frozen_fusion","neural_pair","neural_pair_junction"}:
+            raise ValueError("PAIR identity source must be frozen_fusion, neural_pair or neural_pair_junction")
         self.pair_identity_source=pair_identity_source
+        # Keep geometry-only path immutable. In the NEW explicit experiment
+        # the learned JUNCTION candidate score also chooses local branch ID.
+        # Relation HGB still receives the unchanged geometry features plus
+        # the learned neural CT feature, so do not overwrite geometry_score.
+        self.identity_columns={
+            name:(dict(columns) if isinstance(columns,dict) else columns)
+            for name,columns in IDENTITY.items()
+        }
+        if pair_identity_source=="neural_pair_junction":
+            self.identity_columns["ct_conditioned"]["JUNCTION"]="geometry_plus_ct_score"
+        self.identity_utility_columns=self.identity_columns["ct_conditioned"]
         self.variant=variant
         self.device=device
         self.patch_config=patch_config
@@ -121,6 +132,12 @@ class NeuralCCTA3dInference(K10Inference):
                 raise ValueError("Cannot deploy endpoint-only or scrambled-CT model as full 3D CCTA")
             if meta.get("held_out_test_accessed") is not False:
                 raise ValueError("Unsealed medical test evidence in OOF pack")
+            if variant.endswith("_structure"):
+                evidence=meta.get("structure_objective") or {}
+                if (evidence.get("vessel_supervision")!="train_only" or
+                    not all(item.get("train_only_dense_supervision") is True
+                            for item in meta.get("train_patch_sources",[]))):
+                    raise ValueError("Structure encoder missing train-only vessel supervision provenance")
             scores=directory/f"{kind}_{variant}_oof_val.csv"
             if sha256(scores)!=expected_source or sha256(scores)!=meta["score_sha256"]:
                 raise ValueError("OOF source SHA changed after relation training")
@@ -132,7 +149,7 @@ class NeuralCCTA3dInference(K10Inference):
                 raise ValueError("Train and validation candidate-patch protocols differ")
             patch_configs.append(cfg)
             neural=Candidate3dEncoder(
-                variant,voxel_mm=float(cfg["voxel_mm"])
+                variant,voxel_mm=float(cfg["voxel_mm"]),candidate_type=kind
             )
             state=torch.load(weights,map_location="cpu",weights_only=True)
             neural.load_state_dict(state,strict=True)
@@ -206,11 +223,13 @@ class NeuralCCTA3dInference(K10Inference):
                 if not np.isfinite(value) or not 0<=value<=1:
                     raise ValueError("Nonfinite neural CT candidate score")
                 scores.loc[scores.index[index],"ct_score"]=float(value)
-                if kind=="PAIR" and self.pair_identity_source=="neural_pair":
+                if ((kind=="PAIR" and self.pair_identity_source in {"neural_pair","neural_pair_junction"})
+                    or (kind=="JUNCTION" and self.pair_identity_source=="neural_pair_junction")):
                     # Explicit image-encoder identity experiment. The original
                     # K10/15 geometry+CT PAIR identity remains the default.
-                    # Keep the historical column and chooser contract, but
-                    # replace its numerical evidence for PAIR *only*.
+                    # Keep original geometry_score for frozen relation model
+                    # features. Explicitly replace selected branch identity
+                    # evidence for PAIR and optionally JUNCTION only.
                     scores.loc[scores.index[index],"geometry_plus_ct_score"]=float(value)
 
         plan=pd.DataFrame([{
@@ -223,7 +242,7 @@ class NeuralCCTA3dInference(K10Inference):
             plan,candidates,scores,self.models,EVAL_TAU
         )
         decisions=graph.select_scene_decisions(
-            plan,candidates,scores,predictions,IDENTITY
+            plan,candidates,scores,predictions,self.identity_columns
         )
         if any_endpoint_outside_patch:
             # Conservative selective repair: a candidate whose endpoint is

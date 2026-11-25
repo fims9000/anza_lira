@@ -76,3 +76,43 @@ def test_patch_cache_never_opens_heldout_test_or_validation_by_default(tmp_path)
                     AssertionError("forbidden CT volume opened")
                 )
             )
+
+
+def test_dense_vessel_supervision_never_enters_two_channel_ct_input(tmp_path,monkeypatch):
+    """Both candidate scorers see byte-identical inputs with/without target."""
+    import ccta_3d_an_patch_cache as cache
+    scene=fake_scene_csvs(tmp_path)
+    def ct_provider(patient):
+        assert patient==953
+        return np.full((40,40,40),260,dtype=np.float32),np.eye(4)
+    normal=tmp_path/"normal"
+    supervised=tmp_path/"supervised"
+    mask=np.zeros((40,40,40),dtype=np.uint8)
+    mask[13:23,14,14]=1
+    def reference_provider(patient,shape,affine,segmentation_dir,train_ids):
+        assert patient==953 and patient in train_ids
+        assert tuple(shape)==(40,40,40)
+        assert np.allclose(affine,np.eye(4))
+        return mask,"test-only-segmentation-sha"
+    monkeypatch.setattr(cache,"load_aligned_train_reference",reference_provider)
+    base=build_patient_cache(
+        patient=953,scenes_dir=scene,output_dir=normal,
+        config=PatchConfig(side=16,frame_mode="fixed_lps"),load_volume=ct_provider,
+    )
+    rich=build_patient_cache(
+        patient=953,scenes_dir=scene,output_dir=supervised,
+        config=PatchConfig(side=16,frame_mode="fixed_lps"),load_volume=ct_provider,
+        with_vessel_targets=True,
+    )
+    with np.load(normal/"patches_953.npz",allow_pickle=False) as baseline, \
+         np.load(supervised/"patches_953.npz",allow_pickle=False) as structure:
+        assert set(structure.files)-set(baseline.files)=={"vessel_targets"}
+        assert np.array_equal(baseline["patches"],structure["patches"])
+        assert np.array_equal(baseline["y"],structure["y"])
+        assert structure["vessel_targets"].shape==(2,16,16,16)
+        assert (structure["vessel_targets"].sum(axis=(1,2,3))>0).all()
+        assert structure["vessel_targets"].dtype==np.uint8
+    assert base["train_only_dense_supervision"] is False
+    assert rich["train_only_dense_supervision"] is True
+    assert rich["reference_segmentation_sha256"]=="test-only-segmentation-sha"
+    assert rich["model_input_contains_ground_truth"] is False

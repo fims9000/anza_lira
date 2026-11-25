@@ -1,0 +1,48 @@
+name: Diagnostic 3D tube connectivity training (not ImageCAS)
+
+on:
+  push:
+    branches:
+      - experiment/ccta3d-topology-anisotropy-2026-11-11
+    paths:
+      - 'scripts/research/ccta_graph_lira_safe_repair/benchmark_structural_tubes.py'
+      - 'scripts/research/ccta_graph_lira_safe_repair/ccta_3d_neural_calibration.py'
+      - 'models/azconv3d.py'
+      - 'models/structural_bridge3d.py'
+      - 'models/ccta3d_candidate_encoder.py'
+      - '.github/workflows/ccta3d-tubes.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ccta3d-tubes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  paired-tube-benchmark:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU numerical benchmark dependencies
+        run: |
+          python -m pip install numpy scipy scikit-learn
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Freeze synthetic training and validation protocol; compare four variants
+        run: |
+          python scripts/research/ccta_graph_lira_safe_repair/benchmark_structural_tubes.py \
+            --out evidence/ccta3d_tube_benchmark/report.json \
+            --train-samples 96 --val-samples 48 \
+            --epochs 12 --seeds 17 41 73 --kinds PAIR JUNCTION \
+            --device cpu
+      - name: Publish per-seed metrics without claiming medical superiority
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccta3d-structural-tube-benchmark
+          path: evidence/ccta3d_tube_benchmark/
+          if-no-files-found: error
+          retention-days: 21
