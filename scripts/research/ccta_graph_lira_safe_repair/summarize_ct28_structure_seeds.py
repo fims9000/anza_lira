@@ -51,7 +51,8 @@ def aggregate(reports:dict[int,Path])->dict:
                  report.get("relation_train_protocol"),
                  report.get("tip_encoding","summed"),
                  bool(report.get("noaxial_control",False)),
-                 report.get("pair_identity_source"))
+                 report.get("pair_identity_source"),
+                 report.get("training_signature") or {"ranking_weight":0.,"endpoint_jitter_mm":0.})
         if signature is None:
             signature=current
         elif signature!=current:
@@ -115,6 +116,7 @@ def aggregate(reports:dict[int,Path])->dict:
         "tip_encoding":signature[3],
         "noaxial_control":signature[4],
         "candidate_identity_policy":signature[5],
+        "training_signature":signature[6],
         "held_out_CT28_test_accessed":False,
         "per_seed":evidence,
         "ANZA_better_cldice_seed_count":sum(x>0 for x in scores),
