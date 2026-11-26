@@ -389,7 +389,7 @@ def main():
     parser.add_argument("--cache-dir",type=Path,default=DEFAULT_CACHE)
     parser.add_argument("--output-dir",type=Path,required=True)
     parser.add_argument("--candidate-type",choices=("PAIR","JUNCTION"),required=True)
-    parser.add_argument("--variant",choices=("conv3d","anza3d"),required=True)
+    parser.add_argument("--variant",choices=("conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","conv3d_sep_structure","anza3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"),required=True)
     parser.add_argument("--folds",type=int,default=5)
     parser.add_argument("--epochs",type=int,default=8)
     parser.add_argument("--batch-size",type=int,default=8)
