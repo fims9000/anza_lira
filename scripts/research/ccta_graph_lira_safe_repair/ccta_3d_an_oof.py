@@ -35,6 +35,7 @@ from torch.utils.data import DataLoader,TensorDataset
 from models.ccta3d_candidate_encoder import Candidate3dEncoder
 from models.structural_bridge3d import vessel_structure_loss
 from ccta_3d_an_patch_cache import DEFAULT_CACHE
+from ct28_endpoint_jitter import jitter_batch
 from ccta_3d_an_train import load_type, load_train_type_with_vessel_targets, classify_metrics, candidate_scene_ranking_metrics
 from extract_ct28_scene_candidate_features import EXPECTED_PATIENT_IDS
 
@@ -77,6 +78,7 @@ def fit_score(
     seed:int,device:str,voxel_mm:float,
     candidate_type:str="PAIR",train_vessel_targets:np.ndarray|None=None,
     train_scene_ids:np.ndarray|None=None,ranking_weight:float=0.,
+    endpoint_jitter_mm:float=0.,endpoint_sigma_mm:float=1.5,
 )->tuple[torch.nn.Module,np.ndarray,dict]:
     if not {0,1}<=set(np.unique(train_y)):
         raise ValueError("Each training fold must contain both candidate classes")
@@ -104,6 +106,13 @@ def fit_score(
     )
     if ranking_weight>0 and not pairs:
         raise ValueError("Ranking objective needs train-only same-scene positive/negative pairs")
+    if not np.isfinite(endpoint_jitter_mm) or endpoint_jitter_mm<0:
+        raise ValueError("Invalid endpoint jitter scale")
+    if endpoint_jitter_mm and (not structure_aware or expected_channels!=4):
+        raise ValueError("Endpoint jitter needs separate-tip dense supervision")
+    jitter_rng=np.random.default_rng(seed+100003)
+    jitter_applied=0
+    jitter_seen=0
     model=Candidate3dEncoder(variant,voxel_mm=voxel_mm,candidate_type=candidate_type).to(device)
     tensors=[torch.from_numpy(train_x),torch.from_numpy(train_y)]
     if structure_aware:
@@ -125,7 +134,18 @@ def fit_score(
         model.train()
         total=0.0
         for batch_no,batch in enumerate(loader):
-            original_x=batch[0].to(device)
+            if endpoint_jitter_mm:
+                ax,ay,n=jitter_batch(batch[0].numpy(),batch[2].numpy(),
+                    degree=2 if candidate_type=="PAIR" else 3,voxel_mm=voxel_mm,
+                    endpoint_sigma_mm=endpoint_sigma_mm,noise_mm=endpoint_jitter_mm,rng=jitter_rng)
+                original_x=torch.from_numpy(ax).to(device)
+                vessel_truth=torch.from_numpy(ay).to(device)
+                jitter_applied+=n
+                jitter_seen+=len(ax)
+            else:
+                original_x=batch[0].to(device)
+                if structure_aware:
+                    vessel_truth=batch[2].to(device)
             y=batch[1].to(device)
             if pairs:
                 pos,neg=pairs[(epoch*len(loader)+batch_no)%len(pairs)]
@@ -136,7 +156,6 @@ def fit_score(
             optimizer.zero_grad(set_to_none=True)
             if structure_aware:
                 logits,dense_logits,path_prob=model(x,return_structure=True)
-                vessel_truth=batch[2].to(device)
                 loss=(criterion(logits[:len(y)],y)
                       +.35*vessel_structure_loss(dense_logits[:len(y)],vessel_truth,skeleton_iterations=2)
                       +.15*criterion(torch.logit(path_prob[:len(y)]),y))
@@ -166,6 +185,7 @@ def fit_score(
         "train_positives":n_pos,
         "epoch_losses":history,
         "ranking_weight":float(ranking_weight),
+        "endpoint_jitter_applied":jitter_applied,"endpoint_jitter_seen":jitter_seen,
         "training_scene_rank_pair_count":len(pairs),
         "ranking_uses_validation_labels":False,
         "structure_training":({"dense_loss_weight":.35,"path_loss_weight":.15,
@@ -190,6 +210,7 @@ def build_oof(
     device:str="cpu",
     allow_subset:bool=False,
     ranking_weight:float=0.,
+    endpoint_jitter_mm:float=0.,
 )->dict:
     if candidate_type not in {"PAIR","JUNCTION"} or variant not in {"anza3d","conv3d","anza3d_structure","conv3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
         raise ValueError("Unknown candidate/model type")
@@ -205,6 +226,10 @@ def build_oof(
         raise ValueError("Invalid patient OOF training configuration")
     if not np.isfinite(ranking_weight) or ranking_weight<0:
         raise ValueError("Invalid scene-ranking weight")
+    if not np.isfinite(endpoint_jitter_mm) or endpoint_jitter_mm<0:
+        raise ValueError("Invalid endpoint jitter scale")
+    if endpoint_jitter_mm and ("_sep_" not in variant or not variant.endswith("_structure")):
+        raise ValueError("Endpoint jitter requires separate-tip structural models")
     if device.startswith("cuda") and not torch.cuda.is_available():
         raise ValueError("CUDA unavailable")
     if out_dir.exists():
@@ -235,7 +260,11 @@ def build_oof(
         raise ValueError("Train and validation patch protocol differs")
     if train_sources[0]["input_control_mode"]!=val_sources[0]["input_control_mode"]:
         raise ValueError("Train and validation image-control modes differ")
-    patch_voxel_mm=float(train_sources[0]["patch_protocol"]["voxel_mm"])
+    patch_cfg=train_sources[0]["patch_protocol"]
+    patch_voxel_mm=float(patch_cfg["voxel_mm"])
+    if endpoint_jitter_mm and (patch_cfg.get("frame_mode")!="fixed_lps" or train_sources[0]["input_control_mode"]!="full_ct"):
+        raise ValueError("Endpoint jitter requires full CT with fixed LPS orientation")
+    sigma_mm=float(patch_cfg.get("endpoint_sigma_mm",1.5))
     groups=np.asarray([entry["patient_id"] for entry in train_examples])
     unique=set(groups)
     if unique!=set(train_patients):
@@ -259,7 +288,7 @@ def build_oof(
             voxel_mm=patch_voxel_mm,candidate_type=candidate_type,
             train_vessel_targets=(train_targets[fit_idx] if structured else None),
             train_scene_ids=np.asarray([entry["scene_id"] for entry in train_examples])[fit_idx],
-            ranking_weight=ranking_weight,
+            ranking_weight=ranking_weight,endpoint_jitter_mm=endpoint_jitter_mm,endpoint_sigma_mm=sigma_mm,
         )
         oof[hold_idx]=scores
         held_assignments[hold_idx]=fold
@@ -282,7 +311,7 @@ def build_oof(
         voxel_mm=patch_voxel_mm,candidate_type=candidate_type,
         train_vessel_targets=train_targets if structured else None,
         train_scene_ids=np.asarray([entry["scene_id"] for entry in train_examples]),
-        ranking_weight=ranking_weight,
+        ranking_weight=ranking_weight,endpoint_jitter_mm=endpoint_jitter_mm,endpoint_sigma_mm=sigma_mm,
     )
     checkpoint=out_dir/f"{candidate_type}_{variant}_fulltrain.pt"
     torch.save(model.state_dict(),checkpoint)
@@ -326,6 +355,7 @@ def build_oof(
             "epochs":epochs,"batch_size":batch_size,
             "learning_rate":learning_rate,"seed":seed,"device":device,
             "ranking_weight":float(ranking_weight),
+            "endpoint_jitter_mm":float(endpoint_jitter_mm),
         },
         "train_OOF_metrics":classify_metrics(train_y,oof),
         "train_OOF_scene_top1_identity":candidate_scene_ranking_metrics(
@@ -367,6 +397,7 @@ def main():
     parser.add_argument("--device",default="cpu")
     parser.add_argument("--seed",type=int,default=20261102)
     parser.add_argument("--ranking-weight",type=float,default=0.)
+    parser.add_argument("--endpoint-jitter-mm",type=float,default=0.)
     args=parser.parse_args()
     report=build_oof(
         cache_dir=args.cache_dir,out_dir=args.output_dir,
@@ -375,7 +406,7 @@ def main():
         val_patients=sorted(EXPECTED_PATIENT_IDS["val"]),
         folds=args.folds,epochs=args.epochs,batch_size=args.batch_size,
         learning_rate=args.learning_rate,seed=args.seed,device=args.device,
-        ranking_weight=args.ranking_weight,
+        ranking_weight=args.ranking_weight,endpoint_jitter_mm=args.endpoint_jitter_mm,
     )
     print(json.dumps({
         "status":report["status"],
