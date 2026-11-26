@@ -52,6 +52,7 @@ def build_runtime_train_rows(*, geometry_folds, transform, archive_dir,
                                         max_scenes=128)
         gap_records = gap_pair_labels(reference, broken, affine, gaps, endpoints, scenes)
         labels, skipped = window_labels(scenes, gap_records)
+        del reference, broken
         record.update(status="labelled", gap_statuses=dict(Counter(g["status"] for g in gap_records)),
                       windows=len(scenes), labels=dict(Counter(labels.values())),
                       skipped=dict(Counter(skipped.values())), gaps=gap_records)
