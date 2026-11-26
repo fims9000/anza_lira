@@ -95,7 +95,7 @@ def _relation_protocol(mode:str)->str:
     return statuses[mode]
 
 
-def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
+def _verified_relation(path:Path,variant:str,mode:str="clean",runtime_window_training:bool|None=None)->bool:
     status=_relation_protocol(mode)
     if not path.exists():
         return False
@@ -103,6 +103,8 @@ def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
     if not manifest.is_file():
         raise ValueError(f"Partial relation-model evidence: {path}")
     m=_load_json(manifest)
+    if runtime_window_training is not None and bool(m.get("runtime_window_training",False))!=runtime_window_training:
+        raise ValueError("Existing HGB uses a different runtime-window training objective")
     if m.get("status")!=status or m.get("variant")!=variant:
         raise ValueError("Wrong experimental relation variant or augmentation mode")
     name="clean_relation_head.joblib" if mode=="clean" else "augmented_relation_head.joblib"
@@ -184,11 +186,13 @@ def verify_upstream_ranking_protocol(root:Path,variants:tuple[str,...],expected_
                 )
 
 
-def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu",variants:tuple[str,...]=("conv3d","anza3d"))->None:
+def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu",variants:tuple[str,...]=("conv3d","anza3d"),runtime_window_training:bool=False)->None:
     _relation_protocol(mode)
+    if runtime_window_training and mode!="augmented_15":
+        raise ValueError("Runtime-window adaptation requires augmented patient-OOF HGB")
     for variant in variants:
         path=root/f"relation_{variant}"
-        if _verified_relation(path,variant,mode):
+        if _verified_relation(path,variant,mode,runtime_window_training):
             continue
         options={
             "pair_oof":root/f"oof_pair_{variant}",
@@ -200,7 +204,7 @@ def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu",variants:tupl
             run_relation_training(**options)
         else:
             from ccta_3d_an_relation_augmented import train_augmented_neural_relation
-            train_augmented_neural_relation(**options,device=device)
+            train_augmented_neural_relation(**options,device=device,runtime_window_training=runtime_window_training)
         print(f"{mode} 84-feature relation trained: {variant}",flush=True)
 
 
@@ -381,7 +385,10 @@ def main():
     parser.add_argument("--batch-size",type=int,default=8)
     parser.add_argument("--ranking-weight",type=float,default=0.,help="Train-only same-scene candidate ranking ablation (0 preserves baseline)")
     parser.add_argument("--endpoint-jitter-mm",type=float,default=0.,help="Opt-in train-only cached fixed-LPS endpoint perturbation")
+    parser.add_argument("--runtime-window-training",action="store_true",help="Add train-only controlled PAIR/NONE windows to OOF HGB training")
     args=parser.parse_args()
+    if args.runtime_window_training and args.relation_training!="augmented_15":
+        raise ValueError("Runtime-window adaptation requires augmented_15")
     if not math.isfinite(args.endpoint_jitter_mm) or args.endpoint_jitter_mm<0:
         raise ValueError("Invalid endpoint jitter scale")
     if args.endpoint_jitter_mm and not (args.structure_models and args.separate_endpoints and args.frame_mode=="fixed_lps"):
@@ -419,11 +426,14 @@ def main():
     if args.stage in ("relations","volume","all"):
         verify_upstream_ranking_protocol(args.root,variants,args.ranking_weight,args.endpoint_jitter_mm)
     if args.stage in ("relations","all"):
-        ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants)
+        ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants,runtime_window_training=args.runtime_window_training)
     pilot=None
     if args.stage in ("pilot","volume","all"):
         pilot=ensure_pilot(args.root,patient=args.patient_id)
     if args.stage in ("volume","all"):
+        for variant in variants:
+            if not _verified_relation(args.root/f"relation_{variant}",variant,args.relation_training,args.runtime_window_training):
+                raise ValueError("Missing verified relation experiment")
         ensure_neural_inference(args.root,pilot=pilot,patient=args.patient_id,device=args.device,
                                 pair_identity_source=args.pair_identity_source,
                                 relation_mode=args.relation_training,variants=variants)
