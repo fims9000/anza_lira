@@ -52,7 +52,7 @@ def aggregate(reports:dict[int,Path])->dict:
                  report.get("tip_encoding","summed"),
                  bool(report.get("noaxial_control",False)),
                  report.get("pair_identity_source"),
-                 report.get("training_signature") or {"ranking_weight":0.,"endpoint_jitter_mm":0.})
+                 {"ranking_weight":0.,"endpoint_jitter_mm":0.,"runtime_window_training":False,**(report.get("training_signature") or {})})
         if signature is None:
             signature=current
         elif signature!=current:
