@@ -98,6 +98,7 @@ def run_neural_val_patient(
         raise ValueError("PAIR and JUNCTION training objectives differ")
     if not _verified_relation(relation,variant,relation_training):
         raise ValueError("Selected neural relation model is missing or incomplete")
+    training_signature["runtime_window_training"]=bool(read(relation/"relation_protocol.json").get("runtime_window_training",False))
     output=output_root/f"patient_{patient}"/variant
     if output.exists():
         raise FileExistsError("One-time val neural result already exists; never overwrite")
@@ -250,7 +251,7 @@ def summarize_matched_validation(
                 or run.get("freeze_sha256")!=sha(freeze_path)
             ):
                 raise ValueError("Neural CCTA validation receipt or freeze mismatch")
-            sig=run.get("training_signature",{"ranking_weight":0.,"endpoint_jitter_mm":0.})
+            sig={"ranking_weight":0.,"endpoint_jitter_mm":0.,"runtime_window_training":False,**run.get("training_signature",{})}
             if training_signature is None:
                 training_signature=sig
             elif training_signature!=sig:
