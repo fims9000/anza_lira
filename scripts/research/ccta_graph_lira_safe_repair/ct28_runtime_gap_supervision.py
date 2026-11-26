@@ -29,7 +29,11 @@ def gap_pair_labels(reference, broken, affine, gaps, endpoints, scenes, toleranc
     high = np.minimum(nz.max(axis=0)+2, reference.shape)
     roi = tuple(slice(int(a), int(b)) for a,b in zip(low, high))
     removed = reference[roi] & ~broken[roi]
-    removed_labels, n_removed = ndimage.label(removed, structure=CONNECTIVITY)
+    removed_xyz = np.argwhere(removed)
+    claimed = np.zeros(len(removed_xyz), dtype=bool)
+    radius = float(gaps['gap_radius_mm'])
+    if not np.isfinite(radius) or radius <= 0:
+        raise ValueError('Invalid frozen gap radius')
     components, _ = ndimage.label(broken[roi], structure=CONNECTIVITY)
     lookup = {e.endpoint_id: e for e in endpoints}
     if len(lookup) != len(endpoints):
@@ -40,16 +44,16 @@ def gap_pair_labels(reference, broken, affine, gaps, endpoints, scenes, toleranc
     def physical(voxels):
         return np.asarray(voxels) @ affine[:3,:3].T
     result = []
-    used = set()
     for index, gap in enumerate(gaps["centers"], 1):
         center = np.asarray(gap["center_voxel"], dtype=int)-low
         if np.any(center < 0) or np.any(center >= np.asarray(removed.shape)):
             raise ValueError("Gap center outside reference crop")
-        lid = int(removed_labels[tuple(center)])
-        if lid == 0 or lid in used:
-            raise ValueError("Gap centers do not identify distinct removed components")
-        used.add(lid)
-        deleted = removed_labels == lid
+        inside = np.linalg.norm(physical(removed_xyz-center), axis=1) <= radius + 1e-7
+        if not inside.any() or np.any(claimed & inside):
+            raise ValueError("Gap spheres overlap or identify no removed voxels")
+        claimed |= inside
+        deleted = np.zeros_like(removed)
+        deleted[tuple(removed_xyz[inside].T)] = True
         if int(deleted.sum()) != int(gap["removed_voxels"]):
             raise ValueError("Gap voxel count differs from frozen damage receipt")
         contact = ndimage.binary_dilation(deleted, structure=CONNECTIVITY) & ~deleted
@@ -76,8 +80,8 @@ def gap_pair_labels(reference, broken, affine, gaps, endpoints, scenes, toleranc
         record["status"] = ("unique" if count == 1 else
                             "uncovered" if count == 0 else "ambiguous_pair")
         result.append(record)
-    if len(used) != n_removed:
-        raise ValueError("Unrecorded removed components; cannot assign reliable labels")
+    if not claimed.all():
+        raise ValueError("Unrecorded removed voxels; cannot assign reliable labels")
     return result
 
 
