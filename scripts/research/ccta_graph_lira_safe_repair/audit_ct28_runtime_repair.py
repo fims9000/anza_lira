@@ -15,6 +15,7 @@ from types import SimpleNamespace
 
 import nibabel as nib
 import numpy as np
+from scipy import ndimage
 
 import run_ct28_graph_lira as graph
 from ccta_3d_endpoints import extract_endpoints, build_candidate_scenes
@@ -69,6 +70,54 @@ def oracle_gap(gap, scenes, endpoints, ct, affine, broken, reference, path, slac
                     gap_lumen_recall=overlap/gap["removed_voxels"])
     except (ValueError, RuntimeError, KeyError, IndexError) as exc:
         return dict(result,outcome="path_error",detail=str(exc))
+
+
+def evaluate_repaired_gaps(broken, repaired, reference, affine, gaps, endpoints, scenes, decisions, radius):
+    """Posthoc actual reconstruction, distinct from the GT-selected oracle."""
+    if repaired.shape!=broken.shape or np.any(broken & ~repaired):
+        raise ValueError("Expected additive reconstruction on frozen mask")
+    candidate_map={c.candidate_id:tuple(sorted(c.endpoint_ids)) for scene in scenes
+                   for c in scene.candidates if c.kind=="PAIR"}
+    known={tuple(p) for gap in gaps for p in gap["candidate_pairs"]}
+    ambiguous=any(g["status"]=="ambiguous_gap_topology" for g in gaps)
+    accepted_pairs=set()
+    unexpected_relations=0
+    for item in decisions["decisions"]:
+        if not item.get("accepted"):
+            continue
+        if item.get("candidate_pair"):
+            accepted_pairs.add(candidate_map[item["candidate_pair"]])
+        if item.get("candidate_junction"):
+            unexpected_relations+=1
+    coords=np.argwhere(repaired & ~broken)
+    nonzero=np.argwhere(repaired)
+    low=nonzero.min(axis=0)
+    high=nonzero.max(axis=0)+1
+    roi=tuple(slice(int(a),int(b)) for a,b in zip(low,high))
+    components,_=ndimage.label(repaired[roi],structure=np.ones((3,3,3),dtype=np.uint8))
+    lookup={e.endpoint_id:np.asarray(e.voxel)-low for e in endpoints}
+    outcomes=[]
+    for gap in gaps:
+        center=np.asarray(gap["center_voxel"])
+        within=np.linalg.norm((coords-center)@affine[:3,:3].T,axis=1)<=radius+1e-7
+        overlap=int(np.count_nonzero(within & reference[tuple(coords.T)]))
+        true_pair=tuple(gap["candidate_pairs"][0]) if gap["status"]=="unique" else None
+        connected=False
+        if true_pair:
+            left,right=(int(components[tuple(lookup[k])]) for k in true_pair)
+            connected=left!=0 and left==right
+        outcomes.append({"gap":gap["gap"],"oracle_label_status":gap["status"],
+             "correct_pair_accepted":bool(true_pair and true_pair in accepted_pairs),
+             "correct_pair_connected":connected,"gap_overlap_voxels":overlap,
+             "gap_lumen_recall":overlap/gap["removed_voxels"],
+             "verified_restored":bool(true_pair and true_pair in accepted_pairs and connected and overlap)})
+    return {"verified_restored":sum(r["verified_restored"] for r in outcomes),
+            "total_gaps":len(gaps),
+            "accepted_unique_pairs":len(accepted_pairs),
+            "unexpected_pairs":None if ambiguous else len(accepted_pairs-known),
+            "unexpected_junction_decisions":unexpected_relations,
+            "unsupported_added_voxels":int(np.count_nonzero((repaired & ~broken) & ~reference)),
+            "gaps":outcomes}
 
 
 def audit_windows(engine, scenes, endpoints, ct, affine, labels, gaps, support):
@@ -129,6 +178,7 @@ def main():
     p.add_argument("--freeze",type=Path,required=True)
     p.add_argument("--pilot-root",type=Path,default=DEFAULT_OUTPUT)
     p.add_argument("--study-root",type=Path,help="Optional existing matched model root for window diagnostics")
+    p.add_argument("--validation-root",type=Path,help="Optional actual repaired masks and decisions for per-gap evaluation")
     p.add_argument("--deepsets",action="store_true")
     p.add_argument("--device",default="cpu")
     p.add_argument("--output",type=Path,required=True)
@@ -175,10 +225,31 @@ def main():
              "label_counts":dict(Counter(labels.values())),
              "window_diagnostics":{name:audit_windows(engine,scenes,endpoints,ct,affine,labels,gaps,support)
                                    for name,engine in engines.items()}}
+        actual_dirs={"K10":pilot}
+        if a.validation_root is not None:
+            variants=("conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure") if a.deepsets else ("conv3d_sep_structure","anza3d_sep_structure")
+            actual_dirs.update({v:a.validation_root/f"patient_{patient}"/v for v in variants})
+        row["actual_repairs"]={}
+        for name,folder in actual_dirs.items():
+            actual_img=nib.load(str(folder/"repaired.nii.gz"))
+            actual_metrics=read(folder/"posthoc_metrics.json")
+            if digest(folder/"repaired.nii.gz")!=actual_metrics["after_sha256"] or actual_metrics["before_sha256"]!=read(pilot/"posthoc_metrics.json")["before_sha256"] or actual_img.shape!=broken.shape or not np.allclose(actual_img.affine,affine,atol=1e-6,rtol=0):
+                raise ValueError("Actual repair mask provenance mismatch")
+            row["actual_repairs"][name]=evaluate_repaired_gaps(broken,np.asarray(actual_img.dataobj)>.5,
+                 reference,affine,gaps,endpoints,scenes,read(folder/"decisions.json"),float(gap_meta["gap_radius_mm"]))
         report.append(row)
         print(f"Oracle {patient}: {sum(g['restored'] for g in oracles)}/{len(oracles)}",flush=True)
     all_gaps=[g for r in report for g in r["oracle_gaps"]]
+    actual_totals={}
+    for name in report[0]["actual_repairs"]:
+        items=[p["actual_repairs"][name] for p in report]
+        actual_totals[name]={"verified_restored":sum(r["verified_restored"] for r in items),
+            "total_gaps":sum(r["total_gaps"] for r in items),
+            "unexpected_pairs":None if any(r["unexpected_pairs"] is None for r in items) else sum(r["unexpected_pairs"] for r in items),
+            "unexpected_junction_decisions":sum(r["unexpected_junction_decisions"] for r in items),
+            "unsupported_added_voxels":sum(r["unsupported_added_voxels"] for r in items)}
     result={"protocol":"posthoc_oracle_independent_gaps_v1",
+            "actual_repair_totals":actual_totals,
             "held_out_test_accessed":False,"oracle_uses_ground_truth":True,
             "not_model_performance":True,
             "total_gaps":len(all_gaps),"restored_with_oracle":sum(g["restored"] for g in all_gaps),
