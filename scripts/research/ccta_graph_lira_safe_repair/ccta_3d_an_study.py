@@ -95,7 +95,7 @@ def _relation_protocol(mode:str)->str:
     return statuses[mode]
 
 
-def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
+def _verified_relation(path:Path,variant:str,mode:str="clean",runtime_window_training:bool|None=None)->bool:
     status=_relation_protocol(mode)
     if not path.exists():
         return False
@@ -103,6 +103,8 @@ def _verified_relation(path:Path,variant:str,mode:str="clean")->bool:
     if not manifest.is_file():
         raise ValueError(f"Partial relation-model evidence: {path}")
     m=_load_json(manifest)
+    if runtime_window_training is not None and bool(m.get("runtime_window_training",False))!=runtime_window_training:
+        raise ValueError("Existing HGB uses a different runtime-window training objective")
     if m.get("status")!=status or m.get("variant")!=variant:
         raise ValueError("Wrong experimental relation variant or augmentation mode")
     name="clean_relation_head.joblib" if mode=="clean" else "augmented_relation_head.joblib"
@@ -138,7 +140,7 @@ def ensure_patch_cache(cache:Path,frame_mode:str="canonical",with_vessel_targets
         print(f"CT28 3D patches complete: {patient}",flush=True)
 
 
-def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102,variants:tuple[str,...]=("conv3d","anza3d"),endpoint_encoding:str="summed",ranking_weight:float=0.)->None:
+def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size:int,frame_mode:str="canonical",seed:int=20261102,variants:tuple[str,...]=("conv3d","anza3d"),endpoint_encoding:str="summed",ranking_weight:float=0.,endpoint_jitter_mm:float=0.)->None:
     structure=all(v.endswith("_structure") for v in variants)
     if any(("_sep_" in variant)!=(endpoint_encoding=="separate") for variant in variants):
         raise ValueError("Model variant and patch endpoint-encoding mismatch")
@@ -149,21 +151,21 @@ def ensure_oof(cache:Path,root:Path,*,epochs:int,device:str,folds:int,batch_size
             out=root/f"oof_{kind.lower()}_{variant}"
             if _verified_oof(out,kind,variant):
                 meta=_load_json(out/"oof_protocol.json")
-                expected={"epochs":epochs,"batch_size":batch_size,"seed":seed,"device":device,"ranking_weight":ranking_weight}
+                expected={"epochs":epochs,"batch_size":batch_size,"seed":seed,"device":device,"ranking_weight":ranking_weight,"endpoint_jitter_mm":endpoint_jitter_mm}
                 actual=meta.get("fixed_train_hyperparameters",{})
-                if meta.get("fold_count")!=folds or any(actual.get(k,0. if k=="ranking_weight" else None)!=v for k,v in expected.items()):
+                if meta.get("fold_count")!=folds or any(actual.get(k,0. if k in ("ranking_weight","endpoint_jitter_mm") else None)!=v for k,v in expected.items()):
                     raise ValueError("Existing OOF run uses different seed, folds, device or training budget")
                 continue
             build_oof(
                 cache_dir=cache,out_dir=out,candidate_type=kind,
                 variant=variant,train_patients=TRAIN,val_patients=VAL,
                 folds=folds,epochs=epochs,batch_size=batch_size,
-                seed=seed,device=device,ranking_weight=ranking_weight,
+                seed=seed,device=device,ranking_weight=ranking_weight,endpoint_jitter_mm=endpoint_jitter_mm,
             )
             print(f"Patient-OOF candidate evidence: {kind}/{variant}",flush=True)
 
 
-def verify_upstream_ranking_protocol(root:Path,variants:tuple[str,...],expected_weight:float)->None:
+def verify_upstream_ranking_protocol(root:Path,variants:tuple[str,...],expected_weight:float,expected_jitter:float=0.)->None:
     """Refuse relations/volume generated with stale candidate ranking objective."""
     if not math.isfinite(expected_weight) or expected_weight<0:
         raise ValueError("Invalid train-only ranking weight")
@@ -173,7 +175,10 @@ def verify_upstream_ranking_protocol(root:Path,variants:tuple[str,...],expected_
             if not _verified_oof(output,kind,variant):
                 raise ValueError(f"Missing verified upstream OOF for {kind}/{variant}")
             meta=_load_json(output/"oof_protocol.json")
-            weight=meta.get("fixed_train_hyperparameters",{}).get("ranking_weight",0.)
+            hp=meta.get("fixed_train_hyperparameters",{})
+            if hp.get("endpoint_jitter_mm",0.)!=expected_jitter:
+                raise ValueError(f"OOF {kind}/{variant} endpoint-jitter mismatch")
+            weight=hp.get("ranking_weight",0.)
             if weight!=expected_weight:
                 raise ValueError(
                     f"OOF {kind}/{variant} ranking-weight mismatch: "
@@ -181,11 +186,13 @@ def verify_upstream_ranking_protocol(root:Path,variants:tuple[str,...],expected_
                 )
 
 
-def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu",variants:tuple[str,...]=("conv3d","anza3d"))->None:
+def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu",variants:tuple[str,...]=("conv3d","anza3d"),runtime_window_training:bool=False)->None:
     _relation_protocol(mode)
+    if runtime_window_training and mode!="augmented_15":
+        raise ValueError("Runtime-window adaptation requires augmented patient-OOF HGB")
     for variant in variants:
         path=root/f"relation_{variant}"
-        if _verified_relation(path,variant,mode):
+        if _verified_relation(path,variant,mode,runtime_window_training):
             continue
         options={
             "pair_oof":root/f"oof_pair_{variant}",
@@ -197,7 +204,7 @@ def ensure_relations(root:Path,*,mode:str="clean",device:str="cpu",variants:tupl
             run_relation_training(**options)
         else:
             from ccta_3d_an_relation_augmented import train_augmented_neural_relation
-            train_augmented_neural_relation(**options,device=device)
+            train_augmented_neural_relation(**options,device=device,runtime_window_training=runtime_window_training)
         print(f"{mode} 84-feature relation trained: {variant}",flush=True)
 
 
@@ -325,7 +332,7 @@ def summarize(root:Path,*,pilot:Path,patient:int,
             (
                 "ANZA/CNN relation HGB is clean-only and not matched to K10/15's 15 train perturbations"
                 if relation_mode=="clean" else
-                "ANZA/CNN relation HGB uses 15 patient-OOF train perturbations but neural candidate encoder was fitted on clean inputs"
+                "ANZA/CNN relation HGB uses 15 patient-OOF train perturbations ; candidate jitter and runtime-window adaptation are recorded in upstream manifests"
             ),
             "Single training patient is not generalization evidence",
             "Real natural predicted mask errors remain untested",
@@ -377,7 +384,15 @@ def main():
     parser.add_argument("--folds",type=int,default=5)
     parser.add_argument("--batch-size",type=int,default=8)
     parser.add_argument("--ranking-weight",type=float,default=0.,help="Train-only same-scene candidate ranking ablation (0 preserves baseline)")
+    parser.add_argument("--endpoint-jitter-mm",type=float,default=0.,help="Opt-in train-only cached fixed-LPS endpoint perturbation")
+    parser.add_argument("--runtime-window-training",action="store_true",help="Add train-only controlled PAIR/NONE windows to OOF HGB training")
     args=parser.parse_args()
+    if args.runtime_window_training and args.relation_training!="augmented_15":
+        raise ValueError("Runtime-window adaptation requires augmented_15")
+    if not math.isfinite(args.endpoint_jitter_mm) or args.endpoint_jitter_mm<0:
+        raise ValueError("Invalid endpoint jitter scale")
+    if args.endpoint_jitter_mm and not (args.structure_models and args.separate_endpoints and args.frame_mode=="fixed_lps"):
+        raise ValueError("Endpoint jitter requires fixed-LPS separate-tip structural models")
     if (args.frame_mode=="fixed_lps" or args.structure_models or args.separate_endpoints) and (args.cache_dir.resolve()==DEFAULT_CACHE.resolve() or args.root.resolve()==DEFAULT_STUDY.resolve()):
         raise ValueError("Fixed LPS ablation requires separate --cache-dir and --root; keep historical runs immutable")
     if args.patient_id not in TRAIN:
@@ -407,15 +422,18 @@ def main():
         ensure_patch_cache(args.cache_dir,frame_mode=args.frame_mode,with_vessel_targets=args.structure_models,endpoint_encoding=encoding)
     if args.stage in ("oof","all"):
         ensure_oof(args.cache_dir,args.root,epochs=args.epochs,device=args.device,
-                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants,endpoint_encoding=encoding,ranking_weight=args.ranking_weight)
+                   folds=args.folds,batch_size=args.batch_size,frame_mode=args.frame_mode,seed=args.seed,variants=variants,endpoint_encoding=encoding,ranking_weight=args.ranking_weight,endpoint_jitter_mm=args.endpoint_jitter_mm)
     if args.stage in ("relations","volume","all"):
-        verify_upstream_ranking_protocol(args.root,variants,args.ranking_weight)
+        verify_upstream_ranking_protocol(args.root,variants,args.ranking_weight,args.endpoint_jitter_mm)
     if args.stage in ("relations","all"):
-        ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants)
+        ensure_relations(args.root,mode=args.relation_training,device=args.device,variants=variants,runtime_window_training=args.runtime_window_training)
     pilot=None
     if args.stage in ("pilot","volume","all"):
         pilot=ensure_pilot(args.root,patient=args.patient_id)
     if args.stage in ("volume","all"):
+        for variant in variants:
+            if not _verified_relation(args.root/f"relation_{variant}",variant,args.relation_training,args.runtime_window_training):
+                raise ValueError("Missing verified relation experiment")
         ensure_neural_inference(args.root,pilot=pilot,patient=args.patient_id,device=args.device,
                                 pair_identity_source=args.pair_identity_source,
                                 relation_mode=args.relation_training,variants=variants)

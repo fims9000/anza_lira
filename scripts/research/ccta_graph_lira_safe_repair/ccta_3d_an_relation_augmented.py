@@ -203,6 +203,7 @@ def train_augmented_neural_relation(
     scene_dir:Path=SCENES,
     archive_dir:Path=augmentation.DEFAULT_ARCHIVE_DIR,
     device:str="cpu",
+    runtime_window_training:bool=False,
 )->dict:
     if variant not in {"conv3d","anza3d","conv3d_structure","anza3d_structure","anza3d_noaxial_structure","anza3d_sep_structure","conv3d_sep_structure","anza3d_noaxial_sep_structure","conv3d_deepsets_sep_structure","anza3d_deepsets_sep_structure","anza3d_noaxial_deepsets_sep_structure"}:
         raise ValueError("Unknown encoder")
@@ -267,6 +268,13 @@ def train_augmented_neural_relation(
         row["sample_weight"]=.5/EVAL_REPETITIONS
     all_train=clean_train+augmented
     augmentation.validate_augmentation_weights(all_train,EVAL_REPETITIONS)
+    runtime_audit=None
+    if runtime_window_training:
+        from ct28_runtime_window_training import build_runtime_train_rows
+        runtime_rows,runtime_audit=build_runtime_train_rows(
+            geometry_folds=geometry_folds,transform=transform,archive_dir=archive_dir,
+            columns=columns,historical_weight=float(len(clean_train)))
+        all_train=all_train+runtime_rows
     fitted,metrics,predictions=augmentation.fit_augmented_head(
         all_train,clean_val,columns,.85
     )
@@ -290,6 +298,8 @@ def train_augmented_neural_relation(
         "pair_oof_sha256":sha256(pair_oof/f"PAIR_{variant}_oof_val.csv"),
         "junction_oof_sha256":sha256(junction_oof/f"JUNCTION_{variant}_oof_val.csv"),
         "train_scenes":len(clean_train),
+        "runtime_window_training":bool(runtime_window_training),
+        "runtime_window_protocol":runtime_audit,
         "validation_scenes":len(clean_val),
         "augmented_train_scenes":len(augmented),
         "relation_training_copies_per_scene":EVAL_REPETITIONS,
@@ -315,7 +325,7 @@ def train_augmented_neural_relation(
         "held_out_test_accessed":False,
         "limitations":[
             "Relation head uses 15 train perturb copies and separate patient-OOF neural CT scores.",
-            "Neural PAIR/JUNCTION encoder itself was trained on clean candidate patches, not 15 position augmentations.",
+            "Candidate encoder jitter, if enabled, is recorded in the OOF manifests; runtime window supervision is PAIR/NONE only.",
             "Rare out-of-physical-patch endpoints during 15x augmentation are counted, not silently concealed.",
             "Neither selected K10/15 nor real CCTA path v2 medical mask performance is reproduced by this relation-only head.",
             "Five development-validation patients are not independent confirmatory test.",
@@ -338,13 +348,14 @@ def main():
     p.add_argument("--archive-dir",type=Path,default=augmentation.DEFAULT_ARCHIVE_DIR)
     p.add_argument("--device",default="cpu")
     p.add_argument("--output-dir",type=Path,required=True)
+    p.add_argument("--runtime-window-training",action="store_true")
     a=p.parse_args()
     result=train_augmented_neural_relation(
         pair_oof=a.pair_oof,junction_oof=a.junction_oof,
         variant=a.variant,output_dir=a.output_dir,
         baseline_dir=a.baseline_dir,scene_dir=a.scene_dir,
         geometry_evidence_dir=a.geometry_evidence_dir,
-        archive_dir=a.archive_dir,device=a.device,
+        archive_dir=a.archive_dir,device=a.device,runtime_window_training=a.runtime_window_training,
     )
     print(json.dumps({
         "status":result["status"],

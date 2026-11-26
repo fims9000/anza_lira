@@ -168,6 +168,12 @@ class NeuralCCTA3dInference(K10Inference):
             pair_identity_source=pair_identity_source,
         )
         engine.relation_train_protocol=relation["status"]
+        engine.runtime_window_training=bool(relation.get("runtime_window_training",False))
+        if engine.runtime_window_training:
+            from ct28_runtime_window_training import PROTOCOL
+            audit=relation.get("runtime_window_protocol") or {}
+            if audit.get("protocol")!=PROTOCOL or audit.get("held_out_test_accessed") is not False or audit.get("positive_patients",0)<8:
+                raise ValueError("Missing valid train-only runtime-window supervision receipt")
         return engine
 
     def _score(
