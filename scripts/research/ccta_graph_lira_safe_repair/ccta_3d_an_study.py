@@ -332,7 +332,7 @@ def summarize(root:Path,*,pilot:Path,patient:int,
             (
                 "ANZA/CNN relation HGB is clean-only and not matched to K10/15's 15 train perturbations"
                 if relation_mode=="clean" else
-                "ANZA/CNN relation HGB uses 15 patient-OOF train perturbations but neural candidate encoder was fitted on clean inputs"
+                "ANZA/CNN relation HGB uses 15 patient-OOF train perturbations ; candidate jitter and runtime-window adaptation are recorded in upstream manifests"
             ),
             "Single training patient is not generalization evidence",
             "Real natural predicted mask errors remain untested",
