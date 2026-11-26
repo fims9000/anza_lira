@@ -62,6 +62,7 @@ def run_neural(
             engine,"relation_train_protocol","unrecorded_legacy_injected_predictor"
         ),
         "not_frozen_K10_relation_head":True,
+        "runtime_window_training":bool(getattr(engine,"runtime_window_training",False)),
         "note":(
             "Neural CT candidate scores and 15-copy patient-OOF augmented relation head"
             if getattr(engine,"relation_train_protocol","")==
