@@ -92,6 +92,10 @@ def run_neural_val_patient(
         freeze_path=freeze_path,frozen=frozen,
     )
     relation,pair,junction=pair_experiment_paths(study_root,variant)
+    hp=[read(p/"oof_protocol.json").get("fixed_train_hyperparameters",{}) for p in (pair,junction)]
+    training_signature={key:hp[0].get(key,0.) for key in ("ranking_weight","endpoint_jitter_mm")}
+    if any({key:h.get(key,0.) for key in training_signature}!=training_signature for h in hp):
+        raise ValueError("PAIR and JUNCTION training objectives differ")
     if not _verified_relation(relation,variant,relation_training):
         raise ValueError("Selected neural relation model is missing or incomplete")
     output=output_root/f"patient_{patient}"/variant
@@ -138,6 +142,7 @@ def run_neural_val_patient(
             "patient_id":patient,"variant":variant,
             "pair_identity_source":pair_identity_source,
             "relation_train_protocol":expected_relation_protocol,
+            "training_signature":training_signature,
             "relation_protocol_sha256":sha(relation/"relation_protocol.json"),
             "pair_oof_protocol_sha256":sha(pair/"oof_protocol.json"),
             "junction_oof_protocol_sha256":sha(junction/"oof_protocol.json"),
@@ -212,6 +217,7 @@ def summarize_matched_validation(
                    else "anza3d_structure")
     freeze=verify_validation_freeze(freeze_path)
     rows=[]
+    training_signature=None
     for patient in sorted(VAL_CT28_IDS):
         pilot=pilot_root/f"patient_{patient}"
         baseline_metrics=pilot/"posthoc_metrics.json"
@@ -244,6 +250,11 @@ def summarize_matched_validation(
                 or run.get("freeze_sha256")!=sha(freeze_path)
             ):
                 raise ValueError("Neural CCTA validation receipt or freeze mismatch")
+            sig=run.get("training_signature",{"ranking_weight":0.,"endpoint_jitter_mm":0.})
+            if training_signature is None:
+                training_signature=sig
+            elif training_signature!=sig:
+                raise ValueError("Cannot mix different candidate training objectives")
             evaluation=read(report_path.parent/"posthoc_metrics.json")
             if (
                 evaluation.get("before_sha256")!=k10["before_sha256"]
@@ -297,6 +308,7 @@ def summarize_matched_validation(
         "pair_identity_source":pair_identity_source,
         "variant_pair":[cnn_name,anza_name],
         "tip_encoding":"separate" if separate_endpoints else "summed",
+        "training_signature":training_signature,
         "noaxial_control":bool(noaxial_control),
         "deepsets_tip_encoder":bool(deepsets),
         "relation_train_protocol":expected_relation_protocol,
@@ -310,7 +322,7 @@ def summarize_matched_validation(
             (
                 "ANN relation heads use clean OOF; K10 used 15 training augmentations."
                 if relation_training=="clean" else
-                "ANN relation heads use 15 patient-OOF perturbation copies matching K10 relation augmentation; candidate CNN/ANZA encoders remain clean-trained."
+                "ANN relation heads use 15 patient-OOF perturbation copies matching K10 relation augmentation; candidate training objective is recorded in training_signature."
             ),
             "Only controlled artificial GT gaps, not natural predicted segmentation errors.",
             "A 5-patient bootstrap interval is descriptive, not a confirmatory CI.",
